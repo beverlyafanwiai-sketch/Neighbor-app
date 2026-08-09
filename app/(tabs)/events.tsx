@@ -1,0 +1,176 @@
+import { useState } from 'react';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+const EVENT_TABS = ['Upcoming', 'Hosting', 'Past'] as const;
+type EventTab = (typeof EVENT_TABS)[number];
+
+const upcoming = [
+  {
+    id: '1',
+    title: 'Porch Potluck',
+    day: '15',
+    month: 'AUG',
+    time: 'Sat, 6:00 PM',
+    location: "Amara's place",
+    host: 'Hosted by Amara',
+    spotsTaken: 6,
+    spotsTotal: 8,
+    avatars: [
+      'https://i.pravatar.cc/150?img=5',
+      'https://i.pravatar.cc/150?img=33',
+      'https://i.pravatar.cc/150?img=48',
+    ],
+  },
+  {
+    id: '2',
+    title: 'Trail Loop: Sunset Ridge',
+    day: '16',
+    month: 'AUG',
+    time: 'Sun, 9:00 AM',
+    location: 'Sunset Ridge Trailhead',
+    host: 'Weekend Hikers',
+    spotsTaken: 5,
+    spotsTotal: 6,
+    avatars: ['https://i.pravatar.cc/150?img=15', 'https://i.pravatar.cc/150?img=12'],
+  },
+];
+
+const past = [
+  {
+    id: '3',
+    title: 'Kitchen Table Book Club',
+    date: 'Aug 2',
+    location: "Theo's place",
+    met: [
+      { name: 'Maya', uri: 'https://i.pravatar.cc/150?img=5' },
+      { name: 'Priya', uri: 'https://i.pravatar.cc/150?img=48' },
+    ],
+  },
+  {
+    id: '4',
+    title: 'Pottery Open Studio',
+    date: 'Jul 28',
+    location: 'Clay & Co Studio',
+    met: [{ name: 'Sam', uri: 'https://i.pravatar.cc/150?img=15' }],
+  },
+];
+
+export default function Events() {
+  const [tab, setTab] = useState<EventTab>('Upcoming');
+
+  return (
+    <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
+      <View className="flex-row items-center justify-between px-5 pb-3 pt-2">
+        <Text className="text-2xl font-bold text-charcoal">Events</Text>
+        <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-terracotta">
+          <Ionicons name="add" size={22} color="#F5F2E9" />
+        </Pressable>
+      </View>
+
+      <View className="flex-row gap-2 px-5 pb-3">
+        {EVENT_TABS.map((t) => (
+          <Pressable
+            key={t}
+            onPress={() => setTab(t)}
+            className={`rounded-full px-4 py-2 ${tab === t ? 'bg-charcoal' : 'bg-cream'}`}
+          >
+            <Text className={`text-sm font-medium ${tab === t ? 'text-cream' : 'text-charcoal/60'}`}>
+              {t}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
+        {tab === 'Upcoming' && (
+          <View className="gap-3">
+            {upcoming.map((e) => (
+              <View key={e.id} className="flex-row gap-3 rounded-2xl bg-cream p-4">
+                <View className="h-14 w-14 items-center justify-center rounded-xl bg-terracotta">
+                  <Text className="text-xs font-semibold text-cream">{e.month}</Text>
+                  <Text className="text-xl font-bold text-cream">{e.day}</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="font-semibold text-charcoal">{e.title}</Text>
+                  <Text className="mt-0.5 text-xs text-charcoal/60">
+                    {e.time} · {e.location}
+                  </Text>
+                  <Text className="mt-0.5 text-xs text-sage">{e.host}</Text>
+
+                  <View className="mt-3 flex-row items-center justify-between">
+                    <View className="flex-row items-center gap-2">
+                      <View className="flex-row">
+                        {e.avatars.map((a, i) => (
+                          <Image
+                            key={a}
+                            source={{ uri: a }}
+                            className="h-6 w-6 rounded-full border-2 border-cream"
+                            style={{ marginLeft: i === 0 ? 0 : -8 }}
+                          />
+                        ))}
+                      </View>
+                      <Text className="text-xs text-charcoal/50">
+                        {e.spotsTaken}/{e.spotsTotal} spots
+                      </Text>
+                    </View>
+                    <Pressable className="rounded-full bg-gold px-4 py-1.5">
+                      <Text className="text-xs font-semibold text-charcoal">Going</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {tab === 'Hosting' && (
+          <View className="mt-10 items-center px-6">
+            <View className="h-20 w-20 items-center justify-center rounded-full bg-cream">
+              <Ionicons name="megaphone-outline" size={32} color="#E0533C" />
+            </View>
+            <Text className="mt-4 text-center text-base font-semibold text-charcoal">
+              You're not hosting anything yet
+            </Text>
+            <Text className="mt-1.5 text-center text-sm text-charcoal/60">
+              Start small — a porch hangout for 6 is plenty to get to know people.
+            </Text>
+            <Pressable className="mt-5 rounded-full bg-charcoal px-6 py-3">
+              <Text className="text-sm font-semibold text-cream">Host an event</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {tab === 'Past' && (
+          <View className="gap-3">
+            {past.map((e) => (
+              <View key={e.id} className="rounded-2xl bg-cream p-4">
+                <Text className="font-semibold text-charcoal">{e.title}</Text>
+                <Text className="mt-0.5 text-xs text-charcoal/60">
+                  {e.date} · {e.location}
+                </Text>
+
+                <Text className="mb-2 mt-3 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                  People you met
+                </Text>
+                <View className="gap-2">
+                  {e.met.map((p) => (
+                    <View key={p.name} className="flex-row items-center gap-2.5">
+                      <Image source={{ uri: p.uri }} className="h-9 w-9 rounded-full" />
+                      <Text className="flex-1 text-sm text-charcoal">{p.name}</Text>
+                      <Pressable className="flex-row items-center gap-1 rounded-full bg-sand px-3 py-1.5">
+                        <Ionicons name="person-add-outline" size={13} color="#3D3D3D" />
+                        <Text className="text-xs font-medium text-charcoal">Add friend</Text>
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
