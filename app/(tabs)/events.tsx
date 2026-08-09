@@ -1,64 +1,18 @@
 import { useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { EVENTS, getUser } from '../../data/mock';
 
 const EVENT_TABS = ['Upcoming', 'Hosting', 'Past'] as const;
 type EventTab = (typeof EVENT_TABS)[number];
 
-const upcoming = [
-  {
-    id: '1',
-    title: 'Porch Potluck',
-    day: '15',
-    month: 'AUG',
-    time: 'Sat, 6:00 PM',
-    location: "Amara's place",
-    host: 'Hosted by Amara',
-    spotsTaken: 6,
-    spotsTotal: 8,
-    avatars: [
-      'https://i.pravatar.cc/150?img=5',
-      'https://i.pravatar.cc/150?img=33',
-      'https://i.pravatar.cc/150?img=48',
-    ],
-  },
-  {
-    id: '2',
-    title: 'Trail Loop: Sunset Ridge',
-    day: '16',
-    month: 'AUG',
-    time: 'Sun, 9:00 AM',
-    location: 'Sunset Ridge Trailhead',
-    host: 'Weekend Hikers',
-    spotsTaken: 5,
-    spotsTotal: 6,
-    avatars: ['https://i.pravatar.cc/150?img=15', 'https://i.pravatar.cc/150?img=12'],
-  },
-];
-
-const past = [
-  {
-    id: '3',
-    title: 'Kitchen Table Book Club',
-    date: 'Aug 2',
-    location: "Theo's place",
-    met: [
-      { name: 'Maya', uri: 'https://i.pravatar.cc/150?img=5' },
-      { name: 'Priya', uri: 'https://i.pravatar.cc/150?img=48' },
-    ],
-  },
-  {
-    id: '4',
-    title: 'Pottery Open Studio',
-    date: 'Jul 28',
-    location: 'Clay & Co Studio',
-    met: [{ name: 'Sam', uri: 'https://i.pravatar.cc/150?img=15' }],
-  },
-];
-
 export default function Events() {
   const [tab, setTab] = useState<EventTab>('Upcoming');
+  const upcoming = EVENTS.filter((e) => e.status === 'upcoming');
+  const past = EVENTS.filter((e) => e.status === 'past');
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -86,42 +40,49 @@ export default function Events() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
         {tab === 'Upcoming' && (
           <View className="gap-3">
-            {upcoming.map((e) => (
-              <View key={e.id} className="flex-row gap-3 rounded-2xl bg-cream p-4">
-                <View className="h-14 w-14 items-center justify-center rounded-xl bg-terracotta">
-                  <Text className="text-xs font-semibold text-cream">{e.month}</Text>
-                  <Text className="text-xl font-bold text-cream">{e.day}</Text>
-                </View>
-                <View className="flex-1">
-                  <Text className="font-semibold text-charcoal">{e.title}</Text>
-                  <Text className="mt-0.5 text-xs text-charcoal/60">
-                    {e.time} · {e.location}
-                  </Text>
-                  <Text className="mt-0.5 text-xs text-sage">{e.host}</Text>
-
-                  <View className="mt-3 flex-row items-center justify-between">
-                    <View className="flex-row items-center gap-2">
-                      <View className="flex-row">
-                        {e.avatars.map((a, i) => (
-                          <Image
-                            key={a}
-                            source={{ uri: a }}
-                            className="h-6 w-6 rounded-full border-2 border-cream"
-                            style={{ marginLeft: i === 0 ? 0 : -8 }}
-                          />
-                        ))}
-                      </View>
-                      <Text className="text-xs text-charcoal/50">
-                        {e.spotsTaken}/{e.spotsTotal} spots
-                      </Text>
-                    </View>
-                    <Pressable className="rounded-full bg-gold px-4 py-1.5">
-                      <Text className="text-xs font-semibold text-charcoal">Going</Text>
-                    </Pressable>
+            {upcoming.map((e) => {
+              const avatars = e.attendeeIds.map((id) => getUser(id)).filter(Boolean);
+              return (
+                <Pressable
+                  key={e.id}
+                  onPress={() => router.push(`/event/${e.id}`)}
+                  className="flex-row gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+                >
+                  <View className="h-14 w-14 items-center justify-center rounded-xl bg-terracotta">
+                    <Text className="text-xs font-semibold text-cream">{e.month}</Text>
+                    <Text className="text-xl font-bold text-cream">{e.day}</Text>
                   </View>
-                </View>
-              </View>
-            ))}
+                  <View className="flex-1">
+                    <Text className="font-semibold text-charcoal">{e.title}</Text>
+                    <Text className="mt-0.5 text-xs text-charcoal/60">
+                      {e.time} · {e.location}
+                    </Text>
+                    <Text className="mt-0.5 text-xs text-sage">{e.hostLabel}</Text>
+
+                    <View className="mt-3 flex-row items-center justify-between">
+                      <View className="flex-row items-center gap-2">
+                        <View className="flex-row">
+                          {avatars.map((a, i) => (
+                            <Image
+                              key={a!.id}
+                              source={{ uri: a!.avatar }}
+                              className="h-6 w-6 rounded-full border-2 border-cream"
+                              style={{ marginLeft: i === 0 ? 0 : -8 }}
+                            />
+                          ))}
+                        </View>
+                        <Text className="text-xs text-charcoal/50">
+                          {e.spotsTaken}/{e.spotsTotal} spots
+                        </Text>
+                      </View>
+                      <View className="rounded-full bg-gold px-4 py-1.5">
+                        <Text className="text-xs font-semibold text-charcoal">Going</Text>
+                      </View>
+                    </View>
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
         )}
 
@@ -144,30 +105,40 @@ export default function Events() {
 
         {tab === 'Past' && (
           <View className="gap-3">
-            {past.map((e) => (
-              <View key={e.id} className="rounded-2xl bg-cream p-4">
-                <Text className="font-semibold text-charcoal">{e.title}</Text>
-                <Text className="mt-0.5 text-xs text-charcoal/60">
-                  {e.date} · {e.location}
-                </Text>
+            {past.map((e) => {
+              const met = (e.metIds ?? []).map((id) => getUser(id)).filter(Boolean);
+              return (
+                <Pressable
+                  key={e.id}
+                  onPress={() => router.push(`/event/${e.id}`)}
+                  className="rounded-2xl bg-cream p-4 active:opacity-80"
+                >
+                  <Text className="font-semibold text-charcoal">{e.title}</Text>
+                  <Text className="mt-0.5 text-xs text-charcoal/60">
+                    {e.date} · {e.location}
+                  </Text>
 
-                <Text className="mb-2 mt-3 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
-                  People you met
-                </Text>
-                <View className="gap-2">
-                  {e.met.map((p) => (
-                    <View key={p.name} className="flex-row items-center gap-2.5">
-                      <Image source={{ uri: p.uri }} className="h-9 w-9 rounded-full" />
-                      <Text className="flex-1 text-sm text-charcoal">{p.name}</Text>
-                      <Pressable className="flex-row items-center gap-1 rounded-full bg-sand px-3 py-1.5">
-                        <Ionicons name="person-add-outline" size={13} color="#3D3D3D" />
-                        <Text className="text-xs font-medium text-charcoal">Add friend</Text>
-                      </Pressable>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            ))}
+                  <Text className="mb-2 mt-3 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                    People you met
+                  </Text>
+                  <View className="gap-2">
+                    {met.map((p) => (
+                      <View key={p!.id} className="flex-row items-center gap-2.5">
+                        <Image source={{ uri: p!.avatar }} className="h-9 w-9 rounded-full" />
+                        <Text className="flex-1 text-sm text-charcoal">{p!.name}</Text>
+                        <Pressable
+                          onPress={() => router.push(`/profile/${p!.id}`)}
+                          className="flex-row items-center gap-1 rounded-full bg-sand px-3 py-1.5"
+                        >
+                          <Ionicons name="person-add-outline" size={13} color="#3D3D3D" />
+                          <Text className="text-xs font-medium text-charcoal">Add friend</Text>
+                        </Pressable>
+                      </View>
+                    ))}
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
         )}
       </ScrollView>
