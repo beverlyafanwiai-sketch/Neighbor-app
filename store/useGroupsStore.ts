@@ -17,6 +17,7 @@ type GroupsState = {
   createGroup: (input: NewGroupInput) => string;
   updateGroup: (groupId: string, updates: Partial<GroupEdits>) => void;
   markRead: (groupId: string) => void;
+  deleteGroup: (groupId: string) => void;
 };
 
 function slugify(name: string) {
@@ -70,6 +71,9 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
     set((s) => ({
       groups: s.groups.map((g) => (g.id === groupId ? { ...g, unread: 0 } : g)),
     })),
+
+  deleteGroup: (groupId) =>
+    set((s) => ({ groups: s.groups.filter((g) => g.id !== groupId) })),
 }));
 
 export function getGroup(groupId: string): Group | undefined {

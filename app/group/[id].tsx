@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -19,6 +20,8 @@ export default function GroupDetail() {
   const profile = useProfileStore((s) => s.profile);
   const joined = useGroupsStore((s) => (group ? (s.joined[group.id] ?? false) : false));
   const toggleJoin = useGroupsStore((s) => s.toggle);
+  const deleteGroup = useGroupsStore((s) => s.deleteGroup);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   if (!group) {
     return (
@@ -36,6 +39,11 @@ export default function GroupDetail() {
   const toneStyle = TONE_STYLE[group.tone] ?? TONE_STYLE.Casual;
   const isCreator = group.createdBy === ME.id;
 
+  const remove = () => {
+    deleteGroup(group.id);
+    router.back();
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center justify-between px-4 py-3">
@@ -46,14 +54,36 @@ export default function GroupDetail() {
           <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
         </Pressable>
         {isCreator && (
-          <Pressable
-            onPress={() => router.push(`/create-group?id=${group.id}`)}
-            className="h-9 w-9 items-center justify-center rounded-full bg-cream"
-          >
-            <Ionicons name="pencil" size={17} color="#3D3D3D" />
-          </Pressable>
+          <View className="flex-row items-center gap-1.5">
+            <Pressable
+              onPress={() => router.push(`/create-group?id=${group.id}`)}
+              className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+            >
+              <Ionicons name="pencil" size={17} color="#3D3D3D" />
+            </Pressable>
+            <Pressable
+              onPress={() => setConfirmingDelete(true)}
+              className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+            >
+              <Ionicons name="trash-outline" size={17} color="#E0533C" />
+            </Pressable>
+          </View>
         )}
       </View>
+
+      {confirmingDelete && (
+        <View className="flex-row items-center gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="flex-1 text-sm text-charcoal">
+            Delete this circle? This can't be undone.
+          </Text>
+          <Pressable onPress={() => setConfirmingDelete(false)} className="rounded-full px-3 py-1.5">
+            <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+          </Pressable>
+          <Pressable onPress={remove} className="rounded-full bg-terracotta px-3 py-1.5">
+            <Text className="text-sm font-semibold text-cream">Delete</Text>
+          </Pressable>
+        </View>
+      )}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
         <View className="items-center rounded-3xl bg-cream p-6">

@@ -18,6 +18,7 @@ type EventsState = {
   getEvent: (id: string) => EventItem | undefined;
   createEvent: (input: NewEventInput) => string;
   updateEvent: (id: string, updates: Partial<NewEventInput>) => void;
+  deleteEvent: (id: string) => void;
 };
 
 function slugify(title: string) {
@@ -65,4 +66,6 @@ export const useEventsStore = create<EventsState>((set, get) => ({
           : e
       ),
     })),
+
+  deleteEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
 }));

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -12,11 +13,13 @@ import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const event = useEventsStore((s) => s.events.find((e) => e.id === id));
+  const deleteEvent = useEventsStore((s) => s.deleteEvent);
   const profile = useProfileStore((s) => s.profile);
   const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
   const toggleRsvp = useRsvpStore((s) => s.toggle);
   const friendIds = useFriendsStore((s) => s.friendIds);
   const toggleFriend = useFriendsStore((s) => s.toggle);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   if (!event) {
     return (
@@ -36,6 +39,11 @@ export default function EventDetail() {
   const attendees = going || isHost ? [profile, ...otherAttendees] : otherAttendees;
   const met = (event.metIds ?? []).map((id) => getUser(id)).filter(Boolean);
 
+  const remove = () => {
+    deleteEvent(event.id);
+    router.back();
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center justify-between px-4 py-3">
@@ -45,15 +53,39 @@ export default function EventDetail() {
         >
           <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
         </Pressable>
-        {isHost && !isPast && (
-          <Pressable
-            onPress={() => router.push(`/create-event?id=${event.id}`)}
-            className="h-9 w-9 items-center justify-center rounded-full bg-cream"
-          >
-            <Ionicons name="pencil" size={17} color="#3D3D3D" />
-          </Pressable>
+        {isHost && (
+          <View className="flex-row items-center gap-1.5">
+            {!isPast && (
+              <Pressable
+                onPress={() => router.push(`/create-event?id=${event.id}`)}
+                className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+              >
+                <Ionicons name="pencil" size={17} color="#3D3D3D" />
+              </Pressable>
+            )}
+            <Pressable
+              onPress={() => setConfirmingDelete(true)}
+              className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+            >
+              <Ionicons name="trash-outline" size={17} color="#E0533C" />
+            </Pressable>
+          </View>
         )}
       </View>
+
+      {confirmingDelete && (
+        <View className="flex-row items-center gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="flex-1 text-sm text-charcoal">
+            Delete this event? This can't be undone.
+          </Text>
+          <Pressable onPress={() => setConfirmingDelete(false)} className="rounded-full px-3 py-1.5">
+            <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+          </Pressable>
+          <Pressable onPress={remove} className="rounded-full bg-terracotta px-3 py-1.5">
+            <Text className="text-sm font-semibold text-cream">Delete</Text>
+          </Pressable>
+        </View>
+      )}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
         <View className="rounded-3xl bg-cream p-5">
