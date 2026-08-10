@@ -1,4 +1,5 @@
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,6 +26,30 @@ const posts = [
     loves: 8,
     replies: 2,
   },
+  {
+    id: '3',
+    authorId: 'maya',
+    time: '1d ago',
+    body: 'Found a new trail with the best morning light for photos. Taking anyone who wants to come next weekend.',
+    loves: 6,
+    replies: 3,
+  },
+  {
+    id: '4',
+    authorId: 'priya',
+    time: '2d ago',
+    body: "Made way too much soup again. If you're near Elm St today, come take a jar off my hands.",
+    loves: 15,
+    replies: 6,
+  },
+  {
+    id: '5',
+    authorId: 'sam',
+    time: '3d ago',
+    body: 'Finally got the garden beds weeded. Trading tomato starts for good company this weekend.',
+    loves: 9,
+    replies: 2,
+  },
 ];
 
 function goToProfile(userId: string) {
@@ -38,16 +63,48 @@ function goToProfile(userId: string) {
 export default function HomeFeed() {
   const profile = useProfileStore((s) => s.profile);
   const stories = [{ ...profile, isYou: true }, ...USERS];
+  const [query, setQuery] = useState('');
+
+  const postsWithAuthor = posts
+    .map((post) => ({
+      post,
+      author: post.authorId === ME.id ? profile : USERS.find((u) => u.id === post.authorId),
+    }))
+    .filter((p): p is { post: (typeof posts)[number]; author: NonNullable<typeof p.author> } =>
+      Boolean(p.author)
+    );
+
+  const q = query.trim().toLowerCase();
+  const filteredPosts = q
+    ? postsWithAuthor.filter(
+        ({ post, author }) =>
+          author.name.toLowerCase().includes(q) || post.body.toLowerCase().includes(q)
+      )
+    : postsWithAuthor;
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center gap-3 px-5 pb-3 pt-2">
+        <View className="flex-1 flex-row items-center rounded-full bg-cream px-4 py-2.5">
+          <Ionicons name="search" size={18} color="#3D3D3D80" />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search posts and people..."
+            placeholderTextColor="#3D3D3D80"
+            className="ml-2 flex-1 text-charcoal"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={() => setQuery('')}>
+              <Ionicons name="close-circle" size={18} color="#3D3D3D80" />
+            </Pressable>
+          )}
+        </View>
         <Pressable
           onPress={() => router.push('/discover')}
-          className="flex-1 flex-row items-center rounded-full bg-cream px-4 py-2.5"
+          className="h-11 w-11 items-center justify-center rounded-full bg-terracotta"
         >
-          <Ionicons name="search" size={18} color="#3D3D3D80" />
-          <Text className="ml-2 flex-1 text-charcoal/50">Search neighbor...</Text>
+          <Ionicons name="compass-outline" size={20} color="#F5F2E9" />
         </Pressable>
         <Pressable className="h-11 w-11 items-center justify-center rounded-full bg-terracotta">
           <Ionicons name="notifications-outline" size={20} color="#F5F2E9" />
@@ -55,49 +112,62 @@ export default function HomeFeed() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View className="mx-5 mt-1 flex-row items-center overflow-hidden rounded-3xl bg-cream">
-          <View className="flex-1 py-4 pl-5 pr-2">
-            <Text className="text-xs font-semibold uppercase tracking-wide text-terracotta">
-              This weekend
-            </Text>
-            <Text className="mt-1 text-[15px] font-medium leading-5 text-charcoal">
-              Grab coffee with someone in your circle
-            </Text>
-          </View>
-          <View className="h-24 w-28">
-            <SvgXml xml={COFFEE_FRIENDS_SVG} width="100%" height="100%" />
-          </View>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="px-5 py-2"
-          contentContainerClassName="gap-4"
-        >
-          {stories.map((s) => (
-            <Pressable key={s.id} onPress={() => goToProfile(s.id)} className="items-center gap-1.5">
-              <View
-                className={`h-16 w-16 items-center justify-center rounded-full ${
-                  'isYou' in s && s.isYou
-                    ? 'border-2 border-dashed border-terracotta'
-                    : 'bg-gold p-0.5'
-                }`}
-              >
-                <Image source={{ uri: s.avatar }} className="h-14 w-14 rounded-full" />
+        {!q && (
+          <>
+            <View className="mx-5 mt-1 flex-row items-center overflow-hidden rounded-3xl bg-cream">
+              <View className="flex-1 py-4 pl-5 pr-2">
+                <Text className="text-xs font-semibold uppercase tracking-wide text-terracotta">
+                  This weekend
+                </Text>
+                <Text className="mt-1 text-[15px] font-medium leading-5 text-charcoal">
+                  Grab coffee with someone in your circle
+                </Text>
               </View>
-              <Text className="text-xs text-charcoal">
-                {'isYou' in s && s.isYou ? 'You' : s.name.split(' ')[0]}
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
+              <View className="h-24 w-28">
+                <SvgXml xml={COFFEE_FRIENDS_SVG} width="100%" height="100%" />
+              </View>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="px-5 py-2"
+              contentContainerClassName="gap-4"
+            >
+              {stories.map((s) => (
+                <Pressable
+                  key={s.id}
+                  onPress={() => goToProfile(s.id)}
+                  className="items-center gap-1.5"
+                >
+                  <View
+                    className={`h-16 w-16 items-center justify-center rounded-full ${
+                      'isYou' in s && s.isYou
+                        ? 'border-2 border-dashed border-terracotta'
+                        : 'bg-gold p-0.5'
+                    }`}
+                  >
+                    <Image source={{ uri: s.avatar }} className="h-14 w-14 rounded-full" />
+                  </View>
+                  <Text className="text-xs text-charcoal">
+                    {'isYou' in s && s.isYou ? 'You' : s.name.split(' ')[0]}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </>
+        )}
+
+        {q.length > 0 && (
+          <Text className="px-5 pt-3 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+            {filteredPosts.length === 0
+              ? `No posts matching "${query.trim()}"`
+              : `Results for "${query.trim()}"`}
+          </Text>
+        )}
 
         <View className="gap-4 px-5 pb-8 pt-2">
-          {posts.map((post) => {
-            const author =
-              post.authorId === ME.id ? profile : USERS.find((u) => u.id === post.authorId);
-            if (!author) return null;
+          {filteredPosts.map(({ post, author }) => {
             return (
               <View key={post.id} className="rounded-3xl bg-cream p-4 shadow-sm">
                 <Pressable
@@ -130,6 +200,17 @@ export default function HomeFeed() {
               </View>
             );
           })}
+          {q.length > 0 && filteredPosts.length === 0 && (
+            <Pressable
+              onPress={() => router.push('/discover')}
+              className="flex-row items-center justify-center gap-1.5 rounded-2xl bg-cream p-4"
+            >
+              <Ionicons name="compass-outline" size={16} color="#E0533C" />
+              <Text className="text-sm font-medium text-terracotta">
+                Search people & groups in Discover
+              </Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
