@@ -40,7 +40,7 @@ export const usePostsStore = create<PostsState>((set) => ({
 
   updatePost: (id, updates) =>
     set((s) => ({
-      posts: s.posts.map((p) => (p.id === id ? { ...p, ...updates } : p)),
+      posts: s.posts.map((p) => (p.id === id ? { ...p, ...updates, edited: true } : p)),
     })),
 
   deletePost: (id) => set((s) => ({ posts: s.posts.filter((p) => p.id !== id) })),
@@ -62,7 +62,9 @@ export const usePostsStore = create<PostsState>((set) => ({
     set((s) => ({
       comments: {
         ...s.comments,
-        [postId]: (s.comments[postId] ?? []).map((c) => (c.id === commentId ? { ...c, text } : c)),
+        [postId]: (s.comments[postId] ?? []).map((c) =>
+          c.id === commentId ? { ...c, text, edited: true } : c
+        ),
       },
     })),
 

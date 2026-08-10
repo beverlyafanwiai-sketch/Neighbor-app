@@ -266,7 +266,10 @@ export default function Search() {
                     <View className="flex-row items-center gap-2.5">
                       <Image source={{ uri: author.avatar }} className="h-8 w-8 rounded-full" />
                       <Text className="text-sm font-semibold text-charcoal">{author.name}</Text>
-                      <Text className="text-xs text-charcoal/40">{post.time}</Text>
+                      <Text className="text-xs text-charcoal/40">
+                        {post.time}
+                        {post.edited && ' · edited'}
+                      </Text>
                     </View>
                     <Text className="mt-2 text-sm leading-5 text-charcoal/80" numberOfLines={2}>
                       {post.body}

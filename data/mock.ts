@@ -158,6 +158,7 @@ export type Post = {
   loves: number;
   replies: number;
   imageUri?: string;
+  edited?: boolean;
 };
 
 export const POSTS: Post[] = [
@@ -203,7 +204,13 @@ export const POSTS: Post[] = [
   },
 ];
 
-export type CommentItem = { id: string; authorId: string; text: string; time: string };
+export type CommentItem = {
+  id: string;
+  authorId: string;
+  text: string;
+  time: string;
+  edited?: boolean;
+};
 
 export const COMMENTS: Record<string, CommentItem[]> = {
   '1': [

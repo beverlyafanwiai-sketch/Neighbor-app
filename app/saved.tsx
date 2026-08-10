@@ -57,7 +57,10 @@ export default function SavedPosts() {
                   <Image source={{ uri: author.avatar }} className="h-11 w-11 rounded-full" />
                   <View>
                     <Text className="font-semibold text-charcoal">{author.name}</Text>
-                    <Text className="text-xs text-charcoal/60">{post.time}</Text>
+                    <Text className="text-xs text-charcoal/60">
+                      {post.time}
+                      {post.edited && ' · edited'}
+                    </Text>
                   </View>
                 </View>
 

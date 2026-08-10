@@ -135,7 +135,10 @@ export default function PostDetail() {
                 <Image source={{ uri: author.avatar }} className="h-11 w-11 rounded-full" />
                 <View>
                   <Text className="font-semibold text-charcoal">{author.name}</Text>
-                  <Text className="text-xs text-charcoal/60">{post.time}</Text>
+                  <Text className="text-xs text-charcoal/60">
+                    {post.time}
+                    {post.edited && ' · edited'}
+                  </Text>
                 </View>
               </Pressable>
 
@@ -240,7 +243,10 @@ export default function PostDetail() {
                 <View className="flex-1">
                   <View className="flex-row items-baseline gap-2">
                     <Text className="text-sm font-semibold text-charcoal">{commenter.name}</Text>
-                    <Text className="text-[11px] text-charcoal/40">{item.time}</Text>
+                    <Text className="text-[11px] text-charcoal/40">
+                      {item.time}
+                      {item.edited && ' · edited'}
+                    </Text>
                   </View>
                   <Text className="mt-0.5 text-sm leading-5 text-charcoal/80">{item.text}</Text>
                 </View>
