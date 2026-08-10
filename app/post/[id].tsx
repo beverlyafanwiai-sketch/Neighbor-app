@@ -26,11 +26,16 @@ export default function PostDetail() {
   const toggleLike = usePostsStore((s) => s.toggleLike);
   const comments = usePostsStore((s) => (post ? (s.comments[post.id] ?? EMPTY_COMMENTS) : EMPTY_COMMENTS));
   const addComment = usePostsStore((s) => s.addComment);
+  const updateComment = usePostsStore((s) => s.updateComment);
+  const deleteComment = usePostsStore((s) => s.deleteComment);
   const deletePost = usePostsStore((s) => s.deletePost);
   const profile = useProfileStore((s) => s.profile);
 
   const [draft, setDraft] = useState('');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState('');
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
 
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
   const author = post ? resolveUser(post.authorId) : undefined;
@@ -56,6 +61,12 @@ export default function PostDetail() {
   const remove = () => {
     deletePost(post.id);
     router.back();
+  };
+
+  const saveEdit = () => {
+    if (!editDraft.trim() || !editingCommentId) return;
+    updateComment(post.id, editingCommentId, editDraft.trim());
+    setEditingCommentId(null);
   };
 
   return (
@@ -148,6 +159,53 @@ export default function PostDetail() {
           renderItem={({ item }) => {
             const commenter = resolveUser(item.authorId);
             if (!commenter) return null;
+            const isCommentAuthor = item.authorId === ME.id;
+
+            if (deletingCommentId === item.id) {
+              return (
+                <View className="flex-row items-center gap-3 bg-terracotta/10 px-4 py-3">
+                  <Text className="flex-1 text-sm text-charcoal">Delete this comment?</Text>
+                  <Pressable
+                    onPress={() => setDeletingCommentId(null)}
+                    className="rounded-full px-3 py-1.5"
+                  >
+                    <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      deleteComment(post.id, item.id);
+                      setDeletingCommentId(null);
+                    }}
+                    className="rounded-full bg-terracotta px-3 py-1.5"
+                  >
+                    <Text className="text-sm font-semibold text-cream">Delete</Text>
+                  </Pressable>
+                </View>
+              );
+            }
+
+            if (editingCommentId === item.id) {
+              return (
+                <View className="gap-2 px-4 py-3">
+                  <TextInput
+                    value={editDraft}
+                    onChangeText={setEditDraft}
+                    autoFocus
+                    multiline
+                    className="rounded-2xl bg-sand px-3 py-2 text-sm text-charcoal"
+                  />
+                  <View className="flex-row justify-end gap-3">
+                    <Pressable onPress={() => setEditingCommentId(null)}>
+                      <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                    </Pressable>
+                    <Pressable onPress={saveEdit}>
+                      <Text className="text-sm font-semibold text-terracotta">Save</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            }
+
             return (
               <Pressable
                 onPress={() => router.push(`/profile/${commenter.id}`)}
@@ -161,6 +219,29 @@ export default function PostDetail() {
                   </View>
                   <Text className="mt-0.5 text-sm leading-5 text-charcoal/80">{item.text}</Text>
                 </View>
+                {isCommentAuthor && (
+                  <View className="flex-row items-center gap-1">
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        setEditingCommentId(item.id);
+                        setEditDraft(item.text);
+                      }}
+                      className="h-7 w-7 items-center justify-center rounded-full"
+                    >
+                      <Ionicons name="pencil" size={13} color="#3D3D3D80" />
+                    </Pressable>
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        setDeletingCommentId(item.id);
+                      }}
+                      className="h-7 w-7 items-center justify-center rounded-full"
+                    >
+                      <Ionicons name="trash-outline" size={13} color="#E0533C" />
+                    </Pressable>
+                  </View>
+                )}
               </Pressable>
             );
           }}

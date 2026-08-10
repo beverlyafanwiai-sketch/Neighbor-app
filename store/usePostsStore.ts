@@ -11,6 +11,8 @@ type PostsState = {
   deletePost: (id: string) => void;
   toggleLike: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
+  updateComment: (postId: string, commentId: string, text: string) => void;
+  deleteComment: (postId: string, commentId: string) => void;
 };
 
 export const usePostsStore = create<PostsState>((set) => ({
@@ -44,6 +46,22 @@ export const usePostsStore = create<PostsState>((set) => ({
       comments: { ...s.comments, [postId]: [...(s.comments[postId] ?? []), comment] },
     }));
   },
+
+  updateComment: (postId, commentId, text) =>
+    set((s) => ({
+      comments: {
+        ...s.comments,
+        [postId]: (s.comments[postId] ?? []).map((c) => (c.id === commentId ? { ...c, text } : c)),
+      },
+    })),
+
+  deleteComment: (postId, commentId) =>
+    set((s) => ({
+      comments: {
+        ...s.comments,
+        [postId]: (s.comments[postId] ?? []).filter((c) => c.id !== commentId),
+      },
+    })),
 }));
 
 export function getEffectiveLoves(post: Post, liked: boolean) {
