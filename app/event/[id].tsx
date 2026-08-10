@@ -3,14 +3,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ME, getEvent, getUser } from '../../data/mock';
+import { ME, getUser } from '../../data/mock';
+import { useEventsStore } from '../../store/useEventsStore';
 import { useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const event = getEvent(id);
+  const event = useEventsStore((s) => s.events.find((e) => e.id === id));
   const profile = useProfileStore((s) => s.profile);
   const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
   const toggleRsvp = useRsvpStore((s) => s.toggle);
@@ -29,9 +30,10 @@ export default function EventDetail() {
   }
 
   const isPast = event.status === 'past';
+  const isHost = event.hostId === ME.id;
   const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(event.id, going);
   const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
-  const attendees = going ? [profile, ...otherAttendees] : otherAttendees;
+  const attendees = going || isHost ? [profile, ...otherAttendees] : otherAttendees;
   const met = (event.metIds ?? []).map((id) => getUser(id)).filter(Boolean);
 
   return (
@@ -63,22 +65,31 @@ export default function EventDetail() {
 
           <Text className="mt-4 text-[15px] leading-5 text-charcoal/80">{event.description}</Text>
 
-          {!isPast && (
-            <Pressable
-              onPress={() => toggleRsvp(event.id)}
-              disabled={isFull}
-              className={`mt-5 items-center rounded-full py-3 ${
-                going ? 'bg-gold' : isFull ? 'bg-charcoal/10' : 'bg-charcoal'
-              }`}
-            >
-              <Text
-                className={`text-sm font-semibold ${
-                  going ? 'text-charcoal' : isFull ? 'text-charcoal/40' : 'text-cream'
+          {isHost ? (
+            <View className="mt-5 flex-row items-center justify-center gap-1.5 rounded-full bg-gold py-3">
+              <Ionicons name="megaphone" size={15} color="#3D3D3D" />
+              <Text className="text-sm font-semibold text-charcoal">
+                {isPast ? 'You hosted this' : "You're hosting"}
+              </Text>
+            </View>
+          ) : (
+            !isPast && (
+              <Pressable
+                onPress={() => toggleRsvp(event.id)}
+                disabled={isFull}
+                className={`mt-5 items-center rounded-full py-3 ${
+                  going ? 'bg-gold' : isFull ? 'bg-charcoal/10' : 'bg-charcoal'
                 }`}
               >
-                {going ? "You're going" : isFull ? 'Event full' : 'RSVP'}
-              </Text>
-            </Pressable>
+                <Text
+                  className={`text-sm font-semibold ${
+                    going ? 'text-charcoal' : isFull ? 'text-charcoal/40' : 'text-cream'
+                  }`}
+                >
+                  {going ? "You're going" : isFull ? 'Event full' : 'RSVP'}
+                </Text>
+              </Pressable>
+            )
           )}
         </View>
 

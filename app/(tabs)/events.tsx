@@ -4,7 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { EVENTS, getUser } from '../../data/mock';
+import { ME, getUser } from '../../data/mock';
+import { useEventsStore } from '../../store/useEventsStore';
 import { useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
@@ -15,18 +16,23 @@ type EventTab = (typeof EVENT_TABS)[number];
 export default function Events() {
   const [tab, setTab] = useState<EventTab>('Upcoming');
   const profile = useProfileStore((s) => s.profile);
+  const events = useEventsStore((s) => s.events);
   const goingMap = useRsvpStore((s) => s.going);
   const toggleRsvp = useRsvpStore((s) => s.toggle);
   const friendIds = useFriendsStore((s) => s.friendIds);
   const toggleFriend = useFriendsStore((s) => s.toggle);
-  const upcoming = EVENTS.filter((e) => e.status === 'upcoming');
-  const past = EVENTS.filter((e) => e.status === 'past');
+  const upcoming = events.filter((e) => e.status === 'upcoming');
+  const past = events.filter((e) => e.status === 'past');
+  const hosting = events.filter((e) => e.hostId === ME.id);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center justify-between px-5 pb-3 pt-2">
         <Text className="text-2xl font-bold text-charcoal">Events</Text>
-        <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-terracotta">
+        <Pressable
+          onPress={() => router.push('/create-event')}
+          className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"
+        >
           <Ionicons name="add" size={22} color="#F5F2E9" />
         </Pressable>
       </View>
@@ -113,20 +119,61 @@ export default function Events() {
         )}
 
         {tab === 'Hosting' && (
-          <View className="mt-10 items-center px-6">
-            <View className="h-20 w-20 items-center justify-center rounded-full bg-cream">
-              <Ionicons name="megaphone-outline" size={32} color="#E0533C" />
-            </View>
-            <Text className="mt-4 text-center text-base font-semibold text-charcoal">
-              You're not hosting anything yet
-            </Text>
-            <Text className="mt-1.5 text-center text-sm text-charcoal/60">
-              Start small — a porch hangout for 6 is plenty to get to know people.
-            </Text>
-            <Pressable className="mt-5 rounded-full bg-charcoal px-6 py-3">
-              <Text className="text-sm font-semibold text-cream">Host an event</Text>
-            </Pressable>
-          </View>
+          <>
+            {hosting.length === 0 ? (
+              <View className="mt-10 items-center px-6">
+                <View className="h-20 w-20 items-center justify-center rounded-full bg-cream">
+                  <Ionicons name="megaphone-outline" size={32} color="#E0533C" />
+                </View>
+                <Text className="mt-4 text-center text-base font-semibold text-charcoal">
+                  You're not hosting anything yet
+                </Text>
+                <Text className="mt-1.5 text-center text-sm text-charcoal/60">
+                  Start small — a porch hangout for 6 is plenty to get to know people.
+                </Text>
+                <Pressable
+                  onPress={() => router.push('/create-event')}
+                  className="mt-5 rounded-full bg-charcoal px-6 py-3"
+                >
+                  <Text className="text-sm font-semibold text-cream">Host an event</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View className="gap-3">
+                {hosting.map((e) => {
+                  const { spotsTaken, spotsTotal } = getEffectiveSpots(e.id, goingMap[e.id] ?? false);
+                  return (
+                    <Pressable
+                      key={e.id}
+                      onPress={() => router.push(`/event/${e.id}`)}
+                      className="flex-row gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+                    >
+                      <View className="h-14 w-14 items-center justify-center rounded-xl bg-terracotta">
+                        <Text className="text-xs font-semibold text-cream">{e.month}</Text>
+                        <Text className="text-xl font-bold text-cream">{e.day}</Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="font-semibold text-charcoal">{e.title}</Text>
+                        <Text className="mt-0.5 text-xs text-charcoal/60">
+                          {e.time} · {e.location}
+                        </Text>
+                        <View className="mt-3 flex-row items-center justify-between">
+                          <Text className="text-xs text-charcoal/50">
+                            {spotsTaken}/{spotsTotal} spots
+                          </Text>
+                          <View className="rounded-full bg-gold px-4 py-1.5">
+                            <Text className="text-xs font-semibold text-charcoal">
+                              {e.status === 'past' ? 'Hosted' : 'Hosting'}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+          </>
         )}
 
         {tab === 'Past' && (

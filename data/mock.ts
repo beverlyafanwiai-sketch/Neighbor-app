@@ -252,6 +252,7 @@ export type EventItem = {
   date: string;
   location: string;
   hostLabel: string;
+  hostId?: string;
   description: string;
   spotsTaken: number;
   spotsTotal: number;
@@ -270,6 +271,7 @@ export const EVENTS: EventItem[] = [
     date: 'August 15',
     location: "Amara's place",
     hostLabel: 'Hosted by Amara',
+    hostId: 'amara',
     description:
       'Bring a dish, take a seat on the porch, no agenda. Just good food and slow conversation with a small group.',
     spotsTaken: 6,
@@ -326,10 +328,6 @@ export const EVENTS: EventItem[] = [
     metIds: ['sam'],
   },
 ];
-
-export function getEvent(id: string): EventItem | undefined {
-  return EVENTS.find((e) => e.id === id);
-}
 
 export function getGroup(id: string): Group | undefined {
   return GROUPS.find((g) => g.id === id);

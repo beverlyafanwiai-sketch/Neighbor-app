@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
-import { EVENTS, getEvent } from '../data/mock';
+import { EVENTS } from '../data/mock';
+import { useEventsStore } from './useEventsStore';
 
 type RsvpState = {
   going: Record<string, boolean>;
@@ -15,7 +16,7 @@ export const useRsvpStore = create<RsvpState>((set, get) => ({
   going: initialGoing,
 
   toggle: (eventId) => {
-    const event = getEvent(eventId);
+    const event = useEventsStore.getState().getEvent(eventId);
     if (!event) return;
 
     const currentlyGoing = get().going[eventId] ?? false;
@@ -30,7 +31,7 @@ export const useRsvpStore = create<RsvpState>((set, get) => ({
 // event.spotsTaken is the baseline count of attendees *not including* the
 // current user (ME). Effective totals fold in ME's own RSVP on top of that.
 export function getEffectiveSpots(eventId: string, going: boolean) {
-  const event = getEvent(eventId);
+  const event = useEventsStore.getState().getEvent(eventId);
   if (!event) return { spotsTaken: 0, spotsTotal: 0, isFull: false };
   return {
     spotsTaken: event.spotsTaken + (going ? 1 : 0),
