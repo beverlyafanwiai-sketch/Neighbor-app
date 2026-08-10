@@ -141,11 +141,18 @@ export default function HomeFeed() {
         )}
 
         {q.length > 0 && (
-          <Text className="px-5 pt-3 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
-            {filteredPosts.length === 0
-              ? `No posts matching "${query.trim()}"`
-              : `Results for "${query.trim()}"`}
-          </Text>
+          <View className="flex-row items-center justify-between px-5 pt-3">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+              {filteredPosts.length === 0
+                ? `No posts matching "${query.trim()}"`
+                : `Results for "${query.trim()}"`}
+            </Text>
+            {filteredPosts.length > 0 && (
+              <Pressable onPress={() => router.push(`/search?q=${encodeURIComponent(query.trim())}`)}>
+                <Text className="text-xs font-semibold text-terracotta">See full results →</Text>
+              </Pressable>
+            )}
+          </View>
         )}
 
         <View className="gap-4 px-5 pb-8 pt-2">
@@ -198,12 +205,12 @@ export default function HomeFeed() {
           })}
           {q.length > 0 && filteredPosts.length === 0 && (
             <Pressable
-              onPress={() => router.push('/discover')}
+              onPress={() => router.push(`/search?q=${encodeURIComponent(query.trim())}`)}
               className="flex-row items-center justify-center gap-1.5 rounded-2xl bg-cream p-4"
             >
-              <Ionicons name="compass-outline" size={16} color="#E0533C" />
+              <Ionicons name="search-outline" size={16} color="#E0533C" />
               <Text className="text-sm font-medium text-terracotta">
-                Search people & groups in Discover
+                Search people, groups & events too
               </Text>
             </Pressable>
           )}
