@@ -7,6 +7,8 @@ type PostsState = {
   likedByMe: Record<string, boolean>;
   comments: Record<string, CommentItem[]>;
   createPost: (body: string) => void;
+  updatePost: (id: string, body: string) => void;
+  deletePost: (id: string) => void;
   toggleLike: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
 };
@@ -27,6 +29,11 @@ export const usePostsStore = create<PostsState>((set) => ({
     };
     set((s) => ({ posts: [post, ...s.posts] }));
   },
+
+  updatePost: (id, body) =>
+    set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, body } : p)) })),
+
+  deletePost: (id) => set((s) => ({ posts: s.posts.filter((p) => p.id !== id) })),
 
   toggleLike: (postId) =>
     set((s) => ({ likedByMe: { ...s.likedByMe, [postId]: !s.likedByMe[postId] } })),

@@ -1,21 +1,30 @@
 import { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { usePostsStore } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
 export default function CreatePost() {
+  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const existing = usePostsStore((s) => (editId ? s.posts.find((p) => p.id === editId) : undefined));
+  const isEditing = Boolean(existing);
   const profile = useProfileStore((s) => s.profile);
   const createPost = usePostsStore((s) => s.createPost);
-  const [body, setBody] = useState('');
+  const updatePost = usePostsStore((s) => s.updatePost);
+  const [body, setBody] = useState(existing?.body ?? '');
 
   const canPost = body.trim().length > 0;
 
   const save = () => {
     if (!canPost) return;
+    if (existing) {
+      updatePost(existing.id, body.trim());
+      router.replace(`/post/${existing.id}`);
+      return;
+    }
     createPost(body.trim());
     router.back();
   };
@@ -29,14 +38,14 @@ export default function CreatePost() {
         >
           <Ionicons name="close" size={20} color="#3D3D3D" />
         </Pressable>
-        <Text className="text-base font-bold text-charcoal">New post</Text>
+        <Text className="text-base font-bold text-charcoal">{isEditing ? 'Edit post' : 'New post'}</Text>
         <Pressable
           onPress={save}
           disabled={!canPost}
           className={`rounded-full px-4 py-2 ${canPost ? 'bg-terracotta' : 'bg-charcoal/10'}`}
         >
           <Text className={`text-sm font-semibold ${canPost ? 'text-cream' : 'text-charcoal/40'}`}>
-            Post
+            {isEditing ? 'Save' : 'Post'}
           </Text>
         </Pressable>
       </View>

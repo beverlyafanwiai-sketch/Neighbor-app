@@ -26,12 +26,15 @@ export default function PostDetail() {
   const toggleLike = usePostsStore((s) => s.toggleLike);
   const comments = usePostsStore((s) => (post ? (s.comments[post.id] ?? EMPTY_COMMENTS) : EMPTY_COMMENTS));
   const addComment = usePostsStore((s) => s.addComment);
+  const deletePost = usePostsStore((s) => s.deletePost);
   const profile = useProfileStore((s) => s.profile);
 
   const [draft, setDraft] = useState('');
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
   const author = post ? resolveUser(post.authorId) : undefined;
+  const isAuthor = post?.authorId === ME.id;
 
   if (!post || !author) {
     return (
@@ -50,17 +53,54 @@ export default function PostDetail() {
     setDraft('');
   };
 
+  const remove = () => {
+    deletePost(post.id);
+    router.back();
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
-      <View className="flex-row items-center gap-3 border-b border-charcoal/10 bg-cream px-4 py-3">
-        <Pressable
-          onPress={() => router.back()}
-          className="h-9 w-9 items-center justify-center rounded-full"
-        >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
-        </Pressable>
-        <Text className="text-base font-bold text-charcoal">Post</Text>
+      <View className="flex-row items-center justify-between gap-3 border-b border-charcoal/10 bg-cream px-4 py-3">
+        <View className="flex-row items-center gap-3">
+          <Pressable
+            onPress={() => router.back()}
+            className="h-9 w-9 items-center justify-center rounded-full"
+          >
+            <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          </Pressable>
+          <Text className="text-base font-bold text-charcoal">Post</Text>
+        </View>
+        {isAuthor && (
+          <View className="flex-row items-center gap-1.5">
+            <Pressable
+              onPress={() => router.push(`/create-post?id=${post.id}`)}
+              className="h-9 w-9 items-center justify-center rounded-full"
+            >
+              <Ionicons name="pencil" size={17} color="#3D3D3D" />
+            </Pressable>
+            <Pressable
+              onPress={() => setConfirmingDelete(true)}
+              className="h-9 w-9 items-center justify-center rounded-full"
+            >
+              <Ionicons name="trash-outline" size={17} color="#E0533C" />
+            </Pressable>
+          </View>
+        )}
       </View>
+
+      {confirmingDelete && (
+        <View className="flex-row items-center gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="flex-1 text-sm text-charcoal">
+            Delete this post? This can't be undone.
+          </Text>
+          <Pressable onPress={() => setConfirmingDelete(false)} className="rounded-full px-3 py-1.5">
+            <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+          </Pressable>
+          <Pressable onPress={remove} className="rounded-full bg-terracotta px-3 py-1.5">
+            <Text className="text-sm font-semibold text-cream">Delete</Text>
+          </Pressable>
+        </View>
+      )}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
