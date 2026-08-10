@@ -2,9 +2,13 @@ import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CONVERSATIONS, getUser } from '../../data/mock';
+import { getUser } from '../../data/mock';
+import { useConversationsStore } from '../../store/useConversationsStore';
 
 export default function ChatList() {
+  const conversations = useConversationsStore((s) => s.conversations);
+  const list = Object.values(conversations);
+
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="px-5 pb-3 pt-2">
@@ -13,7 +17,7 @@ export default function ChatList() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
         <View className="gap-3">
-          {CONVERSATIONS.map((c) => {
+          {list.map((c) => {
             const user = getUser(c.userId);
             if (!user) return null;
             const last = c.messages[c.messages.length - 1];
@@ -27,14 +31,16 @@ export default function ChatList() {
                 <View className="flex-1">
                   <Text className="font-semibold text-charcoal">{user.name}</Text>
                   <Text className="mt-0.5 text-sm text-charcoal/60" numberOfLines={1}>
-                    {last.from === 'me' ? 'You: ' : ''}
-                    {last.text}
+                    {last ? `${last.from === 'me' ? 'You: ' : ''}${last.text}` : 'Say hi 👋'}
                   </Text>
                 </View>
-                <Text className="text-xs text-charcoal/40">{last.time}</Text>
+                {last && <Text className="text-xs text-charcoal/40">{last.time}</Text>}
               </Pressable>
             );
           })}
+          {list.length === 0 && (
+            <Text className="text-sm text-charcoal/50">No conversations yet.</Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

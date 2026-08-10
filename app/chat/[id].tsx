@@ -15,14 +15,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
-import { getConversation, getUser, type Message } from '../../data/mock';
+import { getUser } from '../../data/mock';
+import { useConversationsStore } from '../../store/useConversationsStore';
 
 export default function ChatThread() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const conversation = getConversation(id);
+  const conversation = useConversationsStore((s) => s.conversations[id]);
+  const sendMessage = useConversationsStore((s) => s.sendMessage);
   const user = conversation ? getUser(conversation.userId) : undefined;
 
-  const [messages, setMessages] = useState<Message[]>(conversation?.messages ?? []);
   const [draft, setDraft] = useState('');
 
   if (!conversation || !user) {
@@ -36,12 +37,11 @@ export default function ChatThread() {
     );
   }
 
+  const messages = conversation.messages;
+
   const send = () => {
     if (!draft.trim()) return;
-    setMessages((prev) => [
-      ...prev,
-      { id: String(prev.length + 1), from: 'me', text: draft.trim(), time: 'Now' },
-    ]);
+    sendMessage(conversation.id, draft.trim());
     setDraft('');
   };
 

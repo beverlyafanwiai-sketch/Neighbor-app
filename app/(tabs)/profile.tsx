@@ -2,13 +2,15 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ProfileView from '../../components/ProfileView';
-import { ME, USERS, MY_FRIEND_IDS, type User } from '../../data/mock';
+import { DISCOVER_USERS, ME, USERS, type User } from '../../data/mock';
+import { useFriendsStore } from '../../store/useFriendsStore';
 
-const friends = MY_FRIEND_IDS.map((id) => USERS.find((u) => u.id === id)).filter(
-  (u): u is User => !!u
-);
+const ALL_PEOPLE: User[] = [...USERS, ...DISCOVER_USERS];
 
 export default function Profile() {
+  const friendIds = useFriendsStore((s) => s.friendIds);
+  const friends = ALL_PEOPLE.filter((u) => friendIds[u.id]);
+
   return (
     <SafeAreaView className="flex-1 bg-cream" edges={['top']}>
       <ProfileView

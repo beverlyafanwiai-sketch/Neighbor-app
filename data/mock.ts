@@ -377,11 +377,3 @@ export const CONVERSATIONS: Conversation[] = [
     ],
   },
 ];
-
-export function getConversation(id: string): Conversation | undefined {
-  return CONVERSATIONS.find((c) => c.id === id);
-}
-
-export function getConversationForUser(userId: string): Conversation | undefined {
-  return CONVERSATIONS.find((c) => c.userId === userId);
-}

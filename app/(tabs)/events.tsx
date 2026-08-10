@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EVENTS, ME, getUser } from '../../data/mock';
+import { useFriendsStore } from '../../store/useFriendsStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
 const EVENT_TABS = ['Upcoming', 'Hosting', 'Past'] as const;
@@ -14,6 +15,8 @@ export default function Events() {
   const [tab, setTab] = useState<EventTab>('Upcoming');
   const goingMap = useRsvpStore((s) => s.going);
   const toggleRsvp = useRsvpStore((s) => s.toggle);
+  const friendIds = useFriendsStore((s) => s.friendIds);
+  const toggleFriend = useFriendsStore((s) => s.toggle);
   const upcoming = EVENTS.filter((e) => e.status === 'upcoming');
   const past = EVENTS.filter((e) => e.status === 'past');
 
@@ -143,19 +146,37 @@ export default function Events() {
                     People you met
                   </Text>
                   <View className="gap-2">
-                    {met.map((p) => (
-                      <View key={p!.id} className="flex-row items-center gap-2.5">
-                        <Image source={{ uri: p!.avatar }} className="h-9 w-9 rounded-full" />
-                        <Text className="flex-1 text-sm text-charcoal">{p!.name}</Text>
-                        <Pressable
-                          onPress={() => router.push(`/profile/${p!.id}`)}
-                          className="flex-row items-center gap-1 rounded-full bg-sand px-3 py-1.5"
-                        >
-                          <Ionicons name="person-add-outline" size={13} color="#3D3D3D" />
-                          <Text className="text-xs font-medium text-charcoal">Add friend</Text>
-                        </Pressable>
-                      </View>
-                    ))}
+                    {met.map((p) => {
+                      const isFriend = friendIds[p!.id] ?? false;
+                      return (
+                        <View key={p!.id} className="flex-row items-center gap-2.5">
+                          <Image source={{ uri: p!.avatar }} className="h-9 w-9 rounded-full" />
+                          <Text className="flex-1 text-sm text-charcoal">{p!.name}</Text>
+                          <Pressable
+                            onPress={(evt) => {
+                              evt.stopPropagation();
+                              toggleFriend(p!.id);
+                            }}
+                            className={`flex-row items-center gap-1 rounded-full px-3 py-1.5 ${
+                              isFriend ? 'bg-sage/20' : 'bg-sand'
+                            }`}
+                          >
+                            <Ionicons
+                              name={isFriend ? 'checkmark' : 'person-add-outline'}
+                              size={13}
+                              color={isFriend ? '#81A684' : '#3D3D3D'}
+                            />
+                            <Text
+                              className={`text-xs font-medium ${
+                                isFriend ? 'text-sage' : 'text-charcoal'
+                              }`}
+                            >
+                              {isFriend ? 'Friends' : 'Add friend'}
+                            </Text>
+                          </Pressable>
+                        </View>
+                      );
+                    })}
                   </View>
                 </Pressable>
               );

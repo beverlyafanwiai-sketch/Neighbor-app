@@ -3,11 +3,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ProfileView from '../../components/ProfileView';
-import { ME, USERS, getUser, getConversationForUser, type User } from '../../data/mock';
+import { ME, USERS, getUser, type User } from '../../data/mock';
+import { useConversationsStore } from '../../store/useConversationsStore';
 
 export default function OtherProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const user = getUser(id);
+  const getOrCreateConversation = useConversationsStore((s) => s.getOrCreate);
 
   if (!user) {
     return (
@@ -31,12 +33,8 @@ export default function OtherProfile() {
   };
 
   const message = () => {
-    const conversation = getConversationForUser(user.id);
-    if (conversation) {
-      router.push(`/chat/${conversation.id}`);
-    } else {
-      router.push('/(tabs)/chat');
-    }
+    const conversationId = getOrCreateConversation(user.id);
+    router.push(`/chat/${conversationId}`);
   };
 
   return (

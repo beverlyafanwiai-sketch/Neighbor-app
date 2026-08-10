@@ -5,6 +5,7 @@ import { SvgXml } from 'react-native-svg';
 
 import { GROUP_SELFIE_SVG } from '../assets/illustrations/group-selfie';
 import type { User } from '../data/mock';
+import { useFriendsStore } from '../store/useFriendsStore';
 
 const TABS = ['About', 'Prompts', 'Photos', 'Friends'] as const;
 type Tab = (typeof TABS)[number];
@@ -20,6 +21,8 @@ type Props = {
 
 export default function ProfileView({ user, isMe, friends, onBack, onMessage, onFriendPress }: Props) {
   const [tab, setTab] = useState<Tab>('About');
+  const isFriend = useFriendsStore((s) => s.friendIds[user.id] ?? false);
+  const toggleFriend = useFriendsStore((s) => s.toggle);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} className="flex-1 bg-cream">
@@ -46,8 +49,16 @@ export default function ProfileView({ user, isMe, friends, onBack, onMessage, on
             </Pressable>
           ) : (
             <>
-              <Pressable className="rounded-full bg-gold px-6 py-2.5">
-                <Text className="font-semibold text-charcoal">Add friend</Text>
+              <Pressable
+                onPress={() => toggleFriend(user.id)}
+                className={`flex-row items-center gap-1.5 rounded-full px-6 py-2.5 ${
+                  isFriend ? 'bg-cream/20' : 'bg-gold'
+                }`}
+              >
+                {isFriend && <Ionicons name="checkmark" size={16} color="#F5F2E9" />}
+                <Text className={`font-semibold ${isFriend ? 'text-cream' : 'text-charcoal'}`}>
+                  {isFriend ? 'Friends' : 'Add friend'}
+                </Text>
               </Pressable>
               <Pressable
                 onPress={onMessage}

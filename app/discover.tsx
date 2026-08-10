@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DISCOVER_USERS, GROUPS, ME, type Tone } from '../data/mock';
+import { useFriendsStore } from '../store/useFriendsStore';
 import { getEffectiveMemberCount, useGroupsStore } from '../store/useGroupsStore';
 
 const MODES = ['People', 'Groups'] as const;
@@ -26,6 +27,8 @@ export default function Discover() {
   const [query, setQuery] = useState('');
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
+  const friendIds = useFriendsStore((s) => s.friendIds);
+  const toggleFriend = useFriendsStore((s) => s.toggle);
 
   const discoverGroups = GROUPS.filter((g) => !joinedMap[g.id]);
 
@@ -89,6 +92,7 @@ export default function Discover() {
           <View className="gap-3">
             {people.map((p) => {
               const shared = sharedTags(p.tags);
+              const isFriend = friendIds[p.id] ?? false;
               return (
                 <Pressable
                   key={p.id}
@@ -103,8 +107,16 @@ export default function Discover() {
                         {p.tagline}
                       </Text>
                     </View>
-                    <Pressable className="rounded-full bg-gold px-4 py-2">
-                      <Text className="text-xs font-semibold text-charcoal">Add friend</Text>
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        toggleFriend(p.id);
+                      }}
+                      className={`rounded-full px-4 py-2 ${isFriend ? 'bg-sand' : 'bg-gold'}`}
+                    >
+                      <Text className="text-xs font-semibold text-charcoal">
+                        {isFriend ? 'Friends' : 'Add friend'}
+                      </Text>
                     </Pressable>
                   </View>
 
