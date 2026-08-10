@@ -8,50 +8,8 @@ import { SvgXml } from 'react-native-svg';
 import { COFFEE_FRIENDS_SVG } from '../../assets/illustrations/coffee-friends';
 import { ME, USERS } from '../../data/mock';
 import { useNotificationsStore } from '../../store/useNotificationsStore';
+import { usePostsStore } from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
-
-const posts = [
-  {
-    id: '1',
-    authorId: 'amara',
-    time: '2h ago',
-    body: 'Porch hangout this Saturday if anyone wants to come sit, talk, and eat too much cornbread. No agenda, just company.',
-    loves: 12,
-    replies: 4,
-  },
-  {
-    id: '2',
-    authorId: 'theo',
-    time: '5h ago',
-    body: "Finally finished the trail loop with the hiking circle. Nothing beats quiet company and switchbacks. Same time next week?",
-    loves: 8,
-    replies: 2,
-  },
-  {
-    id: '3',
-    authorId: 'maya',
-    time: '1d ago',
-    body: 'Found a new trail with the best morning light for photos. Taking anyone who wants to come next weekend.',
-    loves: 6,
-    replies: 3,
-  },
-  {
-    id: '4',
-    authorId: 'priya',
-    time: '2d ago',
-    body: "Made way too much soup again. If you're near Elm St today, come take a jar off my hands.",
-    loves: 15,
-    replies: 6,
-  },
-  {
-    id: '5',
-    authorId: 'sam',
-    time: '3d ago',
-    body: 'Finally got the garden beds weeded. Trading tomato starts for good company this weekend.',
-    loves: 9,
-    replies: 2,
-  },
-];
 
 function goToProfile(userId: string) {
   if (userId === ME.id) {
@@ -66,6 +24,7 @@ export default function HomeFeed() {
   const stories = [{ ...profile, isYou: true }, ...USERS];
   const [query, setQuery] = useState('');
   const unreadCount = useNotificationsStore((s) => s.notifications.filter((n) => !n.read).length);
+  const posts = usePostsStore((s) => s.posts);
 
   const postsWithAuthor = posts
     .map((post) => ({
@@ -124,7 +83,17 @@ export default function HomeFeed() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {!q && (
           <>
-            <View className="mx-5 mt-1 flex-row items-center overflow-hidden rounded-3xl bg-cream">
+            <Pressable
+              onPress={() => router.push('/create-post')}
+              className="mx-5 mt-1 flex-row items-center gap-3 rounded-2xl bg-cream p-3 active:opacity-80"
+            >
+              <Image source={{ uri: profile.avatar }} className="h-9 w-9 rounded-full" />
+              <Text className="flex-1 text-sm text-charcoal/50">
+                Share something with your neighbors...
+              </Text>
+            </Pressable>
+
+            <View className="mx-5 mt-3 flex-row items-center overflow-hidden rounded-3xl bg-cream">
               <View className="flex-1 py-4 pl-5 pr-2">
                 <Text className="text-xs font-semibold uppercase tracking-wide text-terracotta">
                   This weekend

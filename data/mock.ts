@@ -150,6 +150,58 @@ export function getUser(id: string): User | undefined {
 
 export const MY_FRIEND_IDS = ['maya', 'theo', 'priya', 'sam'];
 
+export type Post = {
+  id: string;
+  authorId: string;
+  time: string;
+  body: string;
+  loves: number;
+  replies: number;
+};
+
+export const POSTS: Post[] = [
+  {
+    id: '1',
+    authorId: 'amara',
+    time: '2h ago',
+    body: 'Porch hangout this Saturday if anyone wants to come sit, talk, and eat too much cornbread. No agenda, just company.',
+    loves: 12,
+    replies: 4,
+  },
+  {
+    id: '2',
+    authorId: 'theo',
+    time: '5h ago',
+    body: "Finally finished the trail loop with the hiking circle. Nothing beats quiet company and switchbacks. Same time next week?",
+    loves: 8,
+    replies: 2,
+  },
+  {
+    id: '3',
+    authorId: 'maya',
+    time: '1d ago',
+    body: 'Found a new trail with the best morning light for photos. Taking anyone who wants to come next weekend.',
+    loves: 6,
+    replies: 3,
+  },
+  {
+    id: '4',
+    authorId: 'priya',
+    time: '2d ago',
+    body: "Made way too much soup again. If you're near Elm St today, come take a jar off my hands.",
+    loves: 15,
+    replies: 6,
+  },
+  {
+    id: '5',
+    authorId: 'sam',
+    time: '3d ago',
+    body: 'Finally got the garden beds weeded. Trading tomato starts for good company this weekend.',
+    loves: 9,
+    replies: 2,
+  },
+];
+
 export type Tone = 'Casual' | 'Structured' | 'Activity-focused';
 
 export type Group = {
