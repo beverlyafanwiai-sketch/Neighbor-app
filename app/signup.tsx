@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
@@ -15,42 +16,58 @@ import { SvgXml } from 'react-native-svg';
 import { PARK_FRIENDS_SVG } from '../assets/illustrations/park-friends';
 import { useAuthStore } from '../store/useAuthStore';
 
-export default function Login() {
+export default function Signup() {
   const session = useAuthStore((s) => s.session);
-  const signIn = useAuthStore((s) => s.signIn);
+  const signUp = useAuthStore((s) => s.signUp);
   const error = useAuthStore((s) => s.error);
   const clearError = useAuthStore((s) => s.clearError);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [mismatchError, setMismatchError] = useState(false);
 
   useEffect(() => {
     if (session) router.replace('/(tabs)');
   }, [session]);
 
-  const handleLogin = async () => {
+  const handleSignup = async () => {
     clearError();
+    if (password !== confirmPassword) {
+      setMismatchError(true);
+      return;
+    }
+    setMismatchError(false);
     setSubmitting(true);
-    const ok = await signIn(email, password);
+    const ok = await signUp(email, password);
     setSubmitting(false);
     if (ok) router.replace('/(tabs)');
   };
 
   return (
     <SafeAreaView className="flex-1 bg-terracotta">
+      <Pressable
+        onPress={() => router.back()}
+        className="ml-4 mt-2 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
+      >
+        <Ionicons name="chevron-back" size={22} color="#F5F2E9" />
+      </Pressable>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1"
       >
-        <View className="h-[30%] items-center justify-center px-6 pt-4">
+        <View className="h-[24%] items-center justify-center px-6">
           <SvgXml xml={PARK_FRIENDS_SVG} width="100%" height="100%" />
         </View>
 
         <View className="flex-1 justify-center px-8">
-          <Text className="mb-2 text-center text-5xl font-bold text-cream">neighbor</Text>
+          <Text className="mb-2 text-center text-3xl font-bold text-cream">
+            Create an account
+          </Text>
           <Text className="mb-10 text-center text-base text-sand">
-            Real relationships, not performance.
+            Join a neighborhood that shows up for each other.
           </Text>
 
           <View className="gap-4">
@@ -71,24 +88,35 @@ export default function Login() {
               secureTextEntry
               className="rounded-2xl bg-cream px-5 py-4 text-base text-charcoal"
             />
+            <TextInput
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Confirm password"
+              placeholderTextColor="#8a8a8a"
+              secureTextEntry
+              className="rounded-2xl bg-cream px-5 py-4 text-base text-charcoal"
+            />
           </View>
 
+          {mismatchError && (
+            <Text className="mt-3 text-center text-sm text-cream">Passwords don't match.</Text>
+          )}
           {error && <Text className="mt-3 text-center text-sm text-cream">{error}</Text>}
 
           <Pressable
-            onPress={handleLogin}
+            onPress={handleSignup}
             disabled={submitting}
             className="mt-8 items-center rounded-2xl bg-charcoal py-4 active:opacity-80 disabled:opacity-60"
           >
             {submitting ? (
               <ActivityIndicator color="#F5F2E9" />
             ) : (
-              <Text className="text-base font-semibold text-cream">Log in</Text>
+              <Text className="text-base font-semibold text-cream">Create account</Text>
             )}
           </Pressable>
 
-          <Pressable onPress={() => router.push('/signup')} className="mt-6 items-center">
-            <Text className="text-sm text-sand underline">New here? Create an account</Text>
+          <Pressable onPress={() => router.back()} className="mt-6 items-center">
+            <Text className="text-sm text-sand underline">Already have an account? Log in</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
