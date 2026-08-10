@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 
-import { EVENTS, ME, type EventItem } from '../data/mock';
+import { EVENTS, ME, USERS, type EventItem } from '../data/mock';
+import { useNotificationsStore } from './useNotificationsStore';
+import { useSettingsStore } from './useSettingsStore';
+
+const RSVP_DELAY_MS = 2500;
 
 export type NewEventInput = {
   title: string;
@@ -55,6 +59,32 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       status: 'upcoming',
     };
     set((s) => ({ events: [event, ...s.events] }));
+
+    setTimeout(() => {
+      const current = get().events.find((e) => e.id === id);
+      if (!current) return;
+      const attendee = USERS.find((u) => !current.attendeeIds.includes(u.id));
+      if (!attendee || current.spotsTaken >= current.spotsTotal) return;
+
+      set((s) => ({
+        events: s.events.map((e) =>
+          e.id === id
+            ? { ...e, attendeeIds: [...e.attendeeIds, attendee.id], spotsTaken: e.spotsTaken + 1 }
+            : e
+        ),
+      }));
+
+      if (useSettingsStore.getState().notificationPrefs.eventReminders) {
+        useNotificationsStore.getState().addNotification({
+          type: 'event',
+          actorId: attendee.id,
+          text: `${attendee.name} RSVP'd to ${input.title}`,
+          time: 'Just now',
+          target: { kind: 'event', id },
+        });
+      }
+    }, RSVP_DELAY_MS);
+
     return id;
   },
 

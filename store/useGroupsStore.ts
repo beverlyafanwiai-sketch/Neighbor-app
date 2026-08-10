@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 
-import { GROUPS, ME, type Group, type Tone } from '../data/mock';
+import { GROUPS, ME, USERS, type Group, type Tone } from '../data/mock';
+import { useNotificationsStore } from './useNotificationsStore';
+import { useSettingsStore } from './useSettingsStore';
+
+const JOIN_DELAY_MS = 2500;
 
 export type NewGroupInput = {
   name: string;
@@ -59,6 +63,32 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
       groups: [group, ...s.groups],
       joined: { ...s.joined, [id]: true },
     }));
+
+    setTimeout(() => {
+      const current = get().groups.find((g) => g.id === id);
+      if (!current) return;
+      const newMember = USERS.find((u) => !current.memberIds.includes(u.id));
+      if (!newMember) return;
+
+      set((s) => ({
+        groups: s.groups.map((g) =>
+          g.id === id
+            ? { ...g, memberIds: [...g.memberIds, newMember.id], memberCount: g.memberCount + 1 }
+            : g
+        ),
+      }));
+
+      if (useSettingsStore.getState().notificationPrefs.groupActivity) {
+        useNotificationsStore.getState().addNotification({
+          type: 'group',
+          actorId: newMember.id,
+          text: `${newMember.name} joined ${input.name}`,
+          time: 'Just now',
+          target: { kind: 'group', id },
+        });
+      }
+    }, JOIN_DELAY_MS);
+
     return id;
   },
 

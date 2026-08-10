@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 
-import { MY_FRIEND_IDS } from '../data/mock';
+import { MY_FRIEND_IDS, getUser } from '../data/mock';
+import { useNotificationsStore } from './useNotificationsStore';
+import { useSettingsStore } from './useSettingsStore';
 
 type FriendsState = {
   friendIds: Record<string, boolean>;
@@ -17,6 +19,21 @@ export const useFriendsStore = create<FriendsState>((set, get) => ({
 
   isFriend: (userId) => get().friendIds[userId] ?? false,
 
-  toggle: (userId) =>
-    set((s) => ({ friendIds: { ...s.friendIds, [userId]: !s.friendIds[userId] } })),
+  toggle: (userId) => {
+    const becomingFriends = !get().friendIds[userId];
+    set((s) => ({ friendIds: { ...s.friendIds, [userId]: becomingFriends } }));
+
+    if (becomingFriends && useSettingsStore.getState().notificationPrefs.friendRequests) {
+      const user = getUser(userId);
+      if (user) {
+        useNotificationsStore.getState().addNotification({
+          type: 'friend',
+          actorId: userId,
+          text: `You and ${user.name} are now friends`,
+          time: 'Just now',
+          target: { kind: 'profile', id: userId },
+        });
+      }
+    }
+  },
 }));

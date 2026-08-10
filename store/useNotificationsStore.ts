@@ -6,6 +6,7 @@ type NotificationsState = {
   notifications: NotificationItem[];
   markRead: (id: string) => void;
   markAllRead: () => void;
+  addNotification: (item: Omit<NotificationItem, 'id' | 'read'>) => void;
 };
 
 export const useNotificationsStore = create<NotificationsState>((set) => ({
@@ -18,4 +19,9 @@ export const useNotificationsStore = create<NotificationsState>((set) => ({
 
   markAllRead: () =>
     set((s) => ({ notifications: s.notifications.map((n) => ({ ...n, read: true })) })),
+
+  addNotification: (item) => {
+    const notification: NotificationItem = { id: `${Date.now()}`, read: false, ...item };
+    set((s) => ({ notifications: [notification, ...s.notifications] }));
+  },
 }));

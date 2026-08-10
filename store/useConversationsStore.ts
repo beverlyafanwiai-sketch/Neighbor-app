@@ -1,6 +1,17 @@
 import { create } from 'zustand';
 
-import { CONVERSATIONS, type Conversation, type Message } from '../data/mock';
+import { CONVERSATIONS, getUser, type Conversation, type Message } from '../data/mock';
+import { useNotificationsStore } from './useNotificationsStore';
+import { useSettingsStore } from './useSettingsStore';
+
+const REPLY_DELAY_MS = 2500;
+const CANNED_REPLIES = [
+  'Sounds good!',
+  'Haha, fair enough.',
+  "I'll let you know.",
+  'Same time as always?',
+  "Can't wait.",
+];
 
 type ConversationsState = {
   conversations: Record<string, Conversation>;
@@ -65,6 +76,38 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
         lastActivity: { ...s.lastActivity, [conversationId]: ++activitySeq },
       };
     });
+
+    setTimeout(() => {
+      const convo = get().conversations[conversationId];
+      if (!convo) return;
+      const user = getUser(convo.userId);
+      if (!user) return;
+
+      const reply: Message = {
+        id: String(convo.messages.length + 1),
+        from: 'them',
+        text: CANNED_REPLIES[convo.messages.length % CANNED_REPLIES.length],
+        time: 'Just now',
+      };
+      set((s) => ({
+        conversations: {
+          ...s.conversations,
+          [conversationId]: { ...convo, messages: [...convo.messages, reply] },
+        },
+        unread: { ...s.unread, [conversationId]: (s.unread[conversationId] ?? 0) + 1 },
+        lastActivity: { ...s.lastActivity, [conversationId]: ++activitySeq },
+      }));
+
+      if (useSettingsStore.getState().notificationPrefs.messages) {
+        useNotificationsStore.getState().addNotification({
+          type: 'message',
+          actorId: user.id,
+          text: `${user.name} sent you a new message`,
+          time: 'Just now',
+          target: { kind: 'chat', id: conversationId },
+        });
+      }
+    }, REPLY_DELAY_MS);
   },
 
   markRead: (conversationId) =>
