@@ -163,6 +163,7 @@ export type Group = {
   tag?: string;
   memberIds: string[];
   joined: boolean;
+  createdBy?: string;
 };
 
 export const GROUPS: Group[] = [

@@ -38,13 +38,21 @@ export default function EventDetail() {
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
-      <View className="flex-row items-center gap-3 px-4 py-3">
+      <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
           <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
         </Pressable>
+        {isHost && !isPast && (
+          <Pressable
+            onPress={() => router.push(`/create-event?id=${event.id}`)}
+            className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+          >
+            <Ionicons name="pencil" size={17} color="#3D3D3D" />
+          </Pressable>
+        )}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">

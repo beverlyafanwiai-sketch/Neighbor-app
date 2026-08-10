@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useEventsStore } from '../store/useEventsStore';
@@ -26,21 +26,39 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateEvent() {
+  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const existing = useEventsStore((s) => (editId ? s.events.find((e) => e.id === editId) : undefined));
+  const isEditing = Boolean(existing);
   const createEvent = useEventsStore((s) => s.createEvent);
+  const updateEvent = useEventsStore((s) => s.updateEvent);
   const toggleRsvp = useRsvpStore((s) => s.toggle);
 
-  const [title, setTitle] = useState('');
-  const [day, setDay] = useState('');
-  const [month, setMonth] = useState('');
-  const [time, setTime] = useState('');
-  const [location, setLocation] = useState('');
-  const [description, setDescription] = useState('');
-  const [spotsTotal, setSpotsTotal] = useState(8);
+  const [title, setTitle] = useState(existing?.title ?? '');
+  const [day, setDay] = useState(existing?.day ?? '');
+  const [month, setMonth] = useState(existing?.month ?? '');
+  const [time, setTime] = useState(existing?.time ?? '');
+  const [location, setLocation] = useState(existing?.location ?? '');
+  const [description, setDescription] = useState(existing?.description ?? '');
+  const [spotsTotal, setSpotsTotal] = useState(existing?.spotsTotal ?? 8);
 
   const canSave = title.trim() && day.trim() && month.trim() && time.trim() && location.trim();
 
   const save = () => {
     if (!canSave) return;
+    if (existing) {
+      updateEvent(existing.id, {
+        title: title.trim(),
+        day: day.trim(),
+        month: month.trim(),
+        time: time.trim(),
+        date: `${month.trim().toUpperCase()} ${day.trim()}`,
+        location: location.trim(),
+        description: description.trim() || 'No details yet — just show up.',
+        spotsTotal,
+      });
+      router.replace(`/event/${existing.id}`);
+      return;
+    }
     const id = createEvent({
       title: title.trim(),
       day: day.trim(),
@@ -64,14 +82,16 @@ export default function CreateEvent() {
         >
           <Ionicons name="close" size={20} color="#3D3D3D" />
         </Pressable>
-        <Text className="text-base font-bold text-charcoal">Host an event</Text>
+        <Text className="text-base font-bold text-charcoal">
+          {isEditing ? 'Edit event' : 'Host an event'}
+        </Text>
         <Pressable
           onPress={save}
           disabled={!canSave}
           className={`rounded-full px-4 py-2 ${canSave ? 'bg-terracotta' : 'bg-charcoal/10'}`}
         >
           <Text className={`text-sm font-semibold ${canSave ? 'text-cream' : 'text-charcoal/40'}`}>
-            Create
+            {isEditing ? 'Save' : 'Create'}
           </Text>
         </Pressable>
       </View>

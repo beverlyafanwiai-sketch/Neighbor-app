@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { Tone } from '../data/mock';
@@ -30,16 +30,25 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateGroup() {
+  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const existing = useGroupsStore((s) => (editId ? s.groups.find((g) => g.id === editId) : undefined));
+  const isEditing = Boolean(existing);
   const createGroup = useGroupsStore((s) => s.createGroup);
+  const updateGroup = useGroupsStore((s) => s.updateGroup);
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [tone, setTone] = useState<Tone>('Casual');
+  const [name, setName] = useState(existing?.name ?? '');
+  const [description, setDescription] = useState(existing?.description ?? '');
+  const [tone, setTone] = useState<Tone>(existing?.tone ?? 'Casual');
 
   const canSave = name.trim() && description.trim();
 
   const save = () => {
     if (!canSave) return;
+    if (existing) {
+      updateGroup(existing.id, { name: name.trim(), description: description.trim(), tone });
+      router.replace(`/group/${existing.id}`);
+      return;
+    }
     const id = createGroup({ name: name.trim(), description: description.trim(), tone });
     router.replace(`/group/${id}`);
   };
@@ -53,14 +62,16 @@ export default function CreateGroup() {
         >
           <Ionicons name="close" size={20} color="#3D3D3D" />
         </Pressable>
-        <Text className="text-base font-bold text-charcoal">Start a circle</Text>
+        <Text className="text-base font-bold text-charcoal">
+          {isEditing ? 'Edit circle' : 'Start a circle'}
+        </Text>
         <Pressable
           onPress={save}
           disabled={!canSave}
           className={`rounded-full px-4 py-2 ${canSave ? 'bg-terracotta' : 'bg-charcoal/10'}`}
         >
           <Text className={`text-sm font-semibold ${canSave ? 'text-cream' : 'text-charcoal/40'}`}>
-            Create
+            {isEditing ? 'Save' : 'Create'}
           </Text>
         </Pressable>
       </View>

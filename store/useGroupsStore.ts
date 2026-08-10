@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { GROUPS, type Group, type Tone } from '../data/mock';
+import { GROUPS, ME, type Group, type Tone } from '../data/mock';
 
 export type NewGroupInput = {
   name: string;
@@ -8,11 +8,14 @@ export type NewGroupInput = {
   tone: Tone;
 };
 
+export type GroupEdits = Pick<Group, 'name' | 'description' | 'tone'>;
+
 type GroupsState = {
   groups: Group[];
   joined: Record<string, boolean>;
   toggle: (groupId: string) => void;
   createGroup: (input: NewGroupInput) => string;
+  updateGroup: (groupId: string, updates: Partial<GroupEdits>) => void;
 };
 
 function slugify(name: string) {
@@ -48,6 +51,7 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
       kind: 'circle',
       memberIds: [],
       joined: true,
+      createdBy: ME.id,
     };
     set((s) => ({
       groups: [group, ...s.groups],
@@ -55,6 +59,11 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
     }));
     return id;
   },
+
+  updateGroup: (groupId, updates) =>
+    set((s) => ({
+      groups: s.groups.map((g) => (g.id === groupId ? { ...g, ...updates } : g)),
+    })),
 }));
 
 export function getGroup(groupId: string): Group | undefined {

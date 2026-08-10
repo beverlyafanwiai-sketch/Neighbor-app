@@ -17,6 +17,7 @@ type EventsState = {
   events: EventItem[];
   getEvent: (id: string) => EventItem | undefined;
   createEvent: (input: NewEventInput) => string;
+  updateEvent: (id: string, updates: Partial<NewEventInput>) => void;
 };
 
 function slugify(title: string) {
@@ -55,4 +56,13 @@ export const useEventsStore = create<EventsState>((set, get) => ({
     set((s) => ({ events: [event, ...s.events] }));
     return id;
   },
+
+  updateEvent: (id, updates) =>
+    set((s) => ({
+      events: s.events.map((e) =>
+        e.id === id
+          ? { ...e, ...updates, ...(updates.month ? { month: updates.month.toUpperCase() } : {}) }
+          : e
+      ),
+    })),
 }));
