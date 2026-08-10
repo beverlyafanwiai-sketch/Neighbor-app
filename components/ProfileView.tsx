@@ -20,6 +20,7 @@ type Props = {
   onEdit?: () => void;
   onSettings?: () => void;
   onMoreOptions?: () => void;
+  onSavedPosts?: () => void;
 };
 
 export default function ProfileView({
@@ -32,6 +33,7 @@ export default function ProfileView({
   onEdit,
   onSettings,
   onMoreOptions,
+  onSavedPosts,
 }: Props) {
   const [tab, setTab] = useState<Tab>('About');
   const isFriend = useFriendsStore((s) => s.friendIds[user.id] ?? false);
@@ -48,13 +50,25 @@ export default function ProfileView({
             <Ionicons name="chevron-back" size={22} color="#F5F2E9" />
           </Pressable>
         )}
-        {isMe && onSettings && (
-          <Pressable
-            onPress={onSettings}
-            className="absolute right-4 top-10 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
-          >
-            <Ionicons name="settings-outline" size={20} color="#F5F2E9" />
-          </Pressable>
+        {isMe && (onSettings || onSavedPosts) && (
+          <View className="absolute right-4 top-10 flex-row items-center gap-1.5">
+            {onSavedPosts && (
+              <Pressable
+                onPress={onSavedPosts}
+                className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
+              >
+                <Ionicons name="bookmark-outline" size={19} color="#F5F2E9" />
+              </Pressable>
+            )}
+            {onSettings && (
+              <Pressable
+                onPress={onSettings}
+                className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
+              >
+                <Ionicons name="settings-outline" size={20} color="#F5F2E9" />
+              </Pressable>
+            )}
+          </View>
         )}
         {!isMe && onMoreOptions && (
           <Pressable

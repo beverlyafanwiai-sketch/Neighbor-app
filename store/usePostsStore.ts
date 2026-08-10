@@ -7,11 +7,13 @@ export type PostEdits = { body: string; imageUri?: string };
 type PostsState = {
   posts: Post[];
   likedByMe: Record<string, boolean>;
+  savedIds: Record<string, boolean>;
   comments: Record<string, CommentItem[]>;
   createPost: (body: string, imageUri?: string) => void;
   updatePost: (id: string, updates: PostEdits) => void;
   deletePost: (id: string) => void;
   toggleLike: (postId: string) => void;
+  toggleSave: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
   updateComment: (postId: string, commentId: string, text: string) => void;
   deleteComment: (postId: string, commentId: string) => void;
@@ -20,6 +22,7 @@ type PostsState = {
 export const usePostsStore = create<PostsState>((set) => ({
   posts: POSTS,
   likedByMe: {},
+  savedIds: {},
   comments: COMMENTS,
 
   createPost: (body, imageUri) => {
@@ -44,6 +47,9 @@ export const usePostsStore = create<PostsState>((set) => ({
 
   toggleLike: (postId) =>
     set((s) => ({ likedByMe: { ...s.likedByMe, [postId]: !s.likedByMe[postId] } })),
+
+  toggleSave: (postId) =>
+    set((s) => ({ savedIds: { ...s.savedIds, [postId]: !s.savedIds[postId] } })),
 
   addComment: (postId, text) => {
     const comment: CommentItem = { id: `${Date.now()}`, authorId: ME.id, text, time: 'Just now' };

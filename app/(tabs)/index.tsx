@@ -29,6 +29,8 @@ export default function HomeFeed() {
   const posts = usePostsStore((s) => s.posts);
   const likedByMe = usePostsStore((s) => s.likedByMe);
   const toggleLike = usePostsStore((s) => s.toggleLike);
+  const savedIds = usePostsStore((s) => s.savedIds);
+  const toggleSave = usePostsStore((s) => s.toggleSave);
   const comments = usePostsStore((s) => s.comments);
   const [sharingPost, setSharingPost] = useState<Post | null>(null);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
@@ -163,6 +165,7 @@ export default function HomeFeed() {
         <View className="gap-4 px-5 pb-8 pt-2">
           {filteredPosts.map(({ post, author }) => {
             const liked = likedByMe[post.id] ?? false;
+            const saved = savedIds[post.id] ?? false;
             const postComments = comments[post.id] ?? [];
             return (
               <View key={post.id} className="rounded-3xl bg-cream p-4 shadow-sm">
@@ -188,31 +191,40 @@ export default function HomeFeed() {
                   )}
                 </Pressable>
 
-                <View className="mt-4 flex-row items-center gap-6 border-t border-charcoal/10 pt-3">
-                  <Pressable
-                    onPress={() => toggleLike(post.id)}
-                    className="flex-row items-center gap-1.5"
-                  >
-                    <Ionicons name={liked ? 'heart' : 'heart-outline'} size={18} color="#E0533C" />
-                    <Text className={`text-sm ${liked ? 'font-semibold text-terracotta' : 'text-charcoal/70'}`}>
-                      {getEffectiveLoves(post, liked)}
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => router.push(`/post/${post.id}`)}
-                    className="flex-row items-center gap-1.5"
-                  >
-                    <Ionicons name="chatbubble-outline" size={17} color="#81A684" />
-                    <Text className="text-sm text-charcoal/70">
-                      {getEffectiveReplies(post, postComments)}
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => setSharingPost(post)}
-                    className="flex-row items-center gap-1.5"
-                  >
-                    <Ionicons name="arrow-redo-outline" size={18} color="#3D3D3D80" />
-                    <Text className="text-sm text-charcoal/70">Share</Text>
+                <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
+                  <View className="flex-row items-center gap-6">
+                    <Pressable
+                      onPress={() => toggleLike(post.id)}
+                      className="flex-row items-center gap-1.5"
+                    >
+                      <Ionicons name={liked ? 'heart' : 'heart-outline'} size={18} color="#E0533C" />
+                      <Text className={`text-sm ${liked ? 'font-semibold text-terracotta' : 'text-charcoal/70'}`}>
+                        {getEffectiveLoves(post, liked)}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => router.push(`/post/${post.id}`)}
+                      className="flex-row items-center gap-1.5"
+                    >
+                      <Ionicons name="chatbubble-outline" size={17} color="#81A684" />
+                      <Text className="text-sm text-charcoal/70">
+                        {getEffectiveReplies(post, postComments)}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => setSharingPost(post)}
+                      className="flex-row items-center gap-1.5"
+                    >
+                      <Ionicons name="arrow-redo-outline" size={18} color="#3D3D3D80" />
+                      <Text className="text-sm text-charcoal/70">Share</Text>
+                    </Pressable>
+                  </View>
+                  <Pressable onPress={() => toggleSave(post.id)}>
+                    <Ionicons
+                      name={saved ? 'bookmark' : 'bookmark-outline'}
+                      size={18}
+                      color={saved ? '#D9A441' : '#3D3D3D80'}
+                    />
                   </Pressable>
                 </View>
               </View>

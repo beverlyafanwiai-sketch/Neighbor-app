@@ -25,6 +25,8 @@ export default function PostDetail() {
   const post = usePostsStore((s) => s.posts.find((p) => p.id === id));
   const liked = usePostsStore((s) => (post ? (s.likedByMe[post.id] ?? false) : false));
   const toggleLike = usePostsStore((s) => s.toggleLike);
+  const saved = usePostsStore((s) => (post ? (s.savedIds[post.id] ?? false) : false));
+  const toggleSave = usePostsStore((s) => s.toggleSave);
   const comments = usePostsStore((s) => (post ? (s.comments[post.id] ?? EMPTY_COMMENTS) : EMPTY_COMMENTS));
   const addComment = usePostsStore((s) => s.addComment);
   const updateComment = usePostsStore((s) => s.updateComment);
@@ -147,25 +149,34 @@ export default function PostDetail() {
                 />
               )}
 
-              <View className="flex-row items-center gap-6 border-t border-charcoal/10 pt-3">
-                <Pressable
-                  onPress={() => toggleLike(post.id)}
-                  className="flex-row items-center gap-1.5"
-                >
-                  <Ionicons name={liked ? 'heart' : 'heart-outline'} size={18} color="#E0533C" />
-                  <Text className={`text-sm ${liked ? 'font-semibold text-terracotta' : 'text-charcoal/70'}`}>
-                    {getEffectiveLoves(post, liked)}
-                  </Text>
-                </Pressable>
-                <View className="flex-row items-center gap-1.5">
-                  <Ionicons name="chatbubble-outline" size={17} color="#81A684" />
-                  <Text className="text-sm text-charcoal/70">
-                    {getEffectiveReplies(post, comments)}
-                  </Text>
+              <View className="flex-row items-center justify-between border-t border-charcoal/10 pt-3">
+                <View className="flex-row items-center gap-6">
+                  <Pressable
+                    onPress={() => toggleLike(post.id)}
+                    className="flex-row items-center gap-1.5"
+                  >
+                    <Ionicons name={liked ? 'heart' : 'heart-outline'} size={18} color="#E0533C" />
+                    <Text className={`text-sm ${liked ? 'font-semibold text-terracotta' : 'text-charcoal/70'}`}>
+                      {getEffectiveLoves(post, liked)}
+                    </Text>
+                  </Pressable>
+                  <View className="flex-row items-center gap-1.5">
+                    <Ionicons name="chatbubble-outline" size={17} color="#81A684" />
+                    <Text className="text-sm text-charcoal/70">
+                      {getEffectiveReplies(post, comments)}
+                    </Text>
+                  </View>
+                  <Pressable onPress={() => setSharing(true)} className="flex-row items-center gap-1.5">
+                    <Ionicons name="arrow-redo-outline" size={18} color="#3D3D3D80" />
+                    <Text className="text-sm text-charcoal/70">Share</Text>
+                  </Pressable>
                 </View>
-                <Pressable onPress={() => setSharing(true)} className="flex-row items-center gap-1.5">
-                  <Ionicons name="arrow-redo-outline" size={18} color="#3D3D3D80" />
-                  <Text className="text-sm text-charcoal/70">Share</Text>
+                <Pressable onPress={() => toggleSave(post.id)}>
+                  <Ionicons
+                    name={saved ? 'bookmark' : 'bookmark-outline'}
+                    size={18}
+                    color={saved ? '#D9A441' : '#3D3D3D80'}
+                  />
                 </Pressable>
               </View>
             </View>
