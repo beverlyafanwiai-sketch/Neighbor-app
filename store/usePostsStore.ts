@@ -1,14 +1,20 @@
 import { create } from 'zustand';
 
-import { ME, POSTS, type Post } from '../data/mock';
+import { COMMENTS, ME, POSTS, type CommentItem, type Post } from '../data/mock';
 
 type PostsState = {
   posts: Post[];
+  likedByMe: Record<string, boolean>;
+  comments: Record<string, CommentItem[]>;
   createPost: (body: string) => void;
+  toggleLike: (postId: string) => void;
+  addComment: (postId: string, text: string) => void;
 };
 
 export const usePostsStore = create<PostsState>((set) => ({
   posts: POSTS,
+  likedByMe: {},
+  comments: COMMENTS,
 
   createPost: (body) => {
     const post: Post = {
@@ -21,4 +27,22 @@ export const usePostsStore = create<PostsState>((set) => ({
     };
     set((s) => ({ posts: [post, ...s.posts] }));
   },
+
+  toggleLike: (postId) =>
+    set((s) => ({ likedByMe: { ...s.likedByMe, [postId]: !s.likedByMe[postId] } })),
+
+  addComment: (postId, text) => {
+    const comment: CommentItem = { id: `${Date.now()}`, authorId: ME.id, text, time: 'Just now' };
+    set((s) => ({
+      comments: { ...s.comments, [postId]: [...(s.comments[postId] ?? []), comment] },
+    }));
+  },
 }));
+
+export function getEffectiveLoves(post: Post, liked: boolean) {
+  return post.loves + (liked ? 1 : 0);
+}
+
+export function getEffectiveReplies(post: Post, comments: CommentItem[]) {
+  return post.replies + comments.length;
+}

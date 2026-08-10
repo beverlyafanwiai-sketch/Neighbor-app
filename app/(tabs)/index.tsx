@@ -8,7 +8,7 @@ import { SvgXml } from 'react-native-svg';
 import { COFFEE_FRIENDS_SVG } from '../../assets/illustrations/coffee-friends';
 import { ME, USERS } from '../../data/mock';
 import { useNotificationsStore } from '../../store/useNotificationsStore';
-import { usePostsStore } from '../../store/usePostsStore';
+import { getEffectiveLoves, getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 
 function goToProfile(userId: string) {
@@ -25,6 +25,9 @@ export default function HomeFeed() {
   const [query, setQuery] = useState('');
   const unreadCount = useNotificationsStore((s) => s.notifications.filter((n) => !n.read).length);
   const posts = usePostsStore((s) => s.posts);
+  const likedByMe = usePostsStore((s) => s.likedByMe);
+  const toggleLike = usePostsStore((s) => s.toggleLike);
+  const comments = usePostsStore((s) => s.comments);
 
   const postsWithAuthor = posts
     .map((post) => ({
@@ -147,6 +150,8 @@ export default function HomeFeed() {
 
         <View className="gap-4 px-5 pb-8 pt-2">
           {filteredPosts.map(({ post, author }) => {
+            const liked = likedByMe[post.id] ?? false;
+            const postComments = comments[post.id] ?? [];
             return (
               <View key={post.id} className="rounded-3xl bg-cream p-4 shadow-sm">
                 <Pressable
@@ -160,16 +165,28 @@ export default function HomeFeed() {
                   </View>
                 </Pressable>
 
-                <Text className="mt-3 text-[15px] leading-5 text-charcoal">{post.body}</Text>
+                <Pressable onPress={() => router.push(`/post/${post.id}`)}>
+                  <Text className="mt-3 text-[15px] leading-5 text-charcoal">{post.body}</Text>
+                </Pressable>
 
                 <View className="mt-4 flex-row items-center gap-6 border-t border-charcoal/10 pt-3">
-                  <Pressable className="flex-row items-center gap-1.5">
-                    <Ionicons name="heart-outline" size={18} color="#E0533C" />
-                    <Text className="text-sm text-charcoal/70">{post.loves}</Text>
+                  <Pressable
+                    onPress={() => toggleLike(post.id)}
+                    className="flex-row items-center gap-1.5"
+                  >
+                    <Ionicons name={liked ? 'heart' : 'heart-outline'} size={18} color="#E0533C" />
+                    <Text className={`text-sm ${liked ? 'font-semibold text-terracotta' : 'text-charcoal/70'}`}>
+                      {getEffectiveLoves(post, liked)}
+                    </Text>
                   </Pressable>
-                  <Pressable className="flex-row items-center gap-1.5">
+                  <Pressable
+                    onPress={() => router.push(`/post/${post.id}`)}
+                    className="flex-row items-center gap-1.5"
+                  >
                     <Ionicons name="chatbubble-outline" size={17} color="#81A684" />
-                    <Text className="text-sm text-charcoal/70">{post.replies}</Text>
+                    <Text className="text-sm text-charcoal/70">
+                      {getEffectiveReplies(post, postComments)}
+                    </Text>
                   </Pressable>
                   <Pressable className="flex-row items-center gap-1.5">
                     <Ionicons name="arrow-redo-outline" size={18} color="#3D3D3D80" />

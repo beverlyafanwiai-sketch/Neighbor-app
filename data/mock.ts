@@ -202,6 +202,18 @@ export const POSTS: Post[] = [
   },
 ];
 
+export type CommentItem = { id: string; authorId: string; text: string; time: string };
+
+export const COMMENTS: Record<string, CommentItem[]> = {
+  '1': [
+    { id: 'c1', authorId: 'theo', text: "Count me in, I'll bring a salad to balance out the cornbread.", time: '1h ago' },
+    { id: 'c2', authorId: 'priya', text: 'This is exactly the kind of no-agenda thing I need this week.', time: '45m ago' },
+  ],
+  '4': [
+    { id: 'c1', authorId: 'sam', text: "I'll swing by after work, save me a jar!", time: '2d ago' },
+  ],
+};
+
 export type Tone = 'Casual' | 'Structured' | 'Activity-focused';
 
 export type Group = {
