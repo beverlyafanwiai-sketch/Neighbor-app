@@ -3,7 +3,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { GROUPS, getUser } from '../../data/mock';
+import { GROUPS, ME, getUser } from '../../data/mock';
+import { getEffectiveMemberCount, useGroupsStore } from '../../store/useGroupsStore';
 
 const TONE_STYLE: Record<string, { bg: string; text: string }> = {
   Casual: { bg: 'bg-sage/20', text: 'text-sage' },
@@ -21,8 +22,11 @@ function ToneTag({ tone }: { tone: string }) {
 }
 
 export default function Groups() {
-  const circles = GROUPS.filter((g) => g.kind === 'circle');
-  const discover = GROUPS.filter((g) => g.kind === 'discover');
+  const joinedMap = useGroupsStore((s) => s.joined);
+  const toggleJoin = useGroupsStore((s) => s.toggle);
+
+  const circles = GROUPS.filter((g) => joinedMap[g.id]);
+  const discover = GROUPS.filter((g) => !joinedMap[g.id]);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -39,7 +43,8 @@ export default function Groups() {
         </Text>
         <View className="gap-3">
           {circles.map((c) => {
-            const avatars = c.memberIds.map((id) => getUser(id)).filter(Boolean);
+            const otherAvatars = c.memberIds.map((id) => getUser(id)).filter(Boolean);
+            const avatars = [ME, ...otherAvatars];
             return (
               <Pressable
                 key={c.id}
@@ -52,7 +57,9 @@ export default function Groups() {
                 <View className="flex-1">
                   <Text className="font-semibold text-charcoal">{c.name}</Text>
                   <View className="mt-1.5 flex-row items-center gap-2">
-                    <Text className="text-xs text-charcoal/60">{c.memberCount} members</Text>
+                    <Text className="text-xs text-charcoal/60">
+                      {getEffectiveMemberCount(c.id, true)} members
+                    </Text>
                     <ToneTag tone={c.tone} />
                   </View>
                 </View>
@@ -76,6 +83,11 @@ export default function Groups() {
               </Pressable>
             );
           })}
+          {circles.length === 0 && (
+            <Text className="text-sm text-charcoal/50">
+              You haven't joined any circles yet — take a look at Discover below.
+            </Text>
+          )}
         </View>
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
@@ -94,15 +106,28 @@ export default function Groups() {
               <View className="flex-1">
                 <Text className="font-semibold text-charcoal">{g.name}</Text>
                 <View className="mt-1.5 flex-row items-center gap-2">
-                  <Text className="text-xs text-charcoal/60">{g.memberCount} members</Text>
+                  <Text className="text-xs text-charcoal/60">
+                    {getEffectiveMemberCount(g.id, false)} members
+                  </Text>
                   <ToneTag tone={g.tone} />
                 </View>
               </View>
-              <Pressable className="rounded-full bg-charcoal px-4 py-2">
+              <Pressable
+                onPress={(evt) => {
+                  evt.stopPropagation();
+                  toggleJoin(g.id);
+                }}
+                className="rounded-full bg-charcoal px-4 py-2"
+              >
                 <Text className="text-xs font-semibold text-cream">Join</Text>
               </Pressable>
             </Pressable>
           ))}
+          {discover.length === 0 && (
+            <Text className="text-sm text-charcoal/50">
+              You've joined every group in your area — nice work.
+            </Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

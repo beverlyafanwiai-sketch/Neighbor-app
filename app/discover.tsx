@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DISCOVER_USERS, GROUPS, ME, type Tone } from '../data/mock';
+import { getEffectiveMemberCount, useGroupsStore } from '../store/useGroupsStore';
 
 const MODES = ['People', 'Groups'] as const;
 type Mode = (typeof MODES)[number];
@@ -23,8 +24,10 @@ function sharedTags(tags: string[]) {
 export default function Discover() {
   const [mode, setMode] = useState<Mode>('People');
   const [query, setQuery] = useState('');
+  const joinedMap = useGroupsStore((s) => s.joined);
+  const toggleJoin = useGroupsStore((s) => s.toggle);
 
-  const discoverGroups = GROUPS.filter((g) => g.kind === 'discover');
+  const discoverGroups = GROUPS.filter((g) => !joinedMap[g.id]);
 
   const people = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -141,13 +144,21 @@ export default function Discover() {
                   <View className="flex-1">
                     <Text className="font-semibold text-charcoal">{g.name}</Text>
                     <View className="mt-1.5 flex-row items-center gap-2">
-                      <Text className="text-xs text-charcoal/60">{g.memberCount} members</Text>
+                      <Text className="text-xs text-charcoal/60">
+                        {getEffectiveMemberCount(g.id, false)} members
+                      </Text>
                       <View className={`rounded-full px-2.5 py-1 ${toneStyle.bg}`}>
                         <Text className={`text-xs font-semibold ${toneStyle.text}`}>{g.tone}</Text>
                       </View>
                     </View>
                   </View>
-                  <Pressable className="rounded-full bg-charcoal px-4 py-2">
+                  <Pressable
+                    onPress={(evt) => {
+                      evt.stopPropagation();
+                      toggleJoin(g.id);
+                    }}
+                    className="rounded-full bg-charcoal px-4 py-2"
+                  >
                     <Text className="text-xs font-semibold text-cream">Join</Text>
                   </Pressable>
                 </Pressable>

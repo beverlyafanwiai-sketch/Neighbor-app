@@ -1,10 +1,10 @@
-import { useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getGroup, getUser } from '../../data/mock';
+import { ME, getGroup, getUser } from '../../data/mock';
+import { getEffectiveMemberCount, useGroupsStore } from '../../store/useGroupsStore';
 
 const TONE_STYLE: Record<string, { bg: string; text: string }> = {
   Casual: { bg: 'bg-sage/20', text: 'text-sage' },
@@ -15,7 +15,8 @@ const TONE_STYLE: Record<string, { bg: string; text: string }> = {
 export default function GroupDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const group = getGroup(id);
-  const [joined, setJoined] = useState(group?.joined ?? false);
+  const joined = useGroupsStore((s) => (group ? (s.joined[group.id] ?? false) : false));
+  const toggleJoin = useGroupsStore((s) => s.toggle);
 
   if (!group) {
     return (
@@ -28,7 +29,8 @@ export default function GroupDetail() {
     );
   }
 
-  const members = group.memberIds.map((id) => getUser(id)).filter(Boolean);
+  const otherMembers = group.memberIds.map((id) => getUser(id)).filter(Boolean);
+  const members = joined ? [ME, ...otherMembers] : otherMembers;
   const toneStyle = TONE_STYLE[group.tone] ?? TONE_STYLE.Casual;
 
   return (
@@ -49,7 +51,9 @@ export default function GroupDetail() {
           </View>
           <Text className="mt-3 text-xl font-bold text-charcoal">{group.name}</Text>
           <View className="mt-2 flex-row items-center gap-2">
-            <Text className="text-xs text-charcoal/60">{group.memberCount} members</Text>
+            <Text className="text-xs text-charcoal/60">
+              {getEffectiveMemberCount(group.id, joined)} members
+            </Text>
             <View className={`rounded-full px-2.5 py-1 ${toneStyle.bg}`}>
               <Text className={`text-xs font-semibold ${toneStyle.text}`}>{group.tone}</Text>
             </View>
@@ -59,7 +63,7 @@ export default function GroupDetail() {
           </Text>
 
           <Pressable
-            onPress={() => setJoined((v) => !v)}
+            onPress={() => toggleJoin(group.id)}
             className={`mt-5 rounded-full px-6 py-3 ${joined ? 'bg-sand' : 'bg-charcoal'}`}
           >
             <Text className={`text-sm font-semibold ${joined ? 'text-charcoal' : 'text-cream'}`}>
@@ -72,21 +76,24 @@ export default function GroupDetail() {
           Members
         </Text>
         <View className="gap-3">
-          {members.map((m) => (
-            <Pressable
-              key={m!.id}
-              onPress={() => router.push(`/profile/${m!.id}`)}
-              className="flex-row items-center gap-3 rounded-2xl bg-cream p-3 active:opacity-70"
-            >
-              <Image source={{ uri: m!.avatar }} className="h-11 w-11 rounded-full" />
-              <View className="flex-1">
-                <Text className="font-medium text-charcoal">{m!.name}</Text>
-                <Text className="text-xs text-charcoal/50" numberOfLines={1}>
-                  {m!.tagline}
-                </Text>
-              </View>
-            </Pressable>
-          ))}
+          {members.map((m) => {
+            const isMe = m!.id === ME.id;
+            return (
+              <Pressable
+                key={m!.id}
+                onPress={() => !isMe && router.push(`/profile/${m!.id}`)}
+                className="flex-row items-center gap-3 rounded-2xl bg-cream p-3 active:opacity-70"
+              >
+                <Image source={{ uri: m!.avatar }} className="h-11 w-11 rounded-full" />
+                <View className="flex-1">
+                  <Text className="font-medium text-charcoal">{isMe ? 'You' : m!.name}</Text>
+                  <Text className="text-xs text-charcoal/50" numberOfLines={1}>
+                    {m!.tagline}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>
