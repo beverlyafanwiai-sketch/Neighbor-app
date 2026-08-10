@@ -4,6 +4,7 @@ export type GroupMessage = { id: string; senderId: string; text: string; time: s
 
 type GroupChatState = {
   messages: Record<string, GroupMessage[]>;
+  lastActivity: Record<string, number>;
   sendMessage: (groupId: string, text: string) => void;
 };
 
@@ -25,8 +26,16 @@ const initialMessages: Record<string, GroupMessage[]> = {
   ],
 };
 
+const groupOrder = Object.keys(initialMessages);
+const initialLastActivity: Record<string, number> = Object.fromEntries(
+  groupOrder.map((id, i) => [id, groupOrder.length - i])
+);
+
+let activitySeq = groupOrder.length + 1000;
+
 export const useGroupChatStore = create<GroupChatState>((set) => ({
   messages: initialMessages,
+  lastActivity: initialLastActivity,
 
   sendMessage: (groupId, text) => {
     set((s) => {
@@ -37,7 +46,10 @@ export const useGroupChatStore = create<GroupChatState>((set) => ({
         text,
         time: 'Now',
       };
-      return { messages: { ...s.messages, [groupId]: [...existing, message] } };
+      return {
+        messages: { ...s.messages, [groupId]: [...existing, message] },
+        lastActivity: { ...s.lastActivity, [groupId]: ++activitySeq },
+      };
     });
   },
 }));

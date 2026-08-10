@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FlatList,
   Image,
@@ -17,16 +17,23 @@ import { SvgXml } from 'react-native-svg';
 import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
 import { ME, getUser } from '../../data/mock';
 import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
-import { useGroupChatStore } from '../../store/useGroupChatStore';
+import { useGroupChatStore, type GroupMessage } from '../../store/useGroupChatStore';
+
+const EMPTY_MESSAGES: GroupMessage[] = [];
 
 export default function GroupChatThread() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const group = useGroupsStore((s) => s.groups.find((g) => g.id === id));
   const joined = useGroupsStore((s) => (group ? (s.joined[group.id] ?? false) : false));
-  const messages = useGroupChatStore((s) => (group ? (s.messages[group.id] ?? []) : []));
+  const messages = useGroupChatStore((s) => (group ? (s.messages[group.id] ?? EMPTY_MESSAGES) : EMPTY_MESSAGES));
   const sendMessage = useGroupChatStore((s) => s.sendMessage);
+  const markRead = useGroupsStore((s) => s.markRead);
 
   const [draft, setDraft] = useState('');
+
+  useEffect(() => {
+    if (group) markRead(group.id);
+  }, [group?.id, markRead]);
 
   if (!group || !joined) {
     return (

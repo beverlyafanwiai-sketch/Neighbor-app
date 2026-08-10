@@ -9,12 +9,19 @@ import { useGroupsStore } from '../../store/useGroupsStore';
 
 export default function ChatList() {
   const conversations = useConversationsStore((s) => s.conversations);
-  const list = Object.values(conversations);
+  const dmUnread = useConversationsStore((s) => s.unread);
+  const dmLastActivity = useConversationsStore((s) => s.lastActivity);
+  const list = Object.values(conversations).sort(
+    (a, b) => (dmLastActivity[b.id] ?? 0) - (dmLastActivity[a.id] ?? 0)
+  );
 
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const groupMessages = useGroupChatStore((s) => s.messages);
-  const myGroups = groups.filter((g) => joinedMap[g.id]);
+  const groupLastActivity = useGroupChatStore((s) => s.lastActivity);
+  const myGroups = groups
+    .filter((g) => joinedMap[g.id])
+    .sort((a, b) => (groupLastActivity[b.id] ?? 0) - (groupLastActivity[a.id] ?? 0));
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -47,7 +54,14 @@ export default function ChatList() {
                       : 'No messages yet'}
                   </Text>
                 </View>
-                {last && <Text className="text-xs text-charcoal/40">{last.time}</Text>}
+                <View className="items-end gap-1.5">
+                  {last && <Text className="text-xs text-charcoal/40">{last.time}</Text>}
+                  {g.unread > 0 && (
+                    <View className="h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1.5">
+                      <Text className="text-[11px] font-bold text-charcoal">{g.unread}</Text>
+                    </View>
+                  )}
+                </View>
               </Pressable>
             );
           })}
@@ -64,6 +78,7 @@ export default function ChatList() {
             const user = getUser(c.userId);
             if (!user) return null;
             const last = c.messages[c.messages.length - 1];
+            const unread = dmUnread[c.id] ?? 0;
             return (
               <Pressable
                 key={c.id}
@@ -73,11 +88,21 @@ export default function ChatList() {
                 <Image source={{ uri: user.avatar }} className="h-12 w-12 rounded-full" />
                 <View className="flex-1">
                   <Text className="font-semibold text-charcoal">{user.name}</Text>
-                  <Text className="mt-0.5 text-sm text-charcoal/60" numberOfLines={1}>
+                  <Text
+                    className={`mt-0.5 text-sm ${unread > 0 ? 'font-medium text-charcoal' : 'text-charcoal/60'}`}
+                    numberOfLines={1}
+                  >
                     {last ? `${last.from === 'me' ? 'You: ' : ''}${last.text}` : 'Say hi 👋'}
                   </Text>
                 </View>
-                {last && <Text className="text-xs text-charcoal/40">{last.time}</Text>}
+                <View className="items-end gap-1.5">
+                  {last && <Text className="text-xs text-charcoal/40">{last.time}</Text>}
+                  {unread > 0 && (
+                    <View className="h-5 min-w-5 items-center justify-center rounded-full bg-gold px-1.5">
+                      <Text className="text-[11px] font-bold text-charcoal">{unread}</Text>
+                    </View>
+                  )}
+                </View>
               </Pressable>
             );
           })}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FlatList,
   Image,
@@ -22,9 +22,14 @@ export default function ChatThread() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const conversation = useConversationsStore((s) => s.conversations[id]);
   const sendMessage = useConversationsStore((s) => s.sendMessage);
+  const markRead = useConversationsStore((s) => s.markRead);
   const user = conversation ? getUser(conversation.userId) : undefined;
 
   const [draft, setDraft] = useState('');
+
+  useEffect(() => {
+    markRead(id);
+  }, [id, markRead]);
 
   if (!conversation || !user) {
     return (

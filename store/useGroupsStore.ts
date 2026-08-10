@@ -16,6 +16,7 @@ type GroupsState = {
   toggle: (groupId: string) => void;
   createGroup: (input: NewGroupInput) => string;
   updateGroup: (groupId: string, updates: Partial<GroupEdits>) => void;
+  markRead: (groupId: string) => void;
 };
 
 function slugify(name: string) {
@@ -63,6 +64,11 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
   updateGroup: (groupId, updates) =>
     set((s) => ({
       groups: s.groups.map((g) => (g.id === groupId ? { ...g, ...updates } : g)),
+    })),
+
+  markRead: (groupId) =>
+    set((s) => ({
+      groups: s.groups.map((g) => (g.id === groupId ? { ...g, unread: 0 } : g)),
     })),
 }));
 
