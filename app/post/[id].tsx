@@ -13,6 +13,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser, type CommentItem } from '../../data/mock';
 import { getEffectiveLoves, getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -36,6 +37,7 @@ export default function PostDetail() {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
 
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
   const author = post ? resolveUser(post.authorId) : undefined;
@@ -153,6 +155,10 @@ export default function PostDetail() {
                     {getEffectiveReplies(post, comments)}
                   </Text>
                 </View>
+                <Pressable onPress={() => setSharing(true)} className="flex-row items-center gap-1.5">
+                  <Ionicons name="arrow-redo-outline" size={18} color="#3D3D3D80" />
+                  <Text className="text-sm text-charcoal/70">Share</Text>
+                </Pressable>
               </View>
             </View>
           }
@@ -269,6 +275,10 @@ export default function PostDetail() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      {sharing && (
+        <ShareSheet postId={post.id} postBody={post.body} onClose={() => setSharing(false)} />
+      )}
     </SafeAreaView>
   );
 }

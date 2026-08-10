@@ -6,7 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { COFFEE_FRIENDS_SVG } from '../../assets/illustrations/coffee-friends';
-import { ME, USERS } from '../../data/mock';
+import ShareSheet from '../../components/ShareSheet';
+import { ME, USERS, type Post } from '../../data/mock';
 import { useNotificationsStore } from '../../store/useNotificationsStore';
 import { getEffectiveLoves, getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -28,6 +29,7 @@ export default function HomeFeed() {
   const likedByMe = usePostsStore((s) => s.likedByMe);
   const toggleLike = usePostsStore((s) => s.toggleLike);
   const comments = usePostsStore((s) => s.comments);
+  const [sharingPost, setSharingPost] = useState<Post | null>(null);
 
   const postsWithAuthor = posts
     .map((post) => ({
@@ -195,7 +197,10 @@ export default function HomeFeed() {
                       {getEffectiveReplies(post, postComments)}
                     </Text>
                   </Pressable>
-                  <Pressable className="flex-row items-center gap-1.5">
+                  <Pressable
+                    onPress={() => setSharingPost(post)}
+                    className="flex-row items-center gap-1.5"
+                  >
                     <Ionicons name="arrow-redo-outline" size={18} color="#3D3D3D80" />
                     <Text className="text-sm text-charcoal/70">Share</Text>
                   </Pressable>
@@ -216,6 +221,14 @@ export default function HomeFeed() {
           )}
         </View>
       </ScrollView>
+
+      {sharingPost && (
+        <ShareSheet
+          postId={sharingPost.id}
+          postBody={sharingPost.body}
+          onClose={() => setSharingPost(null)}
+        />
+      )}
     </SafeAreaView>
   );
 }
