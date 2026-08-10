@@ -43,7 +43,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   signOut: async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Sign out locally even if the remote call fails (e.g. no network, misconfigured project).
+    }
     set({ session: null, user: null });
   },
 

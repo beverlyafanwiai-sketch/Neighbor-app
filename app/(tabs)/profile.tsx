@@ -21,6 +21,7 @@ export default function Profile() {
         friends={friends}
         onEdit={() => router.push('/edit-profile')}
         onFriendPress={(friend) => router.push(`/profile/${friend.id}`)}
+        onSettings={() => router.push('/settings')}
       />
     </SafeAreaView>
   );
