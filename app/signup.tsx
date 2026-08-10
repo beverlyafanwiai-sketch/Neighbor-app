@@ -29,7 +29,7 @@ export default function Signup() {
   const [mismatchError, setMismatchError] = useState(false);
 
   useEffect(() => {
-    if (session) router.replace('/(tabs)');
+    if (session) router.replace('/onboarding');
   }, [session]);
 
   const handleSignup = async () => {
@@ -42,7 +42,7 @@ export default function Signup() {
     setSubmitting(true);
     const ok = await signUp(email, password);
     setSubmitting(false);
-    if (ok) router.replace('/(tabs)');
+    if (ok) router.replace('/onboarding');
   };
 
   return (
