@@ -139,6 +139,14 @@ export default function PostDetail() {
 
               <Text className="text-[15px] leading-5 text-charcoal">{post.body}</Text>
 
+              {post.imageUri && (
+                <Image
+                  source={{ uri: post.imageUri }}
+                  className="w-full rounded-2xl"
+                  style={{ aspectRatio: 4 / 3 }}
+                />
+              )}
+
               <View className="flex-row items-center gap-6 border-t border-charcoal/10 pt-3">
                 <Pressable
                   onPress={() => toggleLike(post.id)}

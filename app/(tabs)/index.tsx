@@ -176,6 +176,13 @@ export default function HomeFeed() {
 
                 <Pressable onPress={() => router.push(`/post/${post.id}`)}>
                   <Text className="mt-3 text-[15px] leading-5 text-charcoal">{post.body}</Text>
+                  {post.imageUri && (
+                    <Image
+                      source={{ uri: post.imageUri }}
+                      className="mt-3 w-full rounded-2xl"
+                      style={{ aspectRatio: 4 / 3 }}
+                    />
+                  )}
                 </Pressable>
 
                 <View className="mt-4 flex-row items-center gap-6 border-t border-charcoal/10 pt-3">

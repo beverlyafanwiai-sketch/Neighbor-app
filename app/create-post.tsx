@@ -1,7 +1,17 @@
 import { useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { usePostsStore } from '../store/usePostsStore';
@@ -15,17 +25,30 @@ export default function CreatePost() {
   const createPost = usePostsStore((s) => s.createPost);
   const updatePost = usePostsStore((s) => s.updatePost);
   const [body, setBody] = useState(existing?.body ?? '');
+  const [imageUri, setImageUri] = useState<string | undefined>(existing?.imageUri);
 
   const canPost = body.trim().length > 0;
+
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
 
   const save = () => {
     if (!canPost) return;
     if (existing) {
-      updatePost(existing.id, body.trim());
+      updatePost(existing.id, { body: body.trim(), imageUri });
       router.replace(`/post/${existing.id}`);
       return;
     }
-    createPost(body.trim());
+    createPost(body.trim(), imageUri);
     router.back();
   };
 
@@ -51,7 +74,7 @@ export default function CreatePost() {
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-        <View className="flex-1 px-5 pt-2">
+        <ScrollView className="flex-1 px-5 pt-2" keyboardShouldPersistTaps="handled">
           <View className="flex-row items-center gap-3">
             <Image source={{ uri: profile.avatar }} className="h-11 w-11 rounded-full" />
             <Text className="font-semibold text-charcoal">{profile.name}</Text>
@@ -64,9 +87,37 @@ export default function CreatePost() {
             placeholderTextColor="#3D3D3D80"
             multiline
             autoFocus
-            className="mt-4 flex-1 text-base leading-6 text-charcoal"
+            className="mt-4 min-h-[100px] text-base leading-6 text-charcoal"
             style={{ textAlignVertical: 'top' }}
           />
+
+          {imageUri && (
+            <View className="mt-2">
+              <Image
+                source={{ uri: imageUri }}
+                className="w-full rounded-2xl bg-cream"
+                style={{ aspectRatio: 4 / 3 }}
+              />
+              <Pressable
+                onPress={() => setImageUri(undefined)}
+                className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-charcoal/60"
+              >
+                <Ionicons name="close" size={16} color="#F5F2E9" />
+              </Pressable>
+            </View>
+          )}
+        </ScrollView>
+
+        <View className="flex-row items-center gap-2 border-t border-charcoal/10 px-5 py-3">
+          <Pressable
+            onPress={pickImage}
+            className="flex-row items-center gap-2 rounded-full bg-cream px-4 py-2"
+          >
+            <Ionicons name="image-outline" size={18} color="#81A684" />
+            <Text className="text-sm font-medium text-charcoal">
+              {imageUri ? 'Change photo' : 'Add photo'}
+            </Text>
+          </Pressable>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -2,12 +2,14 @@ import { create } from 'zustand';
 
 import { COMMENTS, ME, POSTS, type CommentItem, type Post } from '../data/mock';
 
+export type PostEdits = { body: string; imageUri?: string };
+
 type PostsState = {
   posts: Post[];
   likedByMe: Record<string, boolean>;
   comments: Record<string, CommentItem[]>;
-  createPost: (body: string) => void;
-  updatePost: (id: string, body: string) => void;
+  createPost: (body: string, imageUri?: string) => void;
+  updatePost: (id: string, updates: PostEdits) => void;
   deletePost: (id: string) => void;
   toggleLike: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
@@ -20,7 +22,7 @@ export const usePostsStore = create<PostsState>((set) => ({
   likedByMe: {},
   comments: COMMENTS,
 
-  createPost: (body) => {
+  createPost: (body, imageUri) => {
     const post: Post = {
       id: `${Date.now()}`,
       authorId: ME.id,
@@ -28,12 +30,15 @@ export const usePostsStore = create<PostsState>((set) => ({
       body,
       loves: 0,
       replies: 0,
+      imageUri,
     };
     set((s) => ({ posts: [post, ...s.posts] }));
   },
 
-  updatePost: (id, body) =>
-    set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, body } : p)) })),
+  updatePost: (id, updates) =>
+    set((s) => ({
+      posts: s.posts.map((p) => (p.id === id ? { ...p, ...updates } : p)),
+    })),
 
   deletePost: (id) => set((s) => ({ posts: s.posts.filter((p) => p.id !== id) })),
 

@@ -157,6 +157,7 @@ export type Post = {
   body: string;
   loves: number;
   replies: number;
+  imageUri?: string;
 };
 
 export const POSTS: Post[] = [

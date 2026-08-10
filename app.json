@@ -32,6 +32,12 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Neighbor uses your photos to let you attach a picture to a post."
+        }
       ]
     ],
     "experiments": {
