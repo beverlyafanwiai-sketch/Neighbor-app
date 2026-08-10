@@ -64,14 +64,25 @@ export default function GroupDetail() {
             {group.description}
           </Text>
 
-          <Pressable
-            onPress={() => toggleJoin(group.id)}
-            className={`mt-5 rounded-full px-6 py-3 ${joined ? 'bg-sand' : 'bg-charcoal'}`}
-          >
-            <Text className={`text-sm font-semibold ${joined ? 'text-charcoal' : 'text-cream'}`}>
-              {joined ? 'Leave circle' : 'Join group'}
-            </Text>
-          </Pressable>
+          <View className="mt-5 flex-row gap-3">
+            <Pressable
+              onPress={() => toggleJoin(group.id)}
+              className={`rounded-full px-6 py-3 ${joined ? 'bg-sand' : 'bg-charcoal'}`}
+            >
+              <Text className={`text-sm font-semibold ${joined ? 'text-charcoal' : 'text-cream'}`}>
+                {joined ? 'Leave circle' : 'Join group'}
+              </Text>
+            </Pressable>
+            {joined && (
+              <Pressable
+                onPress={() => router.push(`/group-chat/${group.id}`)}
+                className="flex-row items-center gap-1.5 rounded-full bg-terracotta px-6 py-3"
+              >
+                <Ionicons name="chatbubbles-outline" size={16} color="#F5F2E9" />
+                <Text className="text-sm font-semibold text-cream">Group chat</Text>
+              </Pressable>
+            )}
+          </View>
         </View>
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
