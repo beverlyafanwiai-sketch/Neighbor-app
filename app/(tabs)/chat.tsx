@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ME, getUser } from '../../data/mock';
+import { useBlockedStore } from '../../store/useBlockedStore';
 import { useConversationsStore } from '../../store/useConversationsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { useGroupsStore } from '../../store/useGroupsStore';
@@ -11,9 +12,10 @@ export default function ChatList() {
   const conversations = useConversationsStore((s) => s.conversations);
   const dmUnread = useConversationsStore((s) => s.unread);
   const dmLastActivity = useConversationsStore((s) => s.lastActivity);
-  const list = Object.values(conversations).sort(
-    (a, b) => (dmLastActivity[b.id] ?? 0) - (dmLastActivity[a.id] ?? 0)
-  );
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const list = Object.values(conversations)
+    .filter((c) => !blockedIds[c.userId])
+    .sort((a, b) => (dmLastActivity[b.id] ?? 0) - (dmLastActivity[a.id] ?? 0));
 
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);

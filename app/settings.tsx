@@ -1,9 +1,11 @@
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { getUser } from '../data/mock';
 import { useAuthStore } from '../store/useAuthStore';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { useSettingsStore, type NotificationPrefs } from '../store/useSettingsStore';
 
 const NOTIFICATION_ROWS: { key: keyof NotificationPrefs; label: string; description: string }[] = [
@@ -33,6 +35,12 @@ export default function Settings() {
   const prefs = useSettingsStore((s) => s.notificationPrefs);
   const togglePref = useSettingsStore((s) => s.toggleNotificationPref);
   const signOut = useAuthStore((s) => s.signOut);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const toggleBlocked = useBlockedStore((s) => s.toggle);
+  const blockedUsers = Object.keys(blockedIds)
+    .filter((id) => blockedIds[id])
+    .map((id) => getUser(id))
+    .filter((u): u is NonNullable<typeof u> => Boolean(u));
 
   const handleSignOut = async () => {
     await signOut();
@@ -65,6 +73,31 @@ export default function Settings() {
               <Toggle on={prefs[row.key]} onToggle={() => togglePref(row.key)} />
             </View>
           ))}
+        </View>
+
+        <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+          Blocked accounts
+        </Text>
+        <View className="gap-3">
+          {blockedUsers.length === 0 ? (
+            <Text className="text-sm text-charcoal/50">You haven't blocked anyone.</Text>
+          ) : (
+            blockedUsers.map((u) => (
+              <View
+                key={u.id}
+                className="flex-row items-center gap-3 rounded-2xl bg-cream p-4"
+              >
+                <Image source={{ uri: u.avatar }} className="h-9 w-9 rounded-full" />
+                <Text className="flex-1 text-sm font-medium text-charcoal">{u.name}</Text>
+                <Pressable
+                  onPress={() => toggleBlocked(u.id)}
+                  className="rounded-full bg-sand px-4 py-2"
+                >
+                  <Text className="text-xs font-semibold text-charcoal">Unblock</Text>
+                </Pressable>
+              </View>
+            ))
+          )}
         </View>
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">

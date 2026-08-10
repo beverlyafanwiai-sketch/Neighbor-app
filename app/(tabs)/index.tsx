@@ -8,6 +8,7 @@ import { SvgXml } from 'react-native-svg';
 import { COFFEE_FRIENDS_SVG } from '../../assets/illustrations/coffee-friends';
 import ShareSheet from '../../components/ShareSheet';
 import { ME, USERS, type Post } from '../../data/mock';
+import { useBlockedStore } from '../../store/useBlockedStore';
 import { useNotificationsStore } from '../../store/useNotificationsStore';
 import { getEffectiveLoves, getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -30,8 +31,10 @@ export default function HomeFeed() {
   const toggleLike = usePostsStore((s) => s.toggleLike);
   const comments = usePostsStore((s) => s.comments);
   const [sharingPost, setSharingPost] = useState<Post | null>(null);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
 
   const postsWithAuthor = posts
+    .filter((post) => !blockedIds[post.authorId])
     .map((post) => ({
       post,
       author: post.authorId === ME.id ? profile : USERS.find((u) => u.id === post.authorId),

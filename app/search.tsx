@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DISCOVER_USERS, ME, USERS, type Tone } from '../data/mock';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { useEventsStore } from '../store/useEventsStore';
 import { useFriendsStore } from '../store/useFriendsStore';
 import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
@@ -38,6 +39,7 @@ export default function Search() {
 
   const friendIds = useFriendsStore((s) => s.friendIds);
   const toggleFriend = useFriendsStore((s) => s.toggle);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
 
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
@@ -51,6 +53,7 @@ export default function Search() {
     q.length === 0
       ? []
       : posts.filter((p) => {
+          if (blockedIds[p.authorId]) return false;
           const author = p.authorId === ME.id ? profile : ALL_PEOPLE.find((u) => u.id === p.authorId);
           return (
             p.body.toLowerCase().includes(q) || (author?.name.toLowerCase().includes(q) ?? false)
@@ -61,7 +64,9 @@ export default function Search() {
     q.length === 0
       ? []
       : ALL_PEOPLE.filter(
-          (u) => u.name.toLowerCase().includes(q) || u.tags.some((t) => t.toLowerCase().includes(q))
+          (u) =>
+            !blockedIds[u.id] &&
+            (u.name.toLowerCase().includes(q) || u.tags.some((t) => t.toLowerCase().includes(q)))
         );
 
   const matchedGroups =

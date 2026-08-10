@@ -19,6 +19,7 @@ type Props = {
   onFriendPress?: (friend: User) => void;
   onEdit?: () => void;
   onSettings?: () => void;
+  onMoreOptions?: () => void;
 };
 
 export default function ProfileView({
@@ -30,6 +31,7 @@ export default function ProfileView({
   onFriendPress,
   onEdit,
   onSettings,
+  onMoreOptions,
 }: Props) {
   const [tab, setTab] = useState<Tab>('About');
   const isFriend = useFriendsStore((s) => s.friendIds[user.id] ?? false);
@@ -52,6 +54,14 @@ export default function ProfileView({
             className="absolute right-4 top-10 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
           >
             <Ionicons name="settings-outline" size={20} color="#F5F2E9" />
+          </Pressable>
+        )}
+        {!isMe && onMoreOptions && (
+          <Pressable
+            onPress={onMoreOptions}
+            className="absolute right-4 top-10 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
+          >
+            <Ionicons name="ellipsis-horizontal" size={20} color="#F5F2E9" />
           </Pressable>
         )}
         <Image

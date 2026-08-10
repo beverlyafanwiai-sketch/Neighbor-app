@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DISCOVER_USERS, ME, type Tone } from '../data/mock';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { useFriendsStore } from '../store/useFriendsStore';
 import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 
@@ -30,16 +31,18 @@ export default function Discover() {
   const toggleJoin = useGroupsStore((s) => s.toggle);
   const friendIds = useFriendsStore((s) => s.friendIds);
   const toggleFriend = useFriendsStore((s) => s.toggle);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
 
   const discoverGroups = allGroups.filter((g) => !joinedMap[g.id]);
+  const discoverableUsers = DISCOVER_USERS.filter((u) => !blockedIds[u.id]);
 
   const people = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return DISCOVER_USERS;
-    return DISCOVER_USERS.filter(
+    if (!q) return discoverableUsers;
+    return discoverableUsers.filter(
       (u) => u.name.toLowerCase().includes(q) || u.tags.some((t) => t.includes(q))
     );
-  }, [query]);
+  }, [query, discoverableUsers]);
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
