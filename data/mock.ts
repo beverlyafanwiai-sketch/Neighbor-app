@@ -371,3 +371,75 @@ export const CONVERSATIONS: Conversation[] = [
     ],
   },
 ];
+
+export type NotificationTarget =
+  | { kind: 'profile'; id: string }
+  | { kind: 'event'; id: string }
+  | { kind: 'group'; id: string }
+  | { kind: 'chat'; id: string }
+  | { kind: 'group-chat'; id: string };
+
+export type NotificationItem = {
+  id: string;
+  type: 'friend' | 'event' | 'group' | 'message';
+  actorId?: string;
+  text: string;
+  time: string;
+  read: boolean;
+  target?: NotificationTarget;
+};
+
+export const NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: '1',
+    type: 'message',
+    actorId: 'priya',
+    text: 'Priya sent you a new message',
+    time: '10m ago',
+    read: false,
+    target: { kind: 'chat', id: 'convo-priya' },
+  },
+  {
+    id: '2',
+    type: 'event',
+    actorId: 'maya',
+    text: 'Maya RSVP’d to Porch Potluck',
+    time: '1h ago',
+    read: false,
+    target: { kind: 'event', id: 'porch-potluck' },
+  },
+  {
+    id: '3',
+    type: 'group',
+    text: 'Weekend Hikers has new messages',
+    time: '3h ago',
+    read: false,
+    target: { kind: 'group-chat', id: 'weekend-hikers' },
+  },
+  {
+    id: '4',
+    type: 'event',
+    text: 'Trail Loop: Sunset Ridge is tomorrow',
+    time: '5h ago',
+    read: true,
+    target: { kind: 'event', id: 'sunset-ridge-hike' },
+  },
+  {
+    id: '5',
+    type: 'group',
+    actorId: 'sam',
+    text: 'Sam joined Pottery Wheel Beginners',
+    time: 'Yesterday',
+    read: true,
+    target: { kind: 'group', id: 'pottery-beginners' },
+  },
+  {
+    id: '6',
+    type: 'friend',
+    actorId: 'theo',
+    text: 'Theo Marsh loved your post',
+    time: '2d ago',
+    read: true,
+    target: { kind: 'profile', id: 'theo' },
+  },
+];

@@ -7,6 +7,7 @@ import { SvgXml } from 'react-native-svg';
 
 import { COFFEE_FRIENDS_SVG } from '../../assets/illustrations/coffee-friends';
 import { ME, USERS } from '../../data/mock';
+import { useNotificationsStore } from '../../store/useNotificationsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 
 const posts = [
@@ -64,6 +65,7 @@ export default function HomeFeed() {
   const profile = useProfileStore((s) => s.profile);
   const stories = [{ ...profile, isYou: true }, ...USERS];
   const [query, setQuery] = useState('');
+  const unreadCount = useNotificationsStore((s) => s.notifications.filter((n) => !n.read).length);
 
   const postsWithAuthor = posts
     .map((post) => ({
@@ -106,8 +108,16 @@ export default function HomeFeed() {
         >
           <Ionicons name="compass-outline" size={20} color="#F5F2E9" />
         </Pressable>
-        <Pressable className="h-11 w-11 items-center justify-center rounded-full bg-terracotta">
+        <Pressable
+          onPress={() => router.push('/notifications')}
+          className="h-11 w-11 items-center justify-center rounded-full bg-terracotta"
+        >
           <Ionicons name="notifications-outline" size={20} color="#F5F2E9" />
+          {unreadCount > 0 && (
+            <View className="absolute -right-0.5 -top-0.5 h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1">
+              <Text className="text-[10px] font-bold text-charcoal">{unreadCount}</Text>
+            </View>
+          )}
         </Pressable>
       </View>
 
