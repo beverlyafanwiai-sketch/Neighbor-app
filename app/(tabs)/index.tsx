@@ -1,4 +1,4 @@
-import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -40,14 +40,13 @@ export default function HomeFeed() {
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center gap-3 px-5 pb-3 pt-2">
-        <View className="flex-1 flex-row items-center rounded-full bg-cream px-4 py-2.5">
+        <Pressable
+          onPress={() => router.push('/discover')}
+          className="flex-1 flex-row items-center rounded-full bg-cream px-4 py-2.5"
+        >
           <Ionicons name="search" size={18} color="#3D3D3D80" />
-          <TextInput
-            placeholder="Search neighbor..."
-            placeholderTextColor="#3D3D3D80"
-            className="ml-2 flex-1 text-charcoal"
-          />
-        </View>
+          <Text className="ml-2 flex-1 text-charcoal/50">Search neighbor...</Text>
+        </Pressable>
         <Pressable className="h-11 w-11 items-center justify-center rounded-full bg-terracotta">
           <Ionicons name="notifications-outline" size={20} color="#F5F2E9" />
         </Pressable>

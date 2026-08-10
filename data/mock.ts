@@ -10,6 +10,7 @@ export type User = {
   trust: string;
   prompts: Prompt[];
   photoSeeds: number[];
+  tags: string[];
 };
 
 export const ME: User = {
@@ -28,6 +29,7 @@ export const ME: User = {
     },
   ],
   photoSeeds: [18, 24, 31, 44, 52, 61],
+  tags: ['hiking', 'pottery', 'board games', 'live music'],
 };
 
 export const USERS: User[] = [
@@ -44,6 +46,7 @@ export const USERS: User[] = [
       { q: 'What I’m looking for', a: 'Friends who’ll actually text back and make plans.' },
     ],
     photoSeeds: [11, 22, 33, 44],
+    tags: ['trail running', 'pottery', 'photography', 'coffee'],
   },
   {
     id: 'theo',
@@ -58,6 +61,7 @@ export const USERS: User[] = [
       { q: 'A belief I hold that not everyone agrees with', a: 'Board games are better than most parties.' },
     ],
     photoSeeds: [55, 62, 71, 83],
+    tags: ['hiking', 'chess', 'vinyl records'],
   },
   {
     id: 'priya',
@@ -72,6 +76,7 @@ export const USERS: User[] = [
       { q: 'What I’m looking for', a: 'Friendship first — no agenda, just consistency.' },
     ],
     photoSeeds: [7, 19, 28, 39],
+    tags: ['pottery', 'cooking', 'journaling'],
   },
   {
     id: 'sam',
@@ -86,12 +91,61 @@ export const USERS: User[] = [
       { q: 'A belief I hold that not everyone agrees with', a: 'Most plans are better with fewer people.' },
     ],
     photoSeeds: [64, 75, 86, 97],
+    tags: ['pottery', 'gardening', 'crosswords'],
+  },
+];
+
+export const DISCOVER_USERS: User[] = [
+  {
+    id: 'jordan',
+    name: 'Jordan',
+    avatar: 'https://i.pravatar.cc/150?img=25',
+    tagline: 'New to the neighborhood, looking for a regular board game night',
+    interests: 'Board games, home brewing, quiet bars',
+    values: 'Consistency, good humor, low drama',
+    trust: 'No mutual friends yet · nearby',
+    prompts: [
+      { q: 'What I’m looking for', a: 'A standing weekly game night, honestly.' },
+      { q: 'How I recharge', a: 'Losing badly at Catan with people I like.' },
+    ],
+    photoSeeds: [14, 26, 37, 48],
+    tags: ['board games', 'coffee', 'chess'],
+  },
+  {
+    id: 'nia',
+    name: 'Nia',
+    avatar: 'https://i.pravatar.cc/150?img=9',
+    tagline: 'Always down for a concert or a long run',
+    interests: 'Live music, trail running, journaling',
+    values: 'Spontaneity, honesty, showing up energized',
+    trust: 'No mutual friends yet · nearby',
+    prompts: [
+      { q: 'How I recharge', a: 'A sweaty run followed by a very loud show.' },
+      { q: 'What I’m looking for', a: 'People who’ll say yes to a last-minute show.' },
+    ],
+    photoSeeds: [21, 32, 43, 54],
+    tags: ['live music', 'trail running', 'journaling'],
+  },
+  {
+    id: 'kai',
+    name: 'Kai',
+    avatar: 'https://i.pravatar.cc/150?img=68',
+    tagline: 'Chasing golden hour and quiet trails',
+    interests: 'Photography, hiking, gardening',
+    values: 'Patience, presence, low-key company',
+    trust: 'No mutual friends yet · nearby',
+    prompts: [
+      { q: 'How I recharge', a: 'Golden hour, a trail, and no one talking.' },
+      { q: 'A belief I hold that not everyone agrees with', a: 'The best conversations happen mid-hike.' },
+    ],
+    photoSeeds: [59, 63, 77, 88],
+    tags: ['photography', 'hiking', 'gardening'],
   },
 ];
 
 export function getUser(id: string): User | undefined {
   if (id === ME.id) return ME;
-  return USERS.find((u) => u.id === id);
+  return USERS.find((u) => u.id === id) ?? DISCOVER_USERS.find((u) => u.id === id);
 }
 
 export const MY_FRIEND_IDS = ['maya', 'theo', 'priya', 'sam'];
