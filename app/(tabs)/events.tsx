@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -21,9 +21,19 @@ export default function Events() {
   const toggleRsvp = useRsvpStore((s) => s.toggle);
   const friendIds = useFriendsStore((s) => s.friendIds);
   const toggleFriend = useFriendsStore((s) => s.toggle);
-  const upcoming = events.filter((e) => e.status === 'upcoming');
-  const past = events.filter((e) => e.status === 'past');
-  const hosting = events.filter((e) => e.hostId === ME.id);
+  const [query, setQuery] = useState('');
+
+  const q = query.trim().toLowerCase();
+  const matches = (e: (typeof events)[number]) =>
+    q.length === 0 ||
+    e.title.toLowerCase().includes(q) ||
+    e.location.toLowerCase().includes(q) ||
+    e.description.toLowerCase().includes(q);
+
+  const upcoming = events.filter((e) => e.status === 'upcoming' && matches(e));
+  const past = events.filter((e) => e.status === 'past' && matches(e));
+  const hostingTotal = events.filter((e) => e.hostId === ME.id).length;
+  const hosting = events.filter((e) => e.hostId === ME.id && matches(e));
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -35,6 +45,24 @@ export default function Events() {
         >
           <Ionicons name="add" size={22} color="#F5F2E9" />
         </Pressable>
+      </View>
+
+      <View className="px-5 pb-3">
+        <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">
+          <Ionicons name="search" size={18} color="#3D3D3D80" />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search events..."
+            placeholderTextColor="#3D3D3D80"
+            className="ml-2 flex-1 text-charcoal"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={() => setQuery('')}>
+              <Ionicons name="close-circle" size={18} color="#3D3D3D80" />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       <View className="flex-row gap-2 px-5 pb-3">
@@ -115,12 +143,17 @@ export default function Events() {
                 </Pressable>
               );
             })}
+            {upcoming.length === 0 && q.length > 0 && (
+              <Text className="text-sm text-charcoal/50">
+                No upcoming events matching "{query.trim()}"
+              </Text>
+            )}
           </View>
         )}
 
         {tab === 'Hosting' && (
           <>
-            {hosting.length === 0 ? (
+            {hostingTotal === 0 ? (
               <View className="mt-10 items-center px-6">
                 <View className="h-20 w-20 items-center justify-center rounded-full bg-cream">
                   <Ionicons name="megaphone-outline" size={32} color="#E0533C" />
@@ -138,6 +171,10 @@ export default function Events() {
                   <Text className="text-sm font-semibold text-cream">Host an event</Text>
                 </Pressable>
               </View>
+            ) : hosting.length === 0 ? (
+              <Text className="text-sm text-charcoal/50">
+                No hosted events matching "{query.trim()}"
+              </Text>
             ) : (
               <View className="gap-3">
                 {hosting.map((e) => {
@@ -230,6 +267,11 @@ export default function Events() {
                 </Pressable>
               );
             })}
+            {past.length === 0 && q.length > 0 && (
+              <Text className="text-sm text-charcoal/50">
+                No past events matching "{query.trim()}"
+              </Text>
+            )}
           </View>
         )}
       </ScrollView>

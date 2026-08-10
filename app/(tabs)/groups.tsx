@@ -1,4 +1,5 @@
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,9 +28,16 @@ export default function Groups() {
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
+  const [query, setQuery] = useState('');
 
-  const circles = groups.filter((g) => joinedMap[g.id]);
-  const discover = groups.filter((g) => !joinedMap[g.id]);
+  const q = query.trim().toLowerCase();
+  const matches = (g: (typeof groups)[number]) =>
+    q.length === 0 ||
+    g.name.toLowerCase().includes(q) ||
+    g.description.toLowerCase().includes(q);
+
+  const circles = groups.filter((g) => joinedMap[g.id] && matches(g));
+  const discover = groups.filter((g) => !joinedMap[g.id] && matches(g));
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -41,6 +49,24 @@ export default function Groups() {
         >
           <Ionicons name="add" size={22} color="#F5F2E9" />
         </Pressable>
+      </View>
+
+      <View className="px-5 pb-3">
+        <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">
+          <Ionicons name="search" size={18} color="#3D3D3D80" />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search groups..."
+            placeholderTextColor="#3D3D3D80"
+            className="ml-2 flex-1 text-charcoal"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={() => setQuery('')}>
+              <Ionicons name="close-circle" size={18} color="#3D3D3D80" />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
@@ -91,7 +117,9 @@ export default function Groups() {
           })}
           {circles.length === 0 && (
             <Text className="text-sm text-charcoal/50">
-              You haven't joined any circles yet — take a look at Discover below.
+              {q.length > 0
+                ? `No circles matching "${query.trim()}"`
+                : "You haven't joined any circles yet — take a look at Discover below."}
             </Text>
           )}
         </View>
@@ -131,7 +159,9 @@ export default function Groups() {
           ))}
           {discover.length === 0 && (
             <Text className="text-sm text-charcoal/50">
-              You've joined every group in your area — nice work.
+              {q.length > 0
+                ? `No groups matching "${query.trim()}"`
+                : "You've joined every group in your area — nice work."}
             </Text>
           )}
         </View>
