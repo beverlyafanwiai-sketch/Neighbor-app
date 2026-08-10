@@ -4,13 +4,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { EVENTS, getUser } from '../../data/mock';
+import { EVENTS, ME, getUser } from '../../data/mock';
+import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
 const EVENT_TABS = ['Upcoming', 'Hosting', 'Past'] as const;
 type EventTab = (typeof EVENT_TABS)[number];
 
 export default function Events() {
   const [tab, setTab] = useState<EventTab>('Upcoming');
+  const goingMap = useRsvpStore((s) => s.going);
+  const toggleRsvp = useRsvpStore((s) => s.toggle);
   const upcoming = EVENTS.filter((e) => e.status === 'upcoming');
   const past = EVENTS.filter((e) => e.status === 'past');
 
@@ -41,7 +44,10 @@ export default function Events() {
         {tab === 'Upcoming' && (
           <View className="gap-3">
             {upcoming.map((e) => {
-              const avatars = e.attendeeIds.map((id) => getUser(id)).filter(Boolean);
+              const going = goingMap[e.id] ?? false;
+              const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(e.id, going);
+              const otherAvatars = e.attendeeIds.map((id) => getUser(id)).filter(Boolean);
+              const avatars = going ? [ME, ...otherAvatars] : otherAvatars;
               return (
                 <Pressable
                   key={e.id}
@@ -72,12 +78,27 @@ export default function Events() {
                           ))}
                         </View>
                         <Text className="text-xs text-charcoal/50">
-                          {e.spotsTaken}/{e.spotsTotal} spots
+                          {spotsTaken}/{spotsTotal} spots
                         </Text>
                       </View>
-                      <View className="rounded-full bg-gold px-4 py-1.5">
-                        <Text className="text-xs font-semibold text-charcoal">Going</Text>
-                      </View>
+                      <Pressable
+                        onPress={(evt) => {
+                          evt.stopPropagation();
+                          toggleRsvp(e.id);
+                        }}
+                        disabled={isFull}
+                        className={`rounded-full px-4 py-1.5 ${
+                          going ? 'bg-gold' : isFull ? 'bg-charcoal/10' : 'bg-sand'
+                        }`}
+                      >
+                        <Text
+                          className={`text-xs font-semibold ${
+                            going ? 'text-charcoal' : isFull ? 'text-charcoal/40' : 'text-charcoal/70'
+                          }`}
+                        >
+                          {going ? 'Going' : isFull ? 'Full' : 'RSVP'}
+                        </Text>
+                      </Pressable>
                     </View>
                   </View>
                 </Pressable>

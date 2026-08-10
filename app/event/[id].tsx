@@ -1,15 +1,16 @@
-import { useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getEvent, getUser } from '../../data/mock';
+import { ME, getEvent, getUser } from '../../data/mock';
+import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const event = getEvent(id);
-  const [going, setGoing] = useState(event?.status === 'upcoming');
+  const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
+  const toggleRsvp = useRsvpStore((s) => s.toggle);
 
   if (!event) {
     return (
@@ -22,9 +23,11 @@ export default function EventDetail() {
     );
   }
 
-  const attendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
-  const met = (event.metIds ?? []).map((id) => getUser(id)).filter(Boolean);
   const isPast = event.status === 'past';
+  const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(event.id, going);
+  const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
+  const attendees = going ? [ME, ...otherAttendees] : otherAttendees;
+  const met = (event.metIds ?? []).map((id) => getUser(id)).filter(Boolean);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -57,35 +60,45 @@ export default function EventDetail() {
 
           {!isPast && (
             <Pressable
-              onPress={() => setGoing((v) => !v)}
-              className={`mt-5 items-center rounded-full py-3 ${going ? 'bg-gold' : 'bg-charcoal'}`}
+              onPress={() => toggleRsvp(event.id)}
+              disabled={isFull}
+              className={`mt-5 items-center rounded-full py-3 ${
+                going ? 'bg-gold' : isFull ? 'bg-charcoal/10' : 'bg-charcoal'
+              }`}
             >
-              <Text className={`text-sm font-semibold ${going ? 'text-charcoal' : 'text-cream'}`}>
-                {going ? "You're going" : 'RSVP'}
+              <Text
+                className={`text-sm font-semibold ${
+                  going ? 'text-charcoal' : isFull ? 'text-charcoal/40' : 'text-cream'
+                }`}
+              >
+                {going ? "You're going" : isFull ? 'Event full' : 'RSVP'}
               </Text>
             </Pressable>
           )}
         </View>
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
-          {isPast ? 'Who was there' : `Attending · ${event.spotsTaken}/${event.spotsTotal} spots`}
+          {isPast ? 'Who was there' : `Attending · ${spotsTaken}/${spotsTotal} spots`}
         </Text>
         <View className="gap-3">
-          {attendees.map((a) => (
-            <Pressable
-              key={a!.id}
-              onPress={() => router.push(`/profile/${a!.id}`)}
-              className="flex-row items-center gap-3 rounded-2xl bg-cream p-3 active:opacity-70"
-            >
-              <Image source={{ uri: a!.avatar }} className="h-11 w-11 rounded-full" />
-              <View className="flex-1">
-                <Text className="font-medium text-charcoal">{a!.name}</Text>
-                <Text className="text-xs text-charcoal/50" numberOfLines={1}>
-                  {a!.tagline}
-                </Text>
-              </View>
-            </Pressable>
-          ))}
+          {attendees.map((a) => {
+            const isMe = a!.id === ME.id;
+            return (
+              <Pressable
+                key={a!.id}
+                onPress={() => !isMe && router.push(`/profile/${a!.id}`)}
+                className="flex-row items-center gap-3 rounded-2xl bg-cream p-3 active:opacity-70"
+              >
+                <Image source={{ uri: a!.avatar }} className="h-11 w-11 rounded-full" />
+                <View className="flex-1">
+                  <Text className="font-medium text-charcoal">{isMe ? 'You' : a!.name}</Text>
+                  <Text className="text-xs text-charcoal/50" numberOfLines={1}>
+                    {a!.tagline}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
         </View>
 
         {isPast && met.length > 0 && (
