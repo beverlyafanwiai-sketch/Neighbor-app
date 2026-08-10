@@ -3,8 +3,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { GROUPS, ME, getUser } from '../../data/mock';
+import { GROUPS, getUser } from '../../data/mock';
 import { getEffectiveMemberCount, useGroupsStore } from '../../store/useGroupsStore';
+import { useProfileStore } from '../../store/useProfileStore';
 
 const TONE_STYLE: Record<string, { bg: string; text: string }> = {
   Casual: { bg: 'bg-sage/20', text: 'text-sage' },
@@ -22,6 +23,7 @@ function ToneTag({ tone }: { tone: string }) {
 }
 
 export default function Groups() {
+  const profile = useProfileStore((s) => s.profile);
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
 
@@ -44,7 +46,7 @@ export default function Groups() {
         <View className="gap-3">
           {circles.map((c) => {
             const otherAvatars = c.memberIds.map((id) => getUser(id)).filter(Boolean);
-            const avatars = [ME, ...otherAvatars];
+            const avatars = [profile, ...otherAvatars];
             return (
               <Pressable
                 key={c.id}

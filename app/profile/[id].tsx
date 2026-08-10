@@ -5,10 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ProfileView from '../../components/ProfileView';
 import { ME, USERS, getUser, type User } from '../../data/mock';
 import { useConversationsStore } from '../../store/useConversationsStore';
+import { useProfileStore } from '../../store/useProfileStore';
 
 export default function OtherProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const user = getUser(id);
+  const profile = useProfileStore((s) => s.profile);
   const getOrCreateConversation = useConversationsStore((s) => s.getOrCreate);
 
   if (!user) {
@@ -22,7 +24,7 @@ export default function OtherProfile() {
     );
   }
 
-  const friends = [ME, ...USERS].filter((u): u is User => u.id !== user.id).slice(0, 4);
+  const friends = [profile, ...USERS].filter((u): u is User => u.id !== user.id).slice(0, 4);
 
   const goToFriend = (friend: User) => {
     if (friend.id === ME.id) {

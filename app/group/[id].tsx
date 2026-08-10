@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ME, getGroup, getUser } from '../../data/mock';
 import { getEffectiveMemberCount, useGroupsStore } from '../../store/useGroupsStore';
+import { useProfileStore } from '../../store/useProfileStore';
 
 const TONE_STYLE: Record<string, { bg: string; text: string }> = {
   Casual: { bg: 'bg-sage/20', text: 'text-sage' },
@@ -15,6 +16,7 @@ const TONE_STYLE: Record<string, { bg: string; text: string }> = {
 export default function GroupDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const group = getGroup(id);
+  const profile = useProfileStore((s) => s.profile);
   const joined = useGroupsStore((s) => (group ? (s.joined[group.id] ?? false) : false));
   const toggleJoin = useGroupsStore((s) => s.toggle);
 
@@ -30,7 +32,7 @@ export default function GroupDetail() {
   }
 
   const otherMembers = group.memberIds.map((id) => getUser(id)).filter(Boolean);
-  const members = joined ? [ME, ...otherMembers] : otherMembers;
+  const members = joined ? [profile, ...otherMembers] : otherMembers;
   const toneStyle = TONE_STYLE[group.tone] ?? TONE_STYLE.Casual;
 
   return (

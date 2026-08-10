@@ -4,8 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { EVENTS, ME, getUser } from '../../data/mock';
+import { EVENTS, getUser } from '../../data/mock';
 import { useFriendsStore } from '../../store/useFriendsStore';
+import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
 const EVENT_TABS = ['Upcoming', 'Hosting', 'Past'] as const;
@@ -13,6 +14,7 @@ type EventTab = (typeof EVENT_TABS)[number];
 
 export default function Events() {
   const [tab, setTab] = useState<EventTab>('Upcoming');
+  const profile = useProfileStore((s) => s.profile);
   const goingMap = useRsvpStore((s) => s.going);
   const toggleRsvp = useRsvpStore((s) => s.toggle);
   const friendIds = useFriendsStore((s) => s.friendIds);
@@ -50,7 +52,7 @@ export default function Events() {
               const going = goingMap[e.id] ?? false;
               const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(e.id, going);
               const otherAvatars = e.attendeeIds.map((id) => getUser(id)).filter(Boolean);
-              const avatars = going ? [ME, ...otherAvatars] : otherAvatars;
+              const avatars = going ? [profile, ...otherAvatars] : otherAvatars;
               return (
                 <Pressable
                   key={e.id}

@@ -17,9 +17,18 @@ type Props = {
   onBack?: () => void;
   onMessage?: () => void;
   onFriendPress?: (friend: User) => void;
+  onEdit?: () => void;
 };
 
-export default function ProfileView({ user, isMe, friends, onBack, onMessage, onFriendPress }: Props) {
+export default function ProfileView({
+  user,
+  isMe,
+  friends,
+  onBack,
+  onMessage,
+  onFriendPress,
+  onEdit,
+}: Props) {
   const [tab, setTab] = useState<Tab>('About');
   const isFriend = useFriendsStore((s) => s.friendIds[user.id] ?? false);
   const toggleFriend = useFriendsStore((s) => s.toggle);
@@ -44,7 +53,7 @@ export default function ProfileView({ user, isMe, friends, onBack, onMessage, on
 
         <View className="mt-5 flex-row gap-3">
           {isMe ? (
-            <Pressable className="rounded-full bg-gold px-6 py-2.5">
+            <Pressable onPress={onEdit} className="rounded-full bg-gold px-6 py-2.5">
               <Text className="font-semibold text-charcoal">Edit profile</Text>
             </Pressable>
           ) : (

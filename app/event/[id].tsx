@@ -5,11 +5,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ME, getEvent, getUser } from '../../data/mock';
 import { useFriendsStore } from '../../store/useFriendsStore';
+import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const event = getEvent(id);
+  const profile = useProfileStore((s) => s.profile);
   const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
   const toggleRsvp = useRsvpStore((s) => s.toggle);
   const friendIds = useFriendsStore((s) => s.friendIds);
@@ -29,7 +31,7 @@ export default function EventDetail() {
   const isPast = event.status === 'past';
   const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(event.id, going);
   const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
-  const attendees = going ? [ME, ...otherAttendees] : otherAttendees;
+  const attendees = going ? [profile, ...otherAttendees] : otherAttendees;
   const met = (event.metIds ?? []).map((id) => getUser(id)).filter(Boolean);
 
   return (

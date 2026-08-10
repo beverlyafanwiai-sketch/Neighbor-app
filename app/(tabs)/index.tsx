@@ -6,8 +6,7 @@ import { SvgXml } from 'react-native-svg';
 
 import { COFFEE_FRIENDS_SVG } from '../../assets/illustrations/coffee-friends';
 import { ME, USERS } from '../../data/mock';
-
-const stories = [{ ...ME, isYou: true }, ...USERS];
+import { useProfileStore } from '../../store/useProfileStore';
 
 const posts = [
   {
@@ -37,6 +36,9 @@ function goToProfile(userId: string) {
 }
 
 export default function HomeFeed() {
+  const profile = useProfileStore((s) => s.profile);
+  const stories = [{ ...profile, isYou: true }, ...USERS];
+
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center gap-3 px-5 pb-3 pt-2">
@@ -93,7 +95,8 @@ export default function HomeFeed() {
 
         <View className="gap-4 px-5 pb-8 pt-2">
           {posts.map((post) => {
-            const author = post.authorId === ME.id ? ME : USERS.find((u) => u.id === post.authorId);
+            const author =
+              post.authorId === ME.id ? profile : USERS.find((u) => u.id === post.authorId);
             if (!author) return null;
             return (
               <View key={post.id} className="rounded-3xl bg-cream p-4 shadow-sm">
