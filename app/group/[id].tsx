@@ -3,8 +3,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ME, getGroup, getUser } from '../../data/mock';
-import { getEffectiveMemberCount, useGroupsStore } from '../../store/useGroupsStore';
+import { ME, getUser } from '../../data/mock';
+import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 
 const TONE_STYLE: Record<string, { bg: string; text: string }> = {
@@ -15,7 +15,7 @@ const TONE_STYLE: Record<string, { bg: string; text: string }> = {
 
 export default function GroupDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const group = getGroup(id);
+  const group = useGroupsStore((s) => s.groups.find((g) => g.id === id));
   const profile = useProfileStore((s) => s.profile);
   const joined = useGroupsStore((s) => (group ? (s.joined[group.id] ?? false) : false));
   const toggleJoin = useGroupsStore((s) => s.toggle);
@@ -54,7 +54,7 @@ export default function GroupDetail() {
           <Text className="mt-3 text-xl font-bold text-charcoal">{group.name}</Text>
           <View className="mt-2 flex-row items-center gap-2">
             <Text className="text-xs text-charcoal/60">
-              {getEffectiveMemberCount(group.id, joined)} members
+              {memberCountLabel(group.id, joined)}
             </Text>
             <View className={`rounded-full px-2.5 py-1 ${toneStyle.bg}`}>
               <Text className={`text-xs font-semibold ${toneStyle.text}`}>{group.tone}</Text>

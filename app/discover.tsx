@@ -4,9 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DISCOVER_USERS, GROUPS, ME, type Tone } from '../data/mock';
+import { DISCOVER_USERS, ME, type Tone } from '../data/mock';
 import { useFriendsStore } from '../store/useFriendsStore';
-import { getEffectiveMemberCount, useGroupsStore } from '../store/useGroupsStore';
+import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 
 const MODES = ['People', 'Groups'] as const;
 type Mode = (typeof MODES)[number];
@@ -25,12 +25,13 @@ function sharedTags(tags: string[]) {
 export default function Discover() {
   const [mode, setMode] = useState<Mode>('People');
   const [query, setQuery] = useState('');
+  const allGroups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
   const friendIds = useFriendsStore((s) => s.friendIds);
   const toggleFriend = useFriendsStore((s) => s.toggle);
 
-  const discoverGroups = GROUPS.filter((g) => !joinedMap[g.id]);
+  const discoverGroups = allGroups.filter((g) => !joinedMap[g.id]);
 
   const people = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -157,7 +158,7 @@ export default function Discover() {
                     <Text className="font-semibold text-charcoal">{g.name}</Text>
                     <View className="mt-1.5 flex-row items-center gap-2">
                       <Text className="text-xs text-charcoal/60">
-                        {getEffectiveMemberCount(g.id, false)} members
+                        {memberCountLabel(g.id, false)}
                       </Text>
                       <View className={`rounded-full px-2.5 py-1 ${toneStyle.bg}`}>
                         <Text className={`text-xs font-semibold ${toneStyle.text}`}>{g.tone}</Text>

@@ -3,8 +3,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { GROUPS, getUser } from '../../data/mock';
-import { getEffectiveMemberCount, useGroupsStore } from '../../store/useGroupsStore';
+import { getUser } from '../../data/mock';
+import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 
 const TONE_STYLE: Record<string, { bg: string; text: string }> = {
@@ -24,17 +24,21 @@ function ToneTag({ tone }: { tone: string }) {
 
 export default function Groups() {
   const profile = useProfileStore((s) => s.profile);
+  const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
 
-  const circles = GROUPS.filter((g) => joinedMap[g.id]);
-  const discover = GROUPS.filter((g) => !joinedMap[g.id]);
+  const circles = groups.filter((g) => joinedMap[g.id]);
+  const discover = groups.filter((g) => !joinedMap[g.id]);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center justify-between px-5 pb-3 pt-2">
         <Text className="text-2xl font-bold text-charcoal">Groups</Text>
-        <Pressable className="h-10 w-10 items-center justify-center rounded-full bg-terracotta">
+        <Pressable
+          onPress={() => router.push('/create-group')}
+          className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"
+        >
           <Ionicons name="add" size={22} color="#F5F2E9" />
         </Pressable>
       </View>
@@ -60,7 +64,7 @@ export default function Groups() {
                   <Text className="font-semibold text-charcoal">{c.name}</Text>
                   <View className="mt-1.5 flex-row items-center gap-2">
                     <Text className="text-xs text-charcoal/60">
-                      {getEffectiveMemberCount(c.id, true)} members
+                      {memberCountLabel(c.id, true)}
                     </Text>
                     <ToneTag tone={c.tone} />
                   </View>
@@ -109,7 +113,7 @@ export default function Groups() {
                 <Text className="font-semibold text-charcoal">{g.name}</Text>
                 <View className="mt-1.5 flex-row items-center gap-2">
                   <Text className="text-xs text-charcoal/60">
-                    {getEffectiveMemberCount(g.id, false)} members
+                    {memberCountLabel(g.id, false)}
                   </Text>
                   <ToneTag tone={g.tone} />
                 </View>

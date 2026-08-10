@@ -329,10 +329,6 @@ export const EVENTS: EventItem[] = [
   },
 ];
 
-export function getGroup(id: string): Group | undefined {
-  return GROUPS.find((g) => g.id === id);
-}
-
 export type Message = { id: string; from: 'me' | 'them'; text: string; time: string };
 
 export type Conversation = {
