@@ -28,8 +28,10 @@ export default function GroupChatThread() {
   const messages = useGroupChatStore((s) => (group ? (s.messages[group.id] ?? EMPTY_MESSAGES) : EMPTY_MESSAGES));
   const sendMessage = useGroupChatStore((s) => s.sendMessage);
   const markRead = useGroupsStore((s) => s.markRead);
+  const toggleJoin = useGroupsStore((s) => s.toggle);
 
   const [draft, setDraft] = useState('');
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
 
   useEffect(() => {
     if (group) markRead(group.id);
@@ -54,6 +56,11 @@ export default function GroupChatThread() {
     setDraft('');
   };
 
+  const leave = () => {
+    toggleJoin(group.id);
+    router.back();
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center gap-3 border-b border-charcoal/10 bg-cream px-4 py-3">
@@ -75,10 +82,27 @@ export default function GroupChatThread() {
             <Text className="text-xs text-sage">{memberCountLabel(group.id, joined)}</Text>
           </View>
         </Pressable>
-        <Pressable className="h-9 w-9 items-center justify-center rounded-full">
+        <Pressable
+          onPress={() => setConfirmingLeave(true)}
+          className="h-9 w-9 items-center justify-center rounded-full"
+        >
           <Ionicons name="information-circle-outline" size={22} color="#3D3D3D" />
         </Pressable>
       </View>
+
+      {confirmingLeave && (
+        <View className="flex-row items-center gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="flex-1 text-sm text-charcoal">
+            Leave {group.name}? You'll stop seeing messages from this circle.
+          </Text>
+          <Pressable onPress={() => setConfirmingLeave(false)} className="rounded-full px-3 py-1.5">
+            <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+          </Pressable>
+          <Pressable onPress={leave} className="rounded-full bg-terracotta px-3 py-1.5">
+            <Text className="text-sm font-semibold text-cream">Leave</Text>
+          </Pressable>
+        </View>
+      )}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
