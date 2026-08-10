@@ -10,9 +10,10 @@ export type NewGroupInput = {
   name: string;
   description: string;
   tone: Tone;
+  coverImageUri?: string;
 };
 
-export type GroupEdits = Pick<Group, 'name' | 'description' | 'tone'>;
+export type GroupEdits = Pick<Group, 'name' | 'description' | 'tone' | 'coverImageUri'>;
 
 type GroupsState = {
   groups: Group[];
@@ -58,6 +59,7 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
       memberIds: [],
       joined: true,
       createdBy: ME.id,
+      coverImageUri: input.coverImageUri,
     };
     set((s) => ({
       groups: [group, ...s.groups],

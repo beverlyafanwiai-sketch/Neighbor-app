@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import CoverPhotoPicker from '../components/CoverPhotoPicker';
 import { useEventsStore } from '../store/useEventsStore';
 import { useRsvpStore } from '../store/useRsvpStore';
 
@@ -40,6 +41,7 @@ export default function CreateEvent() {
   const [location, setLocation] = useState(existing?.location ?? '');
   const [description, setDescription] = useState(existing?.description ?? '');
   const [spotsTotal, setSpotsTotal] = useState(existing?.spotsTotal ?? 8);
+  const [coverImageUri, setCoverImageUri] = useState(existing?.coverImageUri);
 
   const canSave = title.trim() && day.trim() && month.trim() && time.trim() && location.trim();
 
@@ -55,6 +57,7 @@ export default function CreateEvent() {
         location: location.trim(),
         description: description.trim() || 'No details yet — just show up.',
         spotsTotal,
+        coverImageUri,
       });
       router.replace(`/event/${existing.id}`);
       return;
@@ -68,6 +71,7 @@ export default function CreateEvent() {
       location: location.trim(),
       description: description.trim() || 'No details yet — just show up.',
       spotsTotal,
+      coverImageUri,
     });
     toggleRsvp(id);
     router.replace(`/event/${id}`);
@@ -101,6 +105,10 @@ export default function CreateEvent() {
           <Text className="mt-2 text-sm text-charcoal/60">
             Small is good — a porch hangout for 6 beats a party for 60.
           </Text>
+
+          <View className="mt-5">
+            <CoverPhotoPicker imageUri={coverImageUri} onChange={setCoverImageUri} />
+          </View>
 
           <View className="mt-5 gap-4">
             <View>

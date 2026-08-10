@@ -88,6 +88,13 @@ export default function EventDetail() {
       )}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
+        {event.coverImageUri && (
+          <Image
+            source={{ uri: event.coverImageUri }}
+            className="mb-4 w-full rounded-3xl"
+            style={{ aspectRatio: 2 }}
+          />
+        )}
         <View className="rounded-3xl bg-cream p-5">
           <View className="flex-row items-center gap-3">
             <View className="h-14 w-14 items-center justify-center rounded-xl bg-terracotta">

@@ -86,6 +86,13 @@ export default function GroupDetail() {
       )}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
+        {group.coverImageUri && (
+          <Image
+            source={{ uri: group.coverImageUri }}
+            className="mb-4 w-full rounded-3xl"
+            style={{ aspectRatio: 2 }}
+          />
+        )}
         <View className="items-center rounded-3xl bg-cream p-6">
           <View className="h-16 w-16 items-center justify-center rounded-full bg-terracotta">
             <Text className="text-2xl font-bold text-cream">{group.name.charAt(0)}</Text>

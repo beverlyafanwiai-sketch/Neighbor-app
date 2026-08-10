@@ -15,6 +15,7 @@ export type NewEventInput = {
   location: string;
   description: string;
   spotsTotal: number;
+  coverImageUri?: string;
 };
 
 type EventsState = {
@@ -57,6 +58,7 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       spotsTotal: input.spotsTotal,
       attendeeIds: [],
       status: 'upcoming',
+      coverImageUri: input.coverImageUri,
     };
     set((s) => ({ events: [event, ...s.events] }));
 

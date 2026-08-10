@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import CoverPhotoPicker from '../components/CoverPhotoPicker';
 import type { Tone } from '../data/mock';
 import { useGroupsStore } from '../store/useGroupsStore';
 
@@ -39,17 +40,28 @@ export default function CreateGroup() {
   const [name, setName] = useState(existing?.name ?? '');
   const [description, setDescription] = useState(existing?.description ?? '');
   const [tone, setTone] = useState<Tone>(existing?.tone ?? 'Casual');
+  const [coverImageUri, setCoverImageUri] = useState(existing?.coverImageUri);
 
   const canSave = name.trim() && description.trim();
 
   const save = () => {
     if (!canSave) return;
     if (existing) {
-      updateGroup(existing.id, { name: name.trim(), description: description.trim(), tone });
+      updateGroup(existing.id, {
+        name: name.trim(),
+        description: description.trim(),
+        tone,
+        coverImageUri,
+      });
       router.replace(`/group/${existing.id}`);
       return;
     }
-    const id = createGroup({ name: name.trim(), description: description.trim(), tone });
+    const id = createGroup({
+      name: name.trim(),
+      description: description.trim(),
+      tone,
+      coverImageUri,
+    });
     router.replace(`/group/${id}`);
   };
 
@@ -82,6 +94,10 @@ export default function CreateGroup() {
             A small circle for people who share something specific — a hobby, a street, a stage of
             life. You'll be the first member.
           </Text>
+
+          <View className="mt-5">
+            <CoverPhotoPicker imageUri={coverImageUri} onChange={setCoverImageUri} />
+          </View>
 
           <View className="mt-5 gap-4">
             <View>

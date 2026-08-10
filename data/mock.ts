@@ -229,6 +229,7 @@ export type Group = {
   memberIds: string[];
   joined: boolean;
   createdBy?: string;
+  coverImageUri?: string;
 };
 
 export const GROUPS: Group[] = [
@@ -325,6 +326,7 @@ export type EventItem = {
   attendeeIds: string[];
   status: 'upcoming' | 'past';
   metIds?: string[];
+  coverImageUri?: string;
 };
 
 export const EVENTS: EventItem[] = [
