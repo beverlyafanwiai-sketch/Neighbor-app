@@ -6,6 +6,7 @@ import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
+import NotificationToast from '../components/NotificationToast';
 import { initAuthListener, useAuthStore } from '../store/useAuthStore';
 
 export default function RootLayout() {
@@ -27,6 +28,7 @@ export default function RootLayout() {
           <ActivityIndicator color="#F5F2E9" />
         </View>
       )}
+      <NotificationToast />
     </SafeAreaProvider>
   );
 }

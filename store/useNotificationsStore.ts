@@ -4,13 +4,16 @@ import { NOTIFICATIONS, type NotificationItem } from '../data/mock';
 
 type NotificationsState = {
   notifications: NotificationItem[];
+  toast: NotificationItem | null;
   markRead: (id: string) => void;
   markAllRead: () => void;
   addNotification: (item: Omit<NotificationItem, 'id' | 'read'>) => void;
+  dismissToast: () => void;
 };
 
 export const useNotificationsStore = create<NotificationsState>((set) => ({
   notifications: NOTIFICATIONS,
+  toast: null,
 
   markRead: (id) =>
     set((s) => ({
@@ -22,6 +25,8 @@ export const useNotificationsStore = create<NotificationsState>((set) => ({
 
   addNotification: (item) => {
     const notification: NotificationItem = { id: `${Date.now()}`, read: false, ...item };
-    set((s) => ({ notifications: [notification, ...s.notifications] }));
+    set((s) => ({ notifications: [notification, ...s.notifications], toast: notification }));
   },
+
+  dismissToast: () => set({ toast: null }),
 }));
