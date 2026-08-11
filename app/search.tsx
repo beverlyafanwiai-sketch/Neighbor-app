@@ -10,7 +10,14 @@ import { useBlockedStore } from '../store/useBlockedStore';
 import { useEventsStore } from '../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
-import { getEffectiveLoves, getEffectiveReplies, usePostsStore } from '../store/usePostsStore';
+import {
+  getEffectiveReactions,
+  getEffectiveReplies,
+  getReactionTotal,
+  getTopReactionTypes,
+  REACTION_EMOJI,
+  usePostsStore,
+} from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
 const ALL_PEOPLE = [...USERS, ...DISCOVER_USERS];
@@ -35,7 +42,7 @@ export default function Search() {
 
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
-  const likedByMe = usePostsStore((s) => s.likedByMe);
+  const myReactions = usePostsStore((s) => s.myReactions);
   const comments = usePostsStore((s) => s.comments);
 
   const friendStatuses = useFriendsStore((s) => s.statuses);
@@ -256,7 +263,8 @@ export default function Search() {
                 const author =
                   post.authorId === ME.id ? profile : ALL_PEOPLE.find((u) => u.id === post.authorId);
                 if (!author) return null;
-                const liked = likedByMe[post.id] ?? false;
+                const reactionCounts = getEffectiveReactions(post, myReactions[post.id]);
+                const topTypes = getTopReactionTypes(reactionCounts, 2);
                 const postComments = comments[post.id] ?? [];
                 return (
                   <Pressable
@@ -279,9 +287,15 @@ export default function Search() {
                     />
                     <View className="mt-3 flex-row items-center gap-4">
                       <View className="flex-row items-center gap-1">
-                        <Ionicons name={liked ? 'heart' : 'heart-outline'} size={14} color="#E0533C" />
+                        {topTypes.length > 0 ? (
+                          <Text style={{ fontSize: 12 }}>
+                            {topTypes.map((t) => REACTION_EMOJI[t]).join('')}
+                          </Text>
+                        ) : (
+                          <Ionicons name="heart-outline" size={14} color="#E0533C" />
+                        )}
                         <Text className="text-xs text-charcoal/50">
-                          {getEffectiveLoves(post, liked)}
+                          {getReactionTotal(reactionCounts)}
                         </Text>
                       </View>
                       <View className="flex-row items-center gap-1">

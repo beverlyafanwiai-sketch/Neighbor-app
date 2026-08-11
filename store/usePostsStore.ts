@@ -1,10 +1,20 @@
 import { create } from 'zustand';
 
-import { COMMENTS, ME, POSTS, type CommentItem, type Post } from '../data/mock';
+import { COMMENTS, ME, POSTS, type CommentItem, type Post, type ReactionType } from '../data/mock';
 import { findMentionedUsers } from '../lib/mentions';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useProfileStore } from './useProfileStore';
 import { useSettingsStore } from './useSettingsStore';
+
+export const REACTION_TYPES: ReactionType[] = ['love', 'haha', 'wow', 'sad', 'clap'];
+
+export const REACTION_EMOJI: Record<ReactionType, string> = {
+  love: '❤️',
+  haha: '😂',
+  wow: '😮',
+  sad: '😢',
+  clap: '🙌',
+};
 
 function notifyMentions(text: string, postId: string, context: 'post' | 'comment') {
   if (!useSettingsStore.getState().notificationPrefs.mentions) return;
@@ -25,13 +35,14 @@ export type PostEdits = { body: string; imageUri?: string };
 
 type PostsState = {
   posts: Post[];
-  likedByMe: Record<string, boolean>;
+  myReactions: Record<string, ReactionType | undefined>;
   savedIds: Record<string, boolean>;
   comments: Record<string, CommentItem[]>;
   createPost: (body: string, imageUri?: string) => void;
   updatePost: (id: string, updates: PostEdits) => void;
   deletePost: (id: string) => void;
-  toggleLike: (postId: string) => void;
+  tapReaction: (postId: string) => void;
+  setReaction: (postId: string, type: ReactionType) => void;
   toggleSave: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
   updateComment: (postId: string, commentId: string, text: string) => void;
@@ -40,7 +51,7 @@ type PostsState = {
 
 export const usePostsStore = create<PostsState>((set) => ({
   posts: POSTS,
-  likedByMe: {},
+  myReactions: {},
   savedIds: {},
   comments: COMMENTS,
 
@@ -65,8 +76,15 @@ export const usePostsStore = create<PostsState>((set) => ({
 
   deletePost: (id) => set((s) => ({ posts: s.posts.filter((p) => p.id !== id) })),
 
-  toggleLike: (postId) =>
-    set((s) => ({ likedByMe: { ...s.likedByMe, [postId]: !s.likedByMe[postId] } })),
+  tapReaction: (postId) =>
+    set((s) => ({
+      myReactions: { ...s.myReactions, [postId]: s.myReactions[postId] ? undefined : 'love' },
+    })),
+
+  setReaction: (postId, type) =>
+    set((s) => ({
+      myReactions: { ...s.myReactions, [postId]: s.myReactions[postId] === type ? undefined : type },
+    })),
 
   toggleSave: (postId) =>
     set((s) => ({ savedIds: { ...s.savedIds, [postId]: !s.savedIds[postId] } })),
@@ -98,8 +116,26 @@ export const usePostsStore = create<PostsState>((set) => ({
     })),
 }));
 
-export function getEffectiveLoves(post: Post, liked: boolean) {
-  return post.loves + (liked ? 1 : 0);
+export function getEffectiveReactions(
+  post: Post,
+  myReaction: ReactionType | undefined
+): Partial<Record<ReactionType, number>> {
+  const base = post.reactionCounts ?? { love: post.loves };
+  if (!myReaction) return base;
+  return { ...base, [myReaction]: (base[myReaction] ?? 0) + 1 };
+}
+
+export function getReactionTotal(counts: Partial<Record<ReactionType, number>>) {
+  return Object.values(counts).reduce((sum: number, n) => sum + (n ?? 0), 0);
+}
+
+export function getTopReactionTypes(
+  counts: Partial<Record<ReactionType, number>>,
+  max = 2
+): ReactionType[] {
+  return REACTION_TYPES.filter((t) => (counts[t] ?? 0) > 0)
+    .sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0))
+    .slice(0, max);
 }
 
 export function getEffectiveReplies(post: Post, comments: CommentItem[]) {

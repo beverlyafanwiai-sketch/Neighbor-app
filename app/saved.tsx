@@ -5,7 +5,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import MentionText from '../components/MentionText';
 import { DISCOVER_USERS, ME, USERS } from '../data/mock';
-import { getEffectiveLoves, getEffectiveReplies, usePostsStore } from '../store/usePostsStore';
+import {
+  getEffectiveReactions,
+  getEffectiveReplies,
+  getReactionTotal,
+  getTopReactionTypes,
+  REACTION_EMOJI,
+  usePostsStore,
+} from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
 const ALL_PEOPLE = [...USERS, ...DISCOVER_USERS];
@@ -14,7 +21,7 @@ export default function SavedPosts() {
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
-  const likedByMe = usePostsStore((s) => s.likedByMe);
+  const myReactions = usePostsStore((s) => s.myReactions);
   const comments = usePostsStore((s) => s.comments);
   const toggleSave = usePostsStore((s) => s.toggleSave);
 
@@ -46,7 +53,8 @@ export default function SavedPosts() {
           {savedPosts.map((post) => {
             const author = post.authorId === ME.id ? profile : ALL_PEOPLE.find((u) => u.id === post.authorId);
             if (!author) return null;
-            const liked = likedByMe[post.id] ?? false;
+            const reactionCounts = getEffectiveReactions(post, myReactions[post.id]);
+            const topTypes = getTopReactionTypes(reactionCounts, 2);
             const postComments = comments[post.id] ?? [];
             return (
               <Pressable
@@ -77,10 +85,14 @@ export default function SavedPosts() {
                 <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
                   <View className="flex-row items-center gap-6">
                     <View className="flex-row items-center gap-1.5">
-                      <Ionicons name={liked ? 'heart' : 'heart-outline'} size={18} color="#E0533C" />
-                      <Text className="text-sm text-charcoal/70">
-                        {getEffectiveLoves(post, liked)}
-                      </Text>
+                      {topTypes.length > 0 ? (
+                        <Text style={{ fontSize: 14 }}>
+                          {topTypes.map((t) => REACTION_EMOJI[t]).join('')}
+                        </Text>
+                      ) : (
+                        <Ionicons name="heart-outline" size={18} color="#E0533C" />
+                      )}
+                      <Text className="text-sm text-charcoal/70">{getReactionTotal(reactionCounts)}</Text>
                     </View>
                     <View className="flex-row items-center gap-1.5">
                       <Ionicons name="chatbubble-outline" size={17} color="#81A684" />

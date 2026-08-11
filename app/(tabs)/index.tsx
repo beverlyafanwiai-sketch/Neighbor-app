@@ -8,6 +8,7 @@ import { SvgXml } from 'react-native-svg';
 
 import { COFFEE_FRIENDS_SVG } from '../../assets/illustrations/coffee-friends';
 import MentionText from '../../components/MentionText';
+import ReactionButton from '../../components/ReactionButton';
 import ShareSheet from '../../components/ShareSheet';
 import { DISCOVER_USERS, ME, USERS, type Post, type User } from '../../data/mock';
 import { useBlockedStore } from '../../store/useBlockedStore';
@@ -15,7 +16,7 @@ import { useEventsStore } from '../../store/useEventsStore';
 import { useFriendsStore } from '../../store/useFriendsStore';
 import { useGroupsStore } from '../../store/useGroupsStore';
 import { useNotificationsStore } from '../../store/useNotificationsStore';
-import { getEffectiveLoves, getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
+import { getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 
 const WIDE_BREAKPOINT = 900;
@@ -176,8 +177,9 @@ export default function HomeFeed() {
   const [query, setQuery] = useState('');
   const unreadCount = useNotificationsStore((s) => s.notifications.filter((n) => !n.read).length);
   const posts = usePostsStore((s) => s.posts);
-  const likedByMe = usePostsStore((s) => s.likedByMe);
-  const toggleLike = usePostsStore((s) => s.toggleLike);
+  const myReactions = usePostsStore((s) => s.myReactions);
+  const tapReaction = usePostsStore((s) => s.tapReaction);
+  const setReaction = usePostsStore((s) => s.setReaction);
   const savedIds = usePostsStore((s) => s.savedIds);
   const toggleSave = usePostsStore((s) => s.toggleSave);
   const comments = usePostsStore((s) => s.comments);
@@ -355,7 +357,7 @@ export default function HomeFeed() {
 
         <View className="gap-5 px-5 pb-8 pt-3">
           {filteredPosts.map(({ post, author }) => {
-            const liked = likedByMe[post.id] ?? false;
+            const myReaction = myReactions[post.id];
             const saved = savedIds[post.id] ?? false;
             const postComments = comments[post.id] ?? [];
             return (
@@ -389,15 +391,13 @@ export default function HomeFeed() {
                 </Pressable>
 
                 <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
-                  <Pressable
-                    onPress={() => toggleLike(post.id)}
-                    className="flex-1 flex-row items-center justify-center gap-1.5 py-1"
-                  >
-                    <Ionicons name={liked ? 'heart' : 'heart-outline'} size={18} color="#E0533C" />
-                    <Text className={`text-sm ${liked ? 'font-semibold text-terracotta' : 'text-charcoal/70'}`}>
-                      {getEffectiveLoves(post, liked)}
-                    </Text>
-                  </Pressable>
+                  <ReactionButton
+                    post={post}
+                    myReaction={myReaction}
+                    onTap={() => tapReaction(post.id)}
+                    onSelect={(type) => setReaction(post.id, type)}
+                    fullWidth
+                  />
                   <Pressable
                     onPress={() => router.push(`/post/${post.id}`)}
                     className="flex-1 flex-row items-center justify-center gap-1.5 py-1"

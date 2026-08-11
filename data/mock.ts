@@ -244,6 +244,8 @@ export function getUser(id: string): User | undefined {
 
 export const MY_FRIEND_IDS = ['maya', 'theo', 'priya', 'sam'];
 
+export type ReactionType = 'love' | 'haha' | 'wow' | 'sad' | 'clap';
+
 export type Post = {
   id: string;
   authorId: string;
@@ -253,6 +255,7 @@ export type Post = {
   replies: number;
   imageUri?: string;
   edited?: boolean;
+  reactionCounts?: Partial<Record<ReactionType, number>>;
 };
 
 export const POSTS: Post[] = [
@@ -263,6 +266,7 @@ export const POSTS: Post[] = [
     body: 'Porch hangout this Saturday if anyone wants to come sit, talk, and eat too much cornbread. No agenda, just company.',
     loves: 12,
     replies: 4,
+    reactionCounts: { love: 7, haha: 3, clap: 2 },
   },
   {
     id: '2',
@@ -287,6 +291,7 @@ export const POSTS: Post[] = [
     body: "Made way too much soup again. If you're near Elm St today, come take a jar off my hands.",
     loves: 15,
     replies: 6,
+    reactionCounts: { love: 11, wow: 2, clap: 2 },
   },
   {
     id: '5',
