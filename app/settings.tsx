@@ -13,6 +13,7 @@ const NOTIFICATION_ROWS: { key: keyof NotificationPrefs; label: string; descript
   { key: 'eventReminders', label: 'Event reminders', description: 'Upcoming events you’re going to or hosting' },
   { key: 'groupActivity', label: 'Group activity', description: 'New posts and replies in your circles' },
   { key: 'friendRequests', label: 'Friend requests', description: 'When someone adds you as a friend' },
+  { key: 'mentions', label: 'Mentions', description: 'When someone @mentions you in a post or comment' },
 ];
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import MentionText from '../components/MentionText';
 import { DISCOVER_USERS, ME, USERS, type Tone } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useEventsStore } from '../store/useEventsStore';
@@ -271,9 +272,11 @@ export default function Search() {
                         {post.edited && ' · edited'}
                       </Text>
                     </View>
-                    <Text className="mt-2 text-sm leading-5 text-charcoal/80" numberOfLines={2}>
-                      {post.body}
-                    </Text>
+                    <MentionText
+                      text={post.body}
+                      className="mt-2 text-sm leading-5 text-charcoal/80"
+                      numberOfLines={2}
+                    />
                     <View className="mt-3 flex-row items-center gap-4">
                       <View className="flex-row items-center gap-1">
                         <Ionicons name={liked ? 'heart' : 'heart-outline'} size={14} color="#E0533C" />

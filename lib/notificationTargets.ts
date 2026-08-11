@@ -8,6 +8,7 @@ export const TYPE_ICON: Record<NotificationItem['type'], keyof typeof Ionicons.g
   event: 'calendar',
   group: 'people',
   message: 'chatbubble-ellipses',
+  mention: 'at',
 };
 
 export function goToTarget(target?: NotificationTarget) {
@@ -27,5 +28,8 @@ export function goToTarget(target?: NotificationTarget) {
       return;
     case 'group-chat':
       router.push(`/group-chat/${target.id}`);
+      return;
+    case 'post':
+      router.push(`/post/${target.id}`);
   }
 }

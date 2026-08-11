@@ -1,19 +1,11 @@
 import { useState } from 'react';
-import {
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import MentionTextInput from '../components/MentionTextInput';
 import { usePostsStore } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
@@ -80,15 +72,15 @@ export default function CreatePost() {
             <Text className="font-semibold text-charcoal">{profile.name}</Text>
           </View>
 
-          <TextInput
+          <MentionTextInput
             value={body}
             onChangeText={setBody}
-            placeholder="What's going on in your corner of the neighborhood?"
-            placeholderTextColor="#3D3D3D80"
+            placeholder="What's going on in your corner of the neighborhood? Try @ to mention someone."
             multiline
             autoFocus
             className="mt-4 min-h-[100px] text-base leading-6 text-charcoal"
             style={{ textAlignVertical: 'top' }}
+            dropdownPosition="below"
           />
 
           {imageUri && (

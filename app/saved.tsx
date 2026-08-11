@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import MentionText from '../components/MentionText';
 import { DISCOVER_USERS, ME, USERS } from '../data/mock';
 import { getEffectiveLoves, getEffectiveReplies, usePostsStore } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
@@ -64,7 +65,7 @@ export default function SavedPosts() {
                   </View>
                 </View>
 
-                <Text className="mt-3 text-[15px] leading-5 text-charcoal">{post.body}</Text>
+                <MentionText text={post.body} className="mt-3 text-[15px] leading-5 text-charcoal" />
                 {post.imageUri && (
                   <Image
                     source={{ uri: post.imageUri }}

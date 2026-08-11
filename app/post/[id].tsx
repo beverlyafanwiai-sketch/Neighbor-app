@@ -13,6 +13,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import MentionText from '../../components/MentionText';
+import MentionTextInput from '../../components/MentionTextInput';
 import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser, type CommentItem } from '../../data/mock';
 import { getEffectiveLoves, getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
@@ -142,7 +144,7 @@ export default function PostDetail() {
                 </View>
               </Pressable>
 
-              <Text className="text-[15px] leading-5 text-charcoal">{post.body}</Text>
+              <MentionText text={post.body} className="text-[15px] leading-5 text-charcoal" />
 
               {post.imageUri && (
                 <Image
@@ -248,7 +250,7 @@ export default function PostDetail() {
                       {item.edited && ' · edited'}
                     </Text>
                   </View>
-                  <Text className="mt-0.5 text-sm leading-5 text-charcoal/80">{item.text}</Text>
+                  <MentionText text={item.text} className="mt-0.5 text-sm leading-5 text-charcoal/80" />
                 </View>
                 {isCommentAuthor && (
                   <View className="flex-row items-center gap-1">
@@ -284,14 +286,16 @@ export default function PostDetail() {
         />
 
         <View className="flex-row items-center gap-2 border-t border-charcoal/10 bg-cream px-3 py-2.5">
-          <TextInput
-            value={draft}
-            onChangeText={setDraft}
-            placeholder="Write a comment..."
-            placeholderTextColor="#3D3D3D80"
-            className="flex-1 rounded-full bg-sand px-4 py-2.5 text-charcoal"
-            multiline
-          />
+          <View className="flex-1">
+            <MentionTextInput
+              value={draft}
+              onChangeText={setDraft}
+              placeholder="Write a comment... Try @ to mention someone."
+              className="rounded-full bg-sand px-4 py-2.5 text-charcoal"
+              multiline
+              dropdownPosition="above"
+            />
+          </View>
           <Pressable
             onPress={send}
             className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"

@@ -1,6 +1,25 @@
 import { create } from 'zustand';
 
 import { COMMENTS, ME, POSTS, type CommentItem, type Post } from '../data/mock';
+import { findMentionedUsers } from '../lib/mentions';
+import { useNotificationsStore } from './useNotificationsStore';
+import { useProfileStore } from './useProfileStore';
+import { useSettingsStore } from './useSettingsStore';
+
+function notifyMentions(text: string, postId: string, context: 'post' | 'comment') {
+  if (!useSettingsStore.getState().notificationPrefs.mentions) return;
+  const authorName = useProfileStore.getState().profile.name;
+  for (const user of findMentionedUsers(text)) {
+    if (user.id === ME.id) continue;
+    useNotificationsStore.getState().addNotification({
+      type: 'mention',
+      actorId: ME.id,
+      text: `${authorName} mentioned you in a ${context}`,
+      time: 'Just now',
+      target: { kind: 'post', id: postId },
+    });
+  }
+}
 
 export type PostEdits = { body: string; imageUri?: string };
 
@@ -36,6 +55,7 @@ export const usePostsStore = create<PostsState>((set) => ({
       imageUri,
     };
     set((s) => ({ posts: [post, ...s.posts] }));
+    notifyMentions(body, post.id, 'post');
   },
 
   updatePost: (id, updates) =>
@@ -56,6 +76,7 @@ export const usePostsStore = create<PostsState>((set) => ({
     set((s) => ({
       comments: { ...s.comments, [postId]: [...(s.comments[postId] ?? []), comment] },
     }));
+    notifyMentions(text, postId, 'comment');
   },
 
   updateComment: (postId, commentId, text) =>

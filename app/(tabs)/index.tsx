@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { COFFEE_FRIENDS_SVG } from '../../assets/illustrations/coffee-friends';
+import MentionText from '../../components/MentionText';
 import ShareSheet from '../../components/ShareSheet';
 import { ME, USERS, type Post } from '../../data/mock';
 import { useBlockedStore } from '../../store/useBlockedStore';
@@ -184,7 +185,7 @@ export default function HomeFeed() {
                 </Pressable>
 
                 <Pressable onPress={() => router.push(`/post/${post.id}`)}>
-                  <Text className="mt-3 text-[15px] leading-5 text-charcoal">{post.body}</Text>
+                  <MentionText text={post.body} className="mt-3 text-[15px] leading-5 text-charcoal" />
                   {post.imageUri && (
                     <Image
                       source={{ uri: post.imageUri }}

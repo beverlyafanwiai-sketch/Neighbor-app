@@ -452,11 +452,12 @@ export type NotificationTarget =
   | { kind: 'event'; id: string }
   | { kind: 'group'; id: string }
   | { kind: 'chat'; id: string }
-  | { kind: 'group-chat'; id: string };
+  | { kind: 'group-chat'; id: string }
+  | { kind: 'post'; id: string };
 
 export type NotificationItem = {
   id: string;
-  type: 'friend' | 'event' | 'group' | 'message';
+  type: 'friend' | 'event' | 'group' | 'message' | 'mention';
   actorId?: string;
   text: string;
   time: string;
