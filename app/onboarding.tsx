@@ -9,12 +9,43 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useProfileStore } from '../store/useProfileStore';
 
 const AVATAR_OPTIONS = [1, 3, 4, 6, 7, 8, 10, 47].map((n) => `https://i.pravatar.cc/300?img=${n}`);
+
+const cardShadow = {
+  shadowColor: '#3D3D3D',
+  shadowOffset: { width: 0, height: -6 },
+  shadowOpacity: 0.18,
+  shadowRadius: 24,
+  elevation: 12,
+};
+
+const avatarShadow = {
+  shadowColor: '#3D3D3D',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.25,
+  shadowRadius: 10,
+  elevation: 8,
+};
+
+const buttonShadow = {
+  shadowColor: '#E0533C',
+  shadowOffset: { width: 0, height: 6 },
+  shadowOpacity: 0.35,
+  shadowRadius: 14,
+  elevation: 8,
+};
+
+const headingShadow = {
+  textShadowColor: 'rgba(61,61,61,0.5)',
+  textShadowOffset: { width: 0, height: 2 },
+  textShadowRadius: 10,
+};
 
 function FieldLabel({ children }: { children: string }) {
   return (
@@ -42,75 +73,114 @@ export default function Onboarding() {
   const skip = () => router.replace('/(tabs)');
 
   return (
-    <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-6 pb-10 pt-8">
-          <Text className="text-center text-3xl font-bold text-charcoal">Welcome to Neighbor</Text>
-          <Text className="mt-2 text-center text-base text-charcoal/60">
-            Let's set up your profile so neighbors know who they're meeting.
-          </Text>
+    <View className="flex-1 bg-charcoal">
+      <Image
+        source={require('../assets/images/onboarding-cafe.jpg')}
+        resizeMode="cover"
+        className="absolute inset-0 h-full w-full"
+      />
+      <LinearGradient
+        colors={['rgba(217,164,65,0.4)', 'rgba(224,83,60,0.18)', 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0.7 }}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+      />
+      <LinearGradient
+        colors={['transparent', 'rgba(61,61,61,0.1)', 'rgba(61,61,61,0.94)']}
+        locations={[0, 0.4, 0.78]}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+      />
 
-          <View className="mt-8 items-center">
-            <Image source={{ uri: avatar }} className="h-24 w-24 rounded-full border-4 border-terracotta" />
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerClassName="mt-4 gap-3 px-1 pb-2"
-          >
-            {AVATAR_OPTIONS.map((uri) => (
-              <Pressable key={uri} onPress={() => setAvatar(uri)}>
-                <Image
-                  source={{ uri }}
-                  className={`h-14 w-14 rounded-full ${
-                    avatar === uri ? 'border-2 border-terracotta' : 'opacity-70'
-                  }`}
-                />
+      <SafeAreaView className="flex-1" edges={['top']}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="flex-grow justify-end">
+            <View className="px-8 pb-10 pt-16">
+              <Text
+                className="text-center text-4xl font-bold italic tracking-tight text-cream"
+                style={headingShadow}
+              >
+                Welcome to Neighbor
+              </Text>
+              <Text className="mt-3 text-center text-base leading-6 text-sand" style={headingShadow}>
+                Let's set up your profile so neighbors know who they're meeting.
+              </Text>
+            </View>
+
+            <View className="rounded-t-[36px] bg-cream px-6 pb-10 pt-4" style={cardShadow}>
+              <View className="items-center">
+                <View className="-mt-16 rounded-full bg-cream p-1.5" style={avatarShadow}>
+                  <Image
+                    source={{ uri: avatar }}
+                    className="h-28 w-28 rounded-full border-[3px] border-terracotta"
+                  />
+                </View>
+              </View>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerClassName="mt-5 gap-3 px-1 pb-2"
+              >
+                {AVATAR_OPTIONS.map((uri) => (
+                  <Pressable key={uri} onPress={() => setAvatar(uri)}>
+                    <Image
+                      source={{ uri }}
+                      className={`h-14 w-14 rounded-full ${
+                        avatar === uri
+                          ? 'border-2 border-terracotta opacity-100'
+                          : 'border-2 border-transparent opacity-60'
+                      }`}
+                    />
+                  </Pressable>
+                ))}
+              </ScrollView>
+
+              <View className="mt-6 gap-4">
+                <View>
+                  <FieldLabel>Name</FieldLabel>
+                  <TextInput
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="What should neighbors call you?"
+                    placeholderTextColor="#3D3D3D80"
+                    className="rounded-2xl border border-charcoal/10 bg-sand/70 px-4 py-3.5 text-base text-charcoal"
+                  />
+                </View>
+
+                <View>
+                  <FieldLabel>Tagline</FieldLabel>
+                  <TextInput
+                    value={tagline}
+                    onChangeText={setTagline}
+                    placeholder="What are you looking for?"
+                    placeholderTextColor="#3D3D3D80"
+                    className="rounded-2xl border border-charcoal/10 bg-sand/70 px-4 py-3.5 text-base text-charcoal"
+                  />
+                </View>
+              </View>
+
+              <Pressable
+                onPress={finish}
+                disabled={!canContinue}
+                className={`mt-8 items-center rounded-2xl py-4 active:opacity-80 ${
+                  canContinue ? 'bg-terracotta' : 'bg-charcoal/10'
+                }`}
+                style={canContinue ? buttonShadow : undefined}
+              >
+                <Text
+                  className={`text-base font-semibold ${canContinue ? 'text-cream' : 'text-charcoal/40'}`}
+                >
+                  Get started
+                </Text>
               </Pressable>
-            ))}
+
+              <Pressable onPress={skip} className="mt-4 items-center">
+                <Text className="text-sm text-charcoal/50 underline">Skip for now</Text>
+              </Pressable>
+            </View>
           </ScrollView>
-
-          <View className="mt-6 gap-4">
-            <View>
-              <FieldLabel>Name</FieldLabel>
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                placeholder="What should neighbors call you?"
-                placeholderTextColor="#3D3D3D80"
-                className="rounded-2xl bg-cream px-4 py-3 text-base text-charcoal"
-              />
-            </View>
-
-            <View>
-              <FieldLabel>Tagline</FieldLabel>
-              <TextInput
-                value={tagline}
-                onChangeText={setTagline}
-                placeholder="What are you looking for?"
-                placeholderTextColor="#3D3D3D80"
-                className="rounded-2xl bg-cream px-4 py-3 text-base text-charcoal"
-              />
-            </View>
-          </View>
-
-          <Pressable
-            onPress={finish}
-            disabled={!canContinue}
-            className={`mt-8 items-center rounded-2xl py-4 ${
-              canContinue ? 'bg-terracotta' : 'bg-charcoal/10'
-            }`}
-          >
-            <Text className={`text-base font-semibold ${canContinue ? 'text-cream' : 'text-charcoal/40'}`}>
-              Get started
-            </Text>
-          </Pressable>
-
-          <Pressable onPress={skip} className="mt-4 items-center">
-            <Text className="text-sm text-charcoal/50 underline">Skip for now</Text>
-          </Pressable>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
