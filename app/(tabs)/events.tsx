@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ME, getUser } from '../../data/mock';
 import { useEventsStore } from '../../store/useEventsStore';
-import { useFriendsStore } from '../../store/useFriendsStore';
+import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
@@ -19,8 +19,8 @@ export default function Events() {
   const events = useEventsStore((s) => s.events);
   const goingMap = useRsvpStore((s) => s.going);
   const toggleRsvp = useRsvpStore((s) => s.toggle);
-  const friendIds = useFriendsStore((s) => s.friendIds);
-  const toggleFriend = useFriendsStore((s) => s.toggle);
+  const friendStatuses = useFriendsStore((s) => s.statuses);
+  const respondFriend = useFriendsStore((s) => s.respond);
   const [query, setQuery] = useState('');
 
   const q = query.trim().toLowerCase();
@@ -233,7 +233,8 @@ export default function Events() {
                   </Text>
                   <View className="gap-2">
                     {met.map((p) => {
-                      const isFriend = friendIds[p!.id] ?? false;
+                      const status = friendStatuses[p!.id] ?? 'none';
+                      const settled = status === 'friends' || status === 'pending_out';
                       return (
                         <View key={p!.id} className="flex-row items-center gap-2.5">
                           <Image source={{ uri: p!.avatar }} className="h-9 w-9 rounded-full" />
@@ -241,23 +242,21 @@ export default function Events() {
                           <Pressable
                             onPress={(evt) => {
                               evt.stopPropagation();
-                              toggleFriend(p!.id);
+                              respondFriend(p!.id);
                             }}
                             className={`flex-row items-center gap-1 rounded-full px-3 py-1.5 ${
-                              isFriend ? 'bg-sage/20' : 'bg-sand'
+                              settled ? 'bg-sage/20' : 'bg-sand'
                             }`}
                           >
                             <Ionicons
-                              name={isFriend ? 'checkmark' : 'person-add-outline'}
+                              name={status === 'friends' ? 'checkmark' : 'person-add-outline'}
                               size={13}
-                              color={isFriend ? '#81A684' : '#3D3D3D'}
+                              color={settled ? '#81A684' : '#3D3D3D'}
                             />
                             <Text
-                              className={`text-xs font-medium ${
-                                isFriend ? 'text-sage' : 'text-charcoal'
-                              }`}
+                              className={`text-xs font-medium ${settled ? 'text-sage' : 'text-charcoal'}`}
                             >
-                              {isFriend ? 'Friends' : 'Add friend'}
+                              {FRIEND_LABEL[status]}
                             </Text>
                           </Pressable>
                         </View>

@@ -5,6 +5,7 @@ import { ME, type NotificationItem, type NotificationTarget } from '../data/mock
 
 export const TYPE_ICON: Record<NotificationItem['type'], keyof typeof Ionicons.glyphMap> = {
   friend: 'heart',
+  friend_request: 'person-add',
   event: 'calendar',
   group: 'people',
   message: 'chatbubble-ellipses',

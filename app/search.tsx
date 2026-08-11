@@ -8,7 +8,7 @@ import MentionText from '../components/MentionText';
 import { DISCOVER_USERS, ME, USERS, type Tone } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useEventsStore } from '../store/useEventsStore';
-import { useFriendsStore } from '../store/useFriendsStore';
+import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 import { getEffectiveLoves, getEffectiveReplies, usePostsStore } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
@@ -38,8 +38,8 @@ export default function Search() {
   const likedByMe = usePostsStore((s) => s.likedByMe);
   const comments = usePostsStore((s) => s.comments);
 
-  const friendIds = useFriendsStore((s) => s.friendIds);
-  const toggleFriend = useFriendsStore((s) => s.toggle);
+  const friendStatuses = useFriendsStore((s) => s.statuses);
+  const respondFriend = useFriendsStore((s) => s.respond);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
 
   const groups = useGroupsStore((s) => s.groups);
@@ -138,7 +138,7 @@ export default function Search() {
             <SectionLabel>People</SectionLabel>
             <View className="gap-3">
               {matchedPeople.map((p) => {
-                const isFriend = friendIds[p.id] ?? false;
+                const status = friendStatuses[p.id] ?? 'none';
                 return (
                   <Pressable
                     key={p.id}
@@ -155,12 +155,12 @@ export default function Search() {
                     <Pressable
                       onPress={(evt) => {
                         evt.stopPropagation();
-                        toggleFriend(p.id);
+                        respondFriend(p.id);
                       }}
-                      className={`rounded-full px-4 py-2 ${isFriend ? 'bg-sand' : 'bg-gold'}`}
+                      className={`rounded-full px-4 py-2 ${status === 'none' ? 'bg-gold' : 'bg-sand'}`}
                     >
                       <Text className="text-xs font-semibold text-charcoal">
-                        {isFriend ? 'Friends' : 'Add friend'}
+                        {FRIEND_LABEL[status]}
                       </Text>
                     </Pressable>
                   </Pressable>

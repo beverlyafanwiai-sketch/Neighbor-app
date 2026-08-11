@@ -85,11 +85,13 @@ function RightRail() {
   const events = useEventsStore((s) => s.events)
     .filter((e) => e.status === 'upcoming')
     .slice(0, 3);
-  const friendIds = useFriendsStore((s) => s.friendIds);
+  const friendStatuses = useFriendsStore((s) => s.statuses);
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
 
-  const friends = [...USERS, ...DISCOVER_USERS].filter((u) => friendIds[u.id]).slice(0, 5);
+  const friends = [...USERS, ...DISCOVER_USERS]
+    .filter((u) => friendStatuses[u.id] === 'friends')
+    .slice(0, 5);
   const suggestedGroups = groups.filter((g) => !joinedMap[g.id]).slice(0, 3);
 
   return (

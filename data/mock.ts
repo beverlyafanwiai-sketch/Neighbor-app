@@ -557,7 +557,7 @@ export type NotificationTarget =
 
 export type NotificationItem = {
   id: string;
-  type: 'friend' | 'event' | 'group' | 'message' | 'mention';
+  type: 'friend' | 'friend_request' | 'event' | 'group' | 'message' | 'mention';
   actorId?: string;
   text: string;
   time: string;
@@ -566,6 +566,15 @@ export type NotificationItem = {
 };
 
 export const NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: '0',
+    type: 'friend_request',
+    actorId: 'nia',
+    text: 'Nia wants to be friends',
+    time: '20m ago',
+    read: false,
+    target: { kind: 'profile', id: 'nia' },
+  },
   {
     id: '1',
     type: 'message',

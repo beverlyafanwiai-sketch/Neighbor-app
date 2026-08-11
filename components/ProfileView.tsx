@@ -5,7 +5,7 @@ import { SvgXml } from 'react-native-svg';
 
 import { GROUP_SELFIE_SVG } from '../assets/illustrations/group-selfie';
 import type { User, VerificationBadge } from '../data/mock';
-import { useFriendsStore } from '../store/useFriendsStore';
+import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 
 const TABS = ['About', 'Prompts', 'Photos', 'Friends'] as const;
 type Tab = (typeof TABS)[number];
@@ -55,8 +55,8 @@ export default function ProfileView({
   onSavedPosts,
 }: Props) {
   const [tab, setTab] = useState<Tab>('About');
-  const isFriend = useFriendsStore((s) => s.friendIds[user.id] ?? false);
-  const toggleFriend = useFriendsStore((s) => s.toggle);
+  const friendStatus = useFriendsStore((s) => s.statuses[user.id] ?? 'none');
+  const respondFriend = useFriendsStore((s) => s.respond);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} className="flex-1 bg-cream">
@@ -138,14 +138,21 @@ export default function ProfileView({
           ) : (
             <>
               <Pressable
-                onPress={() => toggleFriend(user.id)}
+                onPress={() => respondFriend(user.id)}
                 className={`flex-row items-center gap-1.5 rounded-full px-6 py-2.5 ${
-                  isFriend ? 'bg-cream/20' : 'bg-gold'
+                  friendStatus === 'none' ? 'bg-gold' : 'bg-cream/20'
                 }`}
               >
-                {isFriend && <Ionicons name="checkmark" size={16} color="#F5F2E9" />}
-                <Text className={`font-semibold ${isFriend ? 'text-cream' : 'text-charcoal'}`}>
-                  {isFriend ? 'Friends' : 'Add friend'}
+                {friendStatus === 'friends' && (
+                  <Ionicons name="checkmark" size={16} color="#F5F2E9" />
+                )}
+                {friendStatus === 'pending_in' && (
+                  <Ionicons name="person-add" size={16} color="#F5F2E9" />
+                )}
+                <Text
+                  className={`font-semibold ${friendStatus === 'none' ? 'text-charcoal' : 'text-cream'}`}
+                >
+                  {FRIEND_LABEL[friendStatus]}
                 </Text>
               </Pressable>
               <Pressable

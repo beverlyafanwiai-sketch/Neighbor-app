@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getUser } from '../data/mock';
 import { goToTarget, TYPE_ICON } from '../lib/notificationTargets';
+import { useFriendsStore } from '../store/useFriendsStore';
 import { useNotificationsStore } from '../store/useNotificationsStore';
 
 export default function Notifications() {
@@ -12,6 +13,9 @@ export default function Notifications() {
   const markRead = useNotificationsStore((s) => s.markRead);
   const markAllRead = useNotificationsStore((s) => s.markAllRead);
   const hasUnread = notifications.some((n) => !n.read);
+  const friendStatuses = useFriendsStore((s) => s.statuses);
+  const acceptRequest = useFriendsStore((s) => s.acceptRequest);
+  const declineRequest = useFriendsStore((s) => s.declineRequest);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -36,34 +40,63 @@ export default function Notifications() {
         <View className="gap-3">
           {notifications.map((n) => {
             const actor = n.actorId ? getUser(n.actorId) : undefined;
+            const isPendingRequest =
+              n.type === 'friend_request' &&
+              n.actorId !== undefined &&
+              friendStatuses[n.actorId] === 'pending_in';
             return (
-              <Pressable
+              <View
                 key={n.id}
-                onPress={() => {
-                  markRead(n.id);
-                  goToTarget(n.target);
-                }}
-                className={`flex-row items-center gap-3 rounded-2xl p-4 active:opacity-80 ${
-                  n.read ? 'bg-cream' : 'bg-cream border border-terracotta/30'
-                }`}
+                className={`rounded-2xl p-4 ${n.read ? 'bg-cream' : 'bg-cream border border-terracotta/30'}`}
               >
-                {actor ? (
-                  <Image source={{ uri: actor.avatar }} className="h-11 w-11 rounded-full" />
-                ) : (
-                  <View className="h-11 w-11 items-center justify-center rounded-full bg-sage/20">
-                    <Ionicons name={TYPE_ICON[n.type]} size={18} color="#81A684" />
+                <Pressable
+                  onPress={() => {
+                    markRead(n.id);
+                    goToTarget(n.target);
+                  }}
+                  className="flex-row items-center gap-3 active:opacity-80"
+                >
+                  {actor ? (
+                    <Image source={{ uri: actor.avatar }} className="h-11 w-11 rounded-full" />
+                  ) : (
+                    <View className="h-11 w-11 items-center justify-center rounded-full bg-sage/20">
+                      <Ionicons name={TYPE_ICON[n.type]} size={18} color="#81A684" />
+                    </View>
+                  )}
+                  <View className="flex-1">
+                    <Text
+                      className={`text-[15px] ${n.read ? 'text-charcoal/80' : 'font-semibold text-charcoal'}`}
+                    >
+                      {n.text}
+                    </Text>
+                    <Text className="mt-0.5 text-xs text-charcoal/50">{n.time}</Text>
+                  </View>
+                  {!n.read && <View className="h-2.5 w-2.5 rounded-full bg-terracotta" />}
+                </Pressable>
+
+                {isPendingRequest && (
+                  <View className="ml-14 mt-3 flex-row gap-2">
+                    <Pressable
+                      onPress={() => {
+                        markRead(n.id);
+                        acceptRequest(n.actorId!);
+                      }}
+                      className="rounded-full bg-terracotta px-4 py-1.5"
+                    >
+                      <Text className="text-xs font-semibold text-cream">Accept</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        markRead(n.id);
+                        declineRequest(n.actorId!);
+                      }}
+                      className="rounded-full bg-sand px-4 py-1.5"
+                    >
+                      <Text className="text-xs font-semibold text-charcoal">Decline</Text>
+                    </Pressable>
                   </View>
                 )}
-                <View className="flex-1">
-                  <Text
-                    className={`text-[15px] ${n.read ? 'text-charcoal/80' : 'font-semibold text-charcoal'}`}
-                  >
-                    {n.text}
-                  </Text>
-                  <Text className="mt-0.5 text-xs text-charcoal/50">{n.time}</Text>
-                </View>
-                {!n.read && <View className="h-2.5 w-2.5 rounded-full bg-terracotta" />}
-              </Pressable>
+              </View>
             );
           })}
           {notifications.length === 0 && (

@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DISCOVER_USERS, type Tone } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
-import { useFriendsStore } from '../store/useFriendsStore';
+import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
@@ -30,8 +30,8 @@ export default function Discover() {
   const allGroups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
-  const friendIds = useFriendsStore((s) => s.friendIds);
-  const toggleFriend = useFriendsStore((s) => s.toggle);
+  const friendStatuses = useFriendsStore((s) => s.statuses);
+  const respondFriend = useFriendsStore((s) => s.respond);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const myTags = useProfileStore((s) => s.profile.tags);
 
@@ -98,7 +98,7 @@ export default function Discover() {
           <View className="gap-3">
             {people.map((p) => {
               const shared = sharedTags(p.tags, myTags);
-              const isFriend = friendIds[p.id] ?? false;
+              const status = friendStatuses[p.id] ?? 'none';
               return (
                 <Pressable
                   key={p.id}
@@ -116,12 +116,12 @@ export default function Discover() {
                     <Pressable
                       onPress={(evt) => {
                         evt.stopPropagation();
-                        toggleFriend(p.id);
+                        respondFriend(p.id);
                       }}
-                      className={`rounded-full px-4 py-2 ${isFriend ? 'bg-sand' : 'bg-gold'}`}
+                      className={`rounded-full px-4 py-2 ${status === 'none' ? 'bg-gold' : 'bg-sand'}`}
                     >
                       <Text className="text-xs font-semibold text-charcoal">
-                        {isFriend ? 'Friends' : 'Add friend'}
+                        {FRIEND_LABEL[status]}
                       </Text>
                     </Pressable>
                   </View>

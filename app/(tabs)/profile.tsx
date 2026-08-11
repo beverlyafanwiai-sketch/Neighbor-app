@@ -10,8 +10,8 @@ const ALL_PEOPLE: User[] = [...USERS, ...DISCOVER_USERS];
 
 export default function Profile() {
   const profile = useProfileStore((s) => s.profile);
-  const friendIds = useFriendsStore((s) => s.friendIds);
-  const friends = ALL_PEOPLE.filter((u) => friendIds[u.id]);
+  const friendStatuses = useFriendsStore((s) => s.statuses);
+  const friends = ALL_PEOPLE.filter((u) => friendStatuses[u.id] === 'friends');
 
   return (
     <SafeAreaView className="flex-1 bg-cream" edges={['top']}>

@@ -18,7 +18,7 @@ export const useBlockedStore = create<BlockedState>((set, get) => ({
     set((s) => ({ blockedIds: { ...s.blockedIds, [userId]: blocking } }));
 
     if (blocking && useFriendsStore.getState().isFriend(userId)) {
-      useFriendsStore.getState().toggle(userId);
+      useFriendsStore.getState().unfriend(userId);
     }
   },
 }));
