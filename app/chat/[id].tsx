@@ -23,6 +23,7 @@ export default function ChatThread() {
   const conversation = useConversationsStore((s) => s.conversations[id]);
   const sendMessage = useConversationsStore((s) => s.sendMessage);
   const markRead = useConversationsStore((s) => s.markRead);
+  const isTyping = useConversationsStore((s) => s.typing[id] ?? false);
   const user = conversation ? getUser(conversation.userId) : undefined;
 
   const [draft, setDraft] = useState('');
@@ -43,6 +44,10 @@ export default function ChatThread() {
   }
 
   const messages = conversation.messages;
+  const lastMeIndex = messages.reduce(
+    (acc, m, i) => (m.from === 'me' ? i : acc),
+    -1
+  );
 
   const send = () => {
     if (!draft.trim()) return;
@@ -93,7 +98,7 @@ export default function ChatThread() {
               </Text>
             </View>
           }
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <View
               className={`max-w-[78%] ${item.from === 'me' ? 'self-end items-end' : 'self-start items-start'}`}
             >
@@ -107,8 +112,22 @@ export default function ChatThread() {
                 </Text>
               </View>
               <Text className="mt-1 text-[11px] text-charcoal/40">{item.time}</Text>
+              {index === lastMeIndex && item.seen && (
+                <Text className="mt-0.5 text-[11px] text-sage">Seen</Text>
+              )}
             </View>
           )}
+          ListFooterComponent={
+            isTyping ? (
+              <View className="mt-2 max-w-[78%] items-start self-start">
+                <View className="flex-row items-center gap-1 rounded-2xl rounded-bl-sm bg-cream px-4 py-3.5">
+                  <View className="h-1.5 w-1.5 rounded-full bg-charcoal/40" />
+                  <View className="h-1.5 w-1.5 rounded-full bg-charcoal/40" />
+                  <View className="h-1.5 w-1.5 rounded-full bg-charcoal/40" />
+                </View>
+              </View>
+            ) : null
+          }
         />
 
         <View className="flex-row items-center gap-2 border-t border-charcoal/10 bg-cream px-3 py-2.5">

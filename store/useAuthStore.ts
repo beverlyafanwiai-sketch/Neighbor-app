@@ -1,11 +1,17 @@
-import type { Session, User } from '@supabase/supabase-js';
 import { create } from 'zustand';
 
-import { supabase } from '../lib/supabase';
+export type MockUser = {
+  id: string;
+  email: string;
+};
+
+export type MockSession = {
+  user: MockUser;
+};
 
 type AuthState = {
-  session: Session | null;
-  user: User | null;
+  session: MockSession | null;
+  user: MockUser | null;
   initializing: boolean;
   error: string | null;
   signIn: (email: string, password: string) => Promise<boolean>;
@@ -14,61 +20,54 @@ type AuthState = {
   clearError: () => void;
 };
 
+const MOCK_AUTH_DELAY_MS = 500;
+
+function validate(email: string, password: string): string | null {
+  if (!email.trim() || !password) return 'Enter an email and password.';
+  if (!email.includes('@')) return 'Enter a valid email address.';
+  if (password.length < 6) return 'Password must be at least 6 characters.';
+  return null;
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
   session: null,
   user: null,
-  initializing: true,
+  initializing: false,
   error: null,
 
   signIn: async (email, password) => {
     set({ error: null });
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      set({ error: error.message });
+    const validationError = validate(email, password);
+    if (validationError) {
+      set({ error: validationError });
       return false;
     }
-    set({ session: data.session, user: data.user });
+    await new Promise((resolve) => setTimeout(resolve, MOCK_AUTH_DELAY_MS));
+    const user: MockUser = { id: `user-${email.toLowerCase()}`, email };
+    set({ session: { user }, user });
     return true;
   },
 
   signUp: async (email, password) => {
     set({ error: null });
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-      set({ error: error.message });
+    const validationError = validate(email, password);
+    if (validationError) {
+      set({ error: validationError });
       return false;
     }
-    set({ session: data.session, user: data.user });
+    await new Promise((resolve) => setTimeout(resolve, MOCK_AUTH_DELAY_MS));
+    const user: MockUser = { id: `user-${email.toLowerCase()}`, email };
+    set({ session: { user }, user });
     return true;
   },
 
   signOut: async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch {
-      // Sign out locally even if the remote call fails (e.g. no network, misconfigured project).
-    }
     set({ session: null, user: null });
   },
 
   clearError: () => set({ error: null }),
 }));
 
-let listenerStarted = false;
-
 export function initAuthListener() {
-  if (listenerStarted) return;
-  listenerStarted = true;
-
-  supabase.auth.getSession().then(({ data }) => {
-    useAuthStore.setState({
-      session: data.session,
-      user: data.session?.user ?? null,
-      initializing: false,
-    });
-  });
-
-  supabase.auth.onAuthStateChange((_event, session) => {
-    useAuthStore.setState({ session, user: session?.user ?? null, initializing: false });
-  });
+  // No remote session to hydrate — the mock store starts signed out.
 }

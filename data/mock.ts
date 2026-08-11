@@ -404,7 +404,13 @@ export const EVENTS: EventItem[] = [
   },
 ];
 
-export type Message = { id: string; from: 'me' | 'them'; text: string; time: string };
+export type Message = {
+  id: string;
+  from: 'me' | 'them';
+  text: string;
+  time: string;
+  seen?: boolean;
+};
 
 export type Conversation = {
   id: string;

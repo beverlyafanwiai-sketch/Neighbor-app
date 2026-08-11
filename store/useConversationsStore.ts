@@ -17,6 +17,7 @@ type ConversationsState = {
   conversations: Record<string, Conversation>;
   unread: Record<string, number>;
   lastActivity: Record<string, number>;
+  typing: Record<string, boolean>;
   getOrCreate: (userId: string) => string;
   sendMessage: (conversationId: string, text: string) => void;
   markRead: (conversationId: string) => void;
@@ -46,6 +47,7 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
   conversations: initial,
   unread: initialUnread,
   lastActivity: initialLastActivity,
+  typing: {},
 
   getOrCreate: (userId) => {
     const id = `convo-${userId}`;
@@ -74,6 +76,7 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
           [conversationId]: { ...convo, messages: [...convo.messages, message] },
         },
         lastActivity: { ...s.lastActivity, [conversationId]: ++activitySeq },
+        typing: { ...s.typing, [conversationId]: true },
       };
     });
 
@@ -89,13 +92,17 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
         text: CANNED_REPLIES[convo.messages.length % CANNED_REPLIES.length],
         time: 'Just now',
       };
+      const seenMessages = convo.messages.map((m) =>
+        m.from === 'me' ? { ...m, seen: true } : m
+      );
       set((s) => ({
         conversations: {
           ...s.conversations,
-          [conversationId]: { ...convo, messages: [...convo.messages, reply] },
+          [conversationId]: { ...convo, messages: [...seenMessages, reply] },
         },
         unread: { ...s.unread, [conversationId]: (s.unread[conversationId] ?? 0) + 1 },
         lastActivity: { ...s.lastActivity, [conversationId]: ++activitySeq },
+        typing: { ...s.typing, [conversationId]: false },
       }));
 
       if (useSettingsStore.getState().notificationPrefs.messages) {
