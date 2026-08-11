@@ -127,12 +127,24 @@ export default function HomeFeed() {
           <>
             <Pressable
               onPress={() => router.push('/create-post')}
-              className="mx-5 mt-4 flex-row items-center gap-3 rounded-2xl bg-cream p-3.5 active:opacity-80"
+              className="mx-5 mt-4 rounded-2xl bg-cream p-3.5 active:opacity-80"
             >
-              <Image source={{ uri: profile.avatar }} className="h-9 w-9 rounded-full border-2 border-sand" />
-              <Text className="flex-1 text-sm text-charcoal/50">
-                Share something with your neighbors, big or small...
-              </Text>
+              <View className="flex-row items-center gap-3">
+                <Image source={{ uri: profile.avatar }} className="h-9 w-9 rounded-full border-2 border-sand" />
+                <Text className="flex-1 text-sm text-charcoal/50">
+                  Share something with your neighbors, big or small...
+                </Text>
+              </View>
+              <View className="mt-3 flex-row items-center gap-2 border-t border-charcoal/10 pt-3">
+                <View className="flex-row items-center gap-1.5 rounded-full bg-sage/15 px-3 py-1.5">
+                  <Ionicons name="image-outline" size={15} color="#81A684" />
+                  <Text className="text-xs font-medium text-sage">Photo</Text>
+                </View>
+                <View className="flex-row items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1.5">
+                  <Ionicons name="happy-outline" size={15} color="#D9A441" />
+                  <Text className="text-xs font-medium text-gold">Feeling</Text>
+                </View>
+              </View>
             </Pressable>
 
             <View className="mx-5 mt-3 flex-row items-center overflow-hidden rounded-3xl bg-cream">
@@ -149,32 +161,33 @@ export default function HomeFeed() {
               </View>
             </View>
 
+            <Text className="mx-5 mt-4 text-sm font-bold text-charcoal">Neighbors</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               className="px-5 py-2"
               contentContainerClassName="gap-4"
             >
-              {stories.map((s) => (
-                <Pressable
-                  key={s.id}
-                  onPress={() => goToProfile(s.id)}
-                  className="items-center gap-1.5"
-                >
-                  <View
-                    className={`h-16 w-16 items-center justify-center rounded-full ${
-                      'isYou' in s && s.isYou
-                        ? 'border-2 border-dashed border-terracotta'
-                        : 'bg-gold p-0.5'
-                    }`}
+              {stories.map((s) => {
+                const isYou = 'isYou' in s && s.isYou;
+                return (
+                  <Pressable
+                    key={s.id}
+                    onPress={() => goToProfile(s.id)}
+                    className="items-center gap-1.5"
                   >
-                    <Image source={{ uri: s.avatar }} className="h-14 w-14 rounded-full" />
-                  </View>
-                  <Text className="text-xs text-charcoal">
-                    {'isYou' in s && s.isYou ? 'You' : s.name.split(' ')[0]}
-                  </Text>
-                </Pressable>
-              ))}
+                    <View className="h-16 w-16 items-center justify-center rounded-full bg-gold p-0.5">
+                      <Image source={{ uri: s.avatar }} className="h-14 w-14 rounded-full" />
+                      {isYou && (
+                        <View className="absolute -bottom-0.5 -right-0.5 h-5 w-5 items-center justify-center rounded-full border-2 border-cream bg-terracotta">
+                          <Ionicons name="add" size={12} color="#F5F2E9" />
+                        </View>
+                      )}
+                    </View>
+                    <Text className="text-xs text-charcoal">{isYou ? 'You' : s.name.split(' ')[0]}</Text>
+                  </Pressable>
+                );
+              })}
             </ScrollView>
           </>
         )}
@@ -230,34 +243,35 @@ export default function HomeFeed() {
                 </Pressable>
 
                 <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
-                  <View className="flex-row items-center gap-6">
-                    <Pressable
-                      onPress={() => toggleLike(post.id)}
-                      className="flex-row items-center gap-1.5"
-                    >
-                      <Ionicons name={liked ? 'heart' : 'heart-outline'} size={18} color="#E0533C" />
-                      <Text className={`text-sm ${liked ? 'font-semibold text-terracotta' : 'text-charcoal/70'}`}>
-                        {getEffectiveLoves(post, liked)}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => router.push(`/post/${post.id}`)}
-                      className="flex-row items-center gap-1.5"
-                    >
-                      <Ionicons name="chatbubble-outline" size={17} color="#81A684" />
-                      <Text className="text-sm text-charcoal/70">
-                        {getEffectiveReplies(post, postComments)}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => setSharingPost(post)}
-                      className="flex-row items-center gap-1.5"
-                    >
-                      <Ionicons name="arrow-redo-outline" size={18} color="#3D3D3D80" />
-                      <Text className="text-sm text-charcoal/70">Share</Text>
-                    </Pressable>
-                  </View>
-                  <Pressable onPress={() => toggleSave(post.id)}>
+                  <Pressable
+                    onPress={() => toggleLike(post.id)}
+                    className="flex-1 flex-row items-center justify-center gap-1.5 py-1"
+                  >
+                    <Ionicons name={liked ? 'heart' : 'heart-outline'} size={18} color="#E0533C" />
+                    <Text className={`text-sm ${liked ? 'font-semibold text-terracotta' : 'text-charcoal/70'}`}>
+                      {getEffectiveLoves(post, liked)}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => router.push(`/post/${post.id}`)}
+                    className="flex-1 flex-row items-center justify-center gap-1.5 py-1"
+                  >
+                    <Ionicons name="chatbubble-outline" size={17} color="#81A684" />
+                    <Text className="text-sm text-charcoal/70">
+                      {getEffectiveReplies(post, postComments)}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setSharingPost(post)}
+                    className="flex-1 flex-row items-center justify-center gap-1.5 py-1"
+                  >
+                    <Ionicons name="arrow-redo-outline" size={18} color="#3D3D3D80" />
+                    <Text className="text-sm text-charcoal/70">Share</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => toggleSave(post.id)}
+                    className="flex-row items-center justify-center py-1"
+                  >
                     <Ionicons
                       name={saved ? 'bookmark' : 'bookmark-outline'}
                       size={18}
