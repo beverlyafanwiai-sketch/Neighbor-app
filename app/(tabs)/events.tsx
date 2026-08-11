@@ -19,7 +19,10 @@ export default function Events() {
   const profile = useProfileStore((s) => s.profile);
   const events = useEventsStore((s) => s.events);
   const goingMap = useRsvpStore((s) => s.going);
+  const waitlistMap = useRsvpStore((s) => s.waitlisted);
   const toggleRsvp = useRsvpStore((s) => s.toggle);
+  const joinWaitlist = useRsvpStore((s) => s.joinWaitlist);
+  const leaveWaitlist = useRsvpStore((s) => s.leaveWaitlist);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
   const [query, setQuery] = useState('');
@@ -85,6 +88,7 @@ export default function Events() {
           <View className="gap-3">
             {upcoming.map((e) => {
               const going = goingMap[e.id] ?? false;
+              const waitlisted = waitlistMap[e.id] ?? false;
               const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(e.id, going);
               const otherAvatars = e.attendeeIds.map((id) => getUser(id)).filter(Boolean);
               const avatars = going ? [profile, ...otherAvatars] : otherAvatars;
@@ -124,19 +128,24 @@ export default function Events() {
                       <Pressable
                         onPress={(evt) => {
                           evt.stopPropagation();
-                          toggleRsvp(e.id);
+                          if (going) {
+                            toggleRsvp(e.id);
+                          } else if (isFull) {
+                            waitlisted ? leaveWaitlist(e.id) : joinWaitlist(e.id);
+                          } else {
+                            toggleRsvp(e.id);
+                          }
                         }}
-                        disabled={isFull}
                         className={`rounded-full px-4 py-1.5 ${
-                          going ? 'bg-gold' : isFull ? 'bg-charcoal/10' : 'bg-sand'
+                          going ? 'bg-gold' : waitlisted ? 'bg-sage/20' : 'bg-sand'
                         }`}
                       >
                         <Text
                           className={`text-xs font-semibold ${
-                            going ? 'text-charcoal' : isFull ? 'text-charcoal/40' : 'text-charcoal/70'
+                            going ? 'text-charcoal' : waitlisted ? 'text-sage' : 'text-charcoal/70'
                           }`}
                         >
-                          {going ? 'Going' : isFull ? 'Full' : 'RSVP'}
+                          {going ? 'Going' : waitlisted ? 'Waitlisted' : isFull ? 'Join waitlist' : 'RSVP'}
                         </Text>
                       </Pressable>
                     </View>

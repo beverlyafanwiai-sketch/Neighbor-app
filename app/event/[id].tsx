@@ -17,7 +17,10 @@ export default function EventDetail() {
   const deleteEvent = useEventsStore((s) => s.deleteEvent);
   const profile = useProfileStore((s) => s.profile);
   const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
+  const waitlisted = useRsvpStore((s) => (event ? (s.waitlisted[event.id] ?? false) : false));
   const toggleRsvp = useRsvpStore((s) => s.toggle);
+  const joinWaitlist = useRsvpStore((s) => s.joinWaitlist);
+  const leaveWaitlist = useRsvpStore((s) => s.leaveWaitlist);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -134,18 +137,32 @@ export default function EventDetail() {
           ) : (
             !isPast && (
               <Pressable
-                onPress={() => toggleRsvp(event.id)}
-                disabled={isFull}
-                className={`mt-5 items-center rounded-full py-3 ${
-                  going ? 'bg-gold' : isFull ? 'bg-charcoal/10' : 'bg-charcoal'
+                onPress={() => {
+                  if (going) {
+                    toggleRsvp(event.id);
+                  } else if (isFull) {
+                    waitlisted ? leaveWaitlist(event.id) : joinWaitlist(event.id);
+                  } else {
+                    toggleRsvp(event.id);
+                  }
+                }}
+                className={`mt-5 flex-row items-center justify-center gap-1.5 rounded-full py-3 ${
+                  going ? 'bg-gold' : waitlisted ? 'bg-sage/20' : 'bg-charcoal'
                 }`}
               >
+                {waitlisted && <Ionicons name="time-outline" size={16} color="#81A684" />}
                 <Text
                   className={`text-sm font-semibold ${
-                    going ? 'text-charcoal' : isFull ? 'text-charcoal/40' : 'text-cream'
+                    going ? 'text-charcoal' : waitlisted ? 'text-sage' : 'text-cream'
                   }`}
                 >
-                  {going ? "You're going" : isFull ? 'Event full' : 'RSVP'}
+                  {going
+                    ? "You're going"
+                    : waitlisted
+                      ? 'On waitlist · tap to leave'
+                      : isFull
+                        ? 'Join waitlist'
+                        : 'RSVP'}
                 </Text>
               </Pressable>
             )
