@@ -10,16 +10,23 @@ import { usePostsStore } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
 export default function CreatePost() {
-  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const { id: editId, draftId } = useLocalSearchParams<{ id?: string; draftId?: string }>();
   const existing = usePostsStore((s) => (editId ? s.posts.find((p) => p.id === editId) : undefined));
+  const existingDraft = usePostsStore((s) => (draftId ? s.drafts.find((d) => d.id === draftId) : undefined));
   const isEditing = Boolean(existing);
   const profile = useProfileStore((s) => s.profile);
   const createPost = usePostsStore((s) => s.createPost);
   const updatePost = usePostsStore((s) => s.updatePost);
-  const [body, setBody] = useState(existing?.body ?? '');
-  const [imageUri, setImageUri] = useState<string | undefined>(existing?.imageUri);
+  const saveDraft = usePostsStore((s) => s.saveDraft);
+  const deleteDraft = usePostsStore((s) => s.deleteDraft);
+  const [body, setBody] = useState(existing?.body ?? existingDraft?.body ?? '');
+  const [imageUri, setImageUri] = useState<string | undefined>(
+    existing?.imageUri ?? existingDraft?.imageUri
+  );
+  const [confirmingClose, setConfirmingClose] = useState(false);
 
   const canPost = body.trim().length > 0;
+  const hasUnsavedContent = !isEditing && (body.trim().length > 0 || Boolean(imageUri));
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -41,6 +48,25 @@ export default function CreatePost() {
       return;
     }
     createPost(body.trim(), imageUri);
+    if (draftId) deleteDraft(draftId);
+    router.back();
+  };
+
+  const close = () => {
+    if (isEditing || !hasUnsavedContent) {
+      router.back();
+      return;
+    }
+    setConfirmingClose(true);
+  };
+
+  const discardAndClose = () => {
+    if (draftId) deleteDraft(draftId);
+    router.back();
+  };
+
+  const saveDraftAndClose = () => {
+    saveDraft({ id: draftId, body: body.trim(), imageUri });
     router.back();
   };
 
@@ -48,7 +74,7 @@ export default function CreatePost() {
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={close}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
           <Ionicons name="close" size={20} color="#3D3D3D" />
@@ -64,6 +90,23 @@ export default function CreatePost() {
           </Text>
         </Pressable>
       </View>
+
+      {confirmingClose && (
+        <View className="gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="text-sm text-charcoal">Save this as a draft, or discard it?</Text>
+          <View className="flex-row justify-end gap-4">
+            <Pressable onPress={() => setConfirmingClose(false)}>
+              <Text className="text-sm font-medium text-charcoal/60">Keep editing</Text>
+            </Pressable>
+            <Pressable onPress={discardAndClose}>
+              <Text className="text-sm font-semibold text-terracotta">Discard</Text>
+            </Pressable>
+            <Pressable onPress={saveDraftAndClose}>
+              <Text className="text-sm font-semibold text-sage">Save draft</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView className="flex-1 px-5 pt-2" keyboardShouldPersistTaps="handled">

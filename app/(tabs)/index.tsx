@@ -187,6 +187,7 @@ export default function HomeFeed() {
   const [query, setQuery] = useState('');
   const unreadCount = useNotificationsStore((s) => s.notifications.filter((n) => !n.read).length);
   const posts = usePostsStore((s) => s.posts);
+  const draftCount = usePostsStore((s) => s.drafts.length);
   const myReactions = usePostsStore((s) => s.myReactions);
   const tapReaction = usePostsStore((s) => s.tapReaction);
   const setReaction = usePostsStore((s) => s.setReaction);
@@ -324,6 +325,20 @@ export default function HomeFeed() {
                   <Ionicons name="happy-outline" size={15} color="#D9A441" />
                   <Text className="text-xs font-medium text-gold">Feeling</Text>
                 </View>
+                {draftCount > 0 && (
+                  <Pressable
+                    onPress={(evt) => {
+                      evt.stopPropagation();
+                      router.push('/drafts');
+                    }}
+                    className="flex-row items-center gap-1.5 rounded-full bg-terracotta/15 px-3 py-1.5"
+                  >
+                    <Ionicons name="document-text-outline" size={15} color="#E0533C" />
+                    <Text className="text-xs font-medium text-terracotta">
+                      {draftCount} draft{draftCount === 1 ? '' : 's'}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             </Pressable>
 

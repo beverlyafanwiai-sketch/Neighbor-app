@@ -33,12 +33,22 @@ function notifyMentions(text: string, postId: string, context: 'post' | 'comment
 
 export type PostEdits = { body: string; imageUri?: string };
 
+export type Draft = {
+  id: string;
+  body: string;
+  imageUri?: string;
+  updatedAt: number;
+};
+
 export function commentKey(postId: string, commentId: string) {
   return `${postId}:${commentId}`;
 }
 
+let draftSeq = 0;
+
 type PostsState = {
   posts: Post[];
+  drafts: Draft[];
   myReactions: Record<string, ReactionType | undefined>;
   myCommentReactions: Record<string, ReactionType | undefined>;
   savedIds: Record<string, boolean>;
@@ -46,6 +56,8 @@ type PostsState = {
   createPost: (body: string, imageUri?: string) => void;
   updatePost: (id: string, updates: PostEdits) => void;
   deletePost: (id: string) => void;
+  saveDraft: (input: { id?: string; body: string; imageUri?: string }) => string;
+  deleteDraft: (id: string) => void;
   tapReaction: (postId: string) => void;
   setReaction: (postId: string, type: ReactionType) => void;
   tapCommentReaction: (postId: string, commentId: string) => void;
@@ -58,6 +70,7 @@ type PostsState = {
 
 export const usePostsStore = create<PostsState>((set) => ({
   posts: POSTS,
+  drafts: [],
   myReactions: {},
   myCommentReactions: {},
   savedIds: {},
@@ -82,6 +95,23 @@ export const usePostsStore = create<PostsState>((set) => ({
     })),
 
   deletePost: (id) => set((s) => ({ posts: s.posts.filter((p) => p.id !== id) })),
+
+  saveDraft: ({ id, body, imageUri }) => {
+    const draftId = id ?? `draft-${++draftSeq}`;
+    const updatedAt = Date.now();
+    set((s) => {
+      const draft: Draft = { id: draftId, body, imageUri, updatedAt };
+      const exists = s.drafts.some((d) => d.id === draftId);
+      return {
+        drafts: exists
+          ? s.drafts.map((d) => (d.id === draftId ? draft : d))
+          : [draft, ...s.drafts],
+      };
+    });
+    return draftId;
+  },
+
+  deleteDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
 
   tapReaction: (postId) =>
     set((s) => ({
