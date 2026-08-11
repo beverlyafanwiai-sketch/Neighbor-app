@@ -4,10 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DISCOVER_USERS, ME, type Tone } from '../data/mock';
+import { DISCOVER_USERS, type Tone } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useFriendsStore } from '../store/useFriendsStore';
 import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
+import { useProfileStore } from '../store/useProfileStore';
 
 const MODES = ['People', 'Groups'] as const;
 type Mode = (typeof MODES)[number];
@@ -18,8 +19,8 @@ const TONE_STYLE: Record<Tone, { bg: string; text: string }> = {
   'Activity-focused': { bg: 'bg-gold/20', text: 'text-gold' },
 };
 
-function sharedTags(tags: string[]) {
-  const mine = new Set(ME.tags);
+function sharedTags(tags: string[], myTags: string[]) {
+  const mine = new Set(myTags);
   return tags.filter((t) => mine.has(t));
 }
 
@@ -32,6 +33,7 @@ export default function Discover() {
   const friendIds = useFriendsStore((s) => s.friendIds);
   const toggleFriend = useFriendsStore((s) => s.toggle);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const myTags = useProfileStore((s) => s.profile.tags);
 
   const discoverGroups = allGroups.filter((g) => !joinedMap[g.id]);
   const discoverableUsers = DISCOVER_USERS.filter((u) => !blockedIds[u.id]);
@@ -95,7 +97,7 @@ export default function Discover() {
         {mode === 'People' && (
           <View className="gap-3">
             {people.map((p) => {
-              const shared = sharedTags(p.tags);
+              const shared = sharedTags(p.tags, myTags);
               const isFriend = friendIds[p.id] ?? false;
               return (
                 <Pressable

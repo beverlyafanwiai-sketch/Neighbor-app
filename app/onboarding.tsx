@@ -17,6 +17,26 @@ import { useProfileStore } from '../store/useProfileStore';
 
 const AVATAR_OPTIONS = [1, 3, 4, 6, 7, 8, 10, 47].map((n) => `https://i.pravatar.cc/300?img=${n}`);
 
+const INTEREST_TAGS = [
+  'hiking',
+  'pottery',
+  'board games',
+  'live music',
+  'trail running',
+  'photography',
+  'coffee',
+  'chess',
+  'vinyl records',
+  'cooking',
+  'journaling',
+  'gardening',
+  'crosswords',
+];
+
+function capitalize(tag: string) {
+  return tag.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 const cardShadow = {
   shadowColor: '#3D3D3D',
   shadowOffset: { width: 0, height: -6 },
@@ -61,12 +81,23 @@ export default function Onboarding() {
   const [avatar, setAvatar] = useState(AVATAR_OPTIONS[0]);
   const [name, setName] = useState('');
   const [tagline, setTagline] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
 
-  const canContinue = name.trim().length > 0;
+  const canContinue = name.trim().length > 0 && tags.length > 0;
+
+  const toggleTag = (tag: string) => {
+    setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
+  };
 
   const finish = () => {
     if (!canContinue) return;
-    updateProfile({ avatar, name: name.trim(), tagline: tagline.trim() });
+    updateProfile({
+      avatar,
+      name: name.trim(),
+      tagline: tagline.trim(),
+      tags,
+      interests: tags.map(capitalize).join(', '),
+    });
     router.replace('/(tabs)');
   };
 
@@ -156,6 +187,35 @@ export default function Onboarding() {
                     placeholderTextColor="#3D3D3D80"
                     className="rounded-2xl border border-charcoal/10 bg-sand/70 px-4 py-3.5 text-base text-charcoal"
                   />
+                </View>
+              </View>
+
+              <View className="mt-6">
+                <FieldLabel>What are you into?</FieldLabel>
+                <Text className="mb-3 text-sm text-charcoal/60">
+                  Pick a few things — we'll use them to match you with the right neighbors.
+                </Text>
+                <View className="flex-row flex-wrap gap-2">
+                  {INTEREST_TAGS.map((tag) => {
+                    const selected = tags.includes(tag);
+                    return (
+                      <Pressable
+                        key={tag}
+                        onPress={() => toggleTag(tag)}
+                        className={`rounded-full px-4 py-2 ${
+                          selected ? 'bg-terracotta' : 'border border-charcoal/10 bg-sand/70'
+                        }`}
+                      >
+                        <Text
+                          className={`text-sm font-medium ${
+                            selected ? 'text-cream' : 'text-charcoal/70'
+                          }`}
+                        >
+                          {capitalize(tag)}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
                 </View>
               </View>
 
