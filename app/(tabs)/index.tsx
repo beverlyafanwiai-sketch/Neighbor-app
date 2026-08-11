@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -9,11 +9,16 @@ import { SvgXml } from 'react-native-svg';
 import { COFFEE_FRIENDS_SVG } from '../../assets/illustrations/coffee-friends';
 import MentionText from '../../components/MentionText';
 import ShareSheet from '../../components/ShareSheet';
-import { ME, USERS, type Post } from '../../data/mock';
+import { DISCOVER_USERS, ME, USERS, type Post, type User } from '../../data/mock';
 import { useBlockedStore } from '../../store/useBlockedStore';
+import { useEventsStore } from '../../store/useEventsStore';
+import { useFriendsStore } from '../../store/useFriendsStore';
+import { useGroupsStore } from '../../store/useGroupsStore';
 import { useNotificationsStore } from '../../store/useNotificationsStore';
 import { getEffectiveLoves, getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
+
+const WIDE_BREAKPOINT = 900;
 
 function goToProfile(userId: string) {
   if (userId === ME.id) {
@@ -32,7 +37,138 @@ function getGreeting() {
   return { text: 'Good evening', emoji: '🌙' };
 }
 
+const NAV_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; href: string }[] = [
+  { label: 'Home', icon: 'home', href: '/(tabs)' },
+  { label: 'Groups', icon: 'people', href: '/(tabs)/groups' },
+  { label: 'Events', icon: 'calendar', href: '/(tabs)/events' },
+  { label: 'Chat', icon: 'chatbubble-ellipses', href: '/(tabs)/chat' },
+  { label: 'Discover', icon: 'compass', href: '/discover' },
+  { label: 'Saved', icon: 'bookmark', href: '/saved' },
+  { label: 'Profile', icon: 'person', href: '/(tabs)/profile' },
+];
+
+function LeftRail({ profile }: { profile: User }) {
+  return (
+    <View className="w-60 gap-1 border-r border-charcoal/10 bg-cream px-3 pb-6 pt-4">
+      <Pressable
+        onPress={() => router.push('/(tabs)/profile')}
+        className="mb-2 flex-row items-center gap-3 rounded-xl px-3 py-2.5 active:opacity-70"
+      >
+        <Image source={{ uri: profile.avatar }} className="h-9 w-9 rounded-full border-2 border-sand" />
+        <Text className="flex-1 font-semibold text-charcoal" numberOfLines={1}>
+          {profile.name}
+        </Text>
+      </Pressable>
+
+      {NAV_ITEMS.map((item) => {
+        const active = item.label === 'Home';
+        return (
+          <Pressable
+            key={item.label}
+            onPress={() => router.push(item.href as never)}
+            className={`flex-row items-center gap-3 rounded-xl px-3 py-2.5 active:opacity-70 ${
+              active ? 'bg-terracotta/15' : ''
+            }`}
+          >
+            <Ionicons name={item.icon} size={19} color={active ? '#E0533C' : '#3D3D3D'} />
+            <Text className={`text-[15px] ${active ? 'font-semibold text-terracotta' : 'text-charcoal'}`}>
+              {item.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function RightRail() {
+  const events = useEventsStore((s) => s.events)
+    .filter((e) => e.status === 'upcoming')
+    .slice(0, 3);
+  const friendIds = useFriendsStore((s) => s.friendIds);
+  const groups = useGroupsStore((s) => s.groups);
+  const joinedMap = useGroupsStore((s) => s.joined);
+
+  const friends = [...USERS, ...DISCOVER_USERS].filter((u) => friendIds[u.id]).slice(0, 5);
+  const suggestedGroups = groups.filter((g) => !joinedMap[g.id]).slice(0, 3);
+
+  return (
+    <ScrollView className="w-72 border-l border-charcoal/10 bg-cream/60" contentContainerClassName="gap-4 px-4 pb-6 pt-4">
+      <View className="rounded-2xl bg-cream p-4">
+        <Text className="mb-3 text-sm font-bold text-charcoal">Upcoming events</Text>
+        <View className="gap-3">
+          {events.map((e) => (
+            <Pressable
+              key={e.id}
+              onPress={() => router.push(`/event/${e.id}`)}
+              className="flex-row items-center gap-3 active:opacity-70"
+            >
+              <View className="h-10 w-10 items-center justify-center rounded-xl bg-sand">
+                <Text className="text-[9px] font-bold uppercase text-terracotta">{e.month}</Text>
+                <Text className="text-sm font-bold leading-4 text-charcoal">{e.day}</Text>
+              </View>
+              <Text className="flex-1 text-sm text-charcoal" numberOfLines={2}>
+                {e.title}
+              </Text>
+            </Pressable>
+          ))}
+          {events.length === 0 && (
+            <Text className="text-xs text-charcoal/50">No upcoming events yet.</Text>
+          )}
+        </View>
+      </View>
+
+      <View className="rounded-2xl bg-cream p-4">
+        <Text className="mb-3 text-sm font-bold text-charcoal">Active neighbors</Text>
+        <View className="gap-3">
+          {friends.map((f) => (
+            <Pressable
+              key={f.id}
+              onPress={() => router.push(`/profile/${f.id}`)}
+              className="flex-row items-center gap-3 active:opacity-70"
+            >
+              <View>
+                <Image source={{ uri: f.avatar }} className="h-9 w-9 rounded-full" />
+                <View className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-cream bg-sage" />
+              </View>
+              <Text className="text-sm text-charcoal">{f.name}</Text>
+            </Pressable>
+          ))}
+          {friends.length === 0 && (
+            <Text className="text-xs text-charcoal/50">Add friends to see them here.</Text>
+          )}
+        </View>
+      </View>
+
+      <View className="rounded-2xl bg-cream p-4">
+        <Text className="mb-3 text-sm font-bold text-charcoal">Suggested groups</Text>
+        <View className="gap-3">
+          {suggestedGroups.map((g) => (
+            <Pressable
+              key={g.id}
+              onPress={() => router.push(`/group/${g.id}`)}
+              className="flex-row items-center gap-3 active:opacity-70"
+            >
+              <View className="h-9 w-9 items-center justify-center rounded-full bg-sage">
+                <Text className="text-sm font-bold text-cream">{g.name.charAt(0)}</Text>
+              </View>
+              <Text className="flex-1 text-sm text-charcoal" numberOfLines={1}>
+                {g.name}
+              </Text>
+            </Pressable>
+          ))}
+          {suggestedGroups.length === 0 && (
+            <Text className="text-xs text-charcoal/50">You've joined them all!</Text>
+          )}
+        </View>
+      </View>
+    </ScrollView>
+  );
+}
+
 export default function HomeFeed() {
+  const { width } = useWindowDimensions();
+  const isWide = width >= WIDE_BREAKPOINT;
   const profile = useProfileStore((s) => s.profile);
   const stories = [{ ...profile, isYou: true }, ...USERS];
   const [query, setQuery] = useState('');
@@ -69,6 +205,10 @@ export default function HomeFeed() {
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
+      <View className={isWide ? 'flex-1 flex-row' : 'flex-1'}>
+        {isWide && <LeftRail profile={profile} />}
+
+        <View className="flex-1">
       <LinearGradient
         colors={['#E0533C', '#D9A441']}
         start={{ x: 0, y: 0 }}
@@ -122,7 +262,11 @@ export default function HomeFeed() {
         </View>
       </LinearGradient>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerClassName={isWide ? 'items-center' : undefined}
+      >
+        <View className={isWide ? 'w-full max-w-xl' : 'w-full'}>
         {!q && (
           <>
             <Pressable
@@ -294,7 +438,12 @@ export default function HomeFeed() {
             </Pressable>
           )}
         </View>
+        </View>
       </ScrollView>
+        </View>
+
+        {isWide && <RightRail />}
+      </View>
 
       {sharingPost && (
         <ShareSheet
