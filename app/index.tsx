@@ -79,7 +79,13 @@ export default function Login() {
         )}
 
         <View className="flex-1 justify-center px-8">
-          <Text className="mb-2 text-center text-5xl font-bold text-cream">neighbor</Text>
+          <Text
+            className="mb-2 text-center text-6xl font-bold italic tracking-tight text-cream"
+            style={{ textShadowColor: 'rgba(61,61,61,0.45)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 10 }}
+          >
+            neighbor
+          </Text>
+          <View className="mb-2 h-1 w-14 self-center rounded-full bg-gold" />
           <Text className="mb-10 text-center text-base text-sand">
             A Safe Space For Real Connection.
           </Text>
