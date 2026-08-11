@@ -296,11 +296,18 @@ export type CommentItem = {
   text: string;
   time: string;
   edited?: boolean;
+  reactions?: Record<string, ReactionType>;
 };
 
 export const COMMENTS: Record<string, CommentItem[]> = {
   '1': [
-    { id: 'c1', authorId: 'theo', text: "Count me in, I'll bring a salad to balance out the cornbread.", time: '1h ago' },
+    {
+      id: 'c1',
+      authorId: 'theo',
+      text: "Count me in, I'll bring a salad to balance out the cornbread.",
+      time: '1h ago',
+      reactions: { maya: 'haha', priya: 'love' },
+    },
     { id: 'c2', authorId: 'priya', text: 'This is exactly the kind of no-agenda thing I need this week.', time: '45m ago' },
   ],
   '4': [

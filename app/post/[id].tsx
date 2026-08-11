@@ -19,7 +19,7 @@ import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser, type CommentItem } from '../../data/mock';
-import { getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
+import { commentKey, getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 
 const EMPTY_COMMENTS: CommentItem[] = [];
@@ -30,6 +30,9 @@ export default function PostDetail() {
   const myReaction = usePostsStore((s) => (post ? s.myReactions[post.id] : undefined));
   const tapReaction = usePostsStore((s) => s.tapReaction);
   const setReaction = usePostsStore((s) => s.setReaction);
+  const myCommentReactions = usePostsStore((s) => s.myCommentReactions);
+  const tapCommentReaction = usePostsStore((s) => s.tapCommentReaction);
+  const setCommentReaction = usePostsStore((s) => s.setCommentReaction);
   const saved = usePostsStore((s) => (post ? (s.savedIds[post.id] ?? false) : false));
   const toggleSave = usePostsStore((s) => s.toggleSave);
   const comments = usePostsStore((s) => (post ? (s.comments[post.id] ?? EMPTY_COMMENTS) : EMPTY_COMMENTS));
@@ -45,7 +48,7 @@ export default function PostDetail() {
   const [editDraft, setEditDraft] = useState('');
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
-  const [showingReactors, setShowingReactors] = useState(false);
+  const [reactorsFor, setReactorsFor] = useState<'post' | string | null>(null);
 
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
   const author = post ? resolveUser(post.authorId) : undefined;
@@ -161,11 +164,11 @@ export default function PostDetail() {
               <View className="flex-row items-center justify-between border-t border-charcoal/10 pt-3">
                 <View className="flex-row items-center gap-6">
                   <ReactionButton
-                    post={post}
+                    reactions={post.reactions}
                     myReaction={myReaction}
                     onTap={() => tapReaction(post.id)}
                     onSelect={(type) => setReaction(post.id, type)}
-                    onShowReactors={() => setShowingReactors(true)}
+                    onShowReactors={() => setReactorsFor('post')}
                   />
                   <View className="flex-row items-center gap-1.5">
                     <Ionicons name="chatbubble-outline" size={17} color="#81A684" />
@@ -238,27 +241,41 @@ export default function PostDetail() {
               );
             }
 
+            const commentReactionKey = commentKey(post.id, item.id);
+            const commentMyReaction = myCommentReactions[commentReactionKey];
+
             return (
-              <Pressable
-                onPress={() => router.push(`/profile/${commenter.id}`)}
-                className="flex-row items-start gap-2.5 px-4 py-3"
-              >
+              <View className="flex-row items-start gap-2.5 px-4 py-3">
                 <Image source={{ uri: commenter.avatar }} className="h-9 w-9 rounded-full" />
                 <View className="flex-1">
-                  <View className="flex-row items-baseline gap-2">
-                    <Text className="text-sm font-semibold text-charcoal">{commenter.name}</Text>
-                    <Text className="text-[11px] text-charcoal/40">
-                      {item.time}
-                      {item.edited && ' · edited'}
-                    </Text>
+                  <Pressable onPress={() => router.push(`/profile/${commenter.id}`)}>
+                    <View className="flex-row items-baseline gap-2">
+                      <Text className="text-sm font-semibold text-charcoal">{commenter.name}</Text>
+                      <Text className="text-[11px] text-charcoal/40">
+                        {item.time}
+                        {item.edited && ' · edited'}
+                      </Text>
+                    </View>
+                    <MentionText
+                      text={item.text}
+                      className="mt-0.5 text-sm leading-5 text-charcoal/80"
+                    />
+                  </Pressable>
+                  <View className="mt-1">
+                    <ReactionButton
+                      reactions={item.reactions}
+                      myReaction={commentMyReaction}
+                      onTap={() => tapCommentReaction(post.id, item.id)}
+                      onSelect={(type) => setCommentReaction(post.id, item.id, type)}
+                      onShowReactors={() => setReactorsFor(item.id)}
+                      compact
+                    />
                   </View>
-                  <MentionText text={item.text} className="mt-0.5 text-sm leading-5 text-charcoal/80" />
                 </View>
                 {isCommentAuthor && (
                   <View className="flex-row items-center gap-1">
                     <Pressable
-                      onPress={(evt) => {
-                        evt.stopPropagation();
+                      onPress={() => {
                         setEditingCommentId(item.id);
                         setEditDraft(item.text);
                       }}
@@ -267,17 +284,14 @@ export default function PostDetail() {
                       <Ionicons name="pencil" size={13} color="#3D3D3D80" />
                     </Pressable>
                     <Pressable
-                      onPress={(evt) => {
-                        evt.stopPropagation();
-                        setDeletingCommentId(item.id);
-                      }}
+                      onPress={() => setDeletingCommentId(item.id)}
                       className="h-7 w-7 items-center justify-center rounded-full"
                     >
                       <Ionicons name="trash-outline" size={13} color="#E0533C" />
                     </Pressable>
                   </View>
                 )}
-              </Pressable>
+              </View>
             );
           }}
           ListEmptyComponent={
@@ -311,13 +325,19 @@ export default function PostDetail() {
         <ShareSheet postId={post.id} postBody={post.body} onClose={() => setSharing(false)} />
       )}
 
-      {showingReactors && (
+      {reactorsFor && (
         <ReactorsSheet
-          post={post}
-          myReaction={myReaction}
-          onClose={() => setShowingReactors(false)}
+          reactions={
+            reactorsFor === 'post'
+              ? post.reactions
+              : comments.find((c) => c.id === reactorsFor)?.reactions
+          }
+          myReaction={
+            reactorsFor === 'post' ? myReaction : myCommentReactions[commentKey(post.id, reactorsFor)]
+          }
+          onClose={() => setReactorsFor(null)}
           onPersonPress={(userId) => {
-            setShowingReactors(false);
+            setReactorsFor(null);
             router.push(`/profile/${userId}`);
           }}
         />

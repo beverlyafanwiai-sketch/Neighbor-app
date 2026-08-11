@@ -1,12 +1,12 @@
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { getUser, ME, type Post, type ReactionType } from '../data/mock';
+import { getUser, ME, type ReactionType } from '../data/mock';
 import { getReactorsByType, REACTION_EMOJI, REACTION_TYPES } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
 type Props = {
-  post: Post;
+  reactions: Record<string, ReactionType> | undefined;
   myReaction: ReactionType | undefined;
   onClose: () => void;
   onPersonPress?: (userId: string) => void;
@@ -20,9 +20,9 @@ const REACTION_LABEL: Record<ReactionType, string> = {
   clap: 'Clap',
 };
 
-export default function ReactorsSheet({ post, myReaction, onClose, onPersonPress }: Props) {
+export default function ReactorsSheet({ reactions, myReaction, onClose, onPersonPress }: Props) {
   const profile = useProfileStore((s) => s.profile);
-  const grouped = getReactorsByType(post, myReaction);
+  const grouped = getReactorsByType(reactions, myReaction);
   const types = REACTION_TYPES.filter((t) => (grouped[t]?.length ?? 0) > 0);
 
   return (

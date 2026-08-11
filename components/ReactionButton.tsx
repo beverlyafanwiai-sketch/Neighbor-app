@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import type { Post, ReactionType } from '../data/mock';
+import type { ReactionType } from '../data/mock';
 import {
   getEffectiveReactions,
   getReactionTotal,
@@ -20,32 +20,39 @@ const pickerShadow = {
 };
 
 type Props = {
-  post: Post;
+  reactions: Record<string, ReactionType> | undefined;
   myReaction: ReactionType | undefined;
   onTap: () => void;
   onSelect: (type: ReactionType) => void;
   onShowReactors?: () => void;
   fullWidth?: boolean;
+  compact?: boolean;
 };
 
 export default function ReactionButton({
-  post,
+  reactions,
   myReaction,
   onTap,
   onSelect,
   onShowReactors,
   fullWidth,
+  compact,
 }: Props) {
   const [showPicker, setShowPicker] = useState(false);
-  const counts = getEffectiveReactions(post, myReaction);
+  const counts = getEffectiveReactions(reactions, myReaction);
   const total = getReactionTotal(counts);
   const topTypes = getTopReactionTypes(counts, 2);
+  const iconSize = compact ? 14 : 18;
+  const glyphSize = compact ? 13 : 16;
+  const topGlyphSize = compact ? 11 : 14;
+  const pickerGlyphSize = compact ? 16 : 20;
+  const pickerButtonSize = compact ? 32 : 36;
 
   return (
     <View className={fullWidth ? 'flex-1' : undefined} style={{ position: 'relative' }}>
       {showPicker && (
         <View
-          className="absolute bottom-9 left-0 flex-row gap-1 rounded-full bg-cream px-2 py-1.5"
+          className="absolute bottom-8 left-0 flex-row gap-1 rounded-full bg-cream px-2 py-1.5"
           style={pickerShadow}
         >
           {REACTION_TYPES.map((type) => (
@@ -55,9 +62,10 @@ export default function ReactionButton({
                 onSelect(type);
                 setShowPicker(false);
               }}
-              className="h-9 w-9 items-center justify-center rounded-full active:bg-sand"
+              className="items-center justify-center rounded-full active:bg-sand"
+              style={{ height: pickerButtonSize, width: pickerButtonSize }}
             >
-              <Text style={{ fontSize: 20 }}>{REACTION_EMOJI[type]}</Text>
+              <Text style={{ fontSize: pickerGlyphSize }}>{REACTION_EMOJI[type]}</Text>
             </Pressable>
           ))}
         </View>
@@ -76,16 +84,20 @@ export default function ReactionButton({
           delayLongPress={350}
         >
           {myReaction ? (
-            <Text style={{ fontSize: 16 }}>{REACTION_EMOJI[myReaction]}</Text>
+            <Text style={{ fontSize: glyphSize }}>{REACTION_EMOJI[myReaction]}</Text>
           ) : topTypes.length > 0 ? (
-            <Text style={{ fontSize: 14 }}>{topTypes.map((t) => REACTION_EMOJI[t]).join('')}</Text>
+            <Text style={{ fontSize: topGlyphSize }}>
+              {topTypes.map((t) => REACTION_EMOJI[t]).join('')}
+            </Text>
           ) : (
-            <Ionicons name="heart-outline" size={18} color="#E0533C" />
+            <Ionicons name="heart-outline" size={iconSize} color="#E0533C" />
           )}
         </Pressable>
         <Pressable onPress={() => total > 0 && onShowReactors?.()} disabled={total === 0}>
           <Text
-            className={`text-sm ${myReaction ? 'font-semibold text-terracotta' : 'text-charcoal/70'}`}
+            className={`${compact ? 'text-xs' : 'text-sm'} ${
+              myReaction ? 'font-semibold text-terracotta' : 'text-charcoal/70'
+            }`}
           >
             {total}
           </Text>

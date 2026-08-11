@@ -33,9 +33,14 @@ function notifyMentions(text: string, postId: string, context: 'post' | 'comment
 
 export type PostEdits = { body: string; imageUri?: string };
 
+export function commentKey(postId: string, commentId: string) {
+  return `${postId}:${commentId}`;
+}
+
 type PostsState = {
   posts: Post[];
   myReactions: Record<string, ReactionType | undefined>;
+  myCommentReactions: Record<string, ReactionType | undefined>;
   savedIds: Record<string, boolean>;
   comments: Record<string, CommentItem[]>;
   createPost: (body: string, imageUri?: string) => void;
@@ -43,6 +48,8 @@ type PostsState = {
   deletePost: (id: string) => void;
   tapReaction: (postId: string) => void;
   setReaction: (postId: string, type: ReactionType) => void;
+  tapCommentReaction: (postId: string, commentId: string) => void;
+  setCommentReaction: (postId: string, commentId: string, type: ReactionType) => void;
   toggleSave: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
   updateComment: (postId: string, commentId: string, text: string) => void;
@@ -52,6 +59,7 @@ type PostsState = {
 export const usePostsStore = create<PostsState>((set) => ({
   posts: POSTS,
   myReactions: {},
+  myCommentReactions: {},
   savedIds: {},
   comments: COMMENTS,
 
@@ -85,6 +93,26 @@ export const usePostsStore = create<PostsState>((set) => ({
       myReactions: { ...s.myReactions, [postId]: s.myReactions[postId] === type ? undefined : type },
     })),
 
+  tapCommentReaction: (postId, commentId) => {
+    const key = commentKey(postId, commentId);
+    set((s) => ({
+      myCommentReactions: {
+        ...s.myCommentReactions,
+        [key]: s.myCommentReactions[key] ? undefined : 'love',
+      },
+    }));
+  },
+
+  setCommentReaction: (postId, commentId, type) => {
+    const key = commentKey(postId, commentId);
+    set((s) => ({
+      myCommentReactions: {
+        ...s.myCommentReactions,
+        [key]: s.myCommentReactions[key] === type ? undefined : type,
+      },
+    }));
+  },
+
   toggleSave: (postId) =>
     set((s) => ({ savedIds: { ...s.savedIds, [postId]: !s.savedIds[postId] } })),
 
@@ -116,10 +144,10 @@ export const usePostsStore = create<PostsState>((set) => ({
 }));
 
 export function getAllReactors(
-  post: Post,
+  reactions: Record<string, ReactionType> | undefined,
   myReaction: ReactionType | undefined
 ): Record<string, ReactionType> {
-  const all = { ...post.reactions };
+  const all = { ...reactions };
   if (myReaction) {
     all[ME.id] = myReaction;
   } else {
@@ -129,22 +157,22 @@ export function getAllReactors(
 }
 
 export function getEffectiveReactions(
-  post: Post,
+  reactions: Record<string, ReactionType> | undefined,
   myReaction: ReactionType | undefined
 ): Partial<Record<ReactionType, number>> {
   const counts: Partial<Record<ReactionType, number>> = {};
-  for (const type of Object.values(getAllReactors(post, myReaction))) {
+  for (const type of Object.values(getAllReactors(reactions, myReaction))) {
     counts[type] = (counts[type] ?? 0) + 1;
   }
   return counts;
 }
 
 export function getReactorsByType(
-  post: Post,
+  reactions: Record<string, ReactionType> | undefined,
   myReaction: ReactionType | undefined
 ): Partial<Record<ReactionType, string[]>> {
   const grouped: Partial<Record<ReactionType, string[]>> = {};
-  for (const [userId, type] of Object.entries(getAllReactors(post, myReaction))) {
+  for (const [userId, type] of Object.entries(getAllReactors(reactions, myReaction))) {
     grouped[type] = [...(grouped[type] ?? []), userId];
   }
   return grouped;

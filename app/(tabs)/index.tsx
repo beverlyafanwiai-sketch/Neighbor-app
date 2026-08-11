@@ -422,7 +422,7 @@ export default function HomeFeed() {
 
                 <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
                   <ReactionButton
-                    post={post}
+                    reactions={post.reactions}
                     myReaction={myReaction}
                     onTap={() => tapReaction(post.id)}
                     onSelect={(type) => setReaction(post.id, type)}
@@ -497,7 +497,7 @@ export default function HomeFeed() {
 
       {reactorsPost && (
         <ReactorsSheet
-          post={reactorsPost}
+          reactions={reactorsPost.reactions}
           myReaction={myReactions[reactorsPost.id]}
           onClose={() => setReactorsPost(null)}
           onPersonPress={(userId) => {

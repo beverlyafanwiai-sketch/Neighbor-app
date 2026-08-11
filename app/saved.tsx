@@ -54,7 +54,7 @@ export default function SavedPosts() {
           {savedPosts.map((post) => {
             const author = post.authorId === ME.id ? profile : ALL_PEOPLE.find((u) => u.id === post.authorId);
             if (!author) return null;
-            const reactionCounts = getEffectiveReactions(post, myReactions[post.id]);
+            const reactionCounts = getEffectiveReactions(post.reactions, myReactions[post.id]);
             const topTypes = getTopReactionTypes(reactionCounts, 2);
             const postComments = comments[post.id] ?? [];
             return (
