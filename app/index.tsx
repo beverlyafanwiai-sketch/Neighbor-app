@@ -81,7 +81,7 @@ export default function Login() {
         <View className="flex-1 justify-center px-8">
           <Text className="mb-2 text-center text-5xl font-bold text-cream">neighbor</Text>
           <Text className="mb-10 text-center text-base text-sand">
-            Real relationships, not performance.
+            A Safe Space For Real Connection.
           </Text>
 
           <View className="gap-4">
