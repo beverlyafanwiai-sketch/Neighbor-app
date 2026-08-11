@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MentionText from '../../components/MentionText';
 import MentionTextInput from '../../components/MentionTextInput';
 import ReactionButton from '../../components/ReactionButton';
+import ReactorsSheet from '../../components/ReactorsSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser, type CommentItem } from '../../data/mock';
 import { getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
@@ -44,6 +45,7 @@ export default function PostDetail() {
   const [editDraft, setEditDraft] = useState('');
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
+  const [showingReactors, setShowingReactors] = useState(false);
 
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
   const author = post ? resolveUser(post.authorId) : undefined;
@@ -163,6 +165,7 @@ export default function PostDetail() {
                     myReaction={myReaction}
                     onTap={() => tapReaction(post.id)}
                     onSelect={(type) => setReaction(post.id, type)}
+                    onShowReactors={() => setShowingReactors(true)}
                   />
                   <View className="flex-row items-center gap-1.5">
                     <Ionicons name="chatbubble-outline" size={17} color="#81A684" />
@@ -306,6 +309,18 @@ export default function PostDetail() {
 
       {sharing && (
         <ShareSheet postId={post.id} postBody={post.body} onClose={() => setSharing(false)} />
+      )}
+
+      {showingReactors && (
+        <ReactorsSheet
+          post={post}
+          myReaction={myReaction}
+          onClose={() => setShowingReactors(false)}
+          onPersonPress={(userId) => {
+            setShowingReactors(false);
+            router.push(`/profile/${userId}`);
+          }}
+        />
       )}
     </SafeAreaView>
   );

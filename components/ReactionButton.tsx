@@ -24,10 +24,18 @@ type Props = {
   myReaction: ReactionType | undefined;
   onTap: () => void;
   onSelect: (type: ReactionType) => void;
+  onShowReactors?: () => void;
   fullWidth?: boolean;
 };
 
-export default function ReactionButton({ post, myReaction, onTap, onSelect, fullWidth }: Props) {
+export default function ReactionButton({
+  post,
+  myReaction,
+  onTap,
+  onSelect,
+  onShowReactors,
+  fullWidth,
+}: Props) {
   const [showPicker, setShowPicker] = useState(false);
   const counts = getEffectiveReactions(post, myReaction);
   const total = getReactionTotal(counts);
@@ -55,29 +63,34 @@ export default function ReactionButton({ post, myReaction, onTap, onSelect, full
         </View>
       )}
 
-      <Pressable
-        onPress={() => {
-          if (showPicker) {
-            setShowPicker(false);
-            return;
-          }
-          onTap();
-        }}
-        onLongPress={() => setShowPicker(true)}
-        delayLongPress={350}
-        className={`flex-row items-center gap-1.5 py-1 ${fullWidth ? 'justify-center' : ''}`}
-      >
-        {myReaction ? (
-          <Text style={{ fontSize: 16 }}>{REACTION_EMOJI[myReaction]}</Text>
-        ) : topTypes.length > 0 ? (
-          <Text style={{ fontSize: 14 }}>{topTypes.map((t) => REACTION_EMOJI[t]).join('')}</Text>
-        ) : (
-          <Ionicons name="heart-outline" size={18} color="#E0533C" />
-        )}
-        <Text className={`text-sm ${myReaction ? 'font-semibold text-terracotta' : 'text-charcoal/70'}`}>
-          {total}
-        </Text>
-      </Pressable>
+      <View className={`flex-row items-center gap-1.5 py-1 ${fullWidth ? 'justify-center' : ''}`}>
+        <Pressable
+          onPress={() => {
+            if (showPicker) {
+              setShowPicker(false);
+              return;
+            }
+            onTap();
+          }}
+          onLongPress={() => setShowPicker(true)}
+          delayLongPress={350}
+        >
+          {myReaction ? (
+            <Text style={{ fontSize: 16 }}>{REACTION_EMOJI[myReaction]}</Text>
+          ) : topTypes.length > 0 ? (
+            <Text style={{ fontSize: 14 }}>{topTypes.map((t) => REACTION_EMOJI[t]).join('')}</Text>
+          ) : (
+            <Ionicons name="heart-outline" size={18} color="#E0533C" />
+          )}
+        </Pressable>
+        <Pressable onPress={() => total > 0 && onShowReactors?.()} disabled={total === 0}>
+          <Text
+            className={`text-sm ${myReaction ? 'font-semibold text-terracotta' : 'text-charcoal/70'}`}
+          >
+            {total}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

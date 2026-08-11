@@ -242,11 +242,10 @@ export type Post = {
   authorId: string;
   time: string;
   body: string;
-  loves: number;
   replies: number;
   imageUri?: string;
   edited?: boolean;
-  reactionCounts?: Partial<Record<ReactionType, number>>;
+  reactions?: Record<string, ReactionType>;
 };
 
 export const POSTS: Post[] = [
@@ -255,42 +254,40 @@ export const POSTS: Post[] = [
     authorId: 'amara',
     time: '2h ago',
     body: 'Porch hangout this Saturday if anyone wants to come sit, talk, and eat too much cornbread. No agenda, just company.',
-    loves: 12,
     replies: 4,
-    reactionCounts: { love: 7, haha: 3, clap: 2 },
+    reactions: { maya: 'love', theo: 'haha', priya: 'love', sam: 'clap', jordan: 'love', nia: 'haha', kai: 'love' },
   },
   {
     id: '2',
     authorId: 'theo',
     time: '5h ago',
     body: "Finally finished the trail loop with the hiking circle. Nothing beats quiet company and switchbacks. Same time next week?",
-    loves: 8,
     replies: 2,
+    reactions: { maya: 'love', priya: 'clap', sam: 'love', jordan: 'wow', nia: 'love', kai: 'love' },
   },
   {
     id: '3',
     authorId: 'maya',
     time: '1d ago',
     body: 'Found a new trail with the best morning light for photos. Taking anyone who wants to come next weekend.',
-    loves: 6,
     replies: 3,
+    reactions: { theo: 'love', priya: 'wow', sam: 'love', jordan: 'love', nia: 'wow', kai: 'love' },
   },
   {
     id: '4',
     authorId: 'priya',
     time: '2d ago',
     body: "Made way too much soup again. If you're near Elm St today, come take a jar off my hands.",
-    loves: 15,
     replies: 6,
-    reactionCounts: { love: 11, wow: 2, clap: 2 },
+    reactions: { maya: 'love', theo: 'love', sam: 'wow', jordan: 'clap', nia: 'love', kai: 'wow' },
   },
   {
     id: '5',
     authorId: 'sam',
     time: '3d ago',
     body: 'Finally got the garden beds weeded. Trading tomato starts for good company this weekend.',
-    loves: 9,
     replies: 2,
+    reactions: { maya: 'clap', theo: 'love', priya: 'love', jordan: 'love', nia: 'clap', kai: 'wow' },
   },
 ];
 

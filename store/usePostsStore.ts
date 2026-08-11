@@ -61,7 +61,6 @@ export const usePostsStore = create<PostsState>((set) => ({
       authorId: ME.id,
       time: 'Just now',
       body,
-      loves: 0,
       replies: 0,
       imageUri,
     };
@@ -116,13 +115,39 @@ export const usePostsStore = create<PostsState>((set) => ({
     })),
 }));
 
+export function getAllReactors(
+  post: Post,
+  myReaction: ReactionType | undefined
+): Record<string, ReactionType> {
+  const all = { ...post.reactions };
+  if (myReaction) {
+    all[ME.id] = myReaction;
+  } else {
+    delete all[ME.id];
+  }
+  return all;
+}
+
 export function getEffectiveReactions(
   post: Post,
   myReaction: ReactionType | undefined
 ): Partial<Record<ReactionType, number>> {
-  const base = post.reactionCounts ?? { love: post.loves };
-  if (!myReaction) return base;
-  return { ...base, [myReaction]: (base[myReaction] ?? 0) + 1 };
+  const counts: Partial<Record<ReactionType, number>> = {};
+  for (const type of Object.values(getAllReactors(post, myReaction))) {
+    counts[type] = (counts[type] ?? 0) + 1;
+  }
+  return counts;
+}
+
+export function getReactorsByType(
+  post: Post,
+  myReaction: ReactionType | undefined
+): Partial<Record<ReactionType, string[]>> {
+  const grouped: Partial<Record<ReactionType, string[]>> = {};
+  for (const [userId, type] of Object.entries(getAllReactors(post, myReaction))) {
+    grouped[type] = [...(grouped[type] ?? []), userId];
+  }
+  return grouped;
 }
 
 export function getReactionTotal(counts: Partial<Record<ReactionType, number>>) {

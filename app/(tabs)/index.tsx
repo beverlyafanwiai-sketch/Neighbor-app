@@ -12,6 +12,7 @@ import BackgroundSlideshow from '../../components/BackgroundSlideshow';
 import EmptyState from '../../components/EmptyState';
 import MentionText from '../../components/MentionText';
 import ReactionButton from '../../components/ReactionButton';
+import ReactorsSheet from '../../components/ReactorsSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { DISCOVER_USERS, ME, USERS, type Post, type User } from '../../data/mock';
 import { useBlockedStore } from '../../store/useBlockedStore';
@@ -192,6 +193,7 @@ export default function HomeFeed() {
   const toggleSave = usePostsStore((s) => s.toggleSave);
   const comments = usePostsStore((s) => s.comments);
   const [sharingPost, setSharingPost] = useState<Post | null>(null);
+  const [reactorsPost, setReactorsPost] = useState<Post | null>(null);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
 
   const greeting = getGreeting();
@@ -424,6 +426,7 @@ export default function HomeFeed() {
                     myReaction={myReaction}
                     onTap={() => tapReaction(post.id)}
                     onSelect={(type) => setReaction(post.id, type)}
+                    onShowReactors={() => setReactorsPost(post)}
                     fullWidth
                   />
                   <Pressable
@@ -489,6 +492,18 @@ export default function HomeFeed() {
           postId={sharingPost.id}
           postBody={sharingPost.body}
           onClose={() => setSharingPost(null)}
+        />
+      )}
+
+      {reactorsPost && (
+        <ReactorsSheet
+          post={reactorsPost}
+          myReaction={myReactions[reactorsPost.id]}
+          onClose={() => setReactorsPost(null)}
+          onPersonPress={(userId) => {
+            setReactorsPost(null);
+            goToProfile(userId);
+          }}
         />
       )}
     </SafeAreaView>
