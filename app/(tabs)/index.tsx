@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
@@ -22,6 +23,15 @@ function goToProfile(userId: string) {
   }
 }
 
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 5) return { text: 'Still up?', emoji: '🌙' };
+  if (hour < 12) return { text: 'Good morning', emoji: '☀️' };
+  if (hour < 17) return { text: 'Good afternoon', emoji: '🌤️' };
+  if (hour < 21) return { text: 'Good evening', emoji: '🌆' };
+  return { text: 'Good evening', emoji: '🌙' };
+}
+
 export default function HomeFeed() {
   const profile = useProfileStore((s) => s.profile);
   const stories = [{ ...profile, isYou: true }, ...USERS];
@@ -35,6 +45,9 @@ export default function HomeFeed() {
   const comments = usePostsStore((s) => s.comments);
   const [sharingPost, setSharingPost] = useState<Post | null>(null);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
+
+  const greeting = getGreeting();
+  const firstName = profile.name.split(' ')[0];
 
   const postsWithAuthor = posts
     .filter((post) => !blockedIds[post.authorId])
@@ -56,61 +69,79 @@ export default function HomeFeed() {
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
-      <View className="flex-row items-center gap-3 px-5 pb-3 pt-2">
-        <View className="flex-1 flex-row items-center rounded-full bg-cream px-4 py-2.5">
-          <Ionicons name="search" size={18} color="#3D3D3D80" />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Search posts and people..."
-            placeholderTextColor="#3D3D3D80"
-            className="ml-2 flex-1 text-charcoal"
-          />
-          {query.length > 0 && (
-            <Pressable onPress={() => setQuery('')}>
-              <Ionicons name="close-circle" size={18} color="#3D3D3D80" />
-            </Pressable>
-          )}
-        </View>
-        <Pressable
-          onPress={() => router.push('/discover')}
-          className="h-11 w-11 items-center justify-center rounded-full bg-terracotta"
-        >
-          <Ionicons name="compass-outline" size={20} color="#F5F2E9" />
-        </Pressable>
-        <Pressable
-          onPress={() => router.push('/notifications')}
-          className="h-11 w-11 items-center justify-center rounded-full bg-terracotta"
-        >
-          <Ionicons name="notifications-outline" size={20} color="#F5F2E9" />
-          {unreadCount > 0 && (
-            <View className="absolute -right-0.5 -top-0.5 h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1">
-              <Text className="text-[10px] font-bold text-charcoal">{unreadCount}</Text>
+      <LinearGradient
+        colors={['#E0533C', '#D9A441']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ borderBottomLeftRadius: 32, borderBottomRightRadius: 32, overflow: 'hidden' }}
+      >
+        <View className="px-5 pb-5 pt-3">
+          <View className="flex-row items-start justify-between">
+            <View className="flex-1 pr-3">
+              <Text className="text-2xl font-bold text-cream">
+                {greeting.text}, {firstName} {greeting.emoji}
+              </Text>
+              <Text className="mt-1 text-sm text-sand">Your neighborhood is glad you're here.</Text>
             </View>
-          )}
-        </Pressable>
-      </View>
+            <View className="flex-row gap-2">
+              <Pressable
+                onPress={() => router.push('/discover')}
+                className="h-10 w-10 items-center justify-center rounded-full bg-cream/20"
+              >
+                <Ionicons name="compass-outline" size={19} color="#F5F2E9" />
+              </Pressable>
+              <Pressable
+                onPress={() => router.push('/notifications')}
+                className="h-10 w-10 items-center justify-center rounded-full bg-cream/20"
+              >
+                <Ionicons name="notifications-outline" size={19} color="#F5F2E9" />
+                {unreadCount > 0 && (
+                  <View className="absolute -right-0.5 -top-0.5 h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1">
+                    <Text className="text-[10px] font-bold text-charcoal">{unreadCount}</Text>
+                  </View>
+                )}
+              </Pressable>
+            </View>
+          </View>
+
+          <View className="mt-4 flex-row items-center rounded-full bg-cream px-4 py-2.5">
+            <Ionicons name="search" size={18} color="#3D3D3D80" />
+            <TextInput
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Search posts and people..."
+              placeholderTextColor="#3D3D3D80"
+              className="ml-2 flex-1 text-charcoal"
+            />
+            {query.length > 0 && (
+              <Pressable onPress={() => setQuery('')}>
+                <Ionicons name="close-circle" size={18} color="#3D3D3D80" />
+              </Pressable>
+            )}
+          </View>
+        </View>
+      </LinearGradient>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {!q && (
           <>
             <Pressable
               onPress={() => router.push('/create-post')}
-              className="mx-5 mt-1 flex-row items-center gap-3 rounded-2xl bg-cream p-3 active:opacity-80"
+              className="mx-5 mt-4 flex-row items-center gap-3 rounded-2xl bg-cream p-3.5 active:opacity-80"
             >
-              <Image source={{ uri: profile.avatar }} className="h-9 w-9 rounded-full" />
+              <Image source={{ uri: profile.avatar }} className="h-9 w-9 rounded-full border-2 border-sand" />
               <Text className="flex-1 text-sm text-charcoal/50">
-                Share something with your neighbors...
+                Share something with your neighbors, big or small...
               </Text>
             </Pressable>
 
             <View className="mx-5 mt-3 flex-row items-center overflow-hidden rounded-3xl bg-cream">
               <View className="flex-1 py-4 pl-5 pr-2">
-                <Text className="text-xs font-semibold uppercase tracking-wide text-terracotta">
-                  This weekend
+                <Text className="text-xs font-semibold uppercase tracking-wide text-sage">
+                  A little nudge
                 </Text>
                 <Text className="mt-1 text-[15px] font-medium leading-5 text-charcoal">
-                  Grab coffee with someone in your circle
+                  Grab coffee with someone in your circle — no big plans needed.
                 </Text>
               </View>
               <View className="h-24 w-28">
@@ -163,18 +194,21 @@ export default function HomeFeed() {
           </View>
         )}
 
-        <View className="gap-4 px-5 pb-8 pt-2">
+        <View className="gap-5 px-5 pb-8 pt-3">
           {filteredPosts.map(({ post, author }) => {
             const liked = likedByMe[post.id] ?? false;
             const saved = savedIds[post.id] ?? false;
             const postComments = comments[post.id] ?? [];
             return (
-              <View key={post.id} className="rounded-3xl bg-cream p-4 shadow-sm">
+              <View key={post.id} className="rounded-[28px] bg-cream p-5 shadow-sm">
                 <Pressable
                   onPress={() => goToProfile(author.id)}
                   className="flex-row items-center gap-3"
                 >
-                  <Image source={{ uri: author.avatar }} className="h-11 w-11 rounded-full" />
+                  <Image
+                    source={{ uri: author.avatar }}
+                    className="h-11 w-11 rounded-full border-2 border-sand"
+                  />
                   <View>
                     <Text className="font-semibold text-charcoal">{author.name}</Text>
                     <Text className="text-xs text-charcoal/60">
