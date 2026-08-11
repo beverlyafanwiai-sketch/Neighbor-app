@@ -8,6 +8,7 @@ import { SvgXml } from 'react-native-svg';
 
 import { COFFEE_FRIENDS_SVG } from '../../assets/illustrations/coffee-friends';
 import { PARK_FRIENDS_SVG } from '../../assets/illustrations/park-friends';
+import BackgroundSlideshow from '../../components/BackgroundSlideshow';
 import EmptyState from '../../components/EmptyState';
 import MentionText from '../../components/MentionText';
 import ReactionButton from '../../components/ReactionButton';
@@ -22,6 +23,11 @@ import { getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 
 const WIDE_BREAKPOINT = 900;
+
+const HERO_IMAGES = [
+  require('../../assets/images/resort-friends.jpg'),
+  require('../../assets/images/onboarding-cafe.jpg'),
+];
 
 function goToProfile(userId: string) {
   if (userId === ME.id) {
@@ -215,19 +221,39 @@ export default function HomeFeed() {
         {isWide && <LeftRail profile={profile} />}
 
         <View className="flex-1">
-      <LinearGradient
-        colors={['#E0533C', '#D9A441']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{ borderBottomLeftRadius: 32, borderBottomRightRadius: 32, overflow: 'hidden' }}
-      >
+      <View style={{ borderBottomLeftRadius: 32, borderBottomRightRadius: 32, overflow: 'hidden' }}>
+        <BackgroundSlideshow images={HERO_IMAGES} />
+        <LinearGradient
+          colors={['rgba(61,61,61,0.55)', 'rgba(61,61,61,0.15)', 'rgba(224,83,60,0.6)']}
+          locations={[0, 0.5, 1]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        />
+
         <View className="px-5 pb-5 pt-3">
           <View className="flex-row items-start justify-between">
             <View className="flex-1 pr-3">
-              <Text className="text-2xl font-bold text-cream">
+              <Text
+                className="text-2xl font-bold text-cream"
+                style={{
+                  textShadowColor: 'rgba(61,61,61,0.6)',
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 6,
+                }}
+              >
                 {greeting.text}, {firstName} {greeting.emoji}
               </Text>
-              <Text className="mt-1 text-sm text-sand">Your neighborhood is glad you're here.</Text>
+              <Text
+                className="mt-1 text-sm text-sand"
+                style={{
+                  textShadowColor: 'rgba(61,61,61,0.6)',
+                  textShadowOffset: { width: 0, height: 1 },
+                  textShadowRadius: 6,
+                }}
+              >
+                Your neighborhood is glad you're here.
+              </Text>
             </View>
             <View className="flex-row gap-2">
               <Pressable
@@ -266,7 +292,7 @@ export default function HomeFeed() {
             )}
           </View>
         </View>
-      </LinearGradient>
+      </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
