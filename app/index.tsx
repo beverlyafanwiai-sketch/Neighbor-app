@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -8,22 +9,28 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { PARK_FRIENDS_SVG } from '../assets/illustrations/park-friends';
+import { RESORT_FUN_SVG } from '../assets/illustrations/resort-fun';
+import BackgroundPickerSheet from '../components/BackgroundPickerSheet';
 import { useAuthStore } from '../store/useAuthStore';
+import { useBackgroundStore } from '../store/useBackgroundStore';
 
 export default function Login() {
   const session = useAuthStore((s) => s.session);
   const signIn = useAuthStore((s) => s.signIn);
   const error = useAuthStore((s) => s.error);
   const clearError = useAuthStore((s) => s.clearError);
+  const background = useBackgroundStore((s) => s.background);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
     if (session) router.replace('/(tabs)');
@@ -37,15 +44,40 @@ export default function Login() {
     if (ok) router.replace('/(tabs)');
   };
 
+  const isCustom = background.kind === 'custom';
+  const preset = background.kind === 'preset' ? background.id : 'neighbor';
+  const bgColorClass = preset === 'resort' ? 'bg-[#5A9F98]' : 'bg-terracotta';
+  const illustration = preset === 'resort' ? RESORT_FUN_SVG : PARK_FRIENDS_SVG;
+
   return (
-    <SafeAreaView className="flex-1 bg-terracotta">
+    <SafeAreaView className={`flex-1 ${isCustom ? 'bg-charcoal' : bgColorClass}`}>
+      {isCustom && (
+        <>
+          <Image
+            source={{ uri: background.uri }}
+            resizeMode="cover"
+            className="absolute inset-0 h-full w-full"
+          />
+          <View className="absolute inset-0 bg-charcoal/55" />
+        </>
+      )}
+
+      <Pressable
+        onPress={() => setShowPicker(true)}
+        className="absolute right-4 top-14 z-10 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
+      >
+        <Ionicons name="color-palette-outline" size={19} color="#F5F2E9" />
+      </Pressable>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1"
       >
-        <View className="h-[30%] items-center justify-center px-6 pt-4">
-          <SvgXml xml={PARK_FRIENDS_SVG} width="100%" height="100%" />
-        </View>
+        {!isCustom && (
+          <View className="h-[30%] items-center justify-center px-6 pt-4">
+            <SvgXml xml={illustration} width="100%" height="100%" />
+          </View>
+        )}
 
         <View className="flex-1 justify-center px-8">
           <Text className="mb-2 text-center text-5xl font-bold text-cream">neighbor</Text>
@@ -92,6 +124,8 @@ export default function Login() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      {showPicker && <BackgroundPickerSheet onClose={() => setShowPicker(false)} />}
     </SafeAreaView>
   );
 }

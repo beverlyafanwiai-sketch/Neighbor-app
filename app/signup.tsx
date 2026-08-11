@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -14,13 +15,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { PARK_FRIENDS_SVG } from '../assets/illustrations/park-friends';
+import { RESORT_FUN_SVG } from '../assets/illustrations/resort-fun';
 import { useAuthStore } from '../store/useAuthStore';
+import { useBackgroundStore } from '../store/useBackgroundStore';
 
 export default function Signup() {
   const session = useAuthStore((s) => s.session);
   const signUp = useAuthStore((s) => s.signUp);
   const error = useAuthStore((s) => s.error);
   const clearError = useAuthStore((s) => s.clearError);
+  const background = useBackgroundStore((s) => s.background);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,11 +49,27 @@ export default function Signup() {
     if (ok) router.replace('/onboarding');
   };
 
+  const isCustom = background.kind === 'custom';
+  const preset = background.kind === 'preset' ? background.id : 'neighbor';
+  const bgColorClass = preset === 'resort' ? 'bg-[#5A9F98]' : 'bg-terracotta';
+  const illustration = preset === 'resort' ? RESORT_FUN_SVG : PARK_FRIENDS_SVG;
+
   return (
-    <SafeAreaView className="flex-1 bg-terracotta">
+    <SafeAreaView className={`flex-1 ${isCustom ? 'bg-charcoal' : bgColorClass}`}>
+      {isCustom && (
+        <>
+          <Image
+            source={{ uri: background.uri }}
+            resizeMode="cover"
+            className="absolute inset-0 h-full w-full"
+          />
+          <View className="absolute inset-0 bg-charcoal/55" />
+        </>
+      )}
+
       <Pressable
         onPress={() => router.back()}
-        className="ml-4 mt-2 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
+        className="z-10 ml-4 mt-2 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
       >
         <Ionicons name="chevron-back" size={22} color="#F5F2E9" />
       </Pressable>
@@ -58,9 +78,11 @@ export default function Signup() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1"
       >
-        <View className="h-[24%] items-center justify-center px-6">
-          <SvgXml xml={PARK_FRIENDS_SVG} width="100%" height="100%" />
-        </View>
+        {!isCustom && (
+          <View className="h-[24%] items-center justify-center px-6">
+            <SvgXml xml={illustration} width="100%" height="100%" />
+          </View>
+        )}
 
         <View className="flex-1 justify-center px-8">
           <Text className="mb-2 text-center text-3xl font-bold text-cream">
