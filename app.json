@@ -38,7 +38,8 @@
         {
           "photosPermission": "Neighbor uses your photos to let you attach a picture to a post."
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

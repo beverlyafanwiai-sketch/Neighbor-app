@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ME, getUser } from '../../data/mock';
+import { addEventToCalendar } from '../../lib/ics';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -20,6 +21,7 @@ export default function EventDetail() {
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [calendarAdded, setCalendarAdded] = useState(false);
 
   if (!event) {
     return (
@@ -42,6 +44,16 @@ export default function EventDetail() {
   const remove = () => {
     deleteEvent(event.id);
     router.back();
+  };
+
+  const handleAddToCalendar = async () => {
+    try {
+      await addEventToCalendar(event);
+      setCalendarAdded(true);
+      setTimeout(() => setCalendarAdded(false), 2000);
+    } catch {
+      // Non-critical: calendar export failing shouldn't block the rest of the screen.
+    }
   };
 
   return (
@@ -137,6 +149,24 @@ export default function EventDetail() {
                 </Text>
               </Pressable>
             )
+          )}
+
+          {!isPast && (
+            <Pressable
+              onPress={handleAddToCalendar}
+              className="mt-3 flex-row items-center justify-center gap-1.5 rounded-full border border-charcoal/15 py-3 active:opacity-70"
+            >
+              <Ionicons
+                name={calendarAdded ? 'checkmark' : 'calendar-outline'}
+                size={16}
+                color={calendarAdded ? '#81A684' : '#3D3D3D'}
+              />
+              <Text
+                className={`text-sm font-semibold ${calendarAdded ? 'text-sage' : 'text-charcoal'}`}
+              >
+                {calendarAdded ? 'Added to calendar' : 'Add to calendar'}
+              </Text>
+            </Pressable>
           )}
         </View>
 
