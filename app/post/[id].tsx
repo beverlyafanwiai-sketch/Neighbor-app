@@ -17,6 +17,7 @@ import MentionText from '../../components/MentionText';
 import MentionTextInput from '../../components/MentionTextInput';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
+import ReportPostSheet from '../../components/ReportPostSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser, type CommentItem } from '../../data/mock';
 import { commentKey, getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
@@ -49,6 +50,7 @@ export default function PostDetail() {
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [reactorsFor, setReactorsFor] = useState<'post' | string | null>(null);
+  const [reporting, setReporting] = useState(false);
 
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
   const author = post ? resolveUser(post.authorId) : undefined;
@@ -94,7 +96,7 @@ export default function PostDetail() {
           </Pressable>
           <Text className="text-base font-bold text-charcoal">Post</Text>
         </View>
-        {isAuthor && (
+        {isAuthor ? (
           <View className="flex-row items-center gap-1.5">
             <Pressable
               onPress={() => router.push(`/create-post?id=${post.id}`)}
@@ -109,6 +111,13 @@ export default function PostDetail() {
               <Ionicons name="trash-outline" size={17} color="#E0533C" />
             </Pressable>
           </View>
+        ) : (
+          <Pressable
+            onPress={() => setReporting(true)}
+            className="h-9 w-9 items-center justify-center rounded-full"
+          >
+            <Ionicons name="ellipsis-horizontal" size={20} color="#3D3D3D" />
+          </Pressable>
         )}
       </View>
 
@@ -342,6 +351,8 @@ export default function PostDetail() {
           }}
         />
       )}
+
+      {reporting && <ReportPostSheet onClose={() => setReporting(false)} />}
     </SafeAreaView>
   );
 }

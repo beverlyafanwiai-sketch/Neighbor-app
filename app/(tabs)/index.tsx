@@ -13,6 +13,7 @@ import EmptyState from '../../components/EmptyState';
 import MentionText from '../../components/MentionText';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
+import ReportPostSheet from '../../components/ReportPostSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { DISCOVER_USERS, ME, USERS, type Post, type User } from '../../data/mock';
 import { useBlockedStore } from '../../store/useBlockedStore';
@@ -194,6 +195,7 @@ export default function HomeFeed() {
   const comments = usePostsStore((s) => s.comments);
   const [sharingPost, setSharingPost] = useState<Post | null>(null);
   const [reactorsPost, setReactorsPost] = useState<Post | null>(null);
+  const [reportingPost, setReportingPost] = useState<Post | null>(null);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
 
   const greeting = getGreeting();
@@ -392,22 +394,32 @@ export default function HomeFeed() {
             const postComments = comments[post.id] ?? [];
             return (
               <View key={post.id} className="rounded-[28px] bg-cream p-5 shadow-sm">
-                <Pressable
-                  onPress={() => goToProfile(author.id)}
-                  className="flex-row items-center gap-3"
-                >
-                  <Image
-                    source={{ uri: author.avatar }}
-                    className="h-11 w-11 rounded-full border-2 border-sand"
-                  />
-                  <View>
-                    <Text className="font-semibold text-charcoal">{author.name}</Text>
-                    <Text className="text-xs text-charcoal/60">
-                      {post.time}
-                      {post.edited && ' · edited'}
-                    </Text>
-                  </View>
-                </Pressable>
+                <View className="flex-row items-start justify-between">
+                  <Pressable
+                    onPress={() => goToProfile(author.id)}
+                    className="flex-1 flex-row items-center gap-3"
+                  >
+                    <Image
+                      source={{ uri: author.avatar }}
+                      className="h-11 w-11 rounded-full border-2 border-sand"
+                    />
+                    <View>
+                      <Text className="font-semibold text-charcoal">{author.name}</Text>
+                      <Text className="text-xs text-charcoal/60">
+                        {post.time}
+                        {post.edited && ' · edited'}
+                      </Text>
+                    </View>
+                  </Pressable>
+                  {author.id !== ME.id && (
+                    <Pressable
+                      onPress={() => setReportingPost(post)}
+                      className="h-8 w-8 items-center justify-center rounded-full"
+                    >
+                      <Ionicons name="ellipsis-horizontal" size={18} color="#3D3D3D80" />
+                    </Pressable>
+                  )}
+                </View>
 
                 <Pressable onPress={() => router.push(`/post/${post.id}`)}>
                   <MentionText text={post.body} className="mt-3 text-[15px] leading-5 text-charcoal" />
@@ -506,6 +518,8 @@ export default function HomeFeed() {
           }}
         />
       )}
+
+      {reportingPost && <ReportPostSheet onClose={() => setReportingPost(null)} />}
     </SafeAreaView>
   );
 }
