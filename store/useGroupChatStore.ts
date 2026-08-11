@@ -27,7 +27,10 @@ type GroupChatState = {
   messages: Record<string, GroupMessage[]>;
   lastActivity: Record<string, number>;
   typing: Record<string, string | undefined>;
+  pinnedMessageId: Record<string, string | undefined>;
   sendMessage: (groupId: string, text: string, imageUri?: string) => void;
+  pinMessage: (groupId: string, messageId: string) => void;
+  unpinMessage: (groupId: string) => void;
 };
 
 const initialMessages: Record<string, GroupMessage[]> = {
@@ -59,6 +62,13 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
   messages: initialMessages,
   lastActivity: initialLastActivity,
   typing: {},
+  pinnedMessageId: {},
+
+  pinMessage: (groupId, messageId) =>
+    set((s) => ({ pinnedMessageId: { ...s.pinnedMessageId, [groupId]: messageId } })),
+
+  unpinMessage: (groupId) =>
+    set((s) => ({ pinnedMessageId: { ...s.pinnedMessageId, [groupId]: undefined } })),
 
   sendMessage: (groupId, text, imageUri) => {
     set((s) => {

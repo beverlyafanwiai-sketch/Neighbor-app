@@ -28,7 +28,10 @@ export default function GroupChatThread() {
   const joined = useGroupsStore((s) => (group ? (s.joined[group.id] ?? false) : false));
   const messages = useGroupChatStore((s) => (group ? (s.messages[group.id] ?? EMPTY_MESSAGES) : EMPTY_MESSAGES));
   const typingId = useGroupChatStore((s) => (group ? s.typing[group.id] : undefined));
+  const pinnedMessageId = useGroupChatStore((s) => (group ? s.pinnedMessageId[group.id] : undefined));
   const sendMessage = useGroupChatStore((s) => s.sendMessage);
+  const pinMessage = useGroupChatStore((s) => s.pinMessage);
+  const unpinMessage = useGroupChatStore((s) => s.unpinMessage);
   const markRead = useGroupsStore((s) => s.markRead);
   const toggleJoin = useGroupsStore((s) => s.toggle);
 
@@ -54,6 +57,13 @@ export default function GroupChatThread() {
   }
 
   const typingUser = typingId ? getUser(typingId) : undefined;
+  const isCreator = group.createdBy === ME.id;
+  const pinnedMessage = messages.find((m) => m.id === pinnedMessageId);
+  const pinnedSender = pinnedMessage
+    ? pinnedMessage.senderId === ME.id
+      ? { name: 'You' }
+      : getUser(pinnedMessage.senderId)
+    : undefined;
   const lastMeIndex = messages.reduce(
     (acc, m, i) => (m.senderId === ME.id ? i : acc),
     -1
@@ -115,6 +125,28 @@ export default function GroupChatThread() {
           <Ionicons name="information-circle-outline" size={22} color="#3D3D3D" />
         </Pressable>
       </View>
+
+      {pinnedMessage && pinnedSender && (
+        <View className="flex-row items-center gap-2.5 border-b border-charcoal/10 bg-gold/10 px-4 py-2.5">
+          <Ionicons name="pin" size={14} color="#D9A441" />
+          <View className="flex-1">
+            <Text className="text-xs font-semibold text-charcoal/60">
+              Pinned · {pinnedSender.name}
+            </Text>
+            <Text className="text-sm text-charcoal" numberOfLines={1}>
+              {pinnedMessage.text || 'Photo'}
+            </Text>
+          </View>
+          {isCreator && (
+            <Pressable
+              onPress={() => unpinMessage(group.id)}
+              className="h-7 w-7 items-center justify-center rounded-full"
+            >
+              <Ionicons name="close" size={15} color="#3D3D3D80" />
+            </Pressable>
+          )}
+        </View>
+      )}
 
       {confirmingLeave && (
         <View className="flex-row items-center gap-3 bg-terracotta/10 px-4 py-3">
@@ -178,7 +210,25 @@ export default function GroupChatThread() {
                     <Text className={isMe ? 'text-cream' : 'text-charcoal'}>{item.text}</Text>
                   )}
                 </View>
-                <Text className="mt-1 text-[11px] text-charcoal/40">{item.time}</Text>
+                <View className="mt-1 flex-row items-center gap-1.5">
+                  <Text className="text-[11px] text-charcoal/40">{item.time}</Text>
+                  {isCreator && (
+                    <Pressable
+                      onPress={() =>
+                        item.id === pinnedMessageId
+                          ? unpinMessage(group.id)
+                          : pinMessage(group.id, item.id)
+                      }
+                      className="h-4 w-4 items-center justify-center"
+                    >
+                      <Ionicons
+                        name={item.id === pinnedMessageId ? 'pin' : 'pin-outline'}
+                        size={12}
+                        color={item.id === pinnedMessageId ? '#D9A441' : '#3D3D3D40'}
+                      />
+                    </Pressable>
+                  )}
+                </View>
                 {index === lastMeIndex && seenByNames.length > 0 && (
                   <Text className="mt-0.5 text-[11px] text-sage">
                     Seen by {seenByNames.join(', ')}

@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ME, getUser } from '../../data/mock';
+import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 
@@ -21,6 +22,10 @@ export default function GroupDetail() {
   const joined = useGroupsStore((s) => (group ? (s.joined[group.id] ?? false) : false));
   const toggleJoin = useGroupsStore((s) => s.toggle);
   const deleteGroup = useGroupsStore((s) => s.deleteGroup);
+  const pinnedMessageId = useGroupChatStore((s) => (group ? s.pinnedMessageId[group.id] : undefined));
+  const pinnedMessage = useGroupChatStore((s) =>
+    group ? (s.messages[group.id] ?? []).find((m) => m.id === pinnedMessageId) : undefined
+  );
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   if (!group) {
@@ -38,6 +43,11 @@ export default function GroupDetail() {
   const members = joined ? [profile, ...otherMembers] : otherMembers;
   const toneStyle = TONE_STYLE[group.tone] ?? TONE_STYLE.Casual;
   const isCreator = group.createdBy === ME.id;
+  const pinnedSender = pinnedMessage
+    ? pinnedMessage.senderId === ME.id
+      ? profile
+      : getUser(pinnedMessage.senderId)
+    : undefined;
 
   const remove = () => {
     deleteGroup(group.id);
@@ -130,6 +140,23 @@ export default function GroupDetail() {
             )}
           </View>
         </View>
+
+        {pinnedMessage && pinnedSender && (
+          <Pressable
+            onPress={() => router.push(`/group-chat/${group.id}`)}
+            className="mt-4 flex-row items-center gap-3 rounded-2xl bg-gold/10 p-4 active:opacity-80"
+          >
+            <Ionicons name="pin" size={16} color="#D9A441" />
+            <View className="flex-1">
+              <Text className="text-xs font-semibold text-charcoal/60">
+                Pinned · {pinnedSender.name}
+              </Text>
+              <Text className="mt-0.5 text-sm text-charcoal" numberOfLines={2}>
+                {pinnedMessage.text || 'Photo'}
+              </Text>
+            </View>
+          </Pressable>
+        )}
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
           Members
