@@ -1,10 +1,31 @@
 import { create } from 'zustand';
 
-export type GroupMessage = { id: string; senderId: string; text: string; time: string };
+import { ME, getUser } from '../data/mock';
+import { useGroupsStore } from './useGroupsStore';
+import { useNotificationsStore } from './useNotificationsStore';
+import { useSettingsStore } from './useSettingsStore';
+
+export type GroupMessage = {
+  id: string;
+  senderId: string;
+  text: string;
+  time: string;
+  seenBy?: string[];
+};
+
+const REPLY_DELAY_MS = 2500;
+const CANNED_REPLIES = [
+  'Sounds good to me.',
+  'Haha, same.',
+  "I'm in.",
+  'Can we do a bit later?',
+  'Love this.',
+];
 
 type GroupChatState = {
   messages: Record<string, GroupMessage[]>;
   lastActivity: Record<string, number>;
+  typing: Record<string, string | undefined>;
   sendMessage: (groupId: string, text: string) => void;
 };
 
@@ -33,16 +54,17 @@ const initialLastActivity: Record<string, number> = Object.fromEntries(
 
 let activitySeq = groupOrder.length + 1000;
 
-export const useGroupChatStore = create<GroupChatState>((set) => ({
+export const useGroupChatStore = create<GroupChatState>((set, get) => ({
   messages: initialMessages,
   lastActivity: initialLastActivity,
+  typing: {},
 
   sendMessage: (groupId, text) => {
     set((s) => {
       const existing = s.messages[groupId] ?? [];
       const message: GroupMessage = {
         id: String(existing.length + 1),
-        senderId: 'amara',
+        senderId: ME.id,
         text,
         time: 'Now',
       };
@@ -51,5 +73,43 @@ export const useGroupChatStore = create<GroupChatState>((set) => ({
         lastActivity: { ...s.lastActivity, [groupId]: ++activitySeq },
       };
     });
+
+    const group = useGroupsStore.getState().groups.find((g) => g.id === groupId);
+    const otherMemberIds = (group?.memberIds ?? []).filter((id) => id !== ME.id);
+    if (otherMemberIds.length === 0) return;
+
+    const replierId = otherMemberIds[Math.floor(Math.random() * otherMemberIds.length)];
+    const replier = getUser(replierId);
+    if (!replier) return;
+
+    set((s) => ({ typing: { ...s.typing, [groupId]: replierId } }));
+
+    setTimeout(() => {
+      const current = get().messages[groupId] ?? [];
+      const seenMessages = current.map((m) =>
+        m.senderId === ME.id ? { ...m, seenBy: otherMemberIds } : m
+      );
+      const reply: GroupMessage = {
+        id: String(current.length + 1),
+        senderId: replierId,
+        text: CANNED_REPLIES[current.length % CANNED_REPLIES.length],
+        time: 'Just now',
+      };
+      set((s) => ({
+        messages: { ...s.messages, [groupId]: [...seenMessages, reply] },
+        lastActivity: { ...s.lastActivity, [groupId]: ++activitySeq },
+        typing: { ...s.typing, [groupId]: undefined },
+      }));
+
+      if (useSettingsStore.getState().notificationPrefs.groupActivity) {
+        useNotificationsStore.getState().addNotification({
+          type: 'group',
+          actorId: replierId,
+          text: `${replier.name} sent a new message in ${group?.name ?? 'your group'}`,
+          time: 'Just now',
+          target: { kind: 'group-chat', id: groupId },
+        });
+      }
+    }, REPLY_DELAY_MS);
   },
 }));

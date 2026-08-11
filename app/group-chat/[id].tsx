@@ -26,6 +26,7 @@ export default function GroupChatThread() {
   const group = useGroupsStore((s) => s.groups.find((g) => g.id === id));
   const joined = useGroupsStore((s) => (group ? (s.joined[group.id] ?? false) : false));
   const messages = useGroupChatStore((s) => (group ? (s.messages[group.id] ?? EMPTY_MESSAGES) : EMPTY_MESSAGES));
+  const typingId = useGroupChatStore((s) => (group ? s.typing[group.id] : undefined));
   const sendMessage = useGroupChatStore((s) => s.sendMessage);
   const markRead = useGroupsStore((s) => s.markRead);
   const toggleJoin = useGroupsStore((s) => s.toggle);
@@ -49,6 +50,16 @@ export default function GroupChatThread() {
       </SafeAreaView>
     );
   }
+
+  const typingUser = typingId ? getUser(typingId) : undefined;
+  const lastMeIndex = messages.reduce(
+    (acc, m, i) => (m.senderId === ME.id ? i : acc),
+    -1
+  );
+  const lastMeSeenBy = lastMeIndex >= 0 ? messages[lastMeIndex].seenBy : undefined;
+  const seenByNames = (lastMeSeenBy ?? [])
+    .map((id) => getUser(id)?.name.split(' ')[0])
+    .filter((name): name is string => Boolean(name));
 
   const send = () => {
     if (!draft.trim()) return;
@@ -123,7 +134,7 @@ export default function GroupChatThread() {
               </Text>
             </View>
           }
-          renderItem={({ item }) => {
+          renderItem={({ item, index }) => {
             const isMe = item.senderId === ME.id;
             const sender = isMe ? ME : getUser(item.senderId);
             return (
@@ -144,9 +155,29 @@ export default function GroupChatThread() {
                   <Text className={isMe ? 'text-cream' : 'text-charcoal'}>{item.text}</Text>
                 </View>
                 <Text className="mt-1 text-[11px] text-charcoal/40">{item.time}</Text>
+                {index === lastMeIndex && seenByNames.length > 0 && (
+                  <Text className="mt-0.5 text-[11px] text-sage">
+                    Seen by {seenByNames.join(', ')}
+                  </Text>
+                )}
               </View>
             );
           }}
+          ListFooterComponent={
+            typingUser ? (
+              <View className="mt-2 max-w-[78%] items-start self-start">
+                <View className="mb-1 flex-row items-center gap-1.5 pl-1">
+                  <Image source={{ uri: typingUser.avatar }} className="h-5 w-5 rounded-full" />
+                  <Text className="text-xs font-medium text-charcoal/60">{typingUser.name}</Text>
+                </View>
+                <View className="flex-row items-center gap-1 rounded-2xl rounded-bl-sm bg-cream px-4 py-3.5">
+                  <View className="h-1.5 w-1.5 rounded-full bg-charcoal/40" />
+                  <View className="h-1.5 w-1.5 rounded-full bg-charcoal/40" />
+                  <View className="h-1.5 w-1.5 rounded-full bg-charcoal/40" />
+                </View>
+              </View>
+            ) : null
+          }
         />
 
         <View className="flex-row items-center gap-2 border-t border-charcoal/10 bg-cream px-3 py-2.5">
