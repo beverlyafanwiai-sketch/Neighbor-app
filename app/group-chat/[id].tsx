@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -32,6 +33,7 @@ export default function GroupChatThread() {
   const toggleJoin = useGroupsStore((s) => s.toggle);
 
   const [draft, setDraft] = useState('');
+  const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
 
   useEffect(() => {
@@ -61,10 +63,23 @@ export default function GroupChatThread() {
     .map((id) => getUser(id)?.name.split(' ')[0])
     .filter((name): name is string => Boolean(name));
 
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
   const send = () => {
-    if (!draft.trim()) return;
-    sendMessage(group.id, draft.trim());
+    if (!draft.trim() && !imageUri) return;
+    sendMessage(group.id, draft.trim(), imageUri);
     setDraft('');
+    setImageUri(undefined);
   };
 
   const leave = () => {
@@ -148,11 +163,20 @@ export default function GroupChatThread() {
                   </View>
                 )}
                 <View
-                  className={`rounded-2xl px-4 py-3 ${
+                  className={`overflow-hidden rounded-2xl ${item.text ? 'px-4 py-3' : 'p-1'} ${
                     isMe ? 'rounded-br-sm bg-terracotta' : 'rounded-bl-sm bg-cream'
                   }`}
                 >
-                  <Text className={isMe ? 'text-cream' : 'text-charcoal'}>{item.text}</Text>
+                  {item.imageUri && (
+                    <Image
+                      source={{ uri: item.imageUri }}
+                      className={`w-48 rounded-xl ${item.text ? 'mb-2' : ''}`}
+                      style={{ aspectRatio: 4 / 3 }}
+                    />
+                  )}
+                  {item.text.length > 0 && (
+                    <Text className={isMe ? 'text-cream' : 'text-charcoal'}>{item.text}</Text>
+                  )}
                 </View>
                 <Text className="mt-1 text-[11px] text-charcoal/40">{item.time}</Text>
                 {index === lastMeIndex && seenByNames.length > 0 && (
@@ -180,7 +204,31 @@ export default function GroupChatThread() {
           }
         />
 
-        <View className="flex-row items-center gap-2 border-t border-charcoal/10 bg-cream px-3 py-2.5">
+        {imageUri && (
+          <View className="border-t border-charcoal/10 bg-cream px-3 pt-2.5">
+            <View className="self-start" style={{ position: 'relative' }}>
+              <Image source={{ uri: imageUri }} className="h-16 w-16 rounded-xl" />
+              <Pressable
+                onPress={() => setImageUri(undefined)}
+                className="absolute -right-1.5 -top-1.5 h-5 w-5 items-center justify-center rounded-full bg-charcoal/70"
+              >
+                <Ionicons name="close" size={11} color="#F5F2E9" />
+              </Pressable>
+            </View>
+          </View>
+        )}
+
+        <View
+          className={`flex-row items-center gap-2 bg-cream px-3 py-2.5 ${
+            imageUri ? '' : 'border-t border-charcoal/10'
+          }`}
+        >
+          <Pressable
+            onPress={pickImage}
+            className="h-10 w-10 items-center justify-center rounded-full bg-sand"
+          >
+            <Ionicons name="image-outline" size={19} color="#81A684" />
+          </Pressable>
           <TextInput
             value={draft}
             onChangeText={setDraft}

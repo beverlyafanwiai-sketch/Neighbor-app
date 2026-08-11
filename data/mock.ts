@@ -503,6 +503,7 @@ export type Message = {
   text: string;
   time: string;
   seen?: boolean;
+  imageUri?: string;
 };
 
 export type Conversation = {

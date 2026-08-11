@@ -11,6 +11,7 @@ export type GroupMessage = {
   text: string;
   time: string;
   seenBy?: string[];
+  imageUri?: string;
 };
 
 const REPLY_DELAY_MS = 2500;
@@ -26,7 +27,7 @@ type GroupChatState = {
   messages: Record<string, GroupMessage[]>;
   lastActivity: Record<string, number>;
   typing: Record<string, string | undefined>;
-  sendMessage: (groupId: string, text: string) => void;
+  sendMessage: (groupId: string, text: string, imageUri?: string) => void;
 };
 
 const initialMessages: Record<string, GroupMessage[]> = {
@@ -59,7 +60,7 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
   lastActivity: initialLastActivity,
   typing: {},
 
-  sendMessage: (groupId, text) => {
+  sendMessage: (groupId, text, imageUri) => {
     set((s) => {
       const existing = s.messages[groupId] ?? [];
       const message: GroupMessage = {
@@ -67,6 +68,7 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
         senderId: ME.id,
         text,
         time: 'Now',
+        imageUri,
       };
       return {
         messages: { ...s.messages, [groupId]: [...existing, message] },
