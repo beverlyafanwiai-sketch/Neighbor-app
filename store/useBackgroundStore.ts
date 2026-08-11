@@ -11,7 +11,7 @@ type BackgroundState = {
 };
 
 export const useBackgroundStore = create<BackgroundState>((set) => ({
-  background: { kind: 'preset', id: 'neighbor' },
+  background: { kind: 'preset', id: 'resort' },
 
   setPreset: (id) => set({ background: { kind: 'preset', id } }),
 
