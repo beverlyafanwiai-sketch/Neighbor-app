@@ -1,16 +1,30 @@
 export type Prompt = { q: string; a: string };
 
+export type VerificationBadge = 'id' | 'phone' | 'social';
+
+export type ConversationStarters = {
+  askMeAbout: string;
+  skillsToShare: string;
+  neighborhoodLove: string;
+};
+
 export type User = {
   id: string;
   name: string;
   avatar: string;
   tagline: string;
+  bio: string;
   interests: string;
   values: string;
   trust: string;
   prompts: Prompt[];
   photoSeeds: number[];
   tags: string[];
+  neighborhood: string;
+  crossStreets: string;
+  yearsInArea: string;
+  verifications: VerificationBadge[];
+  conversationStarters: ConversationStarters;
 };
 
 export const ME: User = {
@@ -18,6 +32,7 @@ export const ME: User = {
   name: 'Amara Ndlovu',
   avatar: 'https://i.pravatar.cc/300?img=47',
   tagline: 'Looking for friendship & activity partners',
+  bio: "Grew up a couple blocks from here and never really left — now I'm usually the one organizing the porch hangouts. Always looking for people who show up.",
   interests: 'Hiking, pottery, board games, slow mornings, live music',
   values: 'Honesty, follow-through, showing up',
   trust: '6 mutual friends · 3 shared groups · attended 4 events',
@@ -30,6 +45,15 @@ export const ME: User = {
   ],
   photoSeeds: [18, 24, 31, 44, 52, 61],
   tags: ['hiking', 'pottery', 'board games', 'live music'],
+  neighborhood: 'Maple Hill',
+  crossStreets: '5th & Sycamore',
+  yearsInArea: '8 years',
+  verifications: ['id', 'phone'],
+  conversationStarters: {
+    askMeAbout: 'Good porch snacks or where to find the best cornbread in town',
+    skillsToShare: 'Basic pottery wheel throwing',
+    neighborhoodLove: 'Everyone still waves from their porches here.',
+  },
 };
 
 export const USERS: User[] = [
@@ -38,6 +62,7 @@ export const USERS: User[] = [
     name: 'Maya',
     avatar: 'https://i.pravatar.cc/150?img=5',
     tagline: 'Looking for a hiking buddy and better coffee spots',
+    bio: 'Moved here for grad school and stayed for the trails. Still figuring out the best coffee shop in walking distance — send recommendations.',
     interests: 'Trail running, ceramics, film photography, cold brew',
     values: 'Curiosity, patience, showing up on time',
     trust: '4 mutual friends · 2 shared groups · attended 3 events',
@@ -47,12 +72,22 @@ export const USERS: User[] = [
     ],
     photoSeeds: [11, 22, 33, 44],
     tags: ['trail running', 'pottery', 'photography', 'coffee'],
+    neighborhood: 'Riverside',
+    crossStreets: 'Elm & 3rd',
+    yearsInArea: '2 years',
+    verifications: ['phone'],
+    conversationStarters: {
+      askMeAbout: 'Trail recommendations within an hour of the city',
+      skillsToShare: 'Film photography basics',
+      neighborhoodLove: 'The farmers market every Sunday.',
+    },
   },
   {
     id: 'theo',
     name: 'Theo Marsh',
     avatar: 'https://i.pravatar.cc/150?img=33',
     tagline: 'Trail loops, board games, and slow Sunday breakfasts',
+    bio: 'Third-generation neighbor — my grandfather used to run the hardware store on Main. Slow mornings, long trails, and a standing chess invite.',
     interests: 'Hiking, chess, home brewing, vinyl records',
     values: 'Directness, reliability, a good sense of humor',
     trust: '5 mutual friends · 2 shared groups · attended 6 events',
@@ -62,12 +97,22 @@ export const USERS: User[] = [
     ],
     photoSeeds: [55, 62, 71, 83],
     tags: ['hiking', 'chess', 'vinyl records'],
+    neighborhood: 'Old Town',
+    crossStreets: 'Main & Birch',
+    yearsInArea: '12 years',
+    verifications: ['id', 'phone', 'social'],
+    conversationStarters: {
+      askMeAbout: 'Chess openings or home brewing',
+      skillsToShare: 'How to brew your first batch of beer',
+      neighborhoodLove: 'How quiet it gets after 9pm.',
+    },
   },
   {
     id: 'priya',
     name: 'Priya',
     avatar: 'https://i.pravatar.cc/150?img=48',
     tagline: 'New to the city, rebuilding my circle from scratch',
+    bio: "New in town and rebuilding my circle one dinner party at a time. If you like good food and low-pressure hangs, say hi.",
     interests: 'Pottery, cooking for people, long walks, journaling',
     values: 'Warmth, honesty, low-pressure hangs',
     trust: '3 mutual friends · 1 shared group · attended 2 events',
@@ -77,12 +122,22 @@ export const USERS: User[] = [
     ],
     photoSeeds: [7, 19, 28, 39],
     tags: ['pottery', 'cooking', 'journaling'],
+    neighborhood: 'Elm Street',
+    crossStreets: 'Elm & 9th',
+    yearsInArea: '6 months',
+    verifications: ['phone'],
+    conversationStarters: {
+      askMeAbout: 'Easy weeknight recipes for one',
+      skillsToShare: 'Basic knife skills in the kitchen',
+      neighborhoodLove: 'The bakery on the corner that always smells like cinnamon.',
+    },
   },
   {
     id: 'sam',
     name: 'Sam',
     avatar: 'https://i.pravatar.cc/150?img=15',
     tagline: 'Clay-covered and always down for something low-key',
+    bio: 'Clay under my nails most days. Been in the neighborhood long enough to know every quiet bar worth visiting.',
     interests: 'Pottery, gardening, quiet bars, crosswords',
     values: 'Groundedness, follow-through, gentle honesty',
     trust: '2 mutual friends · 1 shared group · attended 1 event',
@@ -92,6 +147,15 @@ export const USERS: User[] = [
     ],
     photoSeeds: [64, 75, 86, 97],
     tags: ['pottery', 'gardening', 'crosswords'],
+    neighborhood: 'Southside',
+    crossStreets: 'Cedar & 7th',
+    yearsInArea: '5 years',
+    verifications: ['id'],
+    conversationStarters: {
+      askMeAbout: 'Pottery glazing techniques',
+      skillsToShare: 'Beginner-friendly wheel throwing lessons',
+      neighborhoodLove: 'The quiet bar two blocks over — never crowded.',
+    },
   },
 ];
 
@@ -101,6 +165,7 @@ export const DISCOVER_USERS: User[] = [
     name: 'Jordan',
     avatar: 'https://i.pravatar.cc/150?img=25',
     tagline: 'New to the neighborhood, looking for a regular board game night',
+    bio: 'Just moved into the building on the corner. Looking to build a regular board game night from scratch — all are welcome.',
     interests: 'Board games, home brewing, quiet bars',
     values: 'Consistency, good humor, low drama',
     trust: 'No mutual friends yet · nearby',
@@ -110,12 +175,22 @@ export const DISCOVER_USERS: User[] = [
     ],
     photoSeeds: [14, 26, 37, 48],
     tags: ['board games', 'coffee', 'chess'],
+    neighborhood: 'Riverside',
+    crossStreets: '2nd & Ash',
+    yearsInArea: '3 months',
+    verifications: [],
+    conversationStarters: {
+      askMeAbout: 'Good board games for 4+ players',
+      skillsToShare: 'A mean home-brewed root beer recipe',
+      neighborhoodLove: "Still figuring that out — tell me what I'm missing!",
+    },
   },
   {
     id: 'nia',
     name: 'Nia',
     avatar: 'https://i.pravatar.cc/150?img=9',
     tagline: 'Always down for a concert or a long run',
+    bio: "Between concerts and long runs, I'm usually recruiting people for one or the other. Say yes to spontaneous plans.",
     interests: 'Live music, trail running, journaling',
     values: 'Spontaneity, honesty, showing up energized',
     trust: 'No mutual friends yet · nearby',
@@ -125,12 +200,22 @@ export const DISCOVER_USERS: User[] = [
     ],
     photoSeeds: [21, 32, 43, 54],
     tags: ['live music', 'trail running', 'journaling'],
+    neighborhood: 'Maple Hill',
+    crossStreets: '5th & Poplar',
+    yearsInArea: '4 years',
+    verifications: ['phone', 'social'],
+    conversationStarters: {
+      askMeAbout: 'Upcoming shows worth catching',
+      skillsToShare: 'Running form and pacing tips',
+      neighborhoodLove: 'The open mic nights at the corner bar.',
+    },
   },
   {
     id: 'kai',
     name: 'Kai',
     avatar: 'https://i.pravatar.cc/150?img=68',
     tagline: 'Chasing golden hour and quiet trails',
+    bio: 'Chasing good light and quiet trails most weekends. Newer to the area but already know all the best sunrise spots.',
     interests: 'Photography, hiking, gardening',
     values: 'Patience, presence, low-key company',
     trust: 'No mutual friends yet · nearby',
@@ -140,6 +225,15 @@ export const DISCOVER_USERS: User[] = [
     ],
     photoSeeds: [59, 63, 77, 88],
     tags: ['photography', 'hiking', 'gardening'],
+    neighborhood: 'Old Town',
+    crossStreets: 'Main & Willow',
+    yearsInArea: '1 year',
+    verifications: ['id'],
+    conversationStarters: {
+      askMeAbout: 'Best sunrise spots for photos',
+      skillsToShare: 'Basic photo editing and composition tips',
+      neighborhoodLove: 'The community garden at the end of Willow.',
+    },
   },
 ];
 

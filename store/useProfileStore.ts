@@ -2,7 +2,21 @@ import { create } from 'zustand';
 
 import { ME, type User } from '../data/mock';
 
-type EditableFields = Pick<User, 'name' | 'avatar' | 'tagline' | 'interests' | 'values' | 'tags'>;
+type EditableFields = Pick<
+  User,
+  | 'name'
+  | 'avatar'
+  | 'tagline'
+  | 'bio'
+  | 'interests'
+  | 'values'
+  | 'tags'
+  | 'neighborhood'
+  | 'crossStreets'
+  | 'yearsInArea'
+  | 'verifications'
+  | 'conversationStarters'
+>;
 
 type ProfileState = {
   profile: User;

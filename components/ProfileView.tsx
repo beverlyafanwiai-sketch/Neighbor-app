@@ -4,11 +4,30 @@ import { Ionicons } from '@expo/vector-icons';
 import { SvgXml } from 'react-native-svg';
 
 import { GROUP_SELFIE_SVG } from '../assets/illustrations/group-selfie';
-import type { User } from '../data/mock';
+import type { User, VerificationBadge } from '../data/mock';
 import { useFriendsStore } from '../store/useFriendsStore';
 
 const TABS = ['About', 'Prompts', 'Photos', 'Friends'] as const;
 type Tab = (typeof TABS)[number];
+
+const VERIFICATION_META: Record<
+  VerificationBadge,
+  { label: string; icon: keyof typeof Ionicons.glyphMap }
+> = {
+  id: { label: 'ID Verified', icon: 'card-outline' },
+  phone: { label: 'Phone Verified', icon: 'call-outline' },
+  social: { label: 'Social Linked', icon: 'link-outline' },
+};
+
+const CONVERSATION_STARTER_META: {
+  key: keyof User['conversationStarters'];
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}[] = [
+  { key: 'askMeAbout', label: 'Ask me about...', icon: 'chatbubbles-outline' },
+  { key: 'skillsToShare', label: 'Skills I can share', icon: 'bulb-outline' },
+  { key: 'neighborhoodLove', label: 'Things I love about our neighborhood', icon: 'heart-outline' },
+];
 
 type Props = {
   user: User;
@@ -85,6 +104,32 @@ export default function ProfileView({
         <Text className="mt-3 text-2xl font-bold text-cream">{user.name}</Text>
         <Text className="mt-1 text-sm text-sand">{user.tagline}</Text>
 
+        {user.neighborhood.length > 0 && (
+          <View className="mt-2 flex-row items-center gap-1">
+            <Ionicons name="location-outline" size={13} color="#F4E9CD" />
+            <Text className="text-xs text-sand">
+              {user.neighborhood}
+              {user.yearsInArea ? ` · ${user.yearsInArea}` : ''}
+            </Text>
+          </View>
+        )}
+
+        {user.verifications.length > 0 && (
+          <View className="mt-3 flex-row flex-wrap justify-center gap-1.5 px-6">
+            {user.verifications.map((v) => (
+              <View
+                key={v}
+                className="flex-row items-center gap-1 rounded-full bg-cream/20 px-2.5 py-1"
+              >
+                <Ionicons name={VERIFICATION_META[v].icon} size={11} color="#F5F2E9" />
+                <Text className="text-[10px] font-semibold text-cream">
+                  {VERIFICATION_META[v].label}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         <View className="mt-5 flex-row gap-3">
           {isMe ? (
             <Pressable onPress={onEdit} className="rounded-full bg-gold px-6 py-2.5">
@@ -132,6 +177,26 @@ export default function ProfileView({
       <View className="px-5 py-6">
         {tab === 'About' && (
           <View className="gap-4">
+            {user.bio.length > 0 && (
+              <View className="rounded-2xl bg-sand p-4">
+                <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                  About
+                </Text>
+                <Text className="mt-1 text-[15px] leading-5 text-charcoal">{user.bio}</Text>
+              </View>
+            )}
+            {(user.neighborhood.length > 0 || user.crossStreets.length > 0) && (
+              <View className="rounded-2xl bg-sand p-4">
+                <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                  Neighborhood
+                </Text>
+                <Text className="mt-1 text-charcoal">
+                  {[user.neighborhood, user.crossStreets, user.yearsInArea]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </Text>
+              </View>
+            )}
             <View className="rounded-2xl bg-sand p-4">
               <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
                 Interests
@@ -155,6 +220,21 @@ export default function ProfileView({
 
         {tab === 'Prompts' && (
           <View className="gap-4">
+            {CONVERSATION_STARTER_META.filter((m) => user.conversationStarters[m.key].length > 0).map(
+              (m) => (
+                <View key={m.key} className="rounded-2xl bg-terracotta/10 p-4">
+                  <View className="flex-row items-center gap-1.5">
+                    <Ionicons name={m.icon} size={13} color="#E0533C" />
+                    <Text className="text-xs font-semibold uppercase tracking-wide text-terracotta">
+                      {m.label}
+                    </Text>
+                  </View>
+                  <Text className="mt-1.5 text-[15px] text-charcoal">
+                    {user.conversationStarters[m.key]}
+                  </Text>
+                </View>
+              )
+            )}
             {user.prompts.map((p) => (
               <View key={p.q} className="rounded-2xl bg-sand p-4">
                 <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
