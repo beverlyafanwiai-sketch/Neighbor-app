@@ -16,7 +16,6 @@ export type User = {
   bio: string;
   interests: string;
   values: string;
-  trust: string;
   prompts: Prompt[];
   tags: string[];
   neighborhood: string;
@@ -24,6 +23,7 @@ export type User = {
   yearsInArea: string;
   verifications: VerificationBadge[];
   conversationStarters: ConversationStarters;
+  friendIds?: string[];
 };
 
 export const ME: User = {
@@ -34,7 +34,6 @@ export const ME: User = {
   bio: "Grew up a couple blocks from here and never really left — now I'm usually the one organizing the porch hangouts. Always looking for people who show up.",
   interests: 'Hiking, pottery, board games, slow mornings, live music',
   values: 'Honesty, follow-through, showing up',
-  trust: '6 mutual friends · 3 shared groups · attended 4 events',
   prompts: [
     { q: 'How I recharge', a: 'A long walk with no destination and no phone.' },
     {
@@ -63,7 +62,7 @@ export const USERS: User[] = [
     bio: 'Moved here for grad school and stayed for the trails. Still figuring out the best coffee shop in walking distance — send recommendations.',
     interests: 'Trail running, ceramics, film photography, cold brew',
     values: 'Curiosity, patience, showing up on time',
-    trust: '4 mutual friends · 2 shared groups · attended 3 events',
+    friendIds: ['amara', 'theo', 'sam'],
     prompts: [
       { q: 'How I recharge', a: 'Sitting on my fire escape with a bad reality show.' },
       { q: 'What I’m looking for', a: 'Friends who’ll actually text back and make plans.' },
@@ -87,7 +86,7 @@ export const USERS: User[] = [
     bio: 'Third-generation neighbor — my grandfather used to run the hardware store on Main. Slow mornings, long trails, and a standing chess invite.',
     interests: 'Hiking, chess, home brewing, vinyl records',
     values: 'Directness, reliability, a good sense of humor',
-    trust: '5 mutual friends · 2 shared groups · attended 6 events',
+    friendIds: ['amara', 'maya', 'priya', 'sam'],
     prompts: [
       { q: 'How I recharge', a: 'A long trail run with no music, just thinking.' },
       { q: 'A belief I hold that not everyone agrees with', a: 'Board games are better than most parties.' },
@@ -111,7 +110,7 @@ export const USERS: User[] = [
     bio: "New in town and rebuilding my circle one dinner party at a time. If you like good food and low-pressure hangs, say hi.",
     interests: 'Pottery, cooking for people, long walks, journaling',
     values: 'Warmth, honesty, low-pressure hangs',
-    trust: '3 mutual friends · 1 shared group · attended 2 events',
+    friendIds: ['amara', 'theo'],
     prompts: [
       { q: 'How I recharge', a: 'Cooking a big meal for people I love, even just a few.' },
       { q: 'What I’m looking for', a: 'Friendship first — no agenda, just consistency.' },
@@ -135,7 +134,7 @@ export const USERS: User[] = [
     bio: 'Clay under my nails most days. Been in the neighborhood long enough to know every quiet bar worth visiting.',
     interests: 'Pottery, gardening, quiet bars, crosswords',
     values: 'Groundedness, follow-through, gentle honesty',
-    trust: '2 mutual friends · 1 shared group · attended 1 event',
+    friendIds: ['amara', 'maya', 'theo'],
     prompts: [
       { q: 'How I recharge', a: 'Hands in clay, no talking required.' },
       { q: 'A belief I hold that not everyone agrees with', a: 'Most plans are better with fewer people.' },
@@ -162,7 +161,7 @@ export const DISCOVER_USERS: User[] = [
     bio: 'Just moved into the building on the corner. Looking to build a regular board game night from scratch — all are welcome.',
     interests: 'Board games, home brewing, quiet bars',
     values: 'Consistency, good humor, low drama',
-    trust: 'No mutual friends yet · nearby',
+    friendIds: ['theo'],
     prompts: [
       { q: 'What I’m looking for', a: 'A standing weekly game night, honestly.' },
       { q: 'How I recharge', a: 'Losing badly at Catan with people I like.' },
@@ -186,7 +185,7 @@ export const DISCOVER_USERS: User[] = [
     bio: "Between concerts and long runs, I'm usually recruiting people for one or the other. Say yes to spontaneous plans.",
     interests: 'Live music, trail running, journaling',
     values: 'Spontaneity, honesty, showing up energized',
-    trust: 'No mutual friends yet · nearby',
+    friendIds: ['maya', 'sam'],
     prompts: [
       { q: 'How I recharge', a: 'A sweaty run followed by a very loud show.' },
       { q: 'What I’m looking for', a: 'People who’ll say yes to a last-minute show.' },
@@ -210,7 +209,7 @@ export const DISCOVER_USERS: User[] = [
     bio: 'Chasing good light and quiet trails most weekends. Newer to the area but already know all the best sunrise spots.',
     interests: 'Photography, hiking, gardening',
     values: 'Patience, presence, low-key company',
-    trust: 'No mutual friends yet · nearby',
+    friendIds: ['theo', 'priya'],
     prompts: [
       { q: 'How I recharge', a: 'Golden hour, a trail, and no one talking.' },
       { q: 'A belief I hold that not everyone agrees with', a: 'The best conversations happen mid-hike.' },

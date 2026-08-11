@@ -4,8 +4,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { SvgXml } from 'react-native-svg';
 
 import { GROUP_SELFIE_SVG } from '../assets/illustrations/group-selfie';
-import type { User, VerificationBadge } from '../data/mock';
+import { ME, type User, type VerificationBadge } from '../data/mock';
+import { formatMutualTrustLine, formatOwnTrustLine } from '../lib/trust';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
+import { useGroupsStore } from '../store/useGroupsStore';
 import { usePostsStore } from '../store/usePostsStore';
 import EmptyState from './EmptyState';
 
@@ -61,10 +63,18 @@ export default function ProfileView({
   onCreatePost,
 }: Props) {
   const [tab, setTab] = useState<Tab>('About');
-  const friendStatus = useFriendsStore((s) => s.statuses[user.id] ?? 'none');
+  const friendStatuses = useFriendsStore((s) => s.statuses);
+  const friendStatus = friendStatuses[user.id] ?? 'none';
   const respondFriend = useFriendsStore((s) => s.respond);
+  const joinedGroups = useGroupsStore((s) => s.joined);
   const posts = usePostsStore((s) => s.posts);
   const photoPosts = posts.filter((p) => p.authorId === user.id && p.imageUri);
+
+  const myFriendIds = Object.keys(friendStatuses).filter((id) => friendStatuses[id] === 'friends');
+  const myJoinedGroupIds = Object.keys(joinedGroups).filter((id) => joinedGroups[id]);
+  const trustLine = isMe
+    ? formatOwnTrustLine(myFriendIds.length, myJoinedGroupIds.length)
+    : formatMutualTrustLine(user, myFriendIds, ME.id, myJoinedGroupIds);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} className="flex-1 bg-cream">
@@ -228,7 +238,7 @@ export default function ProfileView({
               <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
                 Trust
               </Text>
-              <Text className="mt-1 text-charcoal">{user.trust}</Text>
+              <Text className="mt-1 text-charcoal">{trustLine}</Text>
             </View>
           </View>
         )}
