@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type PresetId = 'neighbor' | 'resort';
+export type PresetId = 'neighbor' | 'resort' | 'photo';
 
 export type Background = { kind: 'preset'; id: PresetId } | { kind: 'custom'; uri: string };
 
@@ -11,7 +11,7 @@ type BackgroundState = {
 };
 
 export const useBackgroundStore = create<BackgroundState>((set) => ({
-  background: { kind: 'preset', id: 'resort' },
+  background: { kind: 'preset', id: 'photo' },
 
   setPreset: (id) => set({ background: { kind: 'preset', id } }),
 

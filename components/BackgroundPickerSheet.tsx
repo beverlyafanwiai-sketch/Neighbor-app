@@ -11,9 +11,16 @@ type Props = {
   onClose: () => void;
 };
 
-const PRESETS: { id: PresetId; label: string; swatchColor: string; svg: string }[] = [
-  { id: 'neighbor', label: 'Neighbor', swatchColor: '#E0533C', svg: PARK_FRIENDS_SVG },
+const PRESETS: {
+  id: PresetId;
+  label: string;
+  swatchColor: string;
+  svg?: string;
+  image?: number;
+}[] = [
+  { id: 'photo', label: 'Resort photo', swatchColor: '#6FB3AC', image: require('../assets/images/resort-friends.jpg') },
   { id: 'resort', label: 'Resort', swatchColor: '#6FB3AC', svg: RESORT_FUN_SVG },
+  { id: 'neighbor', label: 'Neighbor', swatchColor: '#E0533C', svg: PARK_FRIENDS_SVG },
 ];
 
 export default function BackgroundPickerSheet({ onClose }: Props) {
@@ -66,9 +73,13 @@ export default function BackgroundPickerSheet({ onClose }: Props) {
                   }`}
                   style={{ backgroundColor: preset.swatchColor }}
                 >
-                  <View className="h-14 w-20">
-                    <SvgXml xml={preset.svg} width="100%" height="100%" />
-                  </View>
+                  {preset.image ? (
+                    <Image source={preset.image} className="h-full w-full" resizeMode="cover" />
+                  ) : (
+                    <View className="h-14 w-20">
+                      <SvgXml xml={preset.svg ?? ''} width="100%" height="100%" />
+                    </View>
+                  )}
                 </View>
                 <Text
                   className={`text-xs ${active ? 'font-semibold text-terracotta' : 'text-charcoal/60'}`}

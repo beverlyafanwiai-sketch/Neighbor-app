@@ -46,18 +46,17 @@ export default function Login() {
 
   const isCustom = background.kind === 'custom';
   const preset = background.kind === 'preset' ? background.id : 'neighbor';
+  const showFullBleedPhoto = isCustom || preset === 'photo';
+  const photoSource =
+    background.kind === 'custom' ? { uri: background.uri } : require('../assets/images/resort-friends.jpg');
   const bgColorClass = preset === 'resort' ? 'bg-[#5A9F98]' : 'bg-terracotta';
   const illustration = preset === 'resort' ? RESORT_FUN_SVG : PARK_FRIENDS_SVG;
 
   return (
-    <SafeAreaView className={`flex-1 ${isCustom ? 'bg-charcoal' : bgColorClass}`}>
-      {isCustom && (
+    <SafeAreaView className={`flex-1 ${showFullBleedPhoto ? 'bg-charcoal' : bgColorClass}`}>
+      {showFullBleedPhoto && (
         <>
-          <Image
-            source={{ uri: background.uri }}
-            resizeMode="cover"
-            className="absolute inset-0 h-full w-full"
-          />
+          <Image source={photoSource} resizeMode="cover" className="absolute inset-0 h-full w-full" />
           <View className="absolute inset-0 bg-charcoal/55" />
         </>
       )}
@@ -73,7 +72,7 @@ export default function Login() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1"
       >
-        {!isCustom && (
+        {!showFullBleedPhoto && (
           <View className="h-[30%] items-center justify-center px-6 pt-4">
             <SvgXml xml={illustration} width="100%" height="100%" />
           </View>
