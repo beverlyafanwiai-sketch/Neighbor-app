@@ -2,6 +2,9 @@ import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
+import { PARK_FRIENDS_SVG } from '../../assets/illustrations/park-friends';
+import EmptyState from '../../components/EmptyState';
 import { ME, getUser } from '../../data/mock';
 import { useBlockedStore } from '../../store/useBlockedStore';
 import { useConversationsStore } from '../../store/useConversationsStore';
@@ -68,7 +71,13 @@ export default function ChatList() {
             );
           })}
           {myGroups.length === 0 && (
-            <Text className="text-sm text-charcoal/50">Join a circle to start group chatting.</Text>
+            <EmptyState
+              illustration={PARK_FRIENDS_SVG}
+              title="No group chats yet"
+              subtitle="Join a circle from the Groups tab to start chatting together."
+              ctaLabel="Browse groups"
+              onPressCta={() => router.push('/(tabs)/groups')}
+            />
           )}
         </View>
 
@@ -109,7 +118,11 @@ export default function ChatList() {
             );
           })}
           {list.length === 0 && (
-            <Text className="text-sm text-charcoal/50">No conversations yet.</Text>
+            <EmptyState
+              illustration={CONVERSATION_SVG}
+              title="No conversations yet"
+              subtitle="Message a neighbor from their profile to start one."
+            />
           )}
         </View>
       </ScrollView>

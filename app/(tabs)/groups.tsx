@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { GROUP_SELFIE_SVG } from '../../assets/illustrations/group-selfie';
+import EmptyState from '../../components/EmptyState';
 import { getUser } from '../../data/mock';
 import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -115,13 +117,16 @@ export default function Groups() {
               </Pressable>
             );
           })}
-          {circles.length === 0 && (
-            <Text className="text-sm text-charcoal/50">
-              {q.length > 0
-                ? `No circles matching "${query.trim()}"`
-                : "You haven't joined any circles yet — take a look at Discover below."}
-            </Text>
-          )}
+          {circles.length === 0 &&
+            (q.length > 0 ? (
+              <EmptyState icon="search-outline" title={`No circles matching "${query.trim()}"`} />
+            ) : (
+              <EmptyState
+                illustration={GROUP_SELFIE_SVG}
+                title="No circles yet"
+                subtitle="Join one from Discover below to start meeting your neighbors."
+              />
+            ))}
         </View>
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
@@ -157,13 +162,17 @@ export default function Groups() {
               </Pressable>
             </Pressable>
           ))}
-          {discover.length === 0 && (
-            <Text className="text-sm text-charcoal/50">
-              {q.length > 0
-                ? `No groups matching "${query.trim()}"`
-                : "You've joined every group in your area — nice work."}
-            </Text>
-          )}
+          {discover.length === 0 &&
+            (q.length > 0 ? (
+              <EmptyState icon="search-outline" title={`No groups matching "${query.trim()}"`} />
+            ) : (
+              <EmptyState
+                icon="checkmark-circle-outline"
+                iconColor="#81A684"
+                title="You're in every circle"
+                subtitle="Nice work — check back later for new groups in your area."
+              />
+            ))}
         </View>
       </ScrollView>
     </SafeAreaView>

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import EmptyState from '../../components/EmptyState';
 import { ME, getUser } from '../../data/mock';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
@@ -144,9 +145,10 @@ export default function Events() {
               );
             })}
             {upcoming.length === 0 && q.length > 0 && (
-              <Text className="text-sm text-charcoal/50">
-                No upcoming events matching "{query.trim()}"
-              </Text>
+              <EmptyState
+                icon="search-outline"
+                title={`No upcoming events matching "${query.trim()}"`}
+              />
             )}
           </View>
         )}
@@ -172,9 +174,7 @@ export default function Events() {
                 </Pressable>
               </View>
             ) : hosting.length === 0 ? (
-              <Text className="text-sm text-charcoal/50">
-                No hosted events matching "{query.trim()}"
-              </Text>
+              <EmptyState icon="search-outline" title={`No hosted events matching "${query.trim()}"`} />
             ) : (
               <View className="gap-3">
                 {hosting.map((e) => {
@@ -267,9 +267,7 @@ export default function Events() {
               );
             })}
             {past.length === 0 && q.length > 0 && (
-              <Text className="text-sm text-charcoal/50">
-                No past events matching "{query.trim()}"
-              </Text>
+              <EmptyState icon="search-outline" title={`No past events matching "${query.trim()}"`} />
             )}
           </View>
         )}

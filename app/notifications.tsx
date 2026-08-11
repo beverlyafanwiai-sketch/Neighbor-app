@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import EmptyState from '../components/EmptyState';
 import { getUser } from '../data/mock';
 import { goToTarget, TYPE_ICON } from '../lib/notificationTargets';
 import { useFriendsStore } from '../store/useFriendsStore';
@@ -100,9 +101,12 @@ export default function Notifications() {
             );
           })}
           {notifications.length === 0 && (
-            <Text className="mt-8 text-center text-sm text-charcoal/50">
-              Nothing here yet.
-            </Text>
+            <EmptyState
+              icon="notifications-outline"
+              iconColor="#3D3D3D80"
+              title="You're all caught up"
+              subtitle="New activity from your neighbors will show up here."
+            />
           )}
         </View>
       </ScrollView>

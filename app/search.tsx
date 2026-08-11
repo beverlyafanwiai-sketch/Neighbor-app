@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import EmptyState from '../components/EmptyState';
 import MentionText from '../components/MentionText';
 import { DISCOVER_USERS, ME, USERS, type Tone } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
@@ -126,18 +127,20 @@ export default function Search() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
         {q.length === 0 && (
-          <View className="mt-16 items-center px-6">
-            <Ionicons name="search-outline" size={32} color="#3D3D3D40" />
-            <Text className="mt-3 text-center text-sm text-charcoal/50">
-              Search across posts, people, groups, and events all at once.
-            </Text>
-          </View>
+          <EmptyState
+            icon="search-outline"
+            iconColor="#3D3D3D80"
+            title="Search your neighborhood"
+            subtitle="Find posts, people, groups, and events all at once."
+          />
         )}
 
         {q.length > 0 && !hasAnyResults && (
-          <Text className="mt-16 text-center text-sm text-charcoal/50">
-            No results for "{query.trim()}"
-          </Text>
+          <EmptyState
+            icon="search-outline"
+            title={`No results for "${query.trim()}"`}
+            subtitle="Try a different word or a shorter search."
+          />
         )}
 
         {matchedPeople.length > 0 && (

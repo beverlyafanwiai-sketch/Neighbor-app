@@ -7,6 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { COFFEE_FRIENDS_SVG } from '../../assets/illustrations/coffee-friends';
+import { PARK_FRIENDS_SVG } from '../../assets/illustrations/park-friends';
+import EmptyState from '../../components/EmptyState';
 import MentionText from '../../components/MentionText';
 import ReactionButton from '../../components/ReactionButton';
 import ShareSheet from '../../components/ShareSheet';
@@ -438,6 +440,15 @@ export default function HomeFeed() {
                 Search people, groups & events too
               </Text>
             </Pressable>
+          )}
+          {q.length === 0 && filteredPosts.length === 0 && (
+            <EmptyState
+              illustration={PARK_FRIENDS_SVG}
+              title="Your feed is quiet right now"
+              subtitle="Posts from neighbors will show up here. Try unblocking someone in Settings, or explore Discover to meet new people."
+              ctaLabel="Go to Discover"
+              onPressCta={() => router.push('/discover')}
+            />
           )}
         </View>
         </View>

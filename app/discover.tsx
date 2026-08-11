@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import EmptyState from '../components/EmptyState';
 import { DISCOVER_USERS, type Tone } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
@@ -139,9 +140,11 @@ export default function Discover() {
               );
             })}
             {people.length === 0 && (
-              <Text className="mt-8 text-center text-sm text-charcoal/50">
-                No one matches that search yet.
-              </Text>
+              <EmptyState
+                icon="search-outline"
+                title="No one matches that search yet"
+                subtitle="Try a different name or interest."
+              />
             )}
           </View>
         )}
@@ -183,9 +186,11 @@ export default function Discover() {
               );
             })}
             {groups.length === 0 && (
-              <Text className="mt-8 text-center text-sm text-charcoal/50">
-                No groups match that search yet.
-              </Text>
+              <EmptyState
+                icon="search-outline"
+                title="No groups match that search yet"
+                subtitle="Try a different search term."
+              />
             )}
           </View>
         )}

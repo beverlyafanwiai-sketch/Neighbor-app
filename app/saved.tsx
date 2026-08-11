@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import EmptyState from '../components/EmptyState';
 import MentionText from '../components/MentionText';
 import { DISCOVER_USERS, ME, USERS } from '../data/mock';
 import {
@@ -41,12 +42,12 @@ export default function SavedPosts() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8 pt-2">
         {savedPosts.length === 0 && (
-          <View className="mt-16 items-center px-6">
-            <Ionicons name="bookmark-outline" size={32} color="#3D3D3D40" />
-            <Text className="mt-3 text-center text-sm text-charcoal/50">
-              Posts you save will show up here.
-            </Text>
-          </View>
+          <EmptyState
+            icon="bookmark-outline"
+            iconColor="#3D3D3D80"
+            title="Nothing saved yet"
+            subtitle="Tap the bookmark on any post to save it for later."
+          />
         )}
 
         <View className="gap-4">
