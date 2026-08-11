@@ -18,7 +18,6 @@ export type User = {
   values: string;
   trust: string;
   prompts: Prompt[];
-  photoSeeds: number[];
   tags: string[];
   neighborhood: string;
   crossStreets: string;
@@ -43,7 +42,6 @@ export const ME: User = {
       a: 'Small dinners beat big parties, every time.',
     },
   ],
-  photoSeeds: [18, 24, 31, 44, 52, 61],
   tags: ['hiking', 'pottery', 'board games', 'live music'],
   neighborhood: 'Maple Hill',
   crossStreets: '5th & Sycamore',
@@ -70,7 +68,6 @@ export const USERS: User[] = [
       { q: 'How I recharge', a: 'Sitting on my fire escape with a bad reality show.' },
       { q: 'What I’m looking for', a: 'Friends who’ll actually text back and make plans.' },
     ],
-    photoSeeds: [11, 22, 33, 44],
     tags: ['trail running', 'pottery', 'photography', 'coffee'],
     neighborhood: 'Riverside',
     crossStreets: 'Elm & 3rd',
@@ -95,7 +92,6 @@ export const USERS: User[] = [
       { q: 'How I recharge', a: 'A long trail run with no music, just thinking.' },
       { q: 'A belief I hold that not everyone agrees with', a: 'Board games are better than most parties.' },
     ],
-    photoSeeds: [55, 62, 71, 83],
     tags: ['hiking', 'chess', 'vinyl records'],
     neighborhood: 'Old Town',
     crossStreets: 'Main & Birch',
@@ -120,7 +116,6 @@ export const USERS: User[] = [
       { q: 'How I recharge', a: 'Cooking a big meal for people I love, even just a few.' },
       { q: 'What I’m looking for', a: 'Friendship first — no agenda, just consistency.' },
     ],
-    photoSeeds: [7, 19, 28, 39],
     tags: ['pottery', 'cooking', 'journaling'],
     neighborhood: 'Elm Street',
     crossStreets: 'Elm & 9th',
@@ -145,7 +140,6 @@ export const USERS: User[] = [
       { q: 'How I recharge', a: 'Hands in clay, no talking required.' },
       { q: 'A belief I hold that not everyone agrees with', a: 'Most plans are better with fewer people.' },
     ],
-    photoSeeds: [64, 75, 86, 97],
     tags: ['pottery', 'gardening', 'crosswords'],
     neighborhood: 'Southside',
     crossStreets: 'Cedar & 7th',
@@ -173,7 +167,6 @@ export const DISCOVER_USERS: User[] = [
       { q: 'What I’m looking for', a: 'A standing weekly game night, honestly.' },
       { q: 'How I recharge', a: 'Losing badly at Catan with people I like.' },
     ],
-    photoSeeds: [14, 26, 37, 48],
     tags: ['board games', 'coffee', 'chess'],
     neighborhood: 'Riverside',
     crossStreets: '2nd & Ash',
@@ -198,7 +191,6 @@ export const DISCOVER_USERS: User[] = [
       { q: 'How I recharge', a: 'A sweaty run followed by a very loud show.' },
       { q: 'What I’m looking for', a: 'People who’ll say yes to a last-minute show.' },
     ],
-    photoSeeds: [21, 32, 43, 54],
     tags: ['live music', 'trail running', 'journaling'],
     neighborhood: 'Maple Hill',
     crossStreets: '5th & Poplar',
@@ -223,7 +215,6 @@ export const DISCOVER_USERS: User[] = [
       { q: 'How I recharge', a: 'Golden hour, a trail, and no one talking.' },
       { q: 'A belief I hold that not everyone agrees with', a: 'The best conversations happen mid-hike.' },
     ],
-    photoSeeds: [59, 63, 77, 88],
     tags: ['photography', 'hiking', 'gardening'],
     neighborhood: 'Old Town',
     crossStreets: 'Main & Willow',

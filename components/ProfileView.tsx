@@ -6,6 +6,8 @@ import { SvgXml } from 'react-native-svg';
 import { GROUP_SELFIE_SVG } from '../assets/illustrations/group-selfie';
 import type { User, VerificationBadge } from '../data/mock';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
+import { usePostsStore } from '../store/usePostsStore';
+import EmptyState from './EmptyState';
 
 const TABS = ['About', 'Prompts', 'Photos', 'Friends'] as const;
 type Tab = (typeof TABS)[number];
@@ -40,6 +42,8 @@ type Props = {
   onSettings?: () => void;
   onMoreOptions?: () => void;
   onSavedPosts?: () => void;
+  onPhotoPress?: (postId: string) => void;
+  onCreatePost?: () => void;
 };
 
 export default function ProfileView({
@@ -53,10 +57,14 @@ export default function ProfileView({
   onSettings,
   onMoreOptions,
   onSavedPosts,
+  onPhotoPress,
+  onCreatePost,
 }: Props) {
   const [tab, setTab] = useState<Tab>('About');
   const friendStatus = useFriendsStore((s) => s.statuses[user.id] ?? 'none');
   const respondFriend = useFriendsStore((s) => s.respond);
+  const posts = usePostsStore((s) => s.posts);
+  const photoPosts = posts.filter((p) => p.authorId === user.id && p.imageUri);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} className="flex-1 bg-cream">
@@ -254,15 +262,33 @@ export default function ProfileView({
         )}
 
         {tab === 'Photos' && (
-          <View className="flex-row flex-wrap gap-3">
-            {user.photoSeeds.map((n) => (
-              <Image
-                key={n}
-                source={{ uri: `https://picsum.photos/seed/${n}/200/200` }}
-                className="h-[31%] w-[31%] rounded-xl"
+          <>
+            {photoPosts.length > 0 ? (
+              <View className="flex-row flex-wrap gap-3">
+                {photoPosts.map((post) => (
+                  <Pressable
+                    key={post.id}
+                    onPress={() => onPhotoPress?.(post.id)}
+                    className="w-[31%]"
+                    style={{ aspectRatio: 1 }}
+                  >
+                    <Image source={{ uri: post.imageUri }} className="h-full w-full rounded-xl" />
+                  </Pressable>
+                ))}
+              </View>
+            ) : (
+              <EmptyState
+                icon="image-outline"
+                iconColor="#3D3D3D80"
+                title={isMe ? 'No photos yet' : `No photos from ${user.name} yet`}
+                subtitle={
+                  isMe ? 'Photos you add to a post will show up here.' : undefined
+                }
+                ctaLabel={isMe && onCreatePost ? 'Share a photo' : undefined}
+                onPressCta={isMe ? onCreatePost : undefined}
               />
-            ))}
-          </View>
+            )}
+          </>
         )}
 
         {tab === 'Friends' && (

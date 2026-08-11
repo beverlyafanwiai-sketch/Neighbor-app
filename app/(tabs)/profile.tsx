@@ -23,6 +23,8 @@ export default function Profile() {
         onFriendPress={(friend) => router.push(`/profile/${friend.id}`)}
         onSettings={() => router.push('/settings')}
         onSavedPosts={() => router.push('/saved')}
+        onPhotoPress={(postId) => router.push(`/post/${postId}`)}
+        onCreatePost={() => router.push('/create-post')}
       />
     </SafeAreaView>
   );
