@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ME, getUser } from '../../data/mock';
+import { getGroupPhotos, useGroupAlbumStore } from '../../store/useGroupAlbumStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -26,6 +28,9 @@ export default function GroupDetail() {
   const pinnedMessage = useGroupChatStore((s) =>
     group ? (s.messages[group.id] ?? []).find((m) => m.id === pinnedMessageId) : undefined
   );
+  const albumPhotos = useGroupAlbumStore((s) => s.photos);
+  const addPhotos = useGroupAlbumStore((s) => s.addPhotos);
+  const removePhoto = useGroupAlbumStore((s) => s.removePhoto);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   if (!group) {
@@ -48,10 +53,25 @@ export default function GroupDetail() {
       ? profile
       : getUser(pinnedMessage.senderId)
     : undefined;
+  const groupPhotos = getGroupPhotos(group.id, albumPhotos);
 
   const remove = () => {
     deleteGroup(group.id);
     router.back();
+  };
+
+  const pickPhotos = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+      allowsMultipleSelection: true,
+      selectionLimit: 6,
+    });
+    if (!result.canceled && result.assets.length > 0) {
+      addPhotos(group.id, result.assets.map((a) => a.uri));
+    }
   };
 
   return (
@@ -181,6 +201,41 @@ export default function GroupDetail() {
             );
           })}
         </View>
+
+        {(groupPhotos.length > 0 || joined) && (
+          <>
+            <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+              Group photos{groupPhotos.length > 0 ? ` (${groupPhotos.length})` : ''}
+            </Text>
+            <View className="flex-row flex-wrap gap-3">
+              {groupPhotos.map((photo) => (
+                <View key={photo.id} className="w-[31%]" style={{ aspectRatio: 1 }}>
+                  <Image source={{ uri: photo.uri }} className="h-full w-full rounded-xl" />
+                  {photo.uploaderId === ME.id && (
+                    <Pressable
+                      onPress={() => removePhoto(photo.id)}
+                      className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-charcoal/60"
+                    >
+                      <Ionicons name="close" size={12} color="#F5F2E9" />
+                    </Pressable>
+                  )}
+                </View>
+              ))}
+              {joined && (
+                <Pressable
+                  onPress={pickPhotos}
+                  className="w-[31%] items-center justify-center rounded-xl border-2 border-dashed border-charcoal/20 bg-cream active:opacity-70"
+                  style={{ aspectRatio: 1 }}
+                >
+                  <Ionicons name="add" size={20} color="#3D3D3D80" />
+                  <Text className="mt-1 text-center text-[10px] font-medium text-charcoal/50">
+                    Add photos
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

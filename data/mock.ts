@@ -764,6 +764,34 @@ export const EVENT_PHOTOS: EventPhoto[] = [
   },
 ];
 
+export type GroupPhoto = {
+  id: string;
+  groupId: string;
+  uploaderId: string;
+  uri: string;
+};
+
+export const GROUP_PHOTOS: GroupPhoto[] = [
+  {
+    id: 'gp1',
+    groupId: 'weekend-hikers',
+    uploaderId: 'sam',
+    uri: 'https://picsum.photos/seed/hikers-summit/500/500',
+  },
+  {
+    id: 'gp2',
+    groupId: 'weekend-hikers',
+    uploaderId: 'theo',
+    uri: 'https://picsum.photos/seed/hikers-trailhead/500/500',
+  },
+  {
+    id: 'gp3',
+    groupId: 'weekend-hikers',
+    uploaderId: 'sam',
+    uri: 'https://picsum.photos/seed/hikers-view/500/500',
+  },
+];
+
 export type LendItemKind = 'have' | 'want';
 
 export type LendItem = {
