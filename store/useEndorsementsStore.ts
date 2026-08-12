@@ -1,0 +1,70 @@
+import { create } from 'zustand';
+
+import { ME } from '../data/mock';
+
+export type Endorsement = {
+  skill: string;
+  endorserId: string;
+};
+
+type EndorsementsState = {
+  endorsements: Record<string, Endorsement[]>;
+  addEndorsement: (targetUserId: string, skill: string) => void;
+  removeEndorsement: (targetUserId: string, skill: string) => void;
+};
+
+const SEED: Record<string, Endorsement[]> = {
+  theo: [
+    { skill: 'Beer brewing', endorserId: 'sam' },
+    { skill: 'Beer brewing', endorserId: 'priya' },
+    { skill: 'Trail routes', endorserId: 'maya' },
+  ],
+  amara: [{ skill: 'Pottery', endorserId: 'theo' }],
+};
+
+export const useEndorsementsStore = create<EndorsementsState>((set) => ({
+  endorsements: SEED,
+
+  addEndorsement: (targetUserId, skill) =>
+    set((s) => {
+      const clean = skill.trim();
+      if (!clean) return s;
+      const existing = s.endorsements[targetUserId] ?? [];
+      const alreadyGiven = existing.some(
+        (e) => e.endorserId === ME.id && e.skill.toLowerCase() === clean.toLowerCase()
+      );
+      if (alreadyGiven) return s;
+      return {
+        endorsements: {
+          ...s.endorsements,
+          [targetUserId]: [...existing, { skill: clean, endorserId: ME.id }],
+        },
+      };
+    }),
+
+  removeEndorsement: (targetUserId, skill) =>
+    set((s) => ({
+      endorsements: {
+        ...s.endorsements,
+        [targetUserId]: (s.endorsements[targetUserId] ?? []).filter(
+          (e) => !(e.endorserId === ME.id && e.skill === skill)
+        ),
+      },
+    })),
+}));
+
+export type EndorsementGroup = { skill: string; entries: Endorsement[] };
+
+export function getEndorsementGroups(
+  targetUserId: string,
+  endorsements: Record<string, Endorsement[]>
+): EndorsementGroup[] {
+  const list = endorsements[targetUserId] ?? [];
+  const groups = new Map<string, EndorsementGroup>();
+  for (const entry of list) {
+    const key = entry.skill.toLowerCase();
+    if (!groups.has(key)) groups.set(key, { skill: entry.skill, entries: [] });
+    groups.get(key)!.entries.push(entry);
+  }
+  return Array.from(groups.values()).sort((a, b) => b.entries.length - a.entries.length);
+}

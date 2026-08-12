@@ -7,6 +7,7 @@ import { GROUP_SELFIE_SVG } from '../assets/illustrations/group-selfie';
 import { getUser, ME, type User, type VerificationBadge } from '../data/mock';
 import { formatMutualTrustLine, formatOwnTrustLine } from '../lib/trust';
 import { isAvailable, useAvailabilityStore } from '../store/useAvailabilityStore';
+import { getEndorsementGroups, useEndorsementsStore } from '../store/useEndorsementsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { useGroupsStore } from '../store/useGroupsStore';
 import { usePostsStore } from '../store/usePostsStore';
@@ -81,6 +82,12 @@ export default function ProfileView({
   const welcomeNotes = getWelcomeNotes(user.id, allWelcomeNotes);
   const [composingNote, setComposingNote] = useState(false);
   const [noteDraft, setNoteDraft] = useState('');
+  const endorsements = useEndorsementsStore((s) => s.endorsements);
+  const addEndorsement = useEndorsementsStore((s) => s.addEndorsement);
+  const removeEndorsement = useEndorsementsStore((s) => s.removeEndorsement);
+  const endorsementGroups = getEndorsementGroups(user.id, endorsements);
+  const [composingEndorsement, setComposingEndorsement] = useState(false);
+  const [endorsementDraft, setEndorsementDraft] = useState('');
 
   const myFriendIds = Object.keys(friendStatuses).filter((id) => friendStatuses[id] === 'friends');
   const myJoinedGroupIds = Object.keys(joinedGroups).filter((id) => joinedGroups[id]);
@@ -361,6 +368,83 @@ export default function ProfileView({
                 Trust
               </Text>
               <Text className="mt-1 text-charcoal">{trustLine}</Text>
+            </View>
+            <View className="rounded-2xl bg-sand p-4">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                Endorsements
+              </Text>
+              {endorsementGroups.length === 0 && (
+                <Text className="mt-1 text-sm text-charcoal/50">
+                  {isMe
+                    ? 'Nothing yet — endorsements from neighbors will show up here.'
+                    : 'No endorsements yet — be the first to vouch for a skill.'}
+                </Text>
+              )}
+              {endorsementGroups.length > 0 && (
+                <View className="mt-2 gap-2">
+                  {endorsementGroups.map(({ skill, entries }) => {
+                    const mine = entries.some((e) => e.endorserId === ME.id);
+                    const names = entries
+                      .map((e) => (e.endorserId === ME.id ? 'You' : getUser(e.endorserId)?.name))
+                      .filter((n): n is string => Boolean(n))
+                      .join(', ');
+                    return (
+                      <Pressable
+                        key={skill}
+                        disabled={!mine}
+                        onPress={() => removeEndorsement(user.id, skill)}
+                        className="rounded-xl bg-cream px-3 py-2.5"
+                      >
+                        <Text className="text-sm font-medium text-charcoal">
+                          {skill}
+                          <Text className="text-charcoal/50"> · {entries.length}</Text>
+                        </Text>
+                        <Text className="mt-0.5 text-xs text-charcoal/50">— {names}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
+              {!isMe &&
+                (composingEndorsement ? (
+                  <View className="mt-3 gap-2">
+                    <TextInput
+                      value={endorsementDraft}
+                      onChangeText={setEndorsementDraft}
+                      placeholder="e.g. Great with power tools"
+                      placeholderTextColor="#3D3D3D80"
+                      autoFocus
+                      className="rounded-2xl bg-cream px-3 py-2.5 text-sm text-charcoal"
+                    />
+                    <View className="flex-row justify-end gap-4">
+                      <Pressable
+                        onPress={() => {
+                          setComposingEndorsement(false);
+                          setEndorsementDraft('');
+                        }}
+                      >
+                        <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          if (!endorsementDraft.trim()) return;
+                          addEndorsement(user.id, endorsementDraft.trim());
+                          setEndorsementDraft('');
+                          setComposingEndorsement(false);
+                        }}
+                      >
+                        <Text className="text-sm font-semibold text-terracotta">Send</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                ) : (
+                  <Pressable
+                    onPress={() => setComposingEndorsement(true)}
+                    className="mt-3 self-start rounded-full bg-gold px-4 py-2"
+                  >
+                    <Text className="text-sm font-semibold text-charcoal">+ Endorse a skill</Text>
+                  </Pressable>
+                ))}
             </View>
           </View>
         )}
