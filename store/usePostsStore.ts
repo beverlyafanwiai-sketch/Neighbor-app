@@ -65,7 +65,7 @@ type PostsState = {
   tapCommentReaction: (postId: string, commentId: string) => void;
   setCommentReaction: (postId: string, commentId: string, type: ReactionType) => void;
   toggleSave: (postId: string) => void;
-  addComment: (postId: string, text: string) => void;
+  addComment: (postId: string, text: string, parentId?: string) => void;
   updateComment: (postId: string, commentId: string, text: string) => void;
   deleteComment: (postId: string, commentId: string) => void;
 };
@@ -158,8 +158,14 @@ export const usePostsStore = create<PostsState>((set) => ({
   toggleSave: (postId) =>
     set((s) => ({ savedIds: { ...s.savedIds, [postId]: !s.savedIds[postId] } })),
 
-  addComment: (postId, text) => {
-    const comment: CommentItem = { id: `${Date.now()}`, authorId: ME.id, text, time: 'Just now' };
+  addComment: (postId, text, parentId) => {
+    const comment: CommentItem = {
+      id: `${Date.now()}`,
+      authorId: ME.id,
+      text,
+      time: 'Just now',
+      parentId,
+    };
     set((s) => ({
       comments: { ...s.comments, [postId]: [...(s.comments[postId] ?? []), comment] },
     }));

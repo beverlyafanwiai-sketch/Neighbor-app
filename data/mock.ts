@@ -346,6 +346,7 @@ export type CommentItem = {
   time: string;
   edited?: boolean;
   reactions?: Record<string, ReactionType>;
+  parentId?: string;
 };
 
 export const COMMENTS: Record<string, CommentItem[]> = {
@@ -358,6 +359,8 @@ export const COMMENTS: Record<string, CommentItem[]> = {
       reactions: { maya: 'haha', priya: 'love' },
     },
     { id: 'c2', authorId: 'priya', text: 'This is exactly the kind of no-agenda thing I need this week.', time: '45m ago' },
+    { id: 'c3', authorId: 'priya', text: 'deal 🤝', time: '40m ago', parentId: 'c1' },
+    { id: 'c4', authorId: 'amara', text: 'perfect, see you both', time: '35m ago', parentId: 'c1' },
   ],
   '4': [
     { id: 'c1', authorId: 'sam', text: "I'll swing by after work, save me a jar!", time: '2d ago' },

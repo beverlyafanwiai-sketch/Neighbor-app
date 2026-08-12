@@ -55,6 +55,7 @@ export default function PostDetail() {
   const [sharing, setSharing] = useState(false);
   const [reactorsFor, setReactorsFor] = useState<'post' | string | null>(null);
   const [reporting, setReporting] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<{ id: string; name: string } | null>(null);
 
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
   const author = post ? resolveUser(post.authorId) : undefined;
@@ -73,8 +74,9 @@ export default function PostDetail() {
 
   const send = () => {
     if (!draft.trim()) return;
-    addComment(post.id, draft.trim());
+    addComment(post.id, draft.trim(), replyingTo?.id);
     setDraft('');
+    setReplyingTo(null);
   };
 
   const remove = () => {
@@ -87,6 +89,14 @@ export default function PostDetail() {
     updateComment(post.id, editingCommentId, editDraft.trim());
     setEditingCommentId(null);
   };
+
+  const commentRows: { comment: CommentItem; isReply: boolean }[] = [];
+  for (const c of comments.filter((c) => !c.parentId)) {
+    commentRows.push({ comment: c, isReply: false });
+    for (const r of comments.filter((r) => r.parentId === c.id)) {
+      commentRows.push({ comment: r, isReply: true });
+    }
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -145,8 +155,8 @@ export default function PostDetail() {
         keyboardVerticalOffset={90}
       >
         <FlatList
-          data={comments}
-          keyExtractor={(c) => c.id}
+          data={commentRows}
+          keyExtractor={(row) => row.comment.id}
           contentContainerClassName="pb-4"
           ListHeaderComponent={
             <View className="gap-3 border-b border-charcoal/10 bg-cream p-4">
@@ -204,14 +214,17 @@ export default function PostDetail() {
               </View>
             </View>
           }
-          renderItem={({ item }) => {
+          renderItem={({ item: row }) => {
+            const item = row.comment;
             const commenter = resolveUser(item.authorId);
             if (!commenter) return null;
             const isCommentAuthor = item.authorId === ME.id;
 
             if (deletingCommentId === item.id) {
               return (
-                <View className="flex-row items-center gap-3 bg-terracotta/10 px-4 py-3">
+                <View
+                  className={`flex-row items-center gap-3 bg-terracotta/10 px-4 py-3 ${row.isReply ? 'ml-10' : ''}`}
+                >
                   <Text className="flex-1 text-sm text-charcoal">Delete this comment?</Text>
                   <Pressable
                     onPress={() => setDeletingCommentId(null)}
@@ -234,7 +247,7 @@ export default function PostDetail() {
 
             if (editingCommentId === item.id) {
               return (
-                <View className="gap-2 px-4 py-3">
+                <View className={`gap-2 px-4 py-3 ${row.isReply ? 'ml-10' : ''}`}>
                   <TextInput
                     value={editDraft}
                     onChangeText={setEditDraft}
@@ -258,8 +271,13 @@ export default function PostDetail() {
             const commentMyReaction = myCommentReactions[commentReactionKey];
 
             return (
-              <View className="flex-row items-start gap-2.5 px-4 py-3">
-                <Image source={{ uri: commenter.avatar }} className="h-9 w-9 rounded-full" />
+              <View
+                className={`flex-row items-start gap-2.5 px-4 py-3 ${row.isReply ? 'ml-10' : ''}`}
+              >
+                <Image
+                  source={{ uri: commenter.avatar }}
+                  className={row.isReply ? 'h-7 w-7 rounded-full' : 'h-9 w-9 rounded-full'}
+                />
                 <View className="flex-1">
                   <Pressable onPress={() => router.push(`/profile/${commenter.id}`)}>
                     <View className="flex-row items-baseline gap-2">
@@ -274,7 +292,7 @@ export default function PostDetail() {
                       className="mt-0.5 text-sm leading-5 text-charcoal/80"
                     />
                   </Pressable>
-                  <View className="mt-1">
+                  <View className="mt-1 flex-row items-center gap-3">
                     <ReactionButton
                       reactions={item.reactions}
                       myReaction={commentMyReaction}
@@ -283,6 +301,11 @@ export default function PostDetail() {
                       onShowReactors={() => setReactorsFor(item.id)}
                       compact
                     />
+                    <Pressable
+                      onPress={() => setReplyingTo({ id: row.isReply ? item.parentId! : item.id, name: commenter.name })}
+                    >
+                      <Text className="text-xs font-medium text-charcoal/50">Reply</Text>
+                    </Pressable>
                   </View>
                 </View>
                 {isCommentAuthor && (
@@ -314,12 +337,28 @@ export default function PostDetail() {
           }
         />
 
-        <View className="flex-row items-center gap-2 border-t border-charcoal/10 bg-cream px-3 py-2.5">
+        {replyingTo && (
+          <View className="flex-row items-center justify-between border-t border-charcoal/10 bg-cream px-4 pt-2">
+            <Text className="text-xs text-charcoal/50">
+              Replying to <Text className="font-semibold text-charcoal/70">{replyingTo.name}</Text>
+            </Text>
+            <Pressable onPress={() => setReplyingTo(null)} className="p-1">
+              <Ionicons name="close" size={14} color="#3D3D3D80" />
+            </Pressable>
+          </View>
+        )}
+        <View
+          className={`flex-row items-center gap-2 bg-cream px-3 py-2.5 ${replyingTo ? '' : 'border-t border-charcoal/10'}`}
+        >
           <View className="flex-1">
             <MentionTextInput
               value={draft}
               onChangeText={setDraft}
-              placeholder="Write a comment... Try @ to mention someone."
+              placeholder={
+                replyingTo
+                  ? `Reply to ${replyingTo.name}...`
+                  : 'Write a comment... Try @ to mention someone.'
+              }
               className="rounded-full bg-sand px-4 py-2.5 text-charcoal"
               multiline
               dropdownPosition="above"
