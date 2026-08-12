@@ -18,6 +18,7 @@ import ReactorsSheet from '../../components/ReactorsSheet';
 import ReportPostSheet from '../../components/ReportPostSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { DISCOVER_USERS, ME, USERS, type Post, type User } from '../../data/mock';
+import { getActiveAlerts, useAlertsStore } from '../../store/useAlertsStore';
 import { isAvailable, useAvailabilityStore } from '../../store/useAvailabilityStore';
 import { useBlockedStore } from '../../store/useBlockedStore';
 import { useMutedStore } from '../../store/useMutedStore';
@@ -60,6 +61,7 @@ const NAV_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; href: st
   { label: 'Discover', icon: 'compass', href: '/discover' },
   { label: 'Borrow & Lend', icon: 'basket', href: '/lend' },
   { label: 'Neighborhood Recs', icon: 'star', href: '/recs' },
+  { label: 'Neighborhood Alerts', icon: 'warning', href: '/alerts' },
   { label: 'Saved', icon: 'bookmark', href: '/saved' },
   { label: 'Profile', icon: 'person', href: '/(tabs)/profile' },
 ];
@@ -201,6 +203,8 @@ export default function HomeFeed() {
   const posts = usePostsStore((s) => s.posts);
   const draftCount = usePostsStore((s) => s.drafts.length);
   const scheduledCount = usePostsStore((s) => s.scheduledPosts.length);
+  const allAlerts = useAlertsStore((s) => s.alerts);
+  const activeAlerts = getActiveAlerts(allAlerts, Date.now());
   const myReactions = usePostsStore((s) => s.myReactions);
   const tapReaction = usePostsStore((s) => s.tapReaction);
   const setReaction = usePostsStore((s) => s.setReaction);
@@ -328,6 +332,24 @@ export default function HomeFeed() {
         <View className={isWide ? 'w-full max-w-xl' : 'w-full'}>
         {!q && (
           <>
+            {activeAlerts.length > 0 && (
+              <Pressable
+                onPress={() => router.push('/alerts')}
+                className="mx-5 mt-4 flex-row items-center gap-3 rounded-2xl bg-terracotta/15 p-3.5 active:opacity-80"
+              >
+                <Ionicons name="warning" size={18} className="text-terracotta" />
+                <View className="flex-1">
+                  <Text className="text-xs font-semibold uppercase tracking-wide text-terracotta">
+                    {activeAlerts.length} neighborhood alert{activeAlerts.length === 1 ? '' : 's'}
+                  </Text>
+                  <Text className="mt-0.5 text-sm text-charcoal" numberOfLines={1}>
+                    {activeAlerts[0].text}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} className="text-terracotta" />
+              </Pressable>
+            )}
+
             <Pressable
               onPress={() => router.push('/create-post')}
               className="mx-5 mt-4 rounded-2xl bg-cream p-3.5 active:opacity-80"

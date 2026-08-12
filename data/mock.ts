@@ -935,3 +935,43 @@ export const REC_ENTRIES: RecEntry[] = [
     note: "My kids adore her and she's never once been late. Books up fast though.",
   },
 ];
+
+export type AlertCategoryValue = 'lost-pet' | 'road' | 'safety' | 'free' | 'other';
+
+export const ALERT_CATEGORIES: { value: AlertCategoryValue; label: string; emoji: string }[] = [
+  { value: 'lost-pet', label: 'Lost pet', emoji: '🐕' },
+  { value: 'road', label: 'Road & traffic', emoji: '🚧' },
+  { value: 'safety', label: 'Safety', emoji: '⚠️' },
+  { value: 'free', label: 'Free stuff', emoji: '🎁' },
+  { value: 'other', label: 'Other', emoji: '📢' },
+];
+
+export type NeighborhoodAlert = {
+  id: string;
+  authorId: string;
+  category: AlertCategoryValue;
+  text: string;
+  postedAt: number;
+  expiresAt: number;
+};
+
+const alertSeedNow = Date.now();
+
+export const NEIGHBORHOOD_ALERTS: NeighborhoodAlert[] = [
+  {
+    id: 'alert-1',
+    authorId: 'nia',
+    category: 'lost-pet',
+    text: 'Lost dog near 5th & Elm — a friendly golden retriever, answers to Biscuit. Please reach out if you spot him!',
+    postedAt: alertSeedNow - 2 * 60 * 60 * 1000,
+    expiresAt: alertSeedNow + 22 * 60 * 60 * 1000,
+  },
+  {
+    id: 'alert-2',
+    authorId: 'sam',
+    category: 'road',
+    text: 'Water main work on Birch St today — expect lane closures and some noise through the afternoon.',
+    postedAt: alertSeedNow - 24 * 60 * 60 * 1000,
+    expiresAt: alertSeedNow + 6 * 60 * 60 * 1000,
+  },
+];
