@@ -16,6 +16,7 @@ const NOTIFICATION_ROWS: { key: keyof NotificationPrefs; label: string; descript
   { key: 'mentions', label: 'Mentions', description: 'When someone @mentions you in a post or comment' },
   { key: 'lendUpdates', label: 'Borrow & lend', description: 'Requests, approvals, and offers on the lending board' },
   { key: 'recsActivity', label: 'Neighborhood recs', description: 'Agreements and suggestions on the recommendations board' },
+  { key: 'welcomeNotes', label: 'Welcome notes', description: 'Replies when you leave a note for a new neighbor' },
 ];
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {

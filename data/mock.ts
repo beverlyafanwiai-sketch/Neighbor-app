@@ -28,6 +28,7 @@ export type User = {
   // ME's own status lives in useAvailabilityStore instead, since it's
   // something ME actually toggles.
   available?: boolean;
+  isNew?: boolean;
 };
 
 export const ME: User = {
@@ -117,6 +118,7 @@ export const USERS: User[] = [
     values: 'Warmth, honesty, low-pressure hangs',
     friendIds: ['amara', 'theo'],
     available: true,
+    isNew: true,
     prompts: [
       { q: 'How I recharge', a: 'Cooking a big meal for people I love, even just a few.' },
       { q: 'What I’m looking for', a: 'Friendship first — no agenda, just consistency.' },
@@ -168,6 +170,7 @@ export const DISCOVER_USERS: User[] = [
     interests: 'Board games, home brewing, quiet bars',
     values: 'Consistency, good humor, low drama',
     friendIds: ['theo'],
+    isNew: true,
     prompts: [
       { q: 'What I’m looking for', a: 'A standing weekly game night, honestly.' },
       { q: 'How I recharge', a: 'Losing badly at Catan with people I like.' },
@@ -621,7 +624,7 @@ export type NotificationTarget =
 
 export type NotificationItem = {
   id: string;
-  type: 'friend' | 'friend_request' | 'event' | 'group' | 'message' | 'mention' | 'lend' | 'rec';
+  type: 'friend' | 'friend_request' | 'event' | 'group' | 'message' | 'mention' | 'lend' | 'rec' | 'welcome';
   actorId?: string;
   text: string;
   time: string;
@@ -690,6 +693,34 @@ export const NOTIFICATIONS: NotificationItem[] = [
     time: '2d ago',
     read: true,
     target: { kind: 'profile', id: 'theo' },
+  },
+];
+
+export type WelcomeNote = {
+  id: string;
+  toUserId: string;
+  fromUserId: string;
+  text: string;
+};
+
+export const WELCOME_NOTES: WelcomeNote[] = [
+  {
+    id: 'w1',
+    toUserId: 'jordan',
+    fromUserId: 'sam',
+    text: 'The coffee shop on 5th does a great oat milk latte — good spot to work from too.',
+  },
+  {
+    id: 'w2',
+    toUserId: 'jordan',
+    fromUserId: 'amara',
+    text: 'Porch potlucks are a great way to meet folks around here. Come by the next one!',
+  },
+  {
+    id: 'w3',
+    toUserId: 'priya',
+    fromUserId: 'theo',
+    text: 'Welcome to the block! The farmers market on Sundays is not to be missed.',
   },
 ];
 

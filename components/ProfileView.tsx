@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgXml } from 'react-native-svg';
 
 import { GROUP_SELFIE_SVG } from '../assets/illustrations/group-selfie';
-import { ME, type User, type VerificationBadge } from '../data/mock';
+import { getUser, ME, type User, type VerificationBadge } from '../data/mock';
 import { formatMutualTrustLine, formatOwnTrustLine } from '../lib/trust';
 import { isAvailable, useAvailabilityStore } from '../store/useAvailabilityStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { useGroupsStore } from '../store/useGroupsStore';
 import { usePostsStore } from '../store/usePostsStore';
+import { getWelcomeNotes, useWelcomeNotesStore } from '../store/useWelcomeNotesStore';
 import EmptyState from './EmptyState';
 
 const TABS = ['About', 'Prompts', 'Photos', 'Friends'] as const;
@@ -75,6 +76,11 @@ export default function ProfileView({
   const joinedGroups = useGroupsStore((s) => s.joined);
   const posts = usePostsStore((s) => s.posts);
   const photoPosts = posts.filter((p) => p.authorId === user.id && (p.imageUris?.length ?? 0) > 0);
+  const allWelcomeNotes = useWelcomeNotesStore((s) => s.notes);
+  const addWelcomeNote = useWelcomeNotesStore((s) => s.addNote);
+  const welcomeNotes = getWelcomeNotes(user.id, allWelcomeNotes);
+  const [composingNote, setComposingNote] = useState(false);
+  const [noteDraft, setNoteDraft] = useState('');
 
   const myFriendIds = Object.keys(friendStatuses).filter((id) => friendStatuses[id] === 'friends');
   const myJoinedGroupIds = Object.keys(joinedGroups).filter((id) => joinedGroups[id]);
@@ -224,6 +230,81 @@ export default function ProfileView({
           )}
         </View>
       </View>
+
+      {user.isNew && (
+        <View className="border-b border-charcoal/10 bg-cream px-5 py-5">
+          <View className="flex-row items-center gap-1.5">
+            <Ionicons name="sparkles" size={13} color="#D9A441" />
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+              {isMe ? 'Welcome notes from your neighbors' : `New to the neighborhood`}
+            </Text>
+          </View>
+
+          {!isMe && welcomeNotes.length === 0 && (
+            <Text className="mt-2 text-sm text-charcoal/50">
+              No welcome notes yet — be the first to say hi.
+            </Text>
+          )}
+
+          {welcomeNotes.length > 0 && (
+            <View className="mt-3 gap-2">
+              {welcomeNotes.map((note) => {
+                const author = getUser(note.fromUserId);
+                return (
+                  <View key={note.id} className="rounded-2xl bg-sand p-3">
+                    <Text className="text-sm leading-5 text-charcoal">“{note.text}”</Text>
+                    <Text className="mt-1 text-xs text-charcoal/50">
+                      — {author?.name ?? 'A neighbor'}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
+          {!isMe &&
+            (composingNote ? (
+              <View className="mt-3 gap-2">
+                <TextInput
+                  value={noteDraft}
+                  onChangeText={setNoteDraft}
+                  placeholder="A tip, a favorite spot, an offer to say hi..."
+                  placeholderTextColor="#3D3D3D80"
+                  multiline
+                  autoFocus
+                  className="min-h-[70px] rounded-2xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+                />
+                <View className="flex-row justify-end gap-4">
+                  <Pressable
+                    onPress={() => {
+                      setComposingNote(false);
+                      setNoteDraft('');
+                    }}
+                  >
+                    <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      if (!noteDraft.trim()) return;
+                      addWelcomeNote(user.id, noteDraft.trim());
+                      setNoteDraft('');
+                      setComposingNote(false);
+                    }}
+                  >
+                    <Text className="text-sm font-semibold text-terracotta">Send</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => setComposingNote(true)}
+                className="mt-3 self-start rounded-full bg-gold px-4 py-2"
+              >
+                <Text className="text-sm font-semibold text-charcoal">Leave a welcome note</Text>
+              </Pressable>
+            ))}
+        </View>
+      )}
 
       <View className="flex-row justify-around border-b border-charcoal/10 bg-cream px-2 pt-3">
         {TABS.map((t) => (

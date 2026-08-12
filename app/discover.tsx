@@ -109,7 +109,14 @@ export default function Discover() {
                   <View className="flex-row items-center gap-3">
                     <Image source={{ uri: p.avatar }} className="h-12 w-12 rounded-full" />
                     <View className="flex-1">
-                      <Text className="font-semibold text-charcoal">{p.name}</Text>
+                      <View className="flex-row items-center gap-1.5">
+                        <Text className="font-semibold text-charcoal">{p.name}</Text>
+                        {p.isNew && (
+                          <View className="rounded-full bg-gold/20 px-2 py-0.5">
+                            <Text className="text-[10px] font-bold text-gold">NEW</Text>
+                          </View>
+                        )}
+                      </View>
                       <Text className="mt-0.5 text-xs text-charcoal/60" numberOfLines={1}>
                         {p.tagline}
                       </Text>

@@ -12,6 +12,7 @@ export const TYPE_ICON: Record<NotificationItem['type'], keyof typeof Ionicons.g
   mention: 'at',
   lend: 'basket',
   rec: 'star',
+  welcome: 'sparkles',
 };
 
 export function goToTarget(target?: NotificationTarget) {

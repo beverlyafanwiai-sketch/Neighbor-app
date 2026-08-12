@@ -8,6 +8,7 @@ export type NotificationPrefs = {
   mentions: boolean;
   lendUpdates: boolean;
   recsActivity: boolean;
+  welcomeNotes: boolean;
 };
 
 type SettingsState = {
@@ -24,6 +25,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     mentions: true,
     lendUpdates: true,
     recsActivity: true,
+    welcomeNotes: true,
   },
 
   toggleNotificationPref: (key) =>
