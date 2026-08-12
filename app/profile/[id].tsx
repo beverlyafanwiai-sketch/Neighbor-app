@@ -8,6 +8,7 @@ import ProfileView from '../../components/ProfileView';
 import { ME, USERS, getUser, type User } from '../../data/mock';
 import { useBlockedStore } from '../../store/useBlockedStore';
 import { useConversationsStore } from '../../store/useConversationsStore';
+import { useMutedStore } from '../../store/useMutedStore';
 import { useProfileStore } from '../../store/useProfileStore';
 
 export default function OtherProfile() {
@@ -17,6 +18,8 @@ export default function OtherProfile() {
   const getOrCreateConversation = useConversationsStore((s) => s.getOrCreate);
   const isBlocked = useBlockedStore((s) => (user ? (s.blockedIds[user.id] ?? false) : false));
   const toggleBlocked = useBlockedStore((s) => s.toggle);
+  const isMuted = useMutedStore((s) => (user ? (s.mutedIds[user.id] ?? false) : false));
+  const toggleMuted = useMutedStore((s) => s.toggle);
 
   const [showActions, setShowActions] = useState(false);
   const [confirmingBlock, setConfirmingBlock] = useState(false);
@@ -85,6 +88,27 @@ export default function OtherProfile() {
                 <Ionicons name="close" size={16} color="#3D3D3D" />
               </Pressable>
             </View>
+
+            <Pressable
+              onPress={() => toggleMuted(user.id)}
+              className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
+            >
+              <Ionicons
+                name={isMuted ? 'volume-high-outline' : 'volume-mute-outline'}
+                size={20}
+                color="#3D3D3D"
+              />
+              <View className="flex-1">
+                <Text className="text-sm font-medium text-charcoal">
+                  {isMuted ? `Unmute ${user.name}` : `Mute ${user.name}`}
+                </Text>
+                {!isMuted && (
+                  <Text className="mt-0.5 text-xs text-charcoal/50">
+                    Quietly hide their posts — they won't be notified
+                  </Text>
+                )}
+              </View>
+            </Pressable>
 
             {confirmingBlock ? (
               <View className="gap-3 rounded-2xl bg-terracotta/10 p-4">

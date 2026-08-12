@@ -7,12 +7,15 @@ import EmptyState from '../components/EmptyState';
 import { getUser } from '../data/mock';
 import { goToTarget, TYPE_ICON } from '../lib/notificationTargets';
 import { useFriendsStore } from '../store/useFriendsStore';
+import { useMutedStore } from '../store/useMutedStore';
 import { useNotificationsStore } from '../store/useNotificationsStore';
 
 export default function Notifications() {
-  const notifications = useNotificationsStore((s) => s.notifications);
+  const allNotifications = useNotificationsStore((s) => s.notifications);
   const markRead = useNotificationsStore((s) => s.markRead);
   const markAllRead = useNotificationsStore((s) => s.markAllRead);
+  const mutedIds = useMutedStore((s) => s.mutedIds);
+  const notifications = allNotifications.filter((n) => !n.actorId || !mutedIds[n.actorId]);
   const hasUnread = notifications.some((n) => !n.read);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const acceptRequest = useFriendsStore((s) => s.acceptRequest);

@@ -20,6 +20,7 @@ import ShareSheet from '../../components/ShareSheet';
 import { DISCOVER_USERS, ME, USERS, type Post, type User } from '../../data/mock';
 import { isAvailable, useAvailabilityStore } from '../../store/useAvailabilityStore';
 import { useBlockedStore } from '../../store/useBlockedStore';
+import { useMutedStore } from '../../store/useMutedStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { useFriendsStore } from '../../store/useFriendsStore';
 import { useGroupsStore } from '../../store/useGroupsStore';
@@ -193,7 +194,10 @@ export default function HomeFeed() {
   const profile = useProfileStore((s) => s.profile);
   const stories = [{ ...profile, isYou: true }, ...USERS];
   const [query, setQuery] = useState('');
-  const unreadCount = useNotificationsStore((s) => s.notifications.filter((n) => !n.read).length);
+  const mutedIds = useMutedStore((s) => s.mutedIds);
+  const unreadCount = useNotificationsStore(
+    (s) => s.notifications.filter((n) => !n.read && (!n.actorId || !mutedIds[n.actorId])).length
+  );
   const posts = usePostsStore((s) => s.posts);
   const draftCount = usePostsStore((s) => s.drafts.length);
   const myReactions = usePostsStore((s) => s.myReactions);
@@ -214,7 +218,7 @@ export default function HomeFeed() {
   const firstName = profile.name.split(' ')[0];
 
   const postsWithAuthor = posts
-    .filter((post) => !blockedIds[post.authorId])
+    .filter((post) => !blockedIds[post.authorId] && !mutedIds[post.authorId])
     .map((post) => ({
       post,
       author: post.authorId === ME.id ? profile : USERS.find((u) => u.id === post.authorId),
@@ -525,7 +529,7 @@ export default function HomeFeed() {
             <EmptyState
               illustration={PARK_FRIENDS_SVG}
               title="Your feed is quiet right now"
-              subtitle="Posts from neighbors will show up here. Try unblocking someone in Settings, or explore Discover to meet new people."
+              subtitle="Posts from neighbors will show up here. Try unmuting or unblocking someone in Settings, or explore Discover to meet new people."
               ctaLabel="Go to Discover"
               onPressCta={() => router.push('/discover')}
             />

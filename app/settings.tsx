@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUser } from '../data/mock';
 import { useAuthStore } from '../store/useAuthStore';
 import { useBlockedStore } from '../store/useBlockedStore';
+import { useMutedStore } from '../store/useMutedStore';
 import { useSettingsStore, type NotificationPrefs } from '../store/useSettingsStore';
 
 const NOTIFICATION_ROWS: { key: keyof NotificationPrefs; label: string; description: string }[] = [
@@ -45,6 +46,12 @@ export default function Settings() {
     .filter((id) => blockedIds[id])
     .map((id) => getUser(id))
     .filter((u): u is NonNullable<typeof u> => Boolean(u));
+  const mutedIds = useMutedStore((s) => s.mutedIds);
+  const toggleMuted = useMutedStore((s) => s.toggle);
+  const mutedUsers = Object.keys(mutedIds)
+    .filter((id) => mutedIds[id])
+    .map((id) => getUser(id))
+    .filter((u): u is NonNullable<typeof u> => Boolean(u));
 
   const handleSignOut = async () => {
     await signOut();
@@ -77,6 +84,28 @@ export default function Settings() {
               <Toggle on={prefs[row.key]} onToggle={() => togglePref(row.key)} />
             </View>
           ))}
+        </View>
+
+        <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+          Muted accounts
+        </Text>
+        <View className="gap-3">
+          {mutedUsers.length === 0 ? (
+            <Text className="text-sm text-charcoal/50">You haven't muted anyone.</Text>
+          ) : (
+            mutedUsers.map((u) => (
+              <View key={u.id} className="flex-row items-center gap-3 rounded-2xl bg-cream p-4">
+                <Image source={{ uri: u.avatar }} className="h-9 w-9 rounded-full" />
+                <Text className="flex-1 text-sm font-medium text-charcoal">{u.name}</Text>
+                <Pressable
+                  onPress={() => toggleMuted(u.id)}
+                  className="rounded-full bg-sand px-4 py-2"
+                >
+                  <Text className="text-xs font-semibold text-charcoal">Unmute</Text>
+                </Pressable>
+              </View>
+            ))
+          )}
         </View>
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
