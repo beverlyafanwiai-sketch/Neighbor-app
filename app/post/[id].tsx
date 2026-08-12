@@ -45,6 +45,9 @@ export default function PostDetail() {
   const updateComment = usePostsStore((s) => s.updateComment);
   const deleteComment = usePostsStore((s) => s.deleteComment);
   const deletePost = usePostsStore((s) => s.deletePost);
+  const pinnedPostId = usePostsStore((s) => s.pinnedPostId);
+  const pinPost = usePostsStore((s) => s.pinPost);
+  const unpinPost = usePostsStore((s) => s.unpinPost);
   const profile = useProfileStore((s) => s.profile);
 
   const [draft, setDraft] = useState('');
@@ -61,6 +64,7 @@ export default function PostDetail() {
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
   const author = post ? resolveUser(post.authorId) : undefined;
   const isAuthor = post?.authorId === ME.id;
+  const isPinned = post ? post.id === pinnedPostId : false;
 
   if (!post || !author) {
     return (
@@ -114,6 +118,16 @@ export default function PostDetail() {
         {isAuthor ? (
           <View className="flex-row items-center gap-1.5">
             <Pressable
+              onPress={() => (isPinned ? unpinPost() : pinPost(post.id))}
+              className="h-9 w-9 items-center justify-center rounded-full"
+            >
+              <Ionicons
+                name={isPinned ? 'pin' : 'pin-outline'}
+                size={17}
+                className={isPinned ? 'text-gold' : 'text-charcoal'}
+              />
+            </Pressable>
+            <Pressable
               onPress={() => router.push(`/create-post?id=${post.id}`)}
               className="h-9 w-9 items-center justify-center rounded-full"
             >
@@ -161,6 +175,12 @@ export default function PostDetail() {
           contentContainerClassName="pb-4"
           ListHeaderComponent={
             <View className="gap-3 border-b border-charcoal/10 bg-cream p-4">
+              {isPinned && (
+                <View className="flex-row items-center gap-1.5 self-start rounded-full bg-gold/15 px-2.5 py-1">
+                  <Ionicons name="pin" size={12} className="text-gold" />
+                  <Text className="text-xs font-semibold text-gold">Pinned</Text>
+                </View>
+              )}
               <Pressable
                 onPress={() => router.push(`/profile/${author.id}`)}
                 className="flex-row items-center gap-3"

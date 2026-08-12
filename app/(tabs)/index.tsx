@@ -220,6 +220,7 @@ export default function HomeFeed() {
   const myAvailable = useAvailabilityStore((s) => s.myAvailable);
   const myPollVotes = usePostsStore((s) => s.myPollVotes);
   const votePoll = usePostsStore((s) => s.votePoll);
+  const pinnedPostId = usePostsStore((s) => s.pinnedPostId);
   const [sharingPost, setSharingPost] = useState<Post | null>(null);
   const [reactorsPost, setReactorsPost] = useState<Post | null>(null);
   const [reportingPost, setReportingPost] = useState<Post | null>(null);
@@ -247,7 +248,8 @@ export default function HomeFeed() {
     }))
     .filter((p): p is { post: (typeof posts)[number]; author: NonNullable<typeof p.author> } =>
       Boolean(p.author)
-    );
+    )
+    .sort((a, b) => Number(b.post.id === pinnedPostId) - Number(a.post.id === pinnedPostId));
 
   const q = query.trim().toLowerCase();
   const filteredPosts = q
@@ -534,8 +536,15 @@ export default function HomeFeed() {
             const myReaction = myReactions[post.id];
             const saved = savedIds[post.id] ?? false;
             const postComments = comments[post.id] ?? [];
+            const isPinned = post.id === pinnedPostId;
             return (
               <View key={post.id} className="rounded-[28px] bg-cream p-5 shadow-sm">
+                {isPinned && (
+                  <View className="mb-3 flex-row items-center gap-1.5 self-start rounded-full bg-gold/15 px-2.5 py-1">
+                    <Ionicons name="pin" size={12} className="text-gold" />
+                    <Text className="text-xs font-semibold text-gold">Pinned</Text>
+                  </View>
+                )}
                 <View className="flex-row items-start justify-between">
                   <Pressable
                     onPress={() => goToProfile(author.id)}

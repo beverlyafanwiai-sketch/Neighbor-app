@@ -63,9 +63,12 @@ type PostsState = {
   savedIds: Record<string, boolean>;
   comments: Record<string, CommentItem[]>;
   myPollVotes: Record<string, string>;
+  pinnedPostId: string | null;
   createPost: (body: string, imageUris?: string[], poll?: Poll) => void;
   updatePost: (id: string, updates: PostEdits) => void;
   deletePost: (id: string) => void;
+  pinPost: (id: string) => void;
+  unpinPost: () => void;
   votePoll: (postId: string, optionId: string) => void;
   saveDraft: (input: { id?: string; body: string; imageUris?: string[] }) => string;
   deleteDraft: (id: string) => void;
@@ -91,6 +94,7 @@ export const usePostsStore = create<PostsState>((set, get) => ({
   savedIds: {},
   comments: COMMENTS,
   myPollVotes: {},
+  pinnedPostId: null,
 
   createPost: (body, imageUris, poll) => {
     const post: Post = {
@@ -111,7 +115,15 @@ export const usePostsStore = create<PostsState>((set, get) => ({
       posts: s.posts.map((p) => (p.id === id ? { ...p, ...updates, edited: true } : p)),
     })),
 
-  deletePost: (id) => set((s) => ({ posts: s.posts.filter((p) => p.id !== id) })),
+  deletePost: (id) =>
+    set((s) => ({
+      posts: s.posts.filter((p) => p.id !== id),
+      pinnedPostId: s.pinnedPostId === id ? null : s.pinnedPostId,
+    })),
+
+  pinPost: (id) => set({ pinnedPostId: id }),
+
+  unpinPost: () => set({ pinnedPostId: null }),
 
   votePoll: (postId, optionId) =>
     set((s) => ({
