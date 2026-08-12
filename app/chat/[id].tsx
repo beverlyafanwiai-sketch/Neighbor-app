@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Image,
@@ -37,6 +37,37 @@ export default function ChatThread() {
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
   const [reactorsFor, setReactorsFor] = useState<string | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [matchIndex, setMatchIndex] = useState(0);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const listRef = useRef<FlatList>(null);
+
+  const messages = conversation?.messages ?? [];
+  const matches = searchQuery.trim()
+    ? messages
+        .map((m, i) => ({ m, i }))
+        .filter(({ m }) => !m.deleted && m.text.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    : [];
+
+  const goToMatch = (idx: number) => {
+    if (matches.length === 0) return;
+    const clamped = ((idx % matches.length) + matches.length) % matches.length;
+    setMatchIndex(clamped);
+    const target = matches[clamped];
+    setHighlightId(target.m.id);
+    listRef.current?.scrollToIndex({ index: target.i, animated: true, viewPosition: 0.4 });
+    setTimeout(() => setHighlightId((h) => (h === target.m.id ? null : h)), 1500);
+  };
+
+  useEffect(() => {
+    // Jump to the most recent match first, like most chat search UIs --
+    // matches/goToMatch are intentionally excluded from deps since they're
+    // recomputed every render and would otherwise re-trigger this on scroll.
+    if (!searching || matches.length === 0) return;
+    goToMatch(matches.length - 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, searching]);
 
   useEffect(() => {
     markRead(id);
@@ -53,7 +84,6 @@ export default function ChatThread() {
     );
   }
 
-  const messages = conversation.messages;
   const lastMeIndex = messages.reduce(
     (acc, m, i) => (m.from === 'me' ? i : acc),
     -1
@@ -80,27 +110,77 @@ export default function ChatThread() {
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
-      <View className="flex-row items-center gap-3 border-b border-charcoal/10 bg-cream px-4 py-3">
-        <Pressable
-          onPress={() => router.back()}
-          className="h-9 w-9 items-center justify-center rounded-full"
-        >
-          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
-        </Pressable>
-        <Pressable
-          onPress={() => router.push(`/profile/${user.id}`)}
-          className="flex-1 flex-row items-center gap-3"
-        >
-          <Image source={{ uri: user.avatar }} className="h-10 w-10 rounded-full" />
-          <View className="flex-1">
-            <Text className="text-base font-semibold text-charcoal">{user.name}</Text>
-            <Text className="text-xs text-sage">Active now</Text>
-          </View>
-        </Pressable>
-        <Pressable className="h-9 w-9 items-center justify-center rounded-full">
-          <Ionicons name="information-circle-outline" size={22} className="text-charcoal" />
-        </Pressable>
-      </View>
+      {searching ? (
+        <View className="flex-row items-center gap-2 border-b border-charcoal/10 bg-cream px-4 py-3">
+          <Pressable
+            onPress={() => {
+              setSearching(false);
+              setSearchQuery('');
+              setHighlightId(null);
+            }}
+            className="h-9 w-9 items-center justify-center rounded-full"
+          >
+            <Ionicons name="chevron-back" size={22} className="text-charcoal" />
+          </Pressable>
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search this conversation..."
+            placeholderTextColor="#3D3D3D80"
+            autoFocus
+            className="flex-1 rounded-full bg-sand px-4 py-2 text-charcoal"
+          />
+          {searchQuery.trim().length > 0 && (
+            <Text className="text-xs text-charcoal/50">
+              {matches.length > 0 ? `${matchIndex + 1}/${matches.length}` : '0/0'}
+            </Text>
+          )}
+          {matches.length > 0 && (
+            <>
+              <Pressable
+                onPress={() => goToMatch(matchIndex - 1)}
+                className="h-8 w-8 items-center justify-center rounded-full"
+              >
+                <Ionicons name="chevron-up" size={18} className="text-charcoal" />
+              </Pressable>
+              <Pressable
+                onPress={() => goToMatch(matchIndex + 1)}
+                className="h-8 w-8 items-center justify-center rounded-full"
+              >
+                <Ionicons name="chevron-down" size={18} className="text-charcoal" />
+              </Pressable>
+            </>
+          )}
+        </View>
+      ) : (
+        <View className="flex-row items-center gap-3 border-b border-charcoal/10 bg-cream px-4 py-3">
+          <Pressable
+            onPress={() => router.back()}
+            className="h-9 w-9 items-center justify-center rounded-full"
+          >
+            <Ionicons name="chevron-back" size={22} className="text-charcoal" />
+          </Pressable>
+          <Pressable
+            onPress={() => router.push(`/profile/${user.id}`)}
+            className="flex-1 flex-row items-center gap-3"
+          >
+            <Image source={{ uri: user.avatar }} className="h-10 w-10 rounded-full" />
+            <View className="flex-1">
+              <Text className="text-base font-semibold text-charcoal">{user.name}</Text>
+              <Text className="text-xs text-sage">Active now</Text>
+            </View>
+          </Pressable>
+          <Pressable
+            onPress={() => setSearching(true)}
+            className="h-9 w-9 items-center justify-center rounded-full"
+          >
+            <Ionicons name="search-outline" size={20} className="text-charcoal" />
+          </Pressable>
+          <Pressable className="h-9 w-9 items-center justify-center rounded-full">
+            <Ionicons name="information-circle-outline" size={22} className="text-charcoal" />
+          </Pressable>
+        </View>
+      )}
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -108,9 +188,15 @@ export default function ChatThread() {
         keyboardVerticalOffset={90}
       >
         <FlatList
+          ref={listRef}
           data={messages}
           keyExtractor={(m) => m.id}
           contentContainerClassName="gap-2.5 px-4 py-4"
+          onScrollToIndexFailed={(info) => {
+            setTimeout(() => {
+              listRef.current?.scrollToIndex({ index: info.index, animated: true, viewPosition: 0.4 });
+            }, 100);
+          }}
           ListHeaderComponent={
             <View className="mb-4 items-center">
               <View className="h-36 w-36">
@@ -152,6 +238,8 @@ export default function ChatThread() {
               >
                 <View
                   className={`overflow-hidden rounded-2xl px-4 py-3 ${
+                    item.id === highlightId ? 'border-2 border-gold' : ''
+                  } ${
                     item.deleted
                       ? 'border border-charcoal/15'
                       : isMine
