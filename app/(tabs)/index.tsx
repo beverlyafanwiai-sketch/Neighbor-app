@@ -23,11 +23,12 @@ import { isAvailable, useAvailabilityStore } from '../../store/useAvailabilitySt
 import { useBlockedStore } from '../../store/useBlockedStore';
 import { useMutedStore } from '../../store/useMutedStore';
 import { useEventsStore } from '../../store/useEventsStore';
-import { useFriendsStore } from '../../store/useFriendsStore';
+import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useGroupsStore } from '../../store/useGroupsStore';
 import { useNotificationsStore } from '../../store/useNotificationsStore';
 import { getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
+import { useSpotlightStore } from '../../store/useSpotlightStore';
 
 const WIDE_BREAKPOINT = 900;
 
@@ -35,6 +36,11 @@ const HERO_IMAGES = [
   require('../../assets/images/resort-friends.jpg'),
   require('../../assets/images/onboarding-cafe.jpg'),
 ];
+
+function sharedTags(tags: string[], myTags: string[]) {
+  const mine = new Set(myTags);
+  return tags.filter((t) => mine.has(t));
+}
 
 function goToProfile(userId: string) {
   if (userId === ME.id) {
@@ -218,9 +224,20 @@ export default function HomeFeed() {
   const [reactorsPost, setReactorsPost] = useState<Post | null>(null);
   const [reportingPost, setReportingPost] = useState<Post | null>(null);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const friendStatuses = useFriendsStore((s) => s.statuses);
+  const respondFriend = useFriendsStore((s) => s.respond);
+  const spotlightIndex = useSpotlightStore((s) => s.index);
+  const nextSpotlight = useSpotlightStore((s) => s.next);
 
   const greeting = getGreeting();
   const firstName = profile.name.split(' ')[0];
+
+  const spotlightPool = [...USERS, ...DISCOVER_USERS].filter(
+    (u) => friendStatuses[u.id] !== 'friends' && !blockedIds[u.id] && !mutedIds[u.id]
+  );
+  const spotlight = spotlightPool.length > 0 ? spotlightPool[spotlightIndex % spotlightPool.length] : undefined;
+  const spotlightShared = spotlight ? sharedTags(spotlight.tags, profile.tags) : [];
+  const spotlightStatus = spotlight ? (friendStatuses[spotlight.id] ?? 'none') : 'none';
 
   const postsWithAuthor = posts
     .filter((post) => !blockedIds[post.authorId] && !mutedIds[post.authorId])
@@ -413,6 +430,54 @@ export default function HomeFeed() {
                 <SvgXml xml={COFFEE_FRIENDS_SVG} width="100%" height="100%" />
               </View>
             </View>
+
+            {spotlight && (
+              <View className="mx-5 mt-3 rounded-3xl bg-cream p-4">
+                <Text className="text-xs font-semibold uppercase tracking-wide text-sage">
+                  Neighbor spotlight
+                </Text>
+                <Pressable
+                  onPress={() => goToProfile(spotlight.id)}
+                  className="mt-3 flex-row items-center gap-3"
+                >
+                  <Image source={{ uri: spotlight.avatar }} className="h-14 w-14 rounded-full" />
+                  <View className="flex-1">
+                    <Text className="font-semibold text-charcoal">{spotlight.name}</Text>
+                    <Text className="text-sm text-charcoal/60" numberOfLines={2}>
+                      {spotlight.tagline}
+                    </Text>
+                  </View>
+                </Pressable>
+                {spotlightShared.length > 0 && (
+                  <View className="mt-2.5 flex-row items-center gap-1.5">
+                    <Ionicons name="sparkles-outline" size={13} className="text-sage" />
+                    <Text className="flex-1 text-xs text-sage" numberOfLines={1}>
+                      Shares {spotlightShared.length === 1 ? 'an interest' : `${spotlightShared.length} interests`}:{' '}
+                      {spotlightShared.join(', ')}
+                    </Text>
+                  </View>
+                )}
+                <View className="mt-3 flex-row gap-2">
+                  <Pressable
+                    onPress={() => respondFriend(spotlight.id)}
+                    className={`flex-1 items-center rounded-full px-4 py-2.5 ${
+                      spotlightStatus === 'none' ? 'bg-gold' : 'bg-sand'
+                    }`}
+                  >
+                    <Text className="text-sm font-semibold text-charcoal">
+                      {spotlightStatus === 'none' ? 'Say hi' : FRIEND_LABEL[spotlightStatus]}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={nextSpotlight}
+                    className="flex-1 flex-row items-center justify-center gap-1.5 rounded-full bg-sand px-4 py-2.5"
+                  >
+                    <Text className="text-sm font-semibold text-charcoal">Next neighbor</Text>
+                    <Ionicons name="arrow-forward" size={14} className="text-charcoal" />
+                  </Pressable>
+                </View>
+              </View>
+            )}
 
             <Text className="mx-5 mt-4 text-sm font-bold text-charcoal">Neighbors</Text>
             <ScrollView
