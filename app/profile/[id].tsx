@@ -76,7 +76,7 @@ export default function OtherProfile() {
       />
 
       {showActions && (
-        <View className="absolute inset-0 items-center justify-end bg-charcoal/40">
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
           <Pressable className="absolute inset-0" onPress={closeActions} />
           <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
             <View className="flex-row items-center justify-between">
@@ -85,7 +85,7 @@ export default function OtherProfile() {
                 onPress={closeActions}
                 className="h-8 w-8 items-center justify-center rounded-full bg-sand"
               >
-                <Ionicons name="close" size={16} color="#3D3D3D" />
+                <Ionicons name="close" size={16} className="text-charcoal" />
               </Pressable>
             </View>
 
@@ -96,7 +96,7 @@ export default function OtherProfile() {
               <Ionicons
                 name={isMuted ? 'volume-high-outline' : 'volume-mute-outline'}
                 size={20}
-                color="#3D3D3D"
+                className="text-charcoal"
               />
               <View className="flex-1">
                 <Text className="text-sm font-medium text-charcoal">
@@ -133,7 +133,7 @@ export default function OtherProfile() {
                 <Ionicons
                   name={isBlocked ? 'checkmark-circle-outline' : 'ban-outline'}
                   size={20}
-                  color="#E0533C"
+                  className="text-terracotta"
                 />
                 <Text className="text-sm font-medium text-terracotta">
                   {isBlocked ? `Unblock ${user.name}` : `Block ${user.name}`}
@@ -152,7 +152,7 @@ export default function OtherProfile() {
                 onPress={() => setReported(true)}
                 className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
               >
-                <Ionicons name="flag-outline" size={20} color="#3D3D3D" />
+                <Ionicons name="flag-outline" size={20} className="text-charcoal" />
                 <Text className="text-sm font-medium text-charcoal">Report {user.name}</Text>
               </Pressable>
             )}

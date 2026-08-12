@@ -19,7 +19,7 @@ export default function Drafts() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">Drafts</Text>
       </View>
@@ -28,7 +28,7 @@ export default function Drafts() {
         {drafts.length === 0 && (
           <EmptyState
             icon="document-text-outline"
-            iconColor="#3D3D3D80"
+            iconColorClassName="text-charcoal/50"
             title="No drafts yet"
             subtitle="Unfinished posts you save for later will show up here."
           />
@@ -68,7 +68,7 @@ export default function Drafts() {
                   }}
                   className="flex-row items-center gap-1.5"
                 >
-                  <Ionicons name="trash-outline" size={16} color="#E0533C" />
+                  <Ionicons name="trash-outline" size={16} className="text-terracotta" />
                   <Text className="text-sm font-medium text-terracotta">Discard</Text>
                 </Pressable>
               </View>

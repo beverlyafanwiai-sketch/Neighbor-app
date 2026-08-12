@@ -87,7 +87,7 @@ export default function EventDetail() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         {isHost && (
           <View className="flex-row items-center gap-1.5">
@@ -96,14 +96,14 @@ export default function EventDetail() {
                 onPress={() => router.push(`/create-event?id=${event.id}`)}
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream"
               >
-                <Ionicons name="pencil" size={17} color="#3D3D3D" />
+                <Ionicons name="pencil" size={17} className="text-charcoal" />
               </Pressable>
             )}
             <Pressable
               onPress={() => setConfirmingDelete(true)}
               className="h-9 w-9 items-center justify-center rounded-full bg-cream"
             >
-              <Ionicons name="trash-outline" size={17} color="#E0533C" />
+              <Ionicons name="trash-outline" size={17} className="text-terracotta" />
             </Pressable>
           </View>
         )}
@@ -118,7 +118,7 @@ export default function EventDetail() {
             <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
           </Pressable>
           <Pressable onPress={remove} className="rounded-full bg-terracotta px-3 py-1.5">
-            <Text className="text-sm font-semibold text-cream">Delete</Text>
+            <Text className="text-sm font-semibold text-paper">Delete</Text>
           </Pressable>
         </View>
       )}
@@ -134,8 +134,8 @@ export default function EventDetail() {
         <View className="rounded-3xl bg-cream p-5">
           <View className="flex-row items-center gap-3">
             <View className="h-14 w-14 items-center justify-center rounded-xl bg-terracotta">
-              <Text className="text-xs font-semibold text-cream">{event.month}</Text>
-              <Text className="text-xl font-bold text-cream">{event.day}</Text>
+              <Text className="text-xs font-semibold text-paper">{event.month}</Text>
+              <Text className="text-xl font-bold text-paper">{event.day}</Text>
             </View>
             <View className="flex-1">
               <Text className="text-lg font-bold text-charcoal">{event.title}</Text>
@@ -150,7 +150,7 @@ export default function EventDetail() {
 
           {isHost ? (
             <View className="mt-5 flex-row items-center justify-center gap-1.5 rounded-full bg-gold py-3">
-              <Ionicons name="megaphone" size={15} color="#3D3D3D" />
+              <Ionicons name="megaphone" size={15} className="text-charcoal" />
               <Text className="text-sm font-semibold text-charcoal">
                 {isPast ? 'You hosted this' : "You're hosting"}
               </Text>
@@ -168,13 +168,13 @@ export default function EventDetail() {
                   }
                 }}
                 className={`mt-5 flex-row items-center justify-center gap-1.5 rounded-full py-3 ${
-                  going ? 'bg-gold' : waitlisted ? 'bg-sage/20' : 'bg-charcoal'
+                  going ? 'bg-gold' : waitlisted ? 'bg-sage/20' : 'bg-ink'
                 }`}
               >
-                {waitlisted && <Ionicons name="time-outline" size={16} color="#81A684" />}
+                {waitlisted && <Ionicons name="time-outline" size={16} className="text-sage" />}
                 <Text
                   className={`text-sm font-semibold ${
-                    going ? 'text-charcoal' : waitlisted ? 'text-sage' : 'text-cream'
+                    going ? 'text-charcoal' : waitlisted ? 'text-sage' : 'text-paper'
                   }`}
                 >
                   {going
@@ -197,7 +197,7 @@ export default function EventDetail() {
               <Ionicons
                 name={calendarAdded ? 'checkmark' : 'calendar-outline'}
                 size={16}
-                color={calendarAdded ? '#81A684' : '#3D3D3D'}
+                className={calendarAdded ? 'text-sage' : 'text-charcoal'}
               />
               <Text
                 className={`text-sm font-semibold ${calendarAdded ? 'text-sage' : 'text-charcoal'}`}
@@ -244,9 +244,9 @@ export default function EventDetail() {
                   {photo.uploaderId === ME.id && (
                     <Pressable
                       onPress={() => removePhoto(photo.id)}
-                      className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-charcoal/60"
+                      className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-ink/60"
                     >
-                      <Ionicons name="close" size={12} color="#F5F2E9" />
+                      <Ionicons name="close" size={12} className="text-paper" />
                     </Pressable>
                   )}
                 </View>
@@ -257,7 +257,7 @@ export default function EventDetail() {
                   className="w-[31%] items-center justify-center rounded-xl border-2 border-dashed border-charcoal/20 bg-cream active:opacity-70"
                   style={{ aspectRatio: 1 }}
                 >
-                  <Ionicons name="add" size={20} color="#3D3D3D80" />
+                  <Ionicons name="add" size={20} className="text-charcoal/50" />
                   <Text className="mt-1 text-center text-[10px] font-medium text-charcoal/50">
                     Add photos
                   </Text>
@@ -292,7 +292,7 @@ export default function EventDetail() {
                       <Ionicons
                         name={status === 'friends' ? 'checkmark' : 'person-add-outline'}
                         size={13}
-                        color={settled ? '#81A684' : '#3D3D3D'}
+                        className={settled ? 'text-sage' : 'text-charcoal'}
                       />
                       <Text className={`text-xs font-medium ${settled ? 'text-sage' : 'text-charcoal'}`}>
                         {FRIEND_LABEL[status]}

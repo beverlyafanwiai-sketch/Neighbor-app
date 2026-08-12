@@ -58,11 +58,11 @@ export default function Signup() {
   const illustration = preset === 'resort' ? RESORT_FUN_SVG : PARK_FRIENDS_SVG;
 
   return (
-    <SafeAreaView className={`flex-1 ${showFullBleedPhoto ? 'bg-charcoal' : bgColorClass}`}>
+    <SafeAreaView className={`flex-1 ${showFullBleedPhoto ? 'bg-ink' : bgColorClass}`}>
       {showFullBleedPhoto && (
         <>
           <Image source={photoSource} resizeMode="cover" className="absolute inset-0 h-full w-full" />
-          <View className="absolute inset-0 bg-charcoal/55" />
+          <View className="absolute inset-0 bg-ink/55" />
         </>
       )}
 
@@ -70,7 +70,7 @@ export default function Signup() {
         onPress={() => router.back()}
         className="z-10 ml-4 mt-2 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
       >
-        <Ionicons name="chevron-back" size={22} color="#F5F2E9" />
+        <Ionicons name="chevron-back" size={22} className="text-paper" />
       </Pressable>
 
       <KeyboardAvoidingView
@@ -84,7 +84,7 @@ export default function Signup() {
         )}
 
         <View className="flex-1 justify-center px-8">
-          <Text className="mb-2 text-center text-3xl font-bold text-cream">
+          <Text className="mb-2 text-center text-3xl font-bold text-paper">
             Create an account
           </Text>
           <Text className="mb-10 text-center text-base text-sand">
@@ -120,19 +120,19 @@ export default function Signup() {
           </View>
 
           {mismatchError && (
-            <Text className="mt-3 text-center text-sm text-cream">Passwords don't match.</Text>
+            <Text className="mt-3 text-center text-sm text-paper">Passwords don't match.</Text>
           )}
-          {error && <Text className="mt-3 text-center text-sm text-cream">{error}</Text>}
+          {error && <Text className="mt-3 text-center text-sm text-paper">{error}</Text>}
 
           <Pressable
             onPress={handleSignup}
             disabled={submitting}
-            className="mt-8 items-center rounded-2xl bg-charcoal py-4 active:opacity-80 disabled:opacity-60"
+            className="mt-8 items-center rounded-2xl bg-ink py-4 active:opacity-80 disabled:opacity-60"
           >
             {submitting ? (
-              <ActivityIndicator color="#F5F2E9" />
+              <ActivityIndicator className="text-paper" />
             ) : (
-              <Text className="text-base font-semibold text-cream">Create account</Text>
+              <Text className="text-base font-semibold text-paper">Create account</Text>
             )}
           </Pressable>
 

@@ -32,14 +32,14 @@ export default function LendBoard() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">Borrow & Lend</Text>
         <Pressable
           onPress={() => router.push('/create-lend-item')}
           className="h-9 w-9 items-center justify-center rounded-full bg-terracotta"
         >
-          <Ionicons name="add" size={20} color="#F5F2E9" />
+          <Ionicons name="add" size={20} className="text-paper" />
         </Pressable>
       </View>
 
@@ -77,7 +77,7 @@ export default function LendBoard() {
                         onPress={() => deleteItem(item.id)}
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
-                        <Ionicons name="trash-outline" size={16} color="#E0533C" />
+                        <Ionicons name="trash-outline" size={16} className="text-terracotta" />
                       </Pressable>
                     </View>
 
@@ -92,7 +92,7 @@ export default function LendBoard() {
                               onPress={() => approveRequest(item.id)}
                               className="rounded-full bg-terracotta px-4 py-1.5"
                             >
-                              <Text className="text-xs font-semibold text-cream">Approve</Text>
+                              <Text className="text-xs font-semibold text-paper">Approve</Text>
                             </Pressable>
                             <Pressable
                               onPress={() => declineRequest(item.id)}
@@ -186,9 +186,9 @@ export default function LendBoard() {
                         <Text className="flex-1 text-sm text-charcoal/50">Available</Text>
                         <Pressable
                           onPress={() => requestToBorrow(item.id)}
-                          className="rounded-full bg-charcoal px-4 py-1.5"
+                          className="rounded-full bg-ink px-4 py-1.5"
                         >
-                          <Text className="text-xs font-semibold text-cream">Request to borrow</Text>
+                          <Text className="text-xs font-semibold text-paper">Request to borrow</Text>
                         </Pressable>
                       </>
                     )}
@@ -220,9 +220,9 @@ export default function LendBoard() {
                   </Text>
                   <Pressable
                     onPress={() => offerToHelp(item.id)}
-                    className={`rounded-full px-4 py-1.5 ${offered ? 'bg-sage/20' : 'bg-charcoal'}`}
+                    className={`rounded-full px-4 py-1.5 ${offered ? 'bg-sage/20' : 'bg-ink'}`}
                   >
-                    <Text className={`text-xs font-semibold ${offered ? 'text-sage' : 'text-cream'}`}>
+                    <Text className={`text-xs font-semibold ${offered ? 'text-sage' : 'text-paper'}`}>
                       {offered ? 'You offered ✓' : 'I have one'}
                     </Text>
                   </Pressable>
@@ -234,7 +234,7 @@ export default function LendBoard() {
           {boardItems.length === 0 && (
             <EmptyState
               icon="basket-outline"
-              iconColor="#3D3D3D80"
+              iconColorClassName="text-charcoal/50"
               title="Nothing on the board yet"
               subtitle="Be the first to post something you can lend, or something you need."
             />

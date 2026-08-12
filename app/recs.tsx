@@ -23,14 +23,14 @@ export default function RecsBoard() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">Neighborhood Recs</Text>
         <Pressable
           onPress={() => router.push('/create-rec')}
           className="h-9 w-9 items-center justify-center rounded-full bg-terracotta"
         >
-          <Ionicons name="add" size={20} color="#F5F2E9" />
+          <Ionicons name="add" size={20} className="text-paper" />
         </Pressable>
       </View>
 
@@ -65,7 +65,7 @@ export default function RecsBoard() {
                         onPress={() => deleteEntry(entry.id)}
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
-                        <Ionicons name="trash-outline" size={16} color="#E0533C" />
+                        <Ionicons name="trash-outline" size={16} className="text-terracotta" />
                       </Pressable>
                     </View>
                     <Text className="mt-3 border-t border-charcoal/10 pt-3 text-sm text-charcoal/50">
@@ -125,9 +125,9 @@ export default function RecsBoard() {
                   </Text>
                   <Pressable
                     onPress={() => toggleAgree(entry.id)}
-                    className={`rounded-full px-4 py-1.5 ${agreed ? 'bg-sage/20' : 'bg-charcoal'}`}
+                    className={`rounded-full px-4 py-1.5 ${agreed ? 'bg-sage/20' : 'bg-ink'}`}
                   >
-                    <Text className={`text-xs font-semibold ${agreed ? 'text-sage' : 'text-cream'}`}>
+                    <Text className={`text-xs font-semibold ${agreed ? 'text-sage' : 'text-paper'}`}>
                       {agreed
                         ? isRec
                           ? 'You agree ✓'
@@ -145,7 +145,7 @@ export default function RecsBoard() {
           {boardEntries.length === 0 && (
             <EmptyState
               icon="star-outline"
-              iconColor="#3D3D3D80"
+              iconColorClassName="text-charcoal/50"
               title="Nothing on the board yet"
               subtitle="Recommend someone you trust, or ask your neighbors for a suggestion."
             />

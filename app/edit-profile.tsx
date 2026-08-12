@@ -111,11 +111,11 @@ export default function EditProfile() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-sand"
         >
-          <Ionicons name="close" size={20} color="#3D3D3D" />
+          <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">Edit profile</Text>
         <Pressable onPress={save} className="rounded-full bg-terracotta px-4 py-2">
-          <Text className="text-sm font-semibold text-cream">Save</Text>
+          <Text className="text-sm font-semibold text-paper">Save</Text>
         </Pressable>
       </View>
 
@@ -221,7 +221,7 @@ export default function EditProfile() {
                     selected ? 'bg-terracotta' : 'border border-charcoal/10 bg-sand'
                   }`}
                 >
-                  <Text className={`text-sm font-medium ${selected ? 'text-cream' : 'text-charcoal/70'}`}>
+                  <Text className={`text-sm font-medium ${selected ? 'text-paper' : 'text-charcoal/70'}`}>
                     {capitalize(tag)}
                   </Text>
                 </Pressable>
@@ -283,7 +283,7 @@ export default function EditProfile() {
                       selected ? 'bg-terracotta' : 'bg-cream'
                     }`}
                   >
-                    <Ionicons name={v.icon} size={16} color={selected ? '#F5F2E9' : '#3D3D3D80'} />
+                    <Ionicons name={v.icon} size={16} className={selected ? 'text-paper' : 'text-charcoal/50'} />
                   </View>
                   <View className="flex-1">
                     <Text
@@ -296,7 +296,7 @@ export default function EditProfile() {
                   <Ionicons
                     name={selected ? 'checkmark-circle' : 'ellipse-outline'}
                     size={22}
-                    color={selected ? '#E0533C' : '#3D3D3D40'}
+                    className={selected ? 'text-terracotta' : 'text-charcoal/25'}
                   />
                 </Pressable>
               );

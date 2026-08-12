@@ -28,7 +28,7 @@ export default function Notifications() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">Notifications</Text>
         {hasUnread ? (
@@ -64,7 +64,7 @@ export default function Notifications() {
                     <Image source={{ uri: actor.avatar }} className="h-11 w-11 rounded-full" />
                   ) : (
                     <View className="h-11 w-11 items-center justify-center rounded-full bg-sage/20">
-                      <Ionicons name={TYPE_ICON[n.type]} size={18} color="#81A684" />
+                      <Ionicons name={TYPE_ICON[n.type]} size={18} className="text-sage" />
                     </View>
                   )}
                   <View className="flex-1">
@@ -87,7 +87,7 @@ export default function Notifications() {
                       }}
                       className="rounded-full bg-terracotta px-4 py-1.5"
                     >
-                      <Text className="text-xs font-semibold text-cream">Accept</Text>
+                      <Text className="text-xs font-semibold text-paper">Accept</Text>
                     </Pressable>
                     <Pressable
                       onPress={() => {
@@ -106,7 +106,7 @@ export default function Notifications() {
           {notifications.length === 0 && (
             <EmptyState
               icon="notifications-outline"
-              iconColor="#3D3D3D80"
+              iconColorClassName="text-charcoal/50"
               title="You're all caught up"
               subtitle="New activity from your neighbors will show up here."
             />

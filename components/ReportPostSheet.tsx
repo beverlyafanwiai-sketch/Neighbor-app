@@ -10,7 +10,7 @@ export default function ReportPostSheet({ onClose }: Props) {
   const [reported, setReported] = useState(false);
 
   return (
-    <View className="absolute inset-0 items-center justify-end bg-charcoal/40">
+    <View className="absolute inset-0 items-center justify-end bg-ink/40">
       <Pressable className="absolute inset-0" onPress={onClose} />
       <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
         <View className="flex-row items-center justify-between">
@@ -19,7 +19,7 @@ export default function ReportPostSheet({ onClose }: Props) {
             onPress={onClose}
             className="h-8 w-8 items-center justify-center rounded-full bg-sand"
           >
-            <Ionicons name="close" size={16} color="#3D3D3D" />
+            <Ionicons name="close" size={16} className="text-charcoal" />
           </Pressable>
         </View>
 
@@ -34,7 +34,7 @@ export default function ReportPostSheet({ onClose }: Props) {
             onPress={() => setReported(true)}
             className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
           >
-            <Ionicons name="flag-outline" size={20} color="#3D3D3D" />
+            <Ionicons name="flag-outline" size={20} className="text-charcoal" />
             <Text className="text-sm font-medium text-charcoal">Report this post</Text>
           </Pressable>
         )}

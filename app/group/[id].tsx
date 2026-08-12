@@ -81,7 +81,7 @@ export default function GroupDetail() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         {isCreator && (
           <View className="flex-row items-center gap-1.5">
@@ -89,13 +89,13 @@ export default function GroupDetail() {
               onPress={() => router.push(`/create-group?id=${group.id}`)}
               className="h-9 w-9 items-center justify-center rounded-full bg-cream"
             >
-              <Ionicons name="pencil" size={17} color="#3D3D3D" />
+              <Ionicons name="pencil" size={17} className="text-charcoal" />
             </Pressable>
             <Pressable
               onPress={() => setConfirmingDelete(true)}
               className="h-9 w-9 items-center justify-center rounded-full bg-cream"
             >
-              <Ionicons name="trash-outline" size={17} color="#E0533C" />
+              <Ionicons name="trash-outline" size={17} className="text-terracotta" />
             </Pressable>
           </View>
         )}
@@ -110,7 +110,7 @@ export default function GroupDetail() {
             <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
           </Pressable>
           <Pressable onPress={remove} className="rounded-full bg-terracotta px-3 py-1.5">
-            <Text className="text-sm font-semibold text-cream">Delete</Text>
+            <Text className="text-sm font-semibold text-paper">Delete</Text>
           </Pressable>
         </View>
       )}
@@ -125,7 +125,7 @@ export default function GroupDetail() {
         )}
         <View className="items-center rounded-3xl bg-cream p-6">
           <View className="h-16 w-16 items-center justify-center rounded-full bg-terracotta">
-            <Text className="text-2xl font-bold text-cream">{group.name.charAt(0)}</Text>
+            <Text className="text-2xl font-bold text-paper">{group.name.charAt(0)}</Text>
           </View>
           <Text className="mt-3 text-xl font-bold text-charcoal">{group.name}</Text>
           <View className="mt-2 flex-row items-center gap-2">
@@ -143,9 +143,9 @@ export default function GroupDetail() {
           <View className="mt-5 flex-row gap-3">
             <Pressable
               onPress={() => toggleJoin(group.id)}
-              className={`rounded-full px-6 py-3 ${joined ? 'bg-sand' : 'bg-charcoal'}`}
+              className={`rounded-full px-6 py-3 ${joined ? 'bg-sand' : 'bg-ink'}`}
             >
-              <Text className={`text-sm font-semibold ${joined ? 'text-charcoal' : 'text-cream'}`}>
+              <Text className={`text-sm font-semibold ${joined ? 'text-charcoal' : 'text-paper'}`}>
                 {joined ? 'Leave circle' : 'Join group'}
               </Text>
             </Pressable>
@@ -154,8 +154,8 @@ export default function GroupDetail() {
                 onPress={() => router.push(`/group-chat/${group.id}`)}
                 className="flex-row items-center gap-1.5 rounded-full bg-terracotta px-6 py-3"
               >
-                <Ionicons name="chatbubbles-outline" size={16} color="#F5F2E9" />
-                <Text className="text-sm font-semibold text-cream">Group chat</Text>
+                <Ionicons name="chatbubbles-outline" size={16} className="text-paper" />
+                <Text className="text-sm font-semibold text-paper">Group chat</Text>
               </Pressable>
             )}
           </View>
@@ -166,7 +166,7 @@ export default function GroupDetail() {
             onPress={() => router.push(`/group-chat/${group.id}`)}
             className="mt-4 flex-row items-center gap-3 rounded-2xl bg-gold/10 p-4 active:opacity-80"
           >
-            <Ionicons name="pin" size={16} color="#D9A441" />
+            <Ionicons name="pin" size={16} className="text-gold" />
             <View className="flex-1">
               <Text className="text-xs font-semibold text-charcoal/60">
                 Pinned · {pinnedSender.name}
@@ -214,9 +214,9 @@ export default function GroupDetail() {
                   {photo.uploaderId === ME.id && (
                     <Pressable
                       onPress={() => removePhoto(photo.id)}
-                      className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-charcoal/60"
+                      className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-ink/60"
                     >
-                      <Ionicons name="close" size={12} color="#F5F2E9" />
+                      <Ionicons name="close" size={12} className="text-paper" />
                     </Pressable>
                   )}
                 </View>
@@ -227,7 +227,7 @@ export default function GroupDetail() {
                   className="w-[31%] items-center justify-center rounded-xl border-2 border-dashed border-charcoal/20 bg-cream active:opacity-70"
                   style={{ aspectRatio: 1 }}
                 >
-                  <Ionicons name="add" size={20} color="#3D3D3D80" />
+                  <Ionicons name="add" size={20} className="text-charcoal/50" />
                   <Text className="mt-1 text-center text-[10px] font-medium text-charcoal/50">
                     Add photos
                   </Text>

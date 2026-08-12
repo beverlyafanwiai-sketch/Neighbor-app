@@ -26,7 +26,7 @@ export default function ReactorsSheet({ reactions, myReaction, onClose, onPerson
   const types = REACTION_TYPES.filter((t) => (grouped[t]?.length ?? 0) > 0);
 
   return (
-    <View className="absolute inset-0 items-center justify-end bg-charcoal/40">
+    <View className="absolute inset-0 items-center justify-end bg-ink/40">
       <Pressable className="absolute inset-0" onPress={onClose} />
       <View className="max-h-[70%] w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
         <View className="flex-row items-center justify-between">
@@ -35,7 +35,7 @@ export default function ReactorsSheet({ reactions, myReaction, onClose, onPerson
             onPress={onClose}
             className="h-8 w-8 items-center justify-center rounded-full bg-sand"
           >
-            <Ionicons name="close" size={16} color="#3D3D3D" />
+            <Ionicons name="close" size={16} className="text-charcoal" />
           </Pressable>
         </View>
 

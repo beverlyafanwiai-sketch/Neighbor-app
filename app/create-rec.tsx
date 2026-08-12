@@ -60,15 +60,15 @@ export default function CreateRec() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="close" size={20} color="#3D3D3D" />
+          <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">Post to the board</Text>
         <Pressable
           onPress={save}
           disabled={!canSave}
-          className={`rounded-full px-4 py-2 ${canSave ? 'bg-terracotta' : 'bg-charcoal/10'}`}
+          className={`rounded-full px-4 py-2 ${canSave ? 'bg-terracotta' : 'bg-ink/10'}`}
         >
-          <Text className={`text-sm font-semibold ${canSave ? 'text-cream' : 'text-charcoal/40'}`}>
+          <Text className={`text-sm font-semibold ${canSave ? 'text-paper' : 'text-charcoal/40'}`}>
             Post
           </Text>
         </Pressable>
@@ -88,20 +88,20 @@ export default function CreateRec() {
                 <View>
                   <Text
                     className={`text-sm font-semibold ${
-                      kind === k.value ? 'text-cream' : 'text-charcoal'
+                      kind === k.value ? 'text-paper' : 'text-charcoal'
                     }`}
                   >
                     {k.label}
                   </Text>
                   <Text
                     className={`mt-0.5 text-xs ${
-                      kind === k.value ? 'text-cream/80' : 'text-charcoal/50'
+                      kind === k.value ? 'text-paper/80' : 'text-charcoal/50'
                     }`}
                   >
                     {k.description}
                   </Text>
                 </View>
-                {kind === k.value && <Ionicons name="checkmark-circle" size={20} color="#F5F2E9" />}
+                {kind === k.value && <Ionicons name="checkmark-circle" size={20} className="text-paper" />}
               </Pressable>
             ))}
           </View>

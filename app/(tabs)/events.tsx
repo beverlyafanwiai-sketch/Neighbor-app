@@ -81,13 +81,13 @@ export default function Events() {
           onPress={() => router.push('/create-event')}
           className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"
         >
-          <Ionicons name="add" size={22} color="#F5F2E9" />
+          <Ionicons name="add" size={22} className="text-paper" />
         </Pressable>
       </View>
 
       <View className="px-5 pb-3">
         <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">
-          <Ionicons name="search" size={18} color="#3D3D3D80" />
+          <Ionicons name="search" size={18} className="text-charcoal/50" />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -97,7 +97,7 @@ export default function Events() {
           />
           {query.length > 0 && (
             <Pressable onPress={() => setQuery('')}>
-              <Ionicons name="close-circle" size={18} color="#3D3D3D80" />
+              <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}
         </View>
@@ -108,9 +108,9 @@ export default function Events() {
           <Pressable
             key={t}
             onPress={() => setTab(t)}
-            className={`rounded-full px-4 py-2 ${tab === t ? 'bg-charcoal' : 'bg-cream'}`}
+            className={`rounded-full px-4 py-2 ${tab === t ? 'bg-ink' : 'bg-cream'}`}
           >
-            <Text className={`text-sm font-medium ${tab === t ? 'text-cream' : 'text-charcoal/60'}`}>
+            <Text className={`text-sm font-medium ${tab === t ? 'text-paper' : 'text-charcoal/60'}`}>
               {t}
             </Text>
           </Pressable>
@@ -128,7 +128,7 @@ export default function Events() {
           >
             <Text
               className={`text-xs font-medium ${
-                categoryFilter === c ? 'text-cream' : 'text-charcoal/60'
+                categoryFilter === c ? 'text-paper' : 'text-charcoal/60'
               }`}
             >
               {c}
@@ -146,7 +146,7 @@ export default function Events() {
                 onlyOpen ? 'bg-sage/20' : 'bg-cream'
               }`}
             >
-              {onlyOpen && <Ionicons name="checkmark" size={13} color="#81A684" />}
+              {onlyOpen && <Ionicons name="checkmark" size={13} className="text-sage" />}
               <Text className={`text-xs font-medium ${onlyOpen ? 'text-sage' : 'text-charcoal/60'}`}>
                 Has open spots
               </Text>
@@ -157,7 +157,7 @@ export default function Events() {
                 onlyGoing ? 'bg-sage/20' : 'bg-cream'
               }`}
             >
-              {onlyGoing && <Ionicons name="checkmark" size={13} color="#81A684" />}
+              {onlyGoing && <Ionicons name="checkmark" size={13} className="text-sage" />}
               <Text className={`text-xs font-medium ${onlyGoing ? 'text-sage' : 'text-charcoal/60'}`}>
                 I'm going
               </Text>
@@ -176,12 +176,12 @@ export default function Events() {
                 key={s.value}
                 onPress={() => setSortBy(s.value)}
                 className={`rounded-full px-3.5 py-1.5 ${
-                  sortBy === s.value ? 'bg-charcoal' : 'bg-cream'
+                  sortBy === s.value ? 'bg-ink' : 'bg-cream'
                 }`}
               >
                 <Text
                   className={`text-xs font-medium ${
-                    sortBy === s.value ? 'text-cream' : 'text-charcoal/60'
+                    sortBy === s.value ? 'text-paper' : 'text-charcoal/60'
                   }`}
                 >
                   {s.label}
@@ -208,8 +208,8 @@ export default function Events() {
                   className="flex-row gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
                 >
                   <View className="h-14 w-14 items-center justify-center rounded-xl bg-terracotta">
-                    <Text className="text-xs font-semibold text-cream">{e.month}</Text>
-                    <Text className="text-xl font-bold text-cream">{e.day}</Text>
+                    <Text className="text-xs font-semibold text-paper">{e.month}</Text>
+                    <Text className="text-xl font-bold text-paper">{e.day}</Text>
                   </View>
                   <View className="flex-1">
                     <Text className="font-semibold text-charcoal">{e.title}</Text>
@@ -285,7 +285,7 @@ export default function Events() {
             {hostingTotal === 0 ? (
               <View className="mt-10 items-center px-6">
                 <View className="h-20 w-20 items-center justify-center rounded-full bg-cream">
-                  <Ionicons name="megaphone-outline" size={32} color="#E0533C" />
+                  <Ionicons name="megaphone-outline" size={32} className="text-terracotta" />
                 </View>
                 <Text className="mt-4 text-center text-base font-semibold text-charcoal">
                   You're not hosting anything yet
@@ -295,9 +295,9 @@ export default function Events() {
                 </Text>
                 <Pressable
                   onPress={() => router.push('/create-event')}
-                  className="mt-5 rounded-full bg-charcoal px-6 py-3"
+                  className="mt-5 rounded-full bg-ink px-6 py-3"
                 >
-                  <Text className="text-sm font-semibold text-cream">Host an event</Text>
+                  <Text className="text-sm font-semibold text-paper">Host an event</Text>
                 </Pressable>
               </View>
             ) : hosting.length === 0 ? (
@@ -320,8 +320,8 @@ export default function Events() {
                       className="flex-row gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
                     >
                       <View className="h-14 w-14 items-center justify-center rounded-xl bg-terracotta">
-                        <Text className="text-xs font-semibold text-cream">{e.month}</Text>
-                        <Text className="text-xl font-bold text-cream">{e.day}</Text>
+                        <Text className="text-xs font-semibold text-paper">{e.month}</Text>
+                        <Text className="text-xl font-bold text-paper">{e.day}</Text>
                       </View>
                       <View className="flex-1">
                         <Text className="font-semibold text-charcoal">{e.title}</Text>
@@ -385,7 +385,7 @@ export default function Events() {
                             <Ionicons
                               name={status === 'friends' ? 'checkmark' : 'person-add-outline'}
                               size={13}
-                              color={settled ? '#81A684' : '#3D3D3D'}
+                              className={settled ? 'text-sage' : 'text-charcoal'}
                             />
                             <Text
                               className={`text-xs font-medium ${settled ? 'text-sage' : 'text-charcoal'}`}

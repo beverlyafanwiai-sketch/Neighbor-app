@@ -90,7 +90,7 @@ export default function ReactionButton({
               {topTypes.map((t) => REACTION_EMOJI[t]).join('')}
             </Text>
           ) : (
-            <Ionicons name="heart-outline" size={iconSize} color="#E0533C" />
+            <Ionicons name="heart-outline" size={iconSize} className="text-terracotta" />
           )}
         </Pressable>
         <Pressable onPress={() => total > 0 && onShowReactors?.()} disabled={total === 0}>

@@ -87,7 +87,7 @@ function LeftRail({ profile }: { profile: User }) {
               active ? 'bg-terracotta/15' : ''
             }`}
           >
-            <Ionicons name={item.icon} size={19} color={active ? '#E0533C' : '#3D3D3D'} />
+            <Ionicons name={item.icon} size={19} className={active ? 'text-terracotta' : 'text-charcoal'} />
             <Text className={`text-[15px] ${active ? 'font-semibold text-terracotta' : 'text-charcoal'}`}>
               {item.label}
             </Text>
@@ -172,7 +172,7 @@ function RightRail() {
               className="flex-row items-center gap-3 active:opacity-70"
             >
               <View className="h-9 w-9 items-center justify-center rounded-full bg-sage">
-                <Text className="text-sm font-bold text-cream">{g.name.charAt(0)}</Text>
+                <Text className="text-sm font-bold text-paper">{g.name.charAt(0)}</Text>
               </View>
               <Text className="flex-1 text-sm text-charcoal" numberOfLines={1}>
                 {g.name}
@@ -255,7 +255,7 @@ export default function HomeFeed() {
           <View className="flex-row items-start justify-between">
             <View className="flex-1 pr-3">
               <Text
-                className="text-2xl font-bold text-cream"
+                className="text-2xl font-bold text-paper"
                 style={{
                   textShadowColor: 'rgba(61,61,61,0.6)',
                   textShadowOffset: { width: 0, height: 1 },
@@ -280,19 +280,19 @@ export default function HomeFeed() {
                 onPress={() => router.push('/discover')}
                 className="h-10 w-10 items-center justify-center rounded-full bg-cream/20"
               >
-                <Ionicons name="compass-outline" size={19} color="#F5F2E9" />
+                <Ionicons name="compass-outline" size={19} className="text-paper" />
               </Pressable>
               <Pressable
                 onPress={() => router.push('/lend')}
                 className="h-10 w-10 items-center justify-center rounded-full bg-cream/20"
               >
-                <Ionicons name="basket-outline" size={19} color="#F5F2E9" />
+                <Ionicons name="basket-outline" size={19} className="text-paper" />
               </Pressable>
               <Pressable
                 onPress={() => router.push('/notifications')}
                 className="h-10 w-10 items-center justify-center rounded-full bg-cream/20"
               >
-                <Ionicons name="notifications-outline" size={19} color="#F5F2E9" />
+                <Ionicons name="notifications-outline" size={19} className="text-paper" />
                 {unreadCount > 0 && (
                   <View className="absolute -right-0.5 -top-0.5 h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1">
                     <Text className="text-[10px] font-bold text-charcoal">{unreadCount}</Text>
@@ -303,7 +303,7 @@ export default function HomeFeed() {
           </View>
 
           <View className="mt-4 flex-row items-center rounded-full bg-cream px-4 py-2.5">
-            <Ionicons name="search" size={18} color="#3D3D3D80" />
+            <Ionicons name="search" size={18} className="text-charcoal/50" />
             <TextInput
               value={query}
               onChangeText={setQuery}
@@ -313,7 +313,7 @@ export default function HomeFeed() {
             />
             {query.length > 0 && (
               <Pressable onPress={() => setQuery('')}>
-                <Ionicons name="close-circle" size={18} color="#3D3D3D80" />
+                <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
               </Pressable>
             )}
           </View>
@@ -339,11 +339,11 @@ export default function HomeFeed() {
               </View>
               <View className="mt-3 flex-row items-center gap-2 border-t border-charcoal/10 pt-3">
                 <View className="flex-row items-center gap-1.5 rounded-full bg-sage/15 px-3 py-1.5">
-                  <Ionicons name="image-outline" size={15} color="#81A684" />
+                  <Ionicons name="image-outline" size={15} className="text-sage" />
                   <Text className="text-xs font-medium text-sage">Photo</Text>
                 </View>
                 <View className="flex-row items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1.5">
-                  <Ionicons name="happy-outline" size={15} color="#D9A441" />
+                  <Ionicons name="happy-outline" size={15} className="text-gold" />
                   <Text className="text-xs font-medium text-gold">Feeling</Text>
                 </View>
                 {draftCount > 0 && (
@@ -354,7 +354,7 @@ export default function HomeFeed() {
                     }}
                     className="flex-row items-center gap-1.5 rounded-full bg-terracotta/15 px-3 py-1.5"
                   >
-                    <Ionicons name="document-text-outline" size={15} color="#E0533C" />
+                    <Ionicons name="document-text-outline" size={15} className="text-terracotta" />
                     <Text className="text-xs font-medium text-terracotta">
                       {draftCount} draft{draftCount === 1 ? '' : 's'}
                     </Text>
@@ -400,7 +400,7 @@ export default function HomeFeed() {
                       )}
                       {isYou && (
                         <View className="absolute -bottom-0.5 -right-0.5 h-5 w-5 items-center justify-center rounded-full border-2 border-cream bg-terracotta">
-                          <Ionicons name="add" size={12} color="#F5F2E9" />
+                          <Ionicons name="add" size={12} className="text-paper" />
                         </View>
                       )}
                     </View>
@@ -456,7 +456,7 @@ export default function HomeFeed() {
                       onPress={() => setReportingPost(post)}
                       className="h-8 w-8 items-center justify-center rounded-full"
                     >
-                      <Ionicons name="ellipsis-horizontal" size={18} color="#3D3D3D80" />
+                      <Ionicons name="ellipsis-horizontal" size={18} className="text-charcoal/50" />
                     </Pressable>
                   )}
                 </View>
@@ -488,7 +488,7 @@ export default function HomeFeed() {
                     onPress={() => router.push(`/post/${post.id}`)}
                     className="flex-1 flex-row items-center justify-center gap-1.5 py-1"
                   >
-                    <Ionicons name="chatbubble-outline" size={17} color="#81A684" />
+                    <Ionicons name="chatbubble-outline" size={17} className="text-sage" />
                     <Text className="text-sm text-charcoal/70">
                       {getEffectiveReplies(post, postComments)}
                     </Text>
@@ -497,7 +497,7 @@ export default function HomeFeed() {
                     onPress={() => setSharingPost(post)}
                     className="flex-1 flex-row items-center justify-center gap-1.5 py-1"
                   >
-                    <Ionicons name="arrow-redo-outline" size={18} color="#3D3D3D80" />
+                    <Ionicons name="arrow-redo-outline" size={18} className="text-charcoal/50" />
                     <Text className="text-sm text-charcoal/70">Share</Text>
                   </Pressable>
                   <Pressable
@@ -507,7 +507,7 @@ export default function HomeFeed() {
                     <Ionicons
                       name={saved ? 'bookmark' : 'bookmark-outline'}
                       size={18}
-                      color={saved ? '#D9A441' : '#3D3D3D80'}
+                      className={saved ? 'text-gold' : 'text-charcoal/50'}
                     />
                   </Pressable>
                 </View>
@@ -519,7 +519,7 @@ export default function HomeFeed() {
               onPress={() => router.push(`/search?q=${encodeURIComponent(query.trim())}`)}
               className="flex-row items-center justify-center gap-1.5 rounded-2xl bg-cream p-4"
             >
-              <Ionicons name="search-outline" size={16} color="#E0533C" />
+              <Ionicons name="search-outline" size={16} className="text-terracotta" />
               <Text className="text-sm font-medium text-terracotta">
                 Search people, groups & events too
               </Text>

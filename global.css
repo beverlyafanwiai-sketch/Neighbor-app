@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --color-cream: 245 242 233;
+  --color-sand: 244 233 205;
+  --color-charcoal: 61 61 61;
+}
+
+.dark {
+  --color-cream: 42 38 34;
+  --color-sand: 22 20 17;
+  --color-charcoal: 237 231 219;
+}

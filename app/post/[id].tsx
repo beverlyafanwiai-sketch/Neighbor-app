@@ -106,7 +106,7 @@ export default function PostDetail() {
             onPress={() => router.back()}
             className="h-9 w-9 items-center justify-center rounded-full"
           >
-            <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+            <Ionicons name="chevron-back" size={22} className="text-charcoal" />
           </Pressable>
           <Text className="text-base font-bold text-charcoal">Post</Text>
         </View>
@@ -116,13 +116,13 @@ export default function PostDetail() {
               onPress={() => router.push(`/create-post?id=${post.id}`)}
               className="h-9 w-9 items-center justify-center rounded-full"
             >
-              <Ionicons name="pencil" size={17} color="#3D3D3D" />
+              <Ionicons name="pencil" size={17} className="text-charcoal" />
             </Pressable>
             <Pressable
               onPress={() => setConfirmingDelete(true)}
               className="h-9 w-9 items-center justify-center rounded-full"
             >
-              <Ionicons name="trash-outline" size={17} color="#E0533C" />
+              <Ionicons name="trash-outline" size={17} className="text-terracotta" />
             </Pressable>
           </View>
         ) : (
@@ -130,7 +130,7 @@ export default function PostDetail() {
             onPress={() => setReporting(true)}
             className="h-9 w-9 items-center justify-center rounded-full"
           >
-            <Ionicons name="ellipsis-horizontal" size={20} color="#3D3D3D" />
+            <Ionicons name="ellipsis-horizontal" size={20} className="text-charcoal" />
           </Pressable>
         )}
       </View>
@@ -144,7 +144,7 @@ export default function PostDetail() {
             <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
           </Pressable>
           <Pressable onPress={remove} className="rounded-full bg-terracotta px-3 py-1.5">
-            <Text className="text-sm font-semibold text-cream">Delete</Text>
+            <Text className="text-sm font-semibold text-paper">Delete</Text>
           </Pressable>
         </View>
       )}
@@ -194,13 +194,13 @@ export default function PostDetail() {
                     onShowReactors={() => setReactorsFor('post')}
                   />
                   <View className="flex-row items-center gap-1.5">
-                    <Ionicons name="chatbubble-outline" size={17} color="#81A684" />
+                    <Ionicons name="chatbubble-outline" size={17} className="text-sage" />
                     <Text className="text-sm text-charcoal/70">
                       {getEffectiveReplies(post, comments)}
                     </Text>
                   </View>
                   <Pressable onPress={() => setSharing(true)} className="flex-row items-center gap-1.5">
-                    <Ionicons name="arrow-redo-outline" size={18} color="#3D3D3D80" />
+                    <Ionicons name="arrow-redo-outline" size={18} className="text-charcoal/50" />
                     <Text className="text-sm text-charcoal/70">Share</Text>
                   </Pressable>
                 </View>
@@ -208,7 +208,7 @@ export default function PostDetail() {
                   <Ionicons
                     name={saved ? 'bookmark' : 'bookmark-outline'}
                     size={18}
-                    color={saved ? '#D9A441' : '#3D3D3D80'}
+                    className={saved ? 'text-gold' : 'text-charcoal/50'}
                   />
                 </Pressable>
               </View>
@@ -239,7 +239,7 @@ export default function PostDetail() {
                     }}
                     className="rounded-full bg-terracotta px-3 py-1.5"
                   >
-                    <Text className="text-sm font-semibold text-cream">Delete</Text>
+                    <Text className="text-sm font-semibold text-paper">Delete</Text>
                   </Pressable>
                 </View>
               );
@@ -317,13 +317,13 @@ export default function PostDetail() {
                       }}
                       className="h-7 w-7 items-center justify-center rounded-full"
                     >
-                      <Ionicons name="pencil" size={13} color="#3D3D3D80" />
+                      <Ionicons name="pencil" size={13} className="text-charcoal/50" />
                     </Pressable>
                     <Pressable
                       onPress={() => setDeletingCommentId(item.id)}
                       className="h-7 w-7 items-center justify-center rounded-full"
                     >
-                      <Ionicons name="trash-outline" size={13} color="#E0533C" />
+                      <Ionicons name="trash-outline" size={13} className="text-terracotta" />
                     </Pressable>
                   </View>
                 )}
@@ -343,7 +343,7 @@ export default function PostDetail() {
               Replying to <Text className="font-semibold text-charcoal/70">{replyingTo.name}</Text>
             </Text>
             <Pressable onPress={() => setReplyingTo(null)} className="p-1">
-              <Ionicons name="close" size={14} color="#3D3D3D80" />
+              <Ionicons name="close" size={14} className="text-charcoal/50" />
             </Pressable>
           </View>
         )}
@@ -368,7 +368,7 @@ export default function PostDetail() {
             onPress={send}
             className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"
           >
-            <Ionicons name="arrow-up" size={20} color="#F5F2E9" />
+            <Ionicons name="arrow-up" size={20} className="text-paper" />
           </Pressable>
         </View>
       </KeyboardAvoidingView>

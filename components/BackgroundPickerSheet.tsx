@@ -42,7 +42,7 @@ export default function BackgroundPickerSheet({ onClose }: Props) {
   };
 
   return (
-    <View className="absolute inset-0 items-center justify-end bg-charcoal/40">
+    <View className="absolute inset-0 items-center justify-end bg-ink/40">
       <Pressable className="absolute inset-0" onPress={onClose} />
       <View className="w-full gap-4 rounded-t-3xl bg-cream p-5 pb-8">
         <View className="flex-row items-center justify-between">
@@ -51,7 +51,7 @@ export default function BackgroundPickerSheet({ onClose }: Props) {
             onPress={onClose}
             className="h-8 w-8 items-center justify-center rounded-full bg-sand"
           >
-            <Ionicons name="close" size={16} color="#3D3D3D" />
+            <Ionicons name="close" size={16} className="text-charcoal" />
           </Pressable>
         </View>
 
@@ -95,7 +95,7 @@ export default function BackgroundPickerSheet({ onClose }: Props) {
           onPress={pickPhoto}
           className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
         >
-          <Ionicons name="image-outline" size={20} color="#81A684" />
+          <Ionicons name="image-outline" size={20} className="text-sage" />
           <Text className="flex-1 text-sm font-medium text-charcoal">
             Upload from your photos
           </Text>

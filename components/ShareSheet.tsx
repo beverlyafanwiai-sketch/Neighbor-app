@@ -34,7 +34,7 @@ export default function ShareSheet({ postId, postBody, onClose }: Props) {
   };
 
   return (
-    <View className="absolute inset-0 items-center justify-end bg-charcoal/40">
+    <View className="absolute inset-0 items-center justify-end bg-ink/40">
       <Pressable className="absolute inset-0" onPress={onClose} />
       <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
         <View className="flex-row items-center justify-between">
@@ -43,7 +43,7 @@ export default function ShareSheet({ postId, postBody, onClose }: Props) {
             onPress={onClose}
             className="h-8 w-8 items-center justify-center rounded-full bg-sand"
           >
-            <Ionicons name="close" size={16} color="#3D3D3D" />
+            <Ionicons name="close" size={16} className="text-charcoal" />
           </Pressable>
         </View>
 
@@ -58,7 +58,7 @@ export default function ShareSheet({ postId, postBody, onClose }: Props) {
           <Ionicons
             name={copied ? 'checkmark-circle' : 'link-outline'}
             size={20}
-            color={copied ? '#81A684' : '#3D3D3D'}
+            className={copied ? 'text-sage' : 'text-charcoal'}
           />
           <Text className={`text-sm font-medium ${copied ? 'text-sage' : 'text-charcoal'}`}>
             {copied ? 'Link copied!' : 'Copy link'}
@@ -69,7 +69,7 @@ export default function ShareSheet({ postId, postBody, onClose }: Props) {
           onPress={shareNative}
           className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
         >
-          <Ionicons name="arrow-redo-outline" size={20} color="#3D3D3D" />
+          <Ionicons name="arrow-redo-outline" size={20} className="text-charcoal" />
           <Text className="text-sm font-medium text-charcoal">Share via...</Text>
         </Pressable>
       </View>

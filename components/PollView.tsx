@@ -25,7 +25,7 @@ export default function PollView({ poll, myVote, onVote }: Props) {
             className="overflow-hidden rounded-xl bg-sand"
           >
             <View
-              className={`absolute inset-y-0 left-0 ${isMine ? 'bg-terracotta/25' : 'bg-charcoal/10'}`}
+              className={`absolute inset-y-0 left-0 ${isMine ? 'bg-terracotta/25' : 'bg-ink/10'}`}
               style={{ width: `${pct}%` }}
             />
             <View className="flex-row items-center justify-between gap-2 px-3 py-2.5">
@@ -33,7 +33,7 @@ export default function PollView({ poll, myVote, onVote }: Props) {
                 <Ionicons
                   name={isMine ? 'radio-button-on' : 'radio-button-off'}
                   size={16}
-                  color={isMine ? '#E0533C' : '#3D3D3D80'}
+                  className={isMine ? 'text-terracotta' : 'text-charcoal/50'}
                 />
                 <Text className="flex-1 text-sm text-charcoal" numberOfLines={1}>
                   {option.label}

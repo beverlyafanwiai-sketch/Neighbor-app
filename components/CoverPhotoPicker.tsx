@@ -30,16 +30,16 @@ export default function CoverPhotoPicker({ imageUri, onChange }: Props) {
         />
         <Pressable
           onPress={() => onChange(undefined)}
-          className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-charcoal/60"
+          className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-ink/60"
         >
-          <Ionicons name="close" size={16} color="#F5F2E9" />
+          <Ionicons name="close" size={16} className="text-paper" />
         </Pressable>
         <Pressable
           onPress={pickImage}
-          className="absolute bottom-2 right-2 flex-row items-center gap-1.5 rounded-full bg-charcoal/60 px-3 py-1.5"
+          className="absolute bottom-2 right-2 flex-row items-center gap-1.5 rounded-full bg-ink/60 px-3 py-1.5"
         >
-          <Ionicons name="image-outline" size={14} color="#F5F2E9" />
-          <Text className="text-xs font-medium text-cream">Change</Text>
+          <Ionicons name="image-outline" size={14} className="text-paper" />
+          <Text className="text-xs font-medium text-paper">Change</Text>
         </Pressable>
       </View>
     );
@@ -51,7 +51,7 @@ export default function CoverPhotoPicker({ imageUri, onChange }: Props) {
       className="flex-row items-center justify-center gap-2 rounded-2xl bg-cream py-6"
       style={{ borderWidth: 1, borderColor: '#3D3D3D20', borderStyle: 'dashed' }}
     >
-      <Ionicons name="image-outline" size={18} color="#81A684" />
+      <Ionicons name="image-outline" size={18} className="text-sage" />
       <Text className="text-sm font-medium text-charcoal">Add cover photo</Text>
     </Pressable>
   );

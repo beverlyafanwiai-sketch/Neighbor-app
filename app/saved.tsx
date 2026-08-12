@@ -35,7 +35,7 @@ export default function SavedPosts() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">Saved posts</Text>
       </View>
@@ -44,7 +44,7 @@ export default function SavedPosts() {
         {savedPosts.length === 0 && (
           <EmptyState
             icon="bookmark-outline"
-            iconColor="#3D3D3D80"
+            iconColorClassName="text-charcoal/50"
             title="Nothing saved yet"
             subtitle="Tap the bookmark on any post to save it for later."
           />
@@ -83,9 +83,9 @@ export default function SavedPosts() {
                       style={{ aspectRatio: 4 / 3 }}
                     />
                     {post.imageUris.length > 1 && (
-                      <View className="absolute right-2 top-2 flex-row items-center gap-1 rounded-full bg-charcoal/60 px-2 py-1">
-                        <Ionicons name="images" size={11} color="#F5F2E9" />
-                        <Text className="text-[10px] font-semibold text-cream">
+                      <View className="absolute right-2 top-2 flex-row items-center gap-1 rounded-full bg-ink/60 px-2 py-1">
+                        <Ionicons name="images" size={11} className="text-paper" />
+                        <Text className="text-[10px] font-semibold text-paper">
                           {post.imageUris.length}
                         </Text>
                       </View>
@@ -101,12 +101,12 @@ export default function SavedPosts() {
                           {topTypes.map((t) => REACTION_EMOJI[t]).join('')}
                         </Text>
                       ) : (
-                        <Ionicons name="heart-outline" size={18} color="#E0533C" />
+                        <Ionicons name="heart-outline" size={18} className="text-terracotta" />
                       )}
                       <Text className="text-sm text-charcoal/70">{getReactionTotal(reactionCounts)}</Text>
                     </View>
                     <View className="flex-row items-center gap-1.5">
-                      <Ionicons name="chatbubble-outline" size={17} color="#81A684" />
+                      <Ionicons name="chatbubble-outline" size={17} className="text-sage" />
                       <Text className="text-sm text-charcoal/70">
                         {getEffectiveReplies(post, postComments)}
                       </Text>
@@ -118,7 +118,7 @@ export default function SavedPosts() {
                       toggleSave(post.id);
                     }}
                   >
-                    <Ionicons name="bookmark" size={18} color="#D9A441" />
+                    <Ionicons name="bookmark" size={18} className="text-gold" />
                   </Pressable>
                 </View>
               </Pressable>

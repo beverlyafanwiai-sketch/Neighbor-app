@@ -104,15 +104,15 @@ export default function CreatePost() {
           onPress={close}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="close" size={20} color="#3D3D3D" />
+          <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">{isEditing ? 'Edit post' : 'New post'}</Text>
         <Pressable
           onPress={save}
           disabled={!canPost}
-          className={`rounded-full px-4 py-2 ${canPost ? 'bg-terracotta' : 'bg-charcoal/10'}`}
+          className={`rounded-full px-4 py-2 ${canPost ? 'bg-terracotta' : 'bg-ink/10'}`}
         >
-          <Text className={`text-sm font-semibold ${canPost ? 'text-cream' : 'text-charcoal/40'}`}>
+          <Text className={`text-sm font-semibold ${canPost ? 'text-paper' : 'text-charcoal/40'}`}>
             {isEditing ? 'Save' : 'Post'}
           </Text>
         </Pressable>
@@ -160,9 +160,9 @@ export default function CreatePost() {
                   <Image source={{ uri }} className="h-full w-full rounded-2xl bg-cream" />
                   <Pressable
                     onPress={() => removeImage(uri)}
-                    className="absolute right-1.5 top-1.5 h-7 w-7 items-center justify-center rounded-full bg-charcoal/60"
+                    className="absolute right-1.5 top-1.5 h-7 w-7 items-center justify-center rounded-full bg-ink/60"
                   >
-                    <Ionicons name="close" size={14} color="#F5F2E9" />
+                    <Ionicons name="close" size={14} className="text-paper" />
                   </Pressable>
                 </View>
               ))}
@@ -182,7 +182,7 @@ export default function CreatePost() {
                   }}
                   className="h-6 w-6 items-center justify-center"
                 >
-                  <Ionicons name="close" size={16} color="#3D3D3D80" />
+                  <Ionicons name="close" size={16} className="text-charcoal/50" />
                 </Pressable>
               </View>
               {pollOptions.map((option, i) => (
@@ -203,7 +203,7 @@ export default function CreatePost() {
                       onPress={() => setPollOptions(pollOptions.filter((_, idx) => idx !== i))}
                       className="h-7 w-7 items-center justify-center"
                     >
-                      <Ionicons name="remove-circle-outline" size={18} color="#E0533C" />
+                      <Ionicons name="remove-circle-outline" size={18} className="text-terracotta" />
                     </Pressable>
                   )}
                 </View>
@@ -213,7 +213,7 @@ export default function CreatePost() {
                   onPress={() => setPollOptions([...pollOptions, ''])}
                   className="flex-row items-center gap-1.5 self-start py-1"
                 >
-                  <Ionicons name="add-circle-outline" size={16} color="#81A684" />
+                  <Ionicons name="add-circle-outline" size={16} className="text-sage" />
                   <Text className="text-xs font-medium text-sage">Add option</Text>
                 </Pressable>
               )}
@@ -227,7 +227,7 @@ export default function CreatePost() {
               onPress={pickImages}
               className="flex-row items-center gap-2 rounded-full bg-cream px-4 py-2"
             >
-              <Ionicons name="image-outline" size={18} color="#81A684" />
+              <Ionicons name="image-outline" size={18} className="text-sage" />
               <Text className="text-sm font-medium text-charcoal">
                 {imageUris.length > 0 ? 'Add more photos' : 'Add photos'}
               </Text>
@@ -235,7 +235,7 @@ export default function CreatePost() {
           )}
           {!showPollBuilder && imageUris.length >= MAX_PHOTOS && (
             <View className="flex-row items-center gap-2 rounded-full bg-cream px-4 py-2">
-              <Ionicons name="image" size={18} color="#81A684" />
+              <Ionicons name="image" size={18} className="text-sage" />
               <Text className="text-sm font-medium text-charcoal/50">
                 {MAX_PHOTOS}/{MAX_PHOTOS} photos
               </Text>
@@ -246,7 +246,7 @@ export default function CreatePost() {
               onPress={() => setShowPollBuilder(true)}
               className="flex-row items-center gap-2 rounded-full bg-cream px-4 py-2"
             >
-              <Ionicons name="stats-chart-outline" size={18} color="#D9A441" />
+              <Ionicons name="stats-chart-outline" size={18} className="text-gold" />
               <Text className="text-sm font-medium text-charcoal">Poll</Text>
             </Pressable>
           )}

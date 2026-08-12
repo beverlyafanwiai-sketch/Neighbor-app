@@ -3,11 +3,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useColorScheme } from 'nativewind';
+
 import { getUser } from '../data/mock';
 import { useAuthStore } from '../store/useAuthStore';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { useSettingsStore, type NotificationPrefs } from '../store/useSettingsStore';
+import { useThemeStore, type ThemePreference } from '../store/useThemeStore';
+
+const APPEARANCE_OPTIONS: { value: ThemePreference; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { value: 'light', label: 'Light', icon: 'sunny-outline' },
+  { value: 'dark', label: 'Dark', icon: 'moon-outline' },
+  { value: 'system', label: 'Match system', icon: 'phone-portrait-outline' },
+];
 
 const NOTIFICATION_ROWS: { key: keyof NotificationPrefs; label: string; description: string }[] = [
   { key: 'messages', label: 'Messages', description: 'New direct messages and group chat activity' },
@@ -26,7 +35,7 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
       onPress={onToggle}
       accessibilityRole="switch"
       accessibilityState={{ checked: on }}
-      className={`h-6 w-11 justify-center rounded-full p-0.5 ${on ? 'bg-terracotta' : 'bg-charcoal/15'}`}
+      className={`h-6 w-11 justify-center rounded-full p-0.5 ${on ? 'bg-terracotta' : 'bg-ink/15'}`}
     >
       <View
         className="h-5 w-5 rounded-full bg-cream"
@@ -52,6 +61,14 @@ export default function Settings() {
     .filter((id) => mutedIds[id])
     .map((id) => getUser(id))
     .filter((u): u is NonNullable<typeof u> => Boolean(u));
+  const themePreference = useThemeStore((s) => s.preference);
+  const setThemePreference = useThemeStore((s) => s.setPreference);
+  const { setColorScheme } = useColorScheme();
+
+  const chooseAppearance = (value: ThemePreference) => {
+    setThemePreference(value);
+    setColorScheme(value);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -65,13 +82,44 @@ export default function Settings() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">Settings</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">
         <Text className="mb-3 mt-4 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+          Appearance
+        </Text>
+        <View className="gap-2">
+          {APPEARANCE_OPTIONS.map((opt) => (
+            <Pressable
+              key={opt.value}
+              onPress={() => chooseAppearance(opt.value)}
+              className={`flex-row items-center gap-3 rounded-2xl p-4 ${
+                themePreference === opt.value ? 'bg-terracotta' : 'bg-cream'
+              }`}
+            >
+              <Ionicons
+                name={opt.icon}
+                size={18}
+                className={themePreference === opt.value ? 'text-paper' : 'text-charcoal'}
+              />
+              <Text
+                className={`flex-1 text-sm font-medium ${
+                  themePreference === opt.value ? 'text-paper' : 'text-charcoal'
+                }`}
+              >
+                {opt.label}
+              </Text>
+              {themePreference === opt.value && (
+                <Ionicons name="checkmark-circle" size={18} className="text-paper" />
+              )}
+            </Pressable>
+          ))}
+        </View>
+
+        <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
           Notifications
         </Text>
         <View className="gap-px overflow-hidden rounded-2xl bg-cream">
@@ -141,16 +189,16 @@ export default function Settings() {
             onPress={() => router.push('/edit-profile')}
             className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
           >
-            <Ionicons name="person-outline" size={18} color="#3D3D3D" />
+            <Ionicons name="person-outline" size={18} className="text-charcoal" />
             <Text className="flex-1 text-sm font-medium text-charcoal">Edit profile</Text>
-            <Ionicons name="chevron-forward" size={16} color="#3D3D3D80" />
+            <Ionicons name="chevron-forward" size={16} className="text-charcoal/50" />
           </Pressable>
 
           <Pressable
             onPress={handleSignOut}
             className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
           >
-            <Ionicons name="log-out-outline" size={18} color="#E0533C" />
+            <Ionicons name="log-out-outline" size={18} className="text-terracotta" />
             <Text className="flex-1 text-sm font-medium text-terracotta">Sign out</Text>
           </Pressable>
         </View>

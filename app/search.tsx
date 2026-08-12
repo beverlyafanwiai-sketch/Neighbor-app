@@ -105,10 +105,10 @@ export default function Search() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <View className="flex-1 flex-row items-center rounded-full bg-cream px-4 py-2.5">
-          <Ionicons name="search" size={18} color="#3D3D3D80" />
+          <Ionicons name="search" size={18} className="text-charcoal/50" />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -119,7 +119,7 @@ export default function Search() {
           />
           {query.length > 0 && (
             <Pressable onPress={() => setQuery('')}>
-              <Ionicons name="close-circle" size={18} color="#3D3D3D80" />
+              <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}
         </View>
@@ -129,7 +129,7 @@ export default function Search() {
         {q.length === 0 && (
           <EmptyState
             icon="search-outline"
-            iconColor="#3D3D3D80"
+            iconColorClassName="text-charcoal/50"
             title="Search your neighborhood"
             subtitle="Find posts, people, groups, and events all at once."
           />
@@ -194,7 +194,7 @@ export default function Search() {
                     className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
                   >
                     <View className="h-11 w-11 items-center justify-center rounded-full bg-terracotta">
-                      <Text className="text-base font-bold text-cream">{g.name.charAt(0)}</Text>
+                      <Text className="text-base font-bold text-paper">{g.name.charAt(0)}</Text>
                     </View>
                     <View className="flex-1">
                       <Text className="font-semibold text-charcoal">{g.name}</Text>
@@ -210,16 +210,16 @@ export default function Search() {
                       </View>
                     </View>
                     {joined ? (
-                      <Ionicons name="chevron-forward" size={16} color="#3D3D3D80" />
+                      <Ionicons name="chevron-forward" size={16} className="text-charcoal/50" />
                     ) : (
                       <Pressable
                         onPress={(evt) => {
                           evt.stopPropagation();
                           toggleJoin(g.id);
                         }}
-                        className="rounded-full bg-charcoal px-4 py-2"
+                        className="rounded-full bg-ink px-4 py-2"
                       >
-                        <Text className="text-xs font-semibold text-cream">Join</Text>
+                        <Text className="text-xs font-semibold text-paper">Join</Text>
                       </Pressable>
                     )}
                   </Pressable>
@@ -240,8 +240,8 @@ export default function Search() {
                   className="flex-row gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
                 >
                   <View className="h-12 w-12 items-center justify-center rounded-xl bg-terracotta">
-                    <Text className="text-[10px] font-semibold text-cream">{e.month}</Text>
-                    <Text className="text-lg font-bold text-cream">{e.day}</Text>
+                    <Text className="text-[10px] font-semibold text-paper">{e.month}</Text>
+                    <Text className="text-lg font-bold text-paper">{e.day}</Text>
                   </View>
                   <View className="flex-1">
                     <Text className="font-semibold text-charcoal">{e.title}</Text>
@@ -295,14 +295,14 @@ export default function Search() {
                             {topTypes.map((t) => REACTION_EMOJI[t]).join('')}
                           </Text>
                         ) : (
-                          <Ionicons name="heart-outline" size={14} color="#E0533C" />
+                          <Ionicons name="heart-outline" size={14} className="text-terracotta" />
                         )}
                         <Text className="text-xs text-charcoal/50">
                           {getReactionTotal(reactionCounts)}
                         </Text>
                       </View>
                       <View className="flex-row items-center gap-1">
-                        <Ionicons name="chatbubble-outline" size={13} color="#81A684" />
+                        <Ionicons name="chatbubble-outline" size={13} className="text-sage" />
                         <Text className="text-xs text-charcoal/50">
                           {getEffectiveReplies(post, postComments)}
                         </Text>

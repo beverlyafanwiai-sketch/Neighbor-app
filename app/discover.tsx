@@ -62,14 +62,14 @@ export default function Discover() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <Text className="text-xl font-bold text-charcoal">Discover</Text>
       </View>
 
       <View className="px-5 pb-3">
         <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">
-          <Ionicons name="search" size={18} color="#3D3D3D80" />
+          <Ionicons name="search" size={18} className="text-charcoal/50" />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -85,9 +85,9 @@ export default function Discover() {
           <Pressable
             key={m}
             onPress={() => setMode(m)}
-            className={`rounded-full px-4 py-2 ${mode === m ? 'bg-charcoal' : 'bg-cream'}`}
+            className={`rounded-full px-4 py-2 ${mode === m ? 'bg-ink' : 'bg-cream'}`}
           >
-            <Text className={`text-sm font-medium ${mode === m ? 'text-cream' : 'text-charcoal/60'}`}>
+            <Text className={`text-sm font-medium ${mode === m ? 'text-paper' : 'text-charcoal/60'}`}>
               {m}
             </Text>
           </Pressable>
@@ -136,7 +136,7 @@ export default function Discover() {
 
                   {shared.length > 0 && (
                     <View className="mt-3 flex-row flex-wrap items-center gap-1.5 border-t border-charcoal/10 pt-3">
-                      <Ionicons name="sparkles-outline" size={13} color="#81A684" />
+                      <Ionicons name="sparkles-outline" size={13} className="text-sage" />
                       <Text className="text-xs text-sage">
                         Shares {shared.length === 1 ? 'an interest' : `${shared.length} interests`}
                         : {shared.join(', ')}
@@ -167,7 +167,7 @@ export default function Discover() {
                   className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
                 >
                   <View className="h-12 w-12 items-center justify-center rounded-full bg-sage">
-                    <Text className="text-lg font-bold text-cream">{g.name.charAt(0)}</Text>
+                    <Text className="text-lg font-bold text-paper">{g.name.charAt(0)}</Text>
                   </View>
                   <View className="flex-1">
                     <Text className="font-semibold text-charcoal">{g.name}</Text>
@@ -185,9 +185,9 @@ export default function Discover() {
                       evt.stopPropagation();
                       toggleJoin(g.id);
                     }}
-                    className="rounded-full bg-charcoal px-4 py-2"
+                    className="rounded-full bg-ink px-4 py-2"
                   >
-                    <Text className="text-xs font-semibold text-cream">Join</Text>
+                    <Text className="text-xs font-semibold text-paper">Join</Text>
                   </Pressable>
                 </Pressable>
               );

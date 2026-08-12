@@ -96,7 +96,7 @@ export default function ProfileView({
             onPress={onBack}
             className="absolute left-4 top-10 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
           >
-            <Ionicons name="chevron-back" size={22} color="#F5F2E9" />
+            <Ionicons name="chevron-back" size={22} className="text-paper" />
           </Pressable>
         )}
         {isMe && (onSettings || onSavedPosts || onRecs) && (
@@ -106,7 +106,7 @@ export default function ProfileView({
                 onPress={onRecs}
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
               >
-                <Ionicons name="star-outline" size={19} color="#F5F2E9" />
+                <Ionicons name="star-outline" size={19} className="text-paper" />
               </Pressable>
             )}
             {onSavedPosts && (
@@ -114,7 +114,7 @@ export default function ProfileView({
                 onPress={onSavedPosts}
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
               >
-                <Ionicons name="bookmark-outline" size={19} color="#F5F2E9" />
+                <Ionicons name="bookmark-outline" size={19} className="text-paper" />
               </Pressable>
             )}
             {onSettings && (
@@ -122,7 +122,7 @@ export default function ProfileView({
                 onPress={onSettings}
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
               >
-                <Ionicons name="settings-outline" size={20} color="#F5F2E9" />
+                <Ionicons name="settings-outline" size={20} className="text-paper" />
               </Pressable>
             )}
           </View>
@@ -132,19 +132,19 @@ export default function ProfileView({
             onPress={onMoreOptions}
             className="absolute right-4 top-10 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
           >
-            <Ionicons name="ellipsis-horizontal" size={20} color="#F5F2E9" />
+            <Ionicons name="ellipsis-horizontal" size={20} className="text-paper" />
           </Pressable>
         )}
         <Image
           source={{ uri: user.avatar }}
           className="h-24 w-24 rounded-full border-4 border-cream"
         />
-        <Text className="mt-3 text-2xl font-bold text-cream">{user.name}</Text>
+        <Text className="mt-3 text-2xl font-bold text-paper">{user.name}</Text>
         <Text className="mt-1 text-sm text-sand">{user.tagline}</Text>
 
         {user.neighborhood.length > 0 && (
           <View className="mt-2 flex-row items-center gap-1">
-            <Ionicons name="location-outline" size={13} color="#F4E9CD" />
+            <Ionicons name="location-outline" size={13} className="text-paper" />
             <Text className="text-xs text-sand">
               {user.neighborhood}
               {user.yearsInArea ? ` · ${user.yearsInArea}` : ''}
@@ -162,16 +162,16 @@ export default function ProfileView({
             <Ionicons
               name={myAvailable ? 'sunny' : 'sunny-outline'}
               size={13}
-              color={myAvailable ? '#3D3D3D' : '#F5F2E9'}
+              className={myAvailable ? 'text-charcoal' : 'text-paper'}
             />
-            <Text className={`text-xs font-semibold ${myAvailable ? 'text-charcoal' : 'text-cream'}`}>
+            <Text className={`text-xs font-semibold ${myAvailable ? 'text-charcoal' : 'text-paper'}`}>
               {myAvailable ? 'Free for a coffee or walk today' : "Tap if you're free today"}
             </Text>
           </Pressable>
         ) : (
           available && (
             <View className="mt-3 flex-row items-center gap-1.5 rounded-full bg-sage px-4 py-2">
-              <Ionicons name="sunny" size={13} color="#3D3D3D" />
+              <Ionicons name="sunny" size={13} className="text-charcoal" />
               <Text className="text-xs font-semibold text-charcoal">
                 Free for a coffee or walk today
               </Text>
@@ -186,8 +186,8 @@ export default function ProfileView({
                 key={v}
                 className="flex-row items-center gap-1 rounded-full bg-cream/20 px-2.5 py-1"
               >
-                <Ionicons name={VERIFICATION_META[v].icon} size={11} color="#F5F2E9" />
-                <Text className="text-[10px] font-semibold text-cream">
+                <Ionicons name={VERIFICATION_META[v].icon} size={11} className="text-paper" />
+                <Text className="text-[10px] font-semibold text-paper">
                   {VERIFICATION_META[v].label}
                 </Text>
               </View>
@@ -209,13 +209,13 @@ export default function ProfileView({
                 }`}
               >
                 {friendStatus === 'friends' && (
-                  <Ionicons name="checkmark" size={16} color="#F5F2E9" />
+                  <Ionicons name="checkmark" size={16} className="text-paper" />
                 )}
                 {friendStatus === 'pending_in' && (
-                  <Ionicons name="person-add" size={16} color="#F5F2E9" />
+                  <Ionicons name="person-add" size={16} className="text-paper" />
                 )}
                 <Text
-                  className={`font-semibold ${friendStatus === 'none' ? 'text-charcoal' : 'text-cream'}`}
+                  className={`font-semibold ${friendStatus === 'none' ? 'text-charcoal' : 'text-paper'}`}
                 >
                   {FRIEND_LABEL[friendStatus]}
                 </Text>
@@ -224,7 +224,7 @@ export default function ProfileView({
                 onPress={onMessage}
                 className="items-center justify-center rounded-full bg-cream/20 px-4 py-2.5"
               >
-                <Ionicons name="chatbubble-outline" size={18} color="#F5F2E9" />
+                <Ionicons name="chatbubble-outline" size={18} className="text-paper" />
               </Pressable>
             </>
           )}
@@ -234,7 +234,7 @@ export default function ProfileView({
       {user.isNew && (
         <View className="border-b border-charcoal/10 bg-cream px-5 py-5">
           <View className="flex-row items-center gap-1.5">
-            <Ionicons name="sparkles" size={13} color="#D9A441" />
+            <Ionicons name="sparkles" size={13} className="text-gold" />
             <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
               {isMe ? 'Welcome notes from your neighbors' : `New to the neighborhood`}
             </Text>
@@ -371,7 +371,7 @@ export default function ProfileView({
               (m) => (
                 <View key={m.key} className="rounded-2xl bg-terracotta/10 p-4">
                   <View className="flex-row items-center gap-1.5">
-                    <Ionicons name={m.icon} size={13} color="#E0533C" />
+                    <Ionicons name={m.icon} size={13} className="text-terracotta" />
                     <Text className="text-xs font-semibold uppercase tracking-wide text-terracotta">
                       {m.label}
                     </Text>
@@ -407,7 +407,7 @@ export default function ProfileView({
                     <Image source={{ uri: post.imageUris![0] }} className="h-full w-full rounded-xl" />
                     {post.imageUris!.length > 1 && (
                       <View className="absolute right-1 top-1">
-                        <Ionicons name="copy" size={15} color="#F5F2E9" />
+                        <Ionicons name="copy" size={15} className="text-paper" />
                       </View>
                     )}
                   </Pressable>
@@ -416,7 +416,7 @@ export default function ProfileView({
             ) : (
               <EmptyState
                 icon="image-outline"
-                iconColor="#3D3D3D80"
+                iconColorClassName="text-charcoal/50"
                 title={isMe ? 'No photos yet' : `No photos from ${user.name} yet`}
                 subtitle={
                   isMe ? 'Photos you add to a post will show up here.' : undefined

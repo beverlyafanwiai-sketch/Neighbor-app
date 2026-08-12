@@ -184,7 +184,7 @@ export default function Onboarding() {
   const meta = STEPS[step];
 
   return (
-    <View className="flex-1 bg-charcoal">
+    <View className="flex-1 bg-ink">
       <Image
         source={require('../assets/images/onboarding-cafe.jpg')}
         resizeMode="cover"
@@ -211,7 +211,7 @@ export default function Onboarding() {
                   onPress={back}
                   className="mb-4 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
                 >
-                  <Ionicons name="chevron-back" size={20} color="#F5F2E9" />
+                  <Ionicons name="chevron-back" size={20} className="text-paper" />
                 </Pressable>
               )}
 
@@ -227,7 +227,7 @@ export default function Onboarding() {
               </View>
 
               <Text
-                className="text-center text-4xl font-bold italic tracking-tight text-cream"
+                className="text-center text-4xl font-bold italic tracking-tight text-paper"
                 style={headingShadow}
               >
                 {meta.title}
@@ -329,7 +329,7 @@ export default function Onboarding() {
                           >
                             <Text
                               className={`text-sm font-medium ${
-                                selected ? 'text-cream' : 'text-charcoal/70'
+                                selected ? 'text-paper' : 'text-charcoal/70'
                               }`}
                             >
                               {capitalize(tag)}
@@ -403,7 +403,7 @@ export default function Onboarding() {
                           <Ionicons
                             name={v.icon}
                             size={16}
-                            color={selected ? '#F5F2E9' : '#3D3D3D80'}
+                            className={selected ? 'text-paper' : 'text-charcoal/50'}
                           />
                         </View>
                         <View className="flex-1">
@@ -419,7 +419,7 @@ export default function Onboarding() {
                         <Ionicons
                           name={selected ? 'checkmark-circle' : 'ellipse-outline'}
                           size={22}
-                          color={selected ? '#E0533C' : '#3D3D3D40'}
+                          className={selected ? 'text-terracotta' : 'text-charcoal/25'}
                         />
                       </Pressable>
                     );
@@ -471,12 +471,12 @@ export default function Onboarding() {
                 onPress={next}
                 disabled={!canContinue}
                 className={`mt-8 items-center rounded-2xl py-4 active:opacity-80 ${
-                  canContinue ? 'bg-terracotta' : 'bg-charcoal/10'
+                  canContinue ? 'bg-terracotta' : 'bg-ink/10'
                 }`}
                 style={canContinue ? buttonShadow : undefined}
               >
                 <Text
-                  className={`text-base font-semibold ${canContinue ? 'text-cream' : 'text-charcoal/40'}`}
+                  className={`text-base font-semibold ${canContinue ? 'text-paper' : 'text-charcoal/40'}`}
                 >
                   {isLastStep ? 'Get started' : 'Continue'}
                 </Text>

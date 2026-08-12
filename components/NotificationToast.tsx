@@ -35,23 +35,23 @@ export default function NotificationToast() {
     <View className="absolute left-4 right-4" style={{ top: insets.top + 8 }} pointerEvents="box-none">
       <Pressable
         onPress={press}
-        className="flex-row items-center gap-3 rounded-2xl bg-charcoal p-3.5 shadow-lg active:opacity-90"
+        className="flex-row items-center gap-3 rounded-2xl bg-ink p-3.5 shadow-lg active:opacity-90"
       >
         {actor ? (
           <Image source={{ uri: actor.avatar }} className="h-10 w-10 rounded-full" />
         ) : (
           <View className="h-10 w-10 items-center justify-center rounded-full bg-sage/20">
-            <Ionicons name={TYPE_ICON[toast.type]} size={18} color="#81A684" />
+            <Ionicons name={TYPE_ICON[toast.type]} size={18} className="text-sage" />
           </View>
         )}
-        <Text className="flex-1 text-sm font-medium text-cream" numberOfLines={2}>
+        <Text className="flex-1 text-sm font-medium text-paper" numberOfLines={2}>
           {toast.text}
         </Text>
         <Pressable
           onPress={dismissToast}
           className="h-6 w-6 items-center justify-center rounded-full bg-cream/15"
         >
-          <Ionicons name="close" size={13} color="#F5F2E9" />
+          <Ionicons name="close" size={13} className="text-paper" />
         </Pressable>
       </Pressable>
     </View>

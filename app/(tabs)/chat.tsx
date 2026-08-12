@@ -49,7 +49,7 @@ export default function ChatList() {
                 className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
               >
                 <View className="h-12 w-12 items-center justify-center rounded-full bg-terracotta">
-                  <Text className="text-lg font-bold text-cream">{g.name.charAt(0)}</Text>
+                  <Text className="text-lg font-bold text-paper">{g.name.charAt(0)}</Text>
                 </View>
                 <View className="flex-1">
                   <Text className="font-semibold text-charcoal">{g.name}</Text>

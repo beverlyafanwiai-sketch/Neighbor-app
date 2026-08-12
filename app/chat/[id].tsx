@@ -77,7 +77,7 @@ export default function ChatThread() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full"
         >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <Pressable
           onPress={() => router.push(`/profile/${user.id}`)}
@@ -90,7 +90,7 @@ export default function ChatThread() {
           </View>
         </Pressable>
         <Pressable className="h-9 w-9 items-center justify-center rounded-full">
-          <Ionicons name="information-circle-outline" size={22} color="#3D3D3D" />
+          <Ionicons name="information-circle-outline" size={22} className="text-charcoal" />
         </Pressable>
       </View>
 
@@ -130,7 +130,7 @@ export default function ChatThread() {
                   />
                 )}
                 {item.text.length > 0 && (
-                  <Text className={item.from === 'me' ? 'text-cream' : 'text-charcoal'}>
+                  <Text className={item.from === 'me' ? 'text-paper' : 'text-charcoal'}>
                     {item.text}
                   </Text>
                 )}
@@ -145,9 +145,9 @@ export default function ChatThread() {
             isTyping ? (
               <View className="mt-2 max-w-[78%] items-start self-start">
                 <View className="flex-row items-center gap-1 rounded-2xl rounded-bl-sm bg-cream px-4 py-3.5">
-                  <View className="h-1.5 w-1.5 rounded-full bg-charcoal/40" />
-                  <View className="h-1.5 w-1.5 rounded-full bg-charcoal/40" />
-                  <View className="h-1.5 w-1.5 rounded-full bg-charcoal/40" />
+                  <View className="h-1.5 w-1.5 rounded-full bg-ink/40" />
+                  <View className="h-1.5 w-1.5 rounded-full bg-ink/40" />
+                  <View className="h-1.5 w-1.5 rounded-full bg-ink/40" />
                 </View>
               </View>
             ) : null
@@ -160,9 +160,9 @@ export default function ChatThread() {
               <Image source={{ uri: imageUri }} className="h-16 w-16 rounded-xl" />
               <Pressable
                 onPress={() => setImageUri(undefined)}
-                className="absolute -right-1.5 -top-1.5 h-5 w-5 items-center justify-center rounded-full bg-charcoal/70"
+                className="absolute -right-1.5 -top-1.5 h-5 w-5 items-center justify-center rounded-full bg-ink/70"
               >
-                <Ionicons name="close" size={11} color="#F5F2E9" />
+                <Ionicons name="close" size={11} className="text-paper" />
               </Pressable>
             </View>
           </View>
@@ -177,7 +177,7 @@ export default function ChatThread() {
             onPress={pickImage}
             className="h-10 w-10 items-center justify-center rounded-full bg-sand"
           >
-            <Ionicons name="image-outline" size={19} color="#81A684" />
+            <Ionicons name="image-outline" size={19} className="text-sage" />
           </Pressable>
           <TextInput
             value={draft}
@@ -191,7 +191,7 @@ export default function ChatThread() {
             onPress={send}
             className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"
           >
-            <Ionicons name="arrow-up" size={20} color="#F5F2E9" />
+            <Ionicons name="arrow-up" size={20} className="text-paper" />
           </Pressable>
         </View>
       </KeyboardAvoidingView>

@@ -50,7 +50,7 @@ export default function PhotoCarousel({ uris, className = 'mt-3' }: Props) {
         {uris.map((_, i) => (
           <View
             key={i}
-            className={`h-1.5 rounded-full ${i === index ? 'w-4 bg-terracotta' : 'w-1.5 bg-charcoal/20'}`}
+            className={`h-1.5 rounded-full ${i === index ? 'w-4 bg-terracotta' : 'w-1.5 bg-ink/20'}`}
           />
         ))}
       </View>

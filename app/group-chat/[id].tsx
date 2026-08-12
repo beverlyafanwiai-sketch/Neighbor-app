@@ -104,14 +104,14 @@ export default function GroupChatThread() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full"
         >
-          <Ionicons name="chevron-back" size={22} color="#3D3D3D" />
+          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <Pressable
           onPress={() => router.push(`/group/${group.id}`)}
           className="flex-1 flex-row items-center gap-3"
         >
           <View className="h-10 w-10 items-center justify-center rounded-full bg-terracotta">
-            <Text className="text-base font-bold text-cream">{group.name.charAt(0)}</Text>
+            <Text className="text-base font-bold text-paper">{group.name.charAt(0)}</Text>
           </View>
           <View className="flex-1">
             <Text className="text-base font-semibold text-charcoal">{group.name}</Text>
@@ -122,13 +122,13 @@ export default function GroupChatThread() {
           onPress={() => setConfirmingLeave(true)}
           className="h-9 w-9 items-center justify-center rounded-full"
         >
-          <Ionicons name="information-circle-outline" size={22} color="#3D3D3D" />
+          <Ionicons name="information-circle-outline" size={22} className="text-charcoal" />
         </Pressable>
       </View>
 
       {pinnedMessage && pinnedSender && (
         <View className="flex-row items-center gap-2.5 border-b border-charcoal/10 bg-gold/10 px-4 py-2.5">
-          <Ionicons name="pin" size={14} color="#D9A441" />
+          <Ionicons name="pin" size={14} className="text-gold" />
           <View className="flex-1">
             <Text className="text-xs font-semibold text-charcoal/60">
               Pinned · {pinnedSender.name}
@@ -142,7 +142,7 @@ export default function GroupChatThread() {
               onPress={() => unpinMessage(group.id)}
               className="h-7 w-7 items-center justify-center rounded-full"
             >
-              <Ionicons name="close" size={15} color="#3D3D3D80" />
+              <Ionicons name="close" size={15} className="text-charcoal/50" />
             </Pressable>
           )}
         </View>
@@ -157,7 +157,7 @@ export default function GroupChatThread() {
             <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
           </Pressable>
           <Pressable onPress={leave} className="rounded-full bg-terracotta px-3 py-1.5">
-            <Text className="text-sm font-semibold text-cream">Leave</Text>
+            <Text className="text-sm font-semibold text-paper">Leave</Text>
           </Pressable>
         </View>
       )}
@@ -207,7 +207,7 @@ export default function GroupChatThread() {
                     />
                   )}
                   {item.text.length > 0 && (
-                    <Text className={isMe ? 'text-cream' : 'text-charcoal'}>{item.text}</Text>
+                    <Text className={isMe ? 'text-paper' : 'text-charcoal'}>{item.text}</Text>
                   )}
                 </View>
                 <View className="mt-1 flex-row items-center gap-1.5">
@@ -224,7 +224,7 @@ export default function GroupChatThread() {
                       <Ionicons
                         name={item.id === pinnedMessageId ? 'pin' : 'pin-outline'}
                         size={12}
-                        color={item.id === pinnedMessageId ? '#D9A441' : '#3D3D3D40'}
+                        className={item.id === pinnedMessageId ? 'text-gold' : 'text-charcoal/25'}
                       />
                     </Pressable>
                   )}
@@ -245,9 +245,9 @@ export default function GroupChatThread() {
                   <Text className="text-xs font-medium text-charcoal/60">{typingUser.name}</Text>
                 </View>
                 <View className="flex-row items-center gap-1 rounded-2xl rounded-bl-sm bg-cream px-4 py-3.5">
-                  <View className="h-1.5 w-1.5 rounded-full bg-charcoal/40" />
-                  <View className="h-1.5 w-1.5 rounded-full bg-charcoal/40" />
-                  <View className="h-1.5 w-1.5 rounded-full bg-charcoal/40" />
+                  <View className="h-1.5 w-1.5 rounded-full bg-ink/40" />
+                  <View className="h-1.5 w-1.5 rounded-full bg-ink/40" />
+                  <View className="h-1.5 w-1.5 rounded-full bg-ink/40" />
                 </View>
               </View>
             ) : null
@@ -260,9 +260,9 @@ export default function GroupChatThread() {
               <Image source={{ uri: imageUri }} className="h-16 w-16 rounded-xl" />
               <Pressable
                 onPress={() => setImageUri(undefined)}
-                className="absolute -right-1.5 -top-1.5 h-5 w-5 items-center justify-center rounded-full bg-charcoal/70"
+                className="absolute -right-1.5 -top-1.5 h-5 w-5 items-center justify-center rounded-full bg-ink/70"
               >
-                <Ionicons name="close" size={11} color="#F5F2E9" />
+                <Ionicons name="close" size={11} className="text-paper" />
               </Pressable>
             </View>
           </View>
@@ -277,7 +277,7 @@ export default function GroupChatThread() {
             onPress={pickImage}
             className="h-10 w-10 items-center justify-center rounded-full bg-sand"
           >
-            <Ionicons name="image-outline" size={19} color="#81A684" />
+            <Ionicons name="image-outline" size={19} className="text-sage" />
           </Pressable>
           <TextInput
             value={draft}
@@ -291,7 +291,7 @@ export default function GroupChatThread() {
             onPress={send}
             className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"
           >
-            <Ionicons name="arrow-up" size={20} color="#F5F2E9" />
+            <Ionicons name="arrow-up" size={20} className="text-paper" />
           </Pressable>
         </View>
       </KeyboardAvoidingView>

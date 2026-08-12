@@ -53,11 +53,11 @@ export default function Login() {
   const illustration = preset === 'resort' ? RESORT_FUN_SVG : PARK_FRIENDS_SVG;
 
   return (
-    <SafeAreaView className={`flex-1 ${showFullBleedPhoto ? 'bg-charcoal' : bgColorClass}`}>
+    <SafeAreaView className={`flex-1 ${showFullBleedPhoto ? 'bg-ink' : bgColorClass}`}>
       {showFullBleedPhoto && (
         <>
           <Image source={photoSource} resizeMode="cover" className="absolute inset-0 h-full w-full" />
-          <View className="absolute inset-0 bg-charcoal/55" />
+          <View className="absolute inset-0 bg-ink/55" />
         </>
       )}
 
@@ -65,7 +65,7 @@ export default function Login() {
         onPress={() => setShowPicker(true)}
         className="absolute right-4 top-14 z-10 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
       >
-        <Ionicons name="color-palette-outline" size={19} color="#F5F2E9" />
+        <Ionicons name="color-palette-outline" size={19} className="text-paper" />
       </Pressable>
 
       <KeyboardAvoidingView
@@ -80,7 +80,7 @@ export default function Login() {
 
         <View className="flex-1 justify-center px-8">
           <Text
-            className="mb-2 text-center text-6xl font-bold italic tracking-tight text-cream"
+            className="mb-2 text-center text-6xl font-bold italic tracking-tight text-paper"
             style={{ textShadowColor: 'rgba(61,61,61,0.45)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 10 }}
           >
             neighbor
@@ -110,17 +110,17 @@ export default function Login() {
             />
           </View>
 
-          {error && <Text className="mt-3 text-center text-sm text-cream">{error}</Text>}
+          {error && <Text className="mt-3 text-center text-sm text-paper">{error}</Text>}
 
           <Pressable
             onPress={handleLogin}
             disabled={submitting}
-            className="mt-8 items-center rounded-2xl bg-charcoal py-4 active:opacity-80 disabled:opacity-60"
+            className="mt-8 items-center rounded-2xl bg-ink py-4 active:opacity-80 disabled:opacity-60"
           >
             {submitting ? (
-              <ActivityIndicator color="#F5F2E9" />
+              <ActivityIndicator className="text-paper" />
             ) : (
-              <Text className="text-base font-semibold text-cream">Log in</Text>
+              <Text className="text-base font-semibold text-paper">Log in</Text>
             )}
           </Pressable>
 

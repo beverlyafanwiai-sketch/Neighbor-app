@@ -88,7 +88,7 @@ export default function CreateEvent() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="close" size={20} color="#3D3D3D" />
+          <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">
           {isEditing ? 'Edit event' : 'Host an event'}
@@ -96,9 +96,9 @@ export default function CreateEvent() {
         <Pressable
           onPress={save}
           disabled={!canSave}
-          className={`rounded-full px-4 py-2 ${canSave ? 'bg-terracotta' : 'bg-charcoal/10'}`}
+          className={`rounded-full px-4 py-2 ${canSave ? 'bg-terracotta' : 'bg-ink/10'}`}
         >
-          <Text className={`text-sm font-semibold ${canSave ? 'text-cream' : 'text-charcoal/40'}`}>
+          <Text className={`text-sm font-semibold ${canSave ? 'text-paper' : 'text-charcoal/40'}`}>
             {isEditing ? 'Save' : 'Create'}
           </Text>
         </Pressable>
@@ -184,7 +184,7 @@ export default function CreateEvent() {
                   >
                     <Text
                       className={`text-xs font-medium ${
-                        category === c ? 'text-cream' : 'text-charcoal/60'
+                        category === c ? 'text-paper' : 'text-charcoal/60'
                       }`}
                     >
                       {c}
@@ -213,7 +213,7 @@ export default function CreateEvent() {
                   onPress={() => setSpotsTotal((n) => Math.max(2, n - 1))}
                   className="h-10 w-10 items-center justify-center rounded-full bg-cream"
                 >
-                  <Ionicons name="remove" size={18} color="#3D3D3D" />
+                  <Ionicons name="remove" size={18} className="text-charcoal" />
                 </Pressable>
                 <Text className="w-8 text-center text-lg font-semibold text-charcoal">
                   {spotsTotal}
@@ -222,7 +222,7 @@ export default function CreateEvent() {
                   onPress={() => setSpotsTotal((n) => Math.min(30, n + 1))}
                   className="h-10 w-10 items-center justify-center rounded-full bg-cream"
                 >
-                  <Ionicons name="add" size={18} color="#3D3D3D" />
+                  <Ionicons name="add" size={18} className="text-charcoal" />
                 </Pressable>
                 <View className="ml-2 flex-row gap-2">
                   {SUGGESTED_CAPS.map((n) => (
@@ -235,7 +235,7 @@ export default function CreateEvent() {
                     >
                       <Text
                         className={`text-xs font-medium ${
-                          spotsTotal === n ? 'text-cream' : 'text-charcoal/60'
+                          spotsTotal === n ? 'text-paper' : 'text-charcoal/60'
                         }`}
                       >
                         {n}

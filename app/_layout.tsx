@@ -1,4 +1,5 @@
 import '../global.css';
+import '../lib/iconTheme';
 
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -18,14 +19,14 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(tabs)" />
       </Stack>
       {initializing && (
         <View className="absolute inset-0 items-center justify-center bg-terracotta">
-          <ActivityIndicator color="#F5F2E9" />
+          <ActivityIndicator className="text-paper" />
         </View>
       )}
       <NotificationToast />

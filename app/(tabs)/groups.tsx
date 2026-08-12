@@ -49,13 +49,13 @@ export default function Groups() {
           onPress={() => router.push('/create-group')}
           className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"
         >
-          <Ionicons name="add" size={22} color="#F5F2E9" />
+          <Ionicons name="add" size={22} className="text-paper" />
         </Pressable>
       </View>
 
       <View className="px-5 pb-3">
         <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">
-          <Ionicons name="search" size={18} color="#3D3D3D80" />
+          <Ionicons name="search" size={18} className="text-charcoal/50" />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -65,7 +65,7 @@ export default function Groups() {
           />
           {query.length > 0 && (
             <Pressable onPress={() => setQuery('')}>
-              <Ionicons name="close-circle" size={18} color="#3D3D3D80" />
+              <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}
         </View>
@@ -86,7 +86,7 @@ export default function Groups() {
                 className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
               >
                 <View className="h-12 w-12 items-center justify-center rounded-full bg-terracotta">
-                  <Text className="text-lg font-bold text-cream">{c.name.charAt(0)}</Text>
+                  <Text className="text-lg font-bold text-paper">{c.name.charAt(0)}</Text>
                 </View>
                 <View className="flex-1">
                   <Text className="font-semibold text-charcoal">{c.name}</Text>
@@ -140,7 +140,7 @@ export default function Groups() {
               className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
             >
               <View className="h-12 w-12 items-center justify-center rounded-full bg-sage">
-                <Text className="text-lg font-bold text-cream">{g.name.charAt(0)}</Text>
+                <Text className="text-lg font-bold text-paper">{g.name.charAt(0)}</Text>
               </View>
               <View className="flex-1">
                 <Text className="font-semibold text-charcoal">{g.name}</Text>
@@ -156,9 +156,9 @@ export default function Groups() {
                   evt.stopPropagation();
                   toggleJoin(g.id);
                 }}
-                className="rounded-full bg-charcoal px-4 py-2"
+                className="rounded-full bg-ink px-4 py-2"
               >
-                <Text className="text-xs font-semibold text-cream">Join</Text>
+                <Text className="text-xs font-semibold text-paper">Join</Text>
               </Pressable>
             </Pressable>
           ))}
@@ -168,7 +168,7 @@ export default function Groups() {
             ) : (
               <EmptyState
                 icon="checkmark-circle-outline"
-                iconColor="#81A684"
+                iconColorClassName="text-sage"
                 title="You're in every circle"
                 subtitle="Nice work — check back later for new groups in your area."
               />

@@ -72,7 +72,7 @@ export default function CreateGroup() {
           onPress={() => router.back()}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
-          <Ionicons name="close" size={20} color="#3D3D3D" />
+          <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">
           {isEditing ? 'Edit circle' : 'Start a circle'}
@@ -80,9 +80,9 @@ export default function CreateGroup() {
         <Pressable
           onPress={save}
           disabled={!canSave}
-          className={`rounded-full px-4 py-2 ${canSave ? 'bg-terracotta' : 'bg-charcoal/10'}`}
+          className={`rounded-full px-4 py-2 ${canSave ? 'bg-terracotta' : 'bg-ink/10'}`}
         >
-          <Text className={`text-sm font-semibold ${canSave ? 'text-cream' : 'text-charcoal/40'}`}>
+          <Text className={`text-sm font-semibold ${canSave ? 'text-paper' : 'text-charcoal/40'}`}>
             {isEditing ? 'Save' : 'Create'}
           </Text>
         </Pressable>
@@ -137,20 +137,20 @@ export default function CreateGroup() {
                     <View>
                       <Text
                         className={`text-sm font-semibold ${
-                          tone === t.value ? 'text-cream' : 'text-charcoal'
+                          tone === t.value ? 'text-paper' : 'text-charcoal'
                         }`}
                       >
                         {t.value}
                       </Text>
                       <Text
                         className={`mt-0.5 text-xs ${
-                          tone === t.value ? 'text-cream/80' : 'text-charcoal/50'
+                          tone === t.value ? 'text-paper/80' : 'text-charcoal/50'
                         }`}
                       >
                         {t.description}
                       </Text>
                     </View>
-                    {tone === t.value && <Ionicons name="checkmark-circle" size={20} color="#F5F2E9" />}
+                    {tone === t.value && <Ionicons name="checkmark-circle" size={20} className="text-paper" />}
                   </Pressable>
                 ))}
               </View>
