@@ -6,6 +6,7 @@ import { SvgXml } from 'react-native-svg';
 import { GROUP_SELFIE_SVG } from '../assets/illustrations/group-selfie';
 import { ME, type User, type VerificationBadge } from '../data/mock';
 import { formatMutualTrustLine, formatOwnTrustLine } from '../lib/trust';
+import { isAvailable, useAvailabilityStore } from '../store/useAvailabilityStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { useGroupsStore } from '../store/useGroupsStore';
 import { usePostsStore } from '../store/usePostsStore';
@@ -65,6 +66,9 @@ export default function ProfileView({
   onCreatePost,
 }: Props) {
   const [tab, setTab] = useState<Tab>('About');
+  const myAvailable = useAvailabilityStore((s) => s.myAvailable);
+  const setAvailable = useAvailabilityStore((s) => s.setAvailable);
+  const available = isAvailable(user, myAvailable);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const friendStatus = friendStatuses[user.id] ?? 'none';
   const respondFriend = useFriendsStore((s) => s.respond);
@@ -140,6 +144,33 @@ export default function ProfileView({
               {user.yearsInArea ? ` · ${user.yearsInArea}` : ''}
             </Text>
           </View>
+        )}
+
+        {isMe ? (
+          <Pressable
+            onPress={() => setAvailable(!myAvailable)}
+            className={`mt-3 flex-row items-center gap-1.5 rounded-full px-4 py-2 ${
+              myAvailable ? 'bg-sage' : 'bg-cream/20'
+            }`}
+          >
+            <Ionicons
+              name={myAvailable ? 'sunny' : 'sunny-outline'}
+              size={13}
+              color={myAvailable ? '#3D3D3D' : '#F5F2E9'}
+            />
+            <Text className={`text-xs font-semibold ${myAvailable ? 'text-charcoal' : 'text-cream'}`}>
+              {myAvailable ? 'Free for a coffee or walk today' : "Tap if you're free today"}
+            </Text>
+          </Pressable>
+        ) : (
+          available && (
+            <View className="mt-3 flex-row items-center gap-1.5 rounded-full bg-sage px-4 py-2">
+              <Ionicons name="sunny" size={13} color="#3D3D3D" />
+              <Text className="text-xs font-semibold text-charcoal">
+                Free for a coffee or walk today
+              </Text>
+            </View>
+          )
         )}
 
         {user.verifications.length > 0 && (

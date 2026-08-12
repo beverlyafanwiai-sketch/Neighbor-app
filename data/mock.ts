@@ -24,6 +24,10 @@ export type User = {
   verifications: VerificationBadge[];
   conversationStarters: ConversationStarters;
   friendIds?: string[];
+  // Baseline "free for a coffee or walk today" signal for other neighbors —
+  // ME's own status lives in useAvailabilityStore instead, since it's
+  // something ME actually toggles.
+  available?: boolean;
 };
 
 export const ME: User = {
@@ -87,6 +91,7 @@ export const USERS: User[] = [
     interests: 'Hiking, chess, home brewing, vinyl records',
     values: 'Directness, reliability, a good sense of humor',
     friendIds: ['amara', 'maya', 'priya', 'sam'],
+    available: true,
     prompts: [
       { q: 'How I recharge', a: 'A long trail run with no music, just thinking.' },
       { q: 'A belief I hold that not everyone agrees with', a: 'Board games are better than most parties.' },
@@ -111,6 +116,7 @@ export const USERS: User[] = [
     interests: 'Pottery, cooking for people, long walks, journaling',
     values: 'Warmth, honesty, low-pressure hangs',
     friendIds: ['amara', 'theo'],
+    available: true,
     prompts: [
       { q: 'How I recharge', a: 'Cooking a big meal for people I love, even just a few.' },
       { q: 'What I’m looking for', a: 'Friendship first — no agenda, just consistency.' },

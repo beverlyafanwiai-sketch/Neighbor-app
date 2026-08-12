@@ -17,6 +17,7 @@ import ReactorsSheet from '../../components/ReactorsSheet';
 import ReportPostSheet from '../../components/ReportPostSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { DISCOVER_USERS, ME, USERS, type Post, type User } from '../../data/mock';
+import { isAvailable, useAvailabilityStore } from '../../store/useAvailabilityStore';
 import { useBlockedStore } from '../../store/useBlockedStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { useFriendsStore } from '../../store/useFriendsStore';
@@ -102,6 +103,7 @@ function RightRail() {
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
+  const myAvailable = useAvailabilityStore((s) => s.myAvailable);
 
   const friends = [...USERS, ...DISCOVER_USERS]
     .filter((u) => friendStatuses[u.id] === 'friends')
@@ -145,7 +147,9 @@ function RightRail() {
             >
               <View>
                 <Image source={{ uri: f.avatar }} className="h-9 w-9 rounded-full" />
-                <View className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-cream bg-sage" />
+                {isAvailable(f, myAvailable) && (
+                  <View className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-cream bg-sage" />
+                )}
               </View>
               <Text className="text-sm text-charcoal">{f.name}</Text>
             </Pressable>
@@ -197,6 +201,7 @@ export default function HomeFeed() {
   const savedIds = usePostsStore((s) => s.savedIds);
   const toggleSave = usePostsStore((s) => s.toggleSave);
   const comments = usePostsStore((s) => s.comments);
+  const myAvailable = useAvailabilityStore((s) => s.myAvailable);
   const myPollVotes = usePostsStore((s) => s.myPollVotes);
   const votePoll = usePostsStore((s) => s.votePoll);
   const [sharingPost, setSharingPost] = useState<Post | null>(null);
@@ -376,6 +381,7 @@ export default function HomeFeed() {
             >
               {stories.map((s) => {
                 const isYou = 'isYou' in s && s.isYou;
+                const online = isAvailable(s, myAvailable);
                 return (
                   <Pressable
                     key={s.id}
@@ -384,6 +390,9 @@ export default function HomeFeed() {
                   >
                     <View className="h-16 w-16 items-center justify-center rounded-full bg-gold p-0.5">
                       <Image source={{ uri: s.avatar }} className="h-14 w-14 rounded-full" />
+                      {online && (
+                        <View className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full border-2 border-cream bg-sage" />
+                      )}
                       {isYou && (
                         <View className="absolute -bottom-0.5 -right-0.5 h-5 w-5 items-center justify-center rounded-full border-2 border-cream bg-terracotta">
                           <Ionicons name="add" size={12} color="#F5F2E9" />
