@@ -16,34 +16,48 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import MentionTextInput from '../components/MentionTextInput';
 import type { Poll } from '../data/mock';
+import { formatScheduledFor, getAvailablePresets } from '../lib/schedule';
 import { usePostsStore } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
 const MAX_PHOTOS = 4;
 
 export default function CreatePost() {
-  const { id: editId, draftId } = useLocalSearchParams<{ id?: string; draftId?: string }>();
+  const { id: editId, draftId, scheduledId } = useLocalSearchParams<{
+    id?: string;
+    draftId?: string;
+    scheduledId?: string;
+  }>();
   const existing = usePostsStore((s) => (editId ? s.posts.find((p) => p.id === editId) : undefined));
   const existingDraft = usePostsStore((s) => (draftId ? s.drafts.find((d) => d.id === draftId) : undefined));
+  const existingScheduled = usePostsStore((s) =>
+    scheduledId ? s.scheduledPosts.find((p) => p.id === scheduledId) : undefined
+  );
   const isEditing = Boolean(existing);
   const profile = useProfileStore((s) => s.profile);
   const createPost = usePostsStore((s) => s.createPost);
   const updatePost = usePostsStore((s) => s.updatePost);
   const saveDraft = usePostsStore((s) => s.saveDraft);
   const deleteDraft = usePostsStore((s) => s.deleteDraft);
-  const [body, setBody] = useState(existing?.body ?? existingDraft?.body ?? '');
+  const schedulePost = usePostsStore((s) => s.schedulePost);
+  const cancelScheduledPost = usePostsStore((s) => s.cancelScheduledPost);
+  const [body, setBody] = useState(existing?.body ?? existingDraft?.body ?? existingScheduled?.body ?? '');
   const [imageUris, setImageUris] = useState<string[]>(
-    existing?.imageUris ?? existingDraft?.imageUris ?? []
+    existing?.imageUris ?? existingDraft?.imageUris ?? existingScheduled?.imageUris ?? []
   );
   const [confirmingClose, setConfirmingClose] = useState(false);
   const [showPollBuilder, setShowPollBuilder] = useState(false);
   const [pollOptions, setPollOptions] = useState(['', '']);
+  const [scheduledFor, setScheduledFor] = useState<number | null>(existingScheduled?.scheduledFor ?? null);
+  const [showSchedulePicker, setShowSchedulePicker] = useState(false);
 
   const validPollOptions = pollOptions.map((o) => o.trim()).filter(Boolean);
   const pollValid = !showPollBuilder || validPollOptions.length >= 2;
   const canPost = body.trim().length > 0 && pollValid;
   const hasUnsavedContent =
-    !isEditing && (body.trim().length > 0 || imageUris.length > 0 || showPollBuilder);
+    !isEditing &&
+    !existingScheduled &&
+    (body.trim().length > 0 || imageUris.length > 0 || showPollBuilder);
 
   const pickImages = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -74,13 +88,18 @@ export default function CreatePost() {
       showPollBuilder && validPollOptions.length >= 2
         ? { options: validPollOptions.map((label, i) => ({ id: `opt-${i}`, label, votes: 0 })) }
         : undefined;
-    createPost(body.trim(), imageUris, poll);
+    if (scheduledFor) {
+      schedulePost({ id: scheduledId, body: body.trim(), imageUris, poll, scheduledFor });
+    } else {
+      createPost(body.trim(), imageUris, poll);
+      if (scheduledId) cancelScheduledPost(scheduledId);
+    }
     if (draftId) deleteDraft(draftId);
     router.back();
   };
 
   const close = () => {
-    if (isEditing || !hasUnsavedContent) {
+    if (isEditing || existingScheduled || !hasUnsavedContent) {
       router.back();
       return;
     }
@@ -106,14 +125,16 @@ export default function CreatePost() {
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
-        <Text className="text-base font-bold text-charcoal">{isEditing ? 'Edit post' : 'New post'}</Text>
+        <Text className="text-base font-bold text-charcoal">
+          {isEditing ? 'Edit post' : existingScheduled ? 'Edit scheduled post' : 'New post'}
+        </Text>
         <Pressable
           onPress={save}
           disabled={!canPost}
           className={`rounded-full px-4 py-2 ${canPost ? 'bg-terracotta' : 'bg-ink/10'}`}
         >
           <Text className={`text-sm font-semibold ${canPost ? 'text-paper' : 'text-charcoal/40'}`}>
-            {isEditing ? 'Save' : 'Post'}
+            {isEditing ? 'Save' : scheduledFor ? 'Schedule' : 'Post'}
           </Text>
         </Pressable>
       </View>
@@ -141,6 +162,25 @@ export default function CreatePost() {
             <Image source={{ uri: profile.avatar }} className="h-11 w-11 rounded-full" />
             <Text className="font-semibold text-charcoal">{profile.name}</Text>
           </View>
+
+          {!isEditing && (
+            <Pressable
+              onPress={() => setShowSchedulePicker(true)}
+              className="mt-3 flex-row items-center gap-1.5 self-start rounded-full bg-cream px-3 py-1.5"
+            >
+              <Ionicons
+                name="time-outline"
+                size={14}
+                className={scheduledFor ? 'text-terracotta' : 'text-charcoal/60'}
+              />
+              <Text
+                className={`text-xs font-medium ${scheduledFor ? 'text-terracotta' : 'text-charcoal/70'}`}
+              >
+                {scheduledFor ? `Scheduled for ${formatScheduledFor(new Date(scheduledFor))}` : 'Post now'}
+              </Text>
+              <Ionicons name="chevron-down" size={12} className="text-charcoal/40" />
+            </Pressable>
+          )}
 
           <MentionTextInput
             value={body}
@@ -252,6 +292,60 @@ export default function CreatePost() {
           )}
         </View>
       </KeyboardAvoidingView>
+
+      {showSchedulePicker && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={() => setShowSchedulePicker(false)} />
+          <View className="w-full gap-2 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="mb-1 flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">When should this post go live?</Text>
+              <Pressable
+                onPress={() => setShowSchedulePicker(false)}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+
+            <Pressable
+              onPress={() => {
+                setScheduledFor(null);
+                setShowSchedulePicker(false);
+              }}
+              className={`flex-row items-center justify-between rounded-2xl p-4 ${
+                !scheduledFor ? 'bg-terracotta' : 'bg-sand'
+              }`}
+            >
+              <Text className={`text-sm font-medium ${!scheduledFor ? 'text-paper' : 'text-charcoal'}`}>
+                Post now
+              </Text>
+              {!scheduledFor && <Ionicons name="checkmark" size={16} className="text-paper" />}
+            </Pressable>
+
+            {getAvailablePresets(new Date()).map((preset) => {
+              const presetTime = preset.compute(new Date()).getTime();
+              const selected = scheduledFor === presetTime;
+              return (
+                <Pressable
+                  key={preset.label}
+                  onPress={() => {
+                    setScheduledFor(presetTime);
+                    setShowSchedulePicker(false);
+                  }}
+                  className={`flex-row items-center justify-between rounded-2xl p-4 ${
+                    selected ? 'bg-terracotta' : 'bg-sand'
+                  }`}
+                >
+                  <Text className={`text-sm font-medium ${selected ? 'text-paper' : 'text-charcoal'}`}>
+                    {preset.label}
+                  </Text>
+                  {selected && <Ionicons name="checkmark" size={16} className="text-paper" />}
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }

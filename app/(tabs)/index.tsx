@@ -200,6 +200,7 @@ export default function HomeFeed() {
   );
   const posts = usePostsStore((s) => s.posts);
   const draftCount = usePostsStore((s) => s.drafts.length);
+  const scheduledCount = usePostsStore((s) => s.scheduledPosts.length);
   const myReactions = usePostsStore((s) => s.myReactions);
   const tapReaction = usePostsStore((s) => s.tapReaction);
   const setReaction = usePostsStore((s) => s.setReaction);
@@ -357,6 +358,20 @@ export default function HomeFeed() {
                     <Ionicons name="document-text-outline" size={15} className="text-terracotta" />
                     <Text className="text-xs font-medium text-terracotta">
                       {draftCount} draft{draftCount === 1 ? '' : 's'}
+                    </Text>
+                  </Pressable>
+                )}
+                {scheduledCount > 0 && (
+                  <Pressable
+                    onPress={(evt) => {
+                      evt.stopPropagation();
+                      router.push('/scheduled-posts');
+                    }}
+                    className="flex-row items-center gap-1.5 rounded-full bg-gold/15 px-3 py-1.5"
+                  >
+                    <Ionicons name="time-outline" size={15} className="text-gold" />
+                    <Text className="text-xs font-medium text-gold">
+                      {scheduledCount} scheduled
                     </Text>
                   </Pressable>
                 )}

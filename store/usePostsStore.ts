@@ -6,6 +6,14 @@ import { useNotificationsStore } from './useNotificationsStore';
 import { useProfileStore } from './useProfileStore';
 import { useSettingsStore } from './useSettingsStore';
 
+export type ScheduledPost = {
+  id: string;
+  body: string;
+  imageUris?: string[];
+  poll?: Poll;
+  scheduledFor: number;
+};
+
 export const REACTION_TYPES: ReactionType[] = ['love', 'haha', 'wow', 'sad', 'clap'];
 
 export const REACTION_EMOJI: Record<ReactionType, string> = {
@@ -49,6 +57,7 @@ let draftSeq = 0;
 type PostsState = {
   posts: Post[];
   drafts: Draft[];
+  scheduledPosts: ScheduledPost[];
   myReactions: Record<string, ReactionType | undefined>;
   myCommentReactions: Record<string, ReactionType | undefined>;
   savedIds: Record<string, boolean>;
@@ -60,6 +69,9 @@ type PostsState = {
   votePoll: (postId: string, optionId: string) => void;
   saveDraft: (input: { id?: string; body: string; imageUris?: string[] }) => string;
   deleteDraft: (id: string) => void;
+  schedulePost: (input: { id?: string; body: string; imageUris?: string[]; poll?: Poll; scheduledFor: number }) => string;
+  cancelScheduledPost: (id: string) => void;
+  publishScheduledPost: (id: string) => void;
   tapReaction: (postId: string) => void;
   setReaction: (postId: string, type: ReactionType) => void;
   tapCommentReaction: (postId: string, commentId: string) => void;
@@ -70,9 +82,10 @@ type PostsState = {
   deleteComment: (postId: string, commentId: string) => void;
 };
 
-export const usePostsStore = create<PostsState>((set) => ({
+export const usePostsStore = create<PostsState>((set, get) => ({
   posts: POSTS,
   drafts: [],
+  scheduledPosts: [],
   myReactions: {},
   myCommentReactions: {},
   savedIds: {},
@@ -124,6 +137,49 @@ export const usePostsStore = create<PostsState>((set) => ({
   },
 
   deleteDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
+
+  schedulePost: ({ id, body, imageUris, poll, scheduledFor }) => {
+    const scheduledId = id ?? `sch-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    set((s) => {
+      const scheduled: ScheduledPost = { id: scheduledId, body, imageUris, poll, scheduledFor };
+      const exists = s.scheduledPosts.some((p) => p.id === scheduledId);
+      return {
+        scheduledPosts: exists
+          ? s.scheduledPosts.map((p) => (p.id === scheduledId ? scheduled : p))
+          : [...s.scheduledPosts, scheduled],
+      };
+    });
+
+    const delay = Math.max(0, scheduledFor - Date.now());
+    setTimeout(() => {
+      if (!get().scheduledPosts.some((p) => p.id === scheduledId)) return;
+      get().publishScheduledPost(scheduledId);
+    }, delay);
+
+    return scheduledId;
+  },
+
+  cancelScheduledPost: (id) =>
+    set((s) => ({ scheduledPosts: s.scheduledPosts.filter((p) => p.id !== id) })),
+
+  publishScheduledPost: (id) => {
+    const scheduled = get().scheduledPosts.find((p) => p.id === id);
+    if (!scheduled) return;
+    const post: Post = {
+      id: `${Date.now()}`,
+      authorId: ME.id,
+      time: 'Just now',
+      body: scheduled.body,
+      replies: 0,
+      imageUris: scheduled.imageUris,
+      poll: scheduled.poll,
+    };
+    set((s) => ({
+      posts: [post, ...s.posts],
+      scheduledPosts: s.scheduledPosts.filter((p) => p.id !== id),
+    }));
+    notifyMentions(scheduled.body, post.id, 'post');
+  },
 
   tapReaction: (postId) =>
     set((s) => ({
