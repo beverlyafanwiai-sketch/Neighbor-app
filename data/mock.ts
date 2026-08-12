@@ -260,7 +260,7 @@ export type Post = {
   time: string;
   body: string;
   replies: number;
-  imageUri?: string;
+  imageUris?: string[];
   edited?: boolean;
   reactions?: Record<string, ReactionType>;
   poll?: Poll;

@@ -75,12 +75,22 @@ export default function SavedPosts() {
                 </View>
 
                 <MentionText text={post.body} className="mt-3 text-[15px] leading-5 text-charcoal" />
-                {post.imageUri && (
-                  <Image
-                    source={{ uri: post.imageUri }}
-                    className="mt-3 w-full rounded-2xl"
-                    style={{ aspectRatio: 4 / 3 }}
-                  />
+                {post.imageUris && post.imageUris.length > 0 && (
+                  <View className="mt-3">
+                    <Image
+                      source={{ uri: post.imageUris[0] }}
+                      className="w-full rounded-2xl"
+                      style={{ aspectRatio: 4 / 3 }}
+                    />
+                    {post.imageUris.length > 1 && (
+                      <View className="absolute right-2 top-2 flex-row items-center gap-1 rounded-full bg-charcoal/60 px-2 py-1">
+                        <Ionicons name="images" size={11} color="#F5F2E9" />
+                        <Text className="text-[10px] font-semibold text-cream">
+                          {post.imageUris.length}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 )}
 
                 <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">

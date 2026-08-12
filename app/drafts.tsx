@@ -52,11 +52,12 @@ export default function Drafts() {
                 {draft.body.length > 0 ? draft.body : 'Empty draft'}
               </Text>
 
-              {draft.imageUri && (
-                <Image
-                  source={{ uri: draft.imageUri }}
-                  className="mt-3 h-20 w-20 rounded-xl"
-                />
+              {draft.imageUris && draft.imageUris.length > 0 && (
+                <View className="mt-3 flex-row gap-2">
+                  {draft.imageUris.map((uri) => (
+                    <Image key={uri} source={{ uri }} className="h-20 w-20 rounded-xl" />
+                  ))}
+                </View>
               )}
 
               <View className="mt-4 flex-row items-center justify-end border-t border-charcoal/10 pt-3">

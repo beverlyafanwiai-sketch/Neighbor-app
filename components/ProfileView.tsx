@@ -74,7 +74,7 @@ export default function ProfileView({
   const respondFriend = useFriendsStore((s) => s.respond);
   const joinedGroups = useGroupsStore((s) => s.joined);
   const posts = usePostsStore((s) => s.posts);
-  const photoPosts = posts.filter((p) => p.authorId === user.id && p.imageUri);
+  const photoPosts = posts.filter((p) => p.authorId === user.id && (p.imageUris?.length ?? 0) > 0);
 
   const myFriendIds = Object.keys(friendStatuses).filter((id) => friendStatuses[id] === 'friends');
   const myJoinedGroupIds = Object.keys(joinedGroups).filter((id) => joinedGroups[id]);
@@ -323,7 +323,12 @@ export default function ProfileView({
                     className="w-[31%]"
                     style={{ aspectRatio: 1 }}
                   >
-                    <Image source={{ uri: post.imageUri }} className="h-full w-full rounded-xl" />
+                    <Image source={{ uri: post.imageUris![0] }} className="h-full w-full rounded-xl" />
+                    {post.imageUris!.length > 1 && (
+                      <View className="absolute right-1 top-1">
+                        <Ionicons name="copy" size={15} color="#F5F2E9" />
+                      </View>
+                    )}
                   </Pressable>
                 ))}
               </View>

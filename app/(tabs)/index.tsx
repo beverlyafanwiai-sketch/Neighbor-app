@@ -11,6 +11,7 @@ import { PARK_FRIENDS_SVG } from '../../assets/illustrations/park-friends';
 import BackgroundSlideshow from '../../components/BackgroundSlideshow';
 import EmptyState from '../../components/EmptyState';
 import MentionText from '../../components/MentionText';
+import PhotoCarousel from '../../components/PhotoCarousel';
 import PollView from '../../components/PollView';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
@@ -458,14 +459,10 @@ export default function HomeFeed() {
 
                 <Pressable onPress={() => router.push(`/post/${post.id}`)}>
                   <MentionText text={post.body} className="mt-3 text-[15px] leading-5 text-charcoal" />
-                  {post.imageUri && (
-                    <Image
-                      source={{ uri: post.imageUri }}
-                      className="mt-3 w-full rounded-2xl"
-                      style={{ aspectRatio: 4 / 3 }}
-                    />
-                  )}
                 </Pressable>
+                {post.imageUris && post.imageUris.length > 0 && (
+                  <PhotoCarousel uris={post.imageUris} />
+                )}
                 {post.poll && (
                   <PollView
                     poll={post.poll}

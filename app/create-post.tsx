@@ -19,6 +19,8 @@ import type { Poll } from '../data/mock';
 import { usePostsStore } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
+const MAX_PHOTOS = 4;
+
 export default function CreatePost() {
   const { id: editId, draftId } = useLocalSearchParams<{ id?: string; draftId?: string }>();
   const existing = usePostsStore((s) => (editId ? s.posts.find((p) => p.id === editId) : undefined));
@@ -30,8 +32,8 @@ export default function CreatePost() {
   const saveDraft = usePostsStore((s) => s.saveDraft);
   const deleteDraft = usePostsStore((s) => s.deleteDraft);
   const [body, setBody] = useState(existing?.body ?? existingDraft?.body ?? '');
-  const [imageUri, setImageUri] = useState<string | undefined>(
-    existing?.imageUri ?? existingDraft?.imageUri
+  const [imageUris, setImageUris] = useState<string[]>(
+    existing?.imageUris ?? existingDraft?.imageUris ?? []
   );
   const [confirmingClose, setConfirmingClose] = useState(false);
   const [showPollBuilder, setShowPollBuilder] = useState(false);
@@ -41,24 +43,30 @@ export default function CreatePost() {
   const pollValid = !showPollBuilder || validPollOptions.length >= 2;
   const canPost = body.trim().length > 0 && pollValid;
   const hasUnsavedContent =
-    !isEditing && (body.trim().length > 0 || Boolean(imageUri) || showPollBuilder);
+    !isEditing && (body.trim().length > 0 || imageUris.length > 0 || showPollBuilder);
 
-  const pickImage = async () => {
+  const pickImages = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 0.7,
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_PHOTOS - imageUris.length,
     });
-    if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
+    if (!result.canceled && result.assets.length > 0) {
+      setImageUris((prev) => [...prev, ...result.assets.map((a) => a.uri)].slice(0, MAX_PHOTOS));
     }
+  };
+
+  const removeImage = (uri: string) => {
+    setImageUris((prev) => prev.filter((u) => u !== uri));
   };
 
   const save = () => {
     if (!canPost) return;
     if (existing) {
-      updatePost(existing.id, { body: body.trim(), imageUri });
+      updatePost(existing.id, { body: body.trim(), imageUris });
       router.replace(`/post/${existing.id}`);
       return;
     }
@@ -66,7 +74,7 @@ export default function CreatePost() {
       showPollBuilder && validPollOptions.length >= 2
         ? { options: validPollOptions.map((label, i) => ({ id: `opt-${i}`, label, votes: 0 })) }
         : undefined;
-    createPost(body.trim(), imageUri, poll);
+    createPost(body.trim(), imageUris, poll);
     if (draftId) deleteDraft(draftId);
     router.back();
   };
@@ -85,7 +93,7 @@ export default function CreatePost() {
   };
 
   const saveDraftAndClose = () => {
-    saveDraft({ id: draftId, body: body.trim(), imageUri });
+    saveDraft({ id: draftId, body: body.trim(), imageUris });
     router.back();
   };
 
@@ -145,19 +153,19 @@ export default function CreatePost() {
             dropdownPosition="below"
           />
 
-          {imageUri && (
-            <View className="mt-2">
-              <Image
-                source={{ uri: imageUri }}
-                className="w-full rounded-2xl bg-cream"
-                style={{ aspectRatio: 4 / 3 }}
-              />
-              <Pressable
-                onPress={() => setImageUri(undefined)}
-                className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-charcoal/60"
-              >
-                <Ionicons name="close" size={16} color="#F5F2E9" />
-              </Pressable>
+          {imageUris.length > 0 && (
+            <View className="mt-2 flex-row flex-wrap gap-2">
+              {imageUris.map((uri) => (
+                <View key={uri} className="w-[47%]" style={{ aspectRatio: 1 }}>
+                  <Image source={{ uri }} className="h-full w-full rounded-2xl bg-cream" />
+                  <Pressable
+                    onPress={() => removeImage(uri)}
+                    className="absolute right-1.5 top-1.5 h-7 w-7 items-center justify-center rounded-full bg-charcoal/60"
+                  >
+                    <Ionicons name="close" size={14} color="#F5F2E9" />
+                  </Pressable>
+                </View>
+              ))}
             </View>
           )}
 
@@ -214,18 +222,26 @@ export default function CreatePost() {
         </ScrollView>
 
         <View className="flex-row items-center gap-2 border-t border-charcoal/10 px-5 py-3">
-          {!showPollBuilder && (
+          {!showPollBuilder && imageUris.length < MAX_PHOTOS && (
             <Pressable
-              onPress={pickImage}
+              onPress={pickImages}
               className="flex-row items-center gap-2 rounded-full bg-cream px-4 py-2"
             >
               <Ionicons name="image-outline" size={18} color="#81A684" />
               <Text className="text-sm font-medium text-charcoal">
-                {imageUri ? 'Change photo' : 'Add photo'}
+                {imageUris.length > 0 ? 'Add more photos' : 'Add photos'}
               </Text>
             </Pressable>
           )}
-          {!isEditing && !imageUri && !showPollBuilder && (
+          {!showPollBuilder && imageUris.length >= MAX_PHOTOS && (
+            <View className="flex-row items-center gap-2 rounded-full bg-cream px-4 py-2">
+              <Ionicons name="image" size={18} color="#81A684" />
+              <Text className="text-sm font-medium text-charcoal/50">
+                {MAX_PHOTOS}/{MAX_PHOTOS} photos
+              </Text>
+            </View>
+          )}
+          {!isEditing && imageUris.length === 0 && !showPollBuilder && (
             <Pressable
               onPress={() => setShowPollBuilder(true)}
               className="flex-row items-center gap-2 rounded-full bg-cream px-4 py-2"

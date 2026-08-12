@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import MentionText from '../../components/MentionText';
 import MentionTextInput from '../../components/MentionTextInput';
+import PhotoCarousel from '../../components/PhotoCarousel';
 import PollView from '../../components/PollView';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
@@ -165,12 +166,8 @@ export default function PostDetail() {
 
               <MentionText text={post.body} className="text-[15px] leading-5 text-charcoal" />
 
-              {post.imageUri && (
-                <Image
-                  source={{ uri: post.imageUri }}
-                  className="w-full rounded-2xl"
-                  style={{ aspectRatio: 4 / 3 }}
-                />
+              {post.imageUris && post.imageUris.length > 0 && (
+                <PhotoCarousel uris={post.imageUris} className="" />
               )}
 
               {post.poll && (

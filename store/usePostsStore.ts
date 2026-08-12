@@ -31,12 +31,12 @@ function notifyMentions(text: string, postId: string, context: 'post' | 'comment
   }
 }
 
-export type PostEdits = { body: string; imageUri?: string };
+export type PostEdits = { body: string; imageUris?: string[] };
 
 export type Draft = {
   id: string;
   body: string;
-  imageUri?: string;
+  imageUris?: string[];
   updatedAt: number;
 };
 
@@ -54,11 +54,11 @@ type PostsState = {
   savedIds: Record<string, boolean>;
   comments: Record<string, CommentItem[]>;
   myPollVotes: Record<string, string>;
-  createPost: (body: string, imageUri?: string, poll?: Poll) => void;
+  createPost: (body: string, imageUris?: string[], poll?: Poll) => void;
   updatePost: (id: string, updates: PostEdits) => void;
   deletePost: (id: string) => void;
   votePoll: (postId: string, optionId: string) => void;
-  saveDraft: (input: { id?: string; body: string; imageUri?: string }) => string;
+  saveDraft: (input: { id?: string; body: string; imageUris?: string[] }) => string;
   deleteDraft: (id: string) => void;
   tapReaction: (postId: string) => void;
   setReaction: (postId: string, type: ReactionType) => void;
@@ -79,14 +79,14 @@ export const usePostsStore = create<PostsState>((set) => ({
   comments: COMMENTS,
   myPollVotes: {},
 
-  createPost: (body, imageUri, poll) => {
+  createPost: (body, imageUris, poll) => {
     const post: Post = {
       id: `${Date.now()}`,
       authorId: ME.id,
       time: 'Just now',
       body,
       replies: 0,
-      imageUri,
+      imageUris,
       poll,
     };
     set((s) => ({ posts: [post, ...s.posts] }));
@@ -108,11 +108,11 @@ export const usePostsStore = create<PostsState>((set) => ({
       },
     })),
 
-  saveDraft: ({ id, body, imageUri }) => {
+  saveDraft: ({ id, body, imageUris }) => {
     const draftId = id ?? `draft-${++draftSeq}`;
     const updatedAt = Date.now();
     set((s) => {
-      const draft: Draft = { id: draftId, body, imageUri, updatedAt };
+      const draft: Draft = { id: draftId, body, imageUris, updatedAt };
       const exists = s.drafts.some((d) => d.id === draftId);
       return {
         drafts: exists
