@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import InviteGroupSheet from '../../components/InviteGroupSheet';
 import { ME, getUser } from '../../data/mock';
 import { getGroupPhotos, useGroupAlbumStore } from '../../store/useGroupAlbumStore';
 import { useEventsStore } from '../../store/useEventsStore';
@@ -37,7 +38,9 @@ export default function GroupDetail() {
   const removePhoto = useGroupAlbumStore((s) => s.removePhoto);
   const events = useEventsStore((s) => s.events);
   const goingMap = useRsvpStore((s) => s.going);
+  const inviteCode = useGroupsStore((s) => (group ? s.inviteCodes[group.id] : undefined));
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [inviting, setInviting] = useState(false);
 
   if (!group) {
     return (
@@ -91,8 +94,14 @@ export default function GroupDetail() {
         >
           <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
-        {(isAdmin || isCreator) && (
+        {joined && (
           <View className="flex-row items-center gap-1.5">
+            <Pressable
+              onPress={() => setInviting(true)}
+              className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+            >
+              <Ionicons name="person-add-outline" size={17} className="text-charcoal" />
+            </Pressable>
             {isAdmin && (
               <Pressable
                 onPress={() => router.push(`/create-group?id=${group.id}`)}
@@ -329,6 +338,14 @@ export default function GroupDetail() {
           </>
         )}
       </ScrollView>
+
+      {inviting && (
+        <InviteGroupSheet
+          groupName={group.name}
+          code={inviteCode ?? ''}
+          onClose={() => setInviting(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }

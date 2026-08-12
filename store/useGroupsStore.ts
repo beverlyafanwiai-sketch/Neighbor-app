@@ -18,6 +18,7 @@ export type GroupEdits = Pick<Group, 'name' | 'description' | 'tone' | 'coverIma
 type GroupsState = {
   groups: Group[];
   joined: Record<string, boolean>;
+  inviteCodes: Record<string, string>;
   toggle: (groupId: string) => void;
   createGroup: (input: NewGroupInput) => string;
   updateGroup: (groupId: string, updates: Partial<GroupEdits>) => void;
@@ -25,6 +26,7 @@ type GroupsState = {
   deleteGroup: (groupId: string) => void;
   promoteCoAdmin: (groupId: string, userId: string) => void;
   demoteCoAdmin: (groupId: string, userId: string) => void;
+  joinByInviteCode: (code: string) => string | null;
 };
 
 function slugify(name: string) {
@@ -37,13 +39,28 @@ function slugify(name: string) {
   );
 }
 
+const INVITE_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function generateInviteCode() {
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += INVITE_CODE_CHARS[Math.floor(Math.random() * INVITE_CODE_CHARS.length)];
+  }
+  return code;
+}
+
 const initialJoined: Record<string, boolean> = Object.fromEntries(
   GROUPS.map((g) => [g.id, g.joined])
+);
+
+const initialInviteCodes: Record<string, string> = Object.fromEntries(
+  GROUPS.map((g) => [g.id, generateInviteCode()])
 );
 
 export const useGroupsStore = create<GroupsState>((set, get) => ({
   groups: GROUPS,
   joined: initialJoined,
+  inviteCodes: initialInviteCodes,
 
   toggle: (groupId) =>
     set((s) => ({ joined: { ...s.joined, [groupId]: !s.joined[groupId] } })),
@@ -66,6 +83,7 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
     set((s) => ({
       groups: [group, ...s.groups],
       joined: { ...s.joined, [id]: true },
+      inviteCodes: { ...s.inviteCodes, [id]: generateInviteCode() },
     }));
 
     setTimeout(() => {
@@ -126,6 +144,15 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
           : g
       ),
     })),
+
+  joinByInviteCode: (code) => {
+    const clean = code.trim().toUpperCase();
+    const { inviteCodes } = get();
+    const groupId = Object.keys(inviteCodes).find((gid) => inviteCodes[gid] === clean);
+    if (!groupId) return null;
+    set((s) => ({ joined: { ...s.joined, [groupId]: true } }));
+    return groupId;
+  },
 }));
 
 export function getGroup(groupId: string): Group | undefined {

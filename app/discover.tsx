@@ -31,6 +31,10 @@ export default function Discover() {
   const allGroups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
+  const joinByInviteCode = useGroupsStore((s) => s.joinByInviteCode);
+  const [redeemingCode, setRedeemingCode] = useState(false);
+  const [inviteCodeInput, setInviteCodeInput] = useState('');
+  const [inviteError, setInviteError] = useState(false);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
@@ -46,6 +50,18 @@ export default function Discover() {
       (u) => u.name.toLowerCase().includes(q) || u.tags.some((t) => t.includes(q))
     );
   }, [query, discoverableUsers]);
+
+  const redeemCode = () => {
+    const groupId = joinByInviteCode(inviteCodeInput);
+    if (!groupId) {
+      setInviteError(true);
+      return;
+    }
+    setRedeemingCode(false);
+    setInviteCodeInput('');
+    setInviteError(false);
+    router.push(`/group/${groupId}`);
+  };
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -158,6 +174,49 @@ export default function Discover() {
 
         {mode === 'Groups' && (
           <View className="gap-3">
+            {redeemingCode ? (
+              <View className="gap-2 rounded-2xl bg-cream p-4">
+                <Text className="text-sm font-semibold text-charcoal">Enter invite code</Text>
+                <TextInput
+                  value={inviteCodeInput}
+                  onChangeText={(v) => {
+                    setInviteCodeInput(v);
+                    setInviteError(false);
+                  }}
+                  placeholder="e.g. HK92QP"
+                  placeholderTextColor="#3D3D3D80"
+                  autoCapitalize="characters"
+                  className="rounded-xl bg-sand px-3 py-2.5 text-base tracking-widest text-charcoal"
+                />
+                {inviteError && (
+                  <Text className="text-xs text-terracotta">
+                    That code doesn't match a group — double check and try again.
+                  </Text>
+                )}
+                <View className="flex-row justify-end gap-4 pt-1">
+                  <Pressable
+                    onPress={() => {
+                      setRedeemingCode(false);
+                      setInviteCodeInput('');
+                      setInviteError(false);
+                    }}
+                  >
+                    <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                  </Pressable>
+                  <Pressable onPress={redeemCode}>
+                    <Text className="text-sm font-semibold text-terracotta">Join</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => setRedeemingCode(true)}
+                className="flex-row items-center gap-2 rounded-2xl bg-cream p-4 active:opacity-80"
+              >
+                <Ionicons name="key-outline" size={18} className="text-charcoal" />
+                <Text className="text-sm font-medium text-charcoal">Have an invite code?</Text>
+              </Pressable>
+            )}
             {groups.map((g) => {
               const toneStyle = TONE_STYLE[g.tone];
               return (
