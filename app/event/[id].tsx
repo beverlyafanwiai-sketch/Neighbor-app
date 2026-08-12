@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ME, getUser } from '../../data/mock';
 import { addEventToCalendar } from '../../lib/ics';
+import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -23,6 +25,9 @@ export default function EventDetail() {
   const leaveWaitlist = useRsvpStore((s) => s.leaveWaitlist);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
+  const albumPhotos = useEventAlbumStore((s) => s.photos);
+  const addPhotos = useEventAlbumStore((s) => s.addPhotos);
+  const removePhoto = useEventAlbumStore((s) => s.removePhoto);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [calendarAdded, setCalendarAdded] = useState(false);
 
@@ -43,6 +48,8 @@ export default function EventDetail() {
   const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
   const attendees = going || isHost ? [profile, ...otherAttendees] : otherAttendees;
   const met = (event.metIds ?? []).map((id) => getUser(id)).filter(Boolean);
+  const eventPhotos = getEventPhotos(event.id, albumPhotos);
+  const canAddPhotos = going || isHost;
 
   const remove = () => {
     deleteEvent(event.id);
@@ -56,6 +63,20 @@ export default function EventDetail() {
       setTimeout(() => setCalendarAdded(false), 2000);
     } catch {
       // Non-critical: calendar export failing shouldn't block the rest of the screen.
+    }
+  };
+
+  const pickPhotos = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+      allowsMultipleSelection: true,
+      selectionLimit: 6,
+    });
+    if (!result.canceled && result.assets.length > 0) {
+      addPhotos(event.id, result.assets.map((a) => a.uri));
     }
   };
 
@@ -210,6 +231,41 @@ export default function EventDetail() {
             );
           })}
         </View>
+
+        {(eventPhotos.length > 0 || canAddPhotos) && (
+          <>
+            <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+              Photos from this event{eventPhotos.length > 0 ? ` (${eventPhotos.length})` : ''}
+            </Text>
+            <View className="flex-row flex-wrap gap-3">
+              {eventPhotos.map((photo) => (
+                <View key={photo.id} className="w-[31%]" style={{ aspectRatio: 1 }}>
+                  <Image source={{ uri: photo.uri }} className="h-full w-full rounded-xl" />
+                  {photo.uploaderId === ME.id && (
+                    <Pressable
+                      onPress={() => removePhoto(photo.id)}
+                      className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-charcoal/60"
+                    >
+                      <Ionicons name="close" size={12} color="#F5F2E9" />
+                    </Pressable>
+                  )}
+                </View>
+              ))}
+              {canAddPhotos && (
+                <Pressable
+                  onPress={pickPhotos}
+                  className="w-[31%] items-center justify-center rounded-xl border-2 border-dashed border-charcoal/20 bg-cream active:opacity-70"
+                  style={{ aspectRatio: 1 }}
+                >
+                  <Ionicons name="add" size={20} color="#3D3D3D80" />
+                  <Text className="mt-1 text-center text-[10px] font-medium text-charcoal/50">
+                    Add photos
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+          </>
+        )}
 
         {isPast && met.length > 0 && (
           <>

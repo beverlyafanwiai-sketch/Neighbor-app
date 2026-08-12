@@ -687,6 +687,46 @@ export const NOTIFICATIONS: NotificationItem[] = [
   },
 ];
 
+export type EventPhoto = {
+  id: string;
+  eventId: string;
+  uploaderId: string;
+  uri: string;
+};
+
+export const EVENT_PHOTOS: EventPhoto[] = [
+  {
+    id: 'ep1',
+    eventId: 'book-club-aug',
+    uploaderId: 'theo',
+    uri: 'https://picsum.photos/seed/bookclub-table/500/500',
+  },
+  {
+    id: 'ep2',
+    eventId: 'book-club-aug',
+    uploaderId: 'priya',
+    uri: 'https://picsum.photos/seed/bookclub-wine/500/500',
+  },
+  {
+    id: 'ep3',
+    eventId: 'pottery-open-studio',
+    uploaderId: 'sam',
+    uri: 'https://picsum.photos/seed/pottery-wheel/500/500',
+  },
+  {
+    id: 'ep4',
+    eventId: 'pottery-open-studio',
+    uploaderId: 'sam',
+    uri: 'https://picsum.photos/seed/pottery-hands/500/500',
+  },
+  {
+    id: 'ep5',
+    eventId: 'pottery-open-studio',
+    uploaderId: 'sam',
+    uri: 'https://picsum.photos/seed/pottery-shelf/500/500',
+  },
+];
+
 export type LendItemKind = 'have' | 'want';
 
 export type LendItem = {
