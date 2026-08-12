@@ -14,6 +14,7 @@ const NOTIFICATION_ROWS: { key: keyof NotificationPrefs; label: string; descript
   { key: 'groupActivity', label: 'Group activity', description: 'New posts and replies in your circles' },
   { key: 'friendRequests', label: 'Friend requests', description: 'When someone adds you as a friend' },
   { key: 'mentions', label: 'Mentions', description: 'When someone @mentions you in a post or comment' },
+  { key: 'lendUpdates', label: 'Borrow & lend', description: 'Requests, approvals, and offers on the lending board' },
 ];
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {

@@ -553,11 +553,12 @@ export type NotificationTarget =
   | { kind: 'group'; id: string }
   | { kind: 'chat'; id: string }
   | { kind: 'group-chat'; id: string }
-  | { kind: 'post'; id: string };
+  | { kind: 'post'; id: string }
+  | { kind: 'lend'; id: string };
 
 export type NotificationItem = {
   id: string;
-  type: 'friend' | 'friend_request' | 'event' | 'group' | 'message' | 'mention';
+  type: 'friend' | 'friend_request' | 'event' | 'group' | 'message' | 'mention' | 'lend';
   actorId?: string;
   text: string;
   time: string;
@@ -626,5 +627,72 @@ export const NOTIFICATIONS: NotificationItem[] = [
     time: '2d ago',
     read: true,
     target: { kind: 'profile', id: 'theo' },
+  },
+];
+
+export type LendItemKind = 'have' | 'want';
+
+export type LendItem = {
+  id: string;
+  ownerId: string;
+  kind: LendItemKind;
+  emoji: string;
+  title: string;
+  note: string;
+  // Baseline count of other neighbors already offering to help, for 'want'
+  // items — mirrors event.spotsTaken as a "before ME" number.
+  helperCount?: number;
+};
+
+export const LEND_ITEMS: LendItem[] = [
+  {
+    id: 'ladder',
+    ownerId: 'sam',
+    kind: 'have',
+    emoji: '🪜',
+    title: 'Ladder',
+    note: '6ft, good for gutters or trimming the hedge. Happy to lend for a weekend.',
+  },
+  {
+    id: 'stand-mixer',
+    ownerId: 'theo',
+    kind: 'want',
+    emoji: '🥧',
+    title: 'Stand mixer',
+    note: 'Baking a big batch of bread for the block party — anyone have one I could borrow for a day?',
+    helperCount: 2,
+  },
+  {
+    id: 'drill',
+    ownerId: 'priya',
+    kind: 'have',
+    emoji: '🔧',
+    title: 'Power drill',
+    note: 'Cordless, comes with a basic bit set. Just charge it up before you bring it back.',
+  },
+  {
+    id: 'folding-tables',
+    ownerId: 'maya',
+    kind: 'have',
+    emoji: '🪑',
+    title: '2 folding tables',
+    note: "Good for a yard sale or a party. They're in my garage, easy pickup.",
+  },
+  {
+    id: 'pressure-washer',
+    ownerId: 'nia',
+    kind: 'want',
+    emoji: '💦',
+    title: 'Pressure washer',
+    note: 'My driveway needs a good clean before fall. Willing to fill up your tank as thanks.',
+    helperCount: 1,
+  },
+  {
+    id: 'kids-bike',
+    ownerId: 'theo',
+    kind: 'want',
+    emoji: '🚲',
+    title: "Kids' bike (age 6-8)",
+    note: 'My nephew is visiting for a week and wants to ride around with the other kids.',
   },
 ];

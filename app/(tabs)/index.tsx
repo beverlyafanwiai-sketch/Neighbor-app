@@ -54,6 +54,7 @@ const NAV_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; href: st
   { label: 'Events', icon: 'calendar', href: '/(tabs)/events' },
   { label: 'Chat', icon: 'chatbubble-ellipses', href: '/(tabs)/chat' },
   { label: 'Discover', icon: 'compass', href: '/discover' },
+  { label: 'Borrow & Lend', icon: 'basket', href: '/lend' },
   { label: 'Saved', icon: 'bookmark', href: '/saved' },
   { label: 'Profile', icon: 'person', href: '/(tabs)/profile' },
 ];
@@ -266,6 +267,12 @@ export default function HomeFeed() {
                 className="h-10 w-10 items-center justify-center rounded-full bg-cream/20"
               >
                 <Ionicons name="compass-outline" size={19} color="#F5F2E9" />
+              </Pressable>
+              <Pressable
+                onPress={() => router.push('/lend')}
+                className="h-10 w-10 items-center justify-center rounded-full bg-cream/20"
+              >
+                <Ionicons name="basket-outline" size={19} color="#F5F2E9" />
               </Pressable>
               <Pressable
                 onPress={() => router.push('/notifications')}

@@ -10,6 +10,7 @@ export const TYPE_ICON: Record<NotificationItem['type'], keyof typeof Ionicons.g
   group: 'people',
   message: 'chatbubble-ellipses',
   mention: 'at',
+  lend: 'basket',
 };
 
 export function goToTarget(target?: NotificationTarget) {
@@ -32,5 +33,8 @@ export function goToTarget(target?: NotificationTarget) {
       return;
     case 'post':
       router.push(`/post/${target.id}`);
+      return;
+    case 'lend':
+      router.push('/lend');
   }
 }
