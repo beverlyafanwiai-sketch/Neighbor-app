@@ -1,11 +1,21 @@
 import { useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import MentionTextInput from '../components/MentionTextInput';
+import type { Poll } from '../data/mock';
 import { usePostsStore } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
@@ -24,9 +34,14 @@ export default function CreatePost() {
     existing?.imageUri ?? existingDraft?.imageUri
   );
   const [confirmingClose, setConfirmingClose] = useState(false);
+  const [showPollBuilder, setShowPollBuilder] = useState(false);
+  const [pollOptions, setPollOptions] = useState(['', '']);
 
-  const canPost = body.trim().length > 0;
-  const hasUnsavedContent = !isEditing && (body.trim().length > 0 || Boolean(imageUri));
+  const validPollOptions = pollOptions.map((o) => o.trim()).filter(Boolean);
+  const pollValid = !showPollBuilder || validPollOptions.length >= 2;
+  const canPost = body.trim().length > 0 && pollValid;
+  const hasUnsavedContent =
+    !isEditing && (body.trim().length > 0 || Boolean(imageUri) || showPollBuilder);
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -47,7 +62,11 @@ export default function CreatePost() {
       router.replace(`/post/${existing.id}`);
       return;
     }
-    createPost(body.trim(), imageUri);
+    const poll: Poll | undefined =
+      showPollBuilder && validPollOptions.length >= 2
+        ? { options: validPollOptions.map((label, i) => ({ id: `opt-${i}`, label, votes: 0 })) }
+        : undefined;
+    createPost(body.trim(), imageUri, poll);
     if (draftId) deleteDraft(draftId);
     router.back();
   };
@@ -141,18 +160,80 @@ export default function CreatePost() {
               </Pressable>
             </View>
           )}
+
+          {showPollBuilder && (
+            <View className="mt-3 gap-2 rounded-2xl bg-cream p-3">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                  Poll
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    setShowPollBuilder(false);
+                    setPollOptions(['', '']);
+                  }}
+                  className="h-6 w-6 items-center justify-center"
+                >
+                  <Ionicons name="close" size={16} color="#3D3D3D80" />
+                </Pressable>
+              </View>
+              {pollOptions.map((option, i) => (
+                <View key={i} className="flex-row items-center gap-2">
+                  <TextInput
+                    value={option}
+                    onChangeText={(text) => {
+                      const next = [...pollOptions];
+                      next[i] = text;
+                      setPollOptions(next);
+                    }}
+                    placeholder={`Option ${i + 1}`}
+                    placeholderTextColor="#3D3D3D80"
+                    className="flex-1 rounded-xl bg-sand px-3 py-2 text-sm text-charcoal"
+                  />
+                  {pollOptions.length > 2 && (
+                    <Pressable
+                      onPress={() => setPollOptions(pollOptions.filter((_, idx) => idx !== i))}
+                      className="h-7 w-7 items-center justify-center"
+                    >
+                      <Ionicons name="remove-circle-outline" size={18} color="#E0533C" />
+                    </Pressable>
+                  )}
+                </View>
+              ))}
+              {pollOptions.length < 4 && (
+                <Pressable
+                  onPress={() => setPollOptions([...pollOptions, ''])}
+                  className="flex-row items-center gap-1.5 self-start py-1"
+                >
+                  <Ionicons name="add-circle-outline" size={16} color="#81A684" />
+                  <Text className="text-xs font-medium text-sage">Add option</Text>
+                </Pressable>
+              )}
+            </View>
+          )}
         </ScrollView>
 
         <View className="flex-row items-center gap-2 border-t border-charcoal/10 px-5 py-3">
-          <Pressable
-            onPress={pickImage}
-            className="flex-row items-center gap-2 rounded-full bg-cream px-4 py-2"
-          >
-            <Ionicons name="image-outline" size={18} color="#81A684" />
-            <Text className="text-sm font-medium text-charcoal">
-              {imageUri ? 'Change photo' : 'Add photo'}
-            </Text>
-          </Pressable>
+          {!showPollBuilder && (
+            <Pressable
+              onPress={pickImage}
+              className="flex-row items-center gap-2 rounded-full bg-cream px-4 py-2"
+            >
+              <Ionicons name="image-outline" size={18} color="#81A684" />
+              <Text className="text-sm font-medium text-charcoal">
+                {imageUri ? 'Change photo' : 'Add photo'}
+              </Text>
+            </Pressable>
+          )}
+          {!isEditing && !imageUri && !showPollBuilder && (
+            <Pressable
+              onPress={() => setShowPollBuilder(true)}
+              className="flex-row items-center gap-2 rounded-full bg-cream px-4 py-2"
+            >
+              <Ionicons name="stats-chart-outline" size={18} color="#D9A441" />
+              <Text className="text-sm font-medium text-charcoal">Poll</Text>
+            </Pressable>
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -11,6 +11,7 @@ import { PARK_FRIENDS_SVG } from '../../assets/illustrations/park-friends';
 import BackgroundSlideshow from '../../components/BackgroundSlideshow';
 import EmptyState from '../../components/EmptyState';
 import MentionText from '../../components/MentionText';
+import PollView from '../../components/PollView';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
 import ReportPostSheet from '../../components/ReportPostSheet';
@@ -196,6 +197,8 @@ export default function HomeFeed() {
   const savedIds = usePostsStore((s) => s.savedIds);
   const toggleSave = usePostsStore((s) => s.toggleSave);
   const comments = usePostsStore((s) => s.comments);
+  const myPollVotes = usePostsStore((s) => s.myPollVotes);
+  const votePoll = usePostsStore((s) => s.votePoll);
   const [sharingPost, setSharingPost] = useState<Post | null>(null);
   const [reactorsPost, setReactorsPost] = useState<Post | null>(null);
   const [reportingPost, setReportingPost] = useState<Post | null>(null);
@@ -454,6 +457,13 @@ export default function HomeFeed() {
                     />
                   )}
                 </Pressable>
+                {post.poll && (
+                  <PollView
+                    poll={post.poll}
+                    myVote={myPollVotes[post.id]}
+                    onVote={(optionId) => votePoll(post.id, optionId)}
+                  />
+                )}
 
                 <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
                   <ReactionButton

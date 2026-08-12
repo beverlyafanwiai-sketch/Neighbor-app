@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { COMMENTS, ME, POSTS, type CommentItem, type Post, type ReactionType } from '../data/mock';
+import { COMMENTS, ME, POSTS, type CommentItem, type Poll, type Post, type ReactionType } from '../data/mock';
 import { findMentionedUsers } from '../lib/mentions';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useProfileStore } from './useProfileStore';
@@ -53,9 +53,11 @@ type PostsState = {
   myCommentReactions: Record<string, ReactionType | undefined>;
   savedIds: Record<string, boolean>;
   comments: Record<string, CommentItem[]>;
-  createPost: (body: string, imageUri?: string) => void;
+  myPollVotes: Record<string, string>;
+  createPost: (body: string, imageUri?: string, poll?: Poll) => void;
   updatePost: (id: string, updates: PostEdits) => void;
   deletePost: (id: string) => void;
+  votePoll: (postId: string, optionId: string) => void;
   saveDraft: (input: { id?: string; body: string; imageUri?: string }) => string;
   deleteDraft: (id: string) => void;
   tapReaction: (postId: string) => void;
@@ -75,8 +77,9 @@ export const usePostsStore = create<PostsState>((set) => ({
   myCommentReactions: {},
   savedIds: {},
   comments: COMMENTS,
+  myPollVotes: {},
 
-  createPost: (body, imageUri) => {
+  createPost: (body, imageUri, poll) => {
     const post: Post = {
       id: `${Date.now()}`,
       authorId: ME.id,
@@ -84,6 +87,7 @@ export const usePostsStore = create<PostsState>((set) => ({
       body,
       replies: 0,
       imageUri,
+      poll,
     };
     set((s) => ({ posts: [post, ...s.posts] }));
     notifyMentions(body, post.id, 'post');
@@ -95,6 +99,14 @@ export const usePostsStore = create<PostsState>((set) => ({
     })),
 
   deletePost: (id) => set((s) => ({ posts: s.posts.filter((p) => p.id !== id) })),
+
+  votePoll: (postId, optionId) =>
+    set((s) => ({
+      myPollVotes: {
+        ...s.myPollVotes,
+        [postId]: s.myPollVotes[postId] === optionId ? '' : optionId,
+      },
+    })),
 
   saveDraft: ({ id, body, imageUri }) => {
     const draftId = id ?? `draft-${++draftSeq}`;
@@ -223,4 +235,13 @@ export function getTopReactionTypes(
 
 export function getEffectiveReplies(post: Post, comments: CommentItem[]) {
   return post.replies + comments.length;
+}
+
+export function getEffectivePollResults(poll: Poll, myVote: string | undefined) {
+  const results = poll.options.map((o) => ({
+    ...o,
+    votes: o.votes + (o.id === myVote ? 1 : 0),
+  }));
+  const total = results.reduce((sum, o) => sum + o.votes, 0);
+  return { results, total };
 }

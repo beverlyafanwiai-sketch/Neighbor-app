@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import MentionText from '../../components/MentionText';
 import MentionTextInput from '../../components/MentionTextInput';
+import PollView from '../../components/PollView';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
 import ReportPostSheet from '../../components/ReportPostSheet';
@@ -37,6 +38,8 @@ export default function PostDetail() {
   const saved = usePostsStore((s) => (post ? (s.savedIds[post.id] ?? false) : false));
   const toggleSave = usePostsStore((s) => s.toggleSave);
   const comments = usePostsStore((s) => (post ? (s.comments[post.id] ?? EMPTY_COMMENTS) : EMPTY_COMMENTS));
+  const myPollVote = usePostsStore((s) => (post ? s.myPollVotes[post.id] : undefined));
+  const votePoll = usePostsStore((s) => s.votePoll);
   const addComment = usePostsStore((s) => s.addComment);
   const updateComment = usePostsStore((s) => s.updateComment);
   const deleteComment = usePostsStore((s) => s.deleteComment);
@@ -168,6 +171,10 @@ export default function PostDetail() {
                   className="w-full rounded-2xl"
                   style={{ aspectRatio: 4 / 3 }}
                 />
+              )}
+
+              {post.poll && (
+                <PollView poll={post.poll} myVote={myPollVote} onVote={(optionId) => votePoll(post.id, optionId)} />
               )}
 
               <View className="flex-row items-center justify-between border-t border-charcoal/10 pt-3">

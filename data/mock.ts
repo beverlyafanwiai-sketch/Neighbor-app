@@ -236,6 +236,18 @@ export const MY_FRIEND_IDS = ['maya', 'theo', 'priya', 'sam'];
 
 export type ReactionType = 'love' | 'haha' | 'wow' | 'sad' | 'clap';
 
+export type PollOption = {
+  id: string;
+  label: string;
+  // Baseline vote count from other neighbors, *not including* ME — same
+  // pattern as event.spotsTaken / LendItem.helperCount.
+  votes: number;
+};
+
+export type Poll = {
+  options: PollOption[];
+};
+
 export type Post = {
   id: string;
   authorId: string;
@@ -245,6 +257,7 @@ export type Post = {
   imageUri?: string;
   edited?: boolean;
   reactions?: Record<string, ReactionType>;
+  poll?: Poll;
 };
 
 export const POSTS: Post[] = [
@@ -287,6 +300,33 @@ export const POSTS: Post[] = [
     body: 'Finally got the garden beds weeded. Trading tomato starts for good company this weekend.',
     replies: 2,
     reactions: { maya: 'clap', theo: 'love', priya: 'love', jordan: 'love', nia: 'clap', kai: 'wow' },
+  },
+  {
+    id: '6',
+    authorId: 'amara',
+    time: '4h ago',
+    body: 'Planning the block party — best night for everyone?',
+    replies: 0,
+    poll: {
+      options: [
+        { id: 'fri', label: 'Friday', votes: 6 },
+        { id: 'sat', label: 'Saturday', votes: 4 },
+      ],
+    },
+  },
+  {
+    id: '7',
+    authorId: 'priya',
+    time: '1d ago',
+    body: 'Quick one — what should the hiking circle tackle next?',
+    replies: 1,
+    poll: {
+      options: [
+        { id: 'ridge', label: 'Sunset Ridge again', votes: 2 },
+        { id: 'creek', label: 'Willow Creek trail', votes: 5 },
+        { id: 'summit', label: 'Try the summit route', votes: 1 },
+      ],
+    },
   },
 ];
 
