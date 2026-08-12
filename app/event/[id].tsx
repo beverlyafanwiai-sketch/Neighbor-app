@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ME, getUser } from '../../data/mock';
 import { addEventToCalendar } from '../../lib/ics';
 import { formatOccurrence, getUpcomingOccurrences, RECURRENCE_LABEL } from '../../lib/recurrence';
+import { useCarpoolStore } from '../../store/useCarpoolStore';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckInStore';
 import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumStore';
 import { useEventsStore } from '../../store/useEventsStore';
@@ -33,8 +34,21 @@ export default function EventDetail() {
   const albumPhotos = useEventAlbumStore((s) => s.photos);
   const addPhotos = useEventAlbumStore((s) => s.addPhotos);
   const removePhoto = useEventAlbumStore((s) => s.removePhoto);
+  const allCarpoolOffers = useCarpoolStore((s) => s.offers);
+  const allCarpoolRequests = useCarpoolStore((s) => s.requests);
+  const offerRide = useCarpoolStore((s) => s.offerRide);
+  const cancelOffer = useCarpoolStore((s) => s.cancelOffer);
+  const requestSeat = useCarpoolStore((s) => s.requestSeat);
+  const leaveSeat = useCarpoolStore((s) => s.leaveSeat);
+  const requestRide = useCarpoolStore((s) => s.requestRide);
+  const cancelRideRequest = useCarpoolStore((s) => s.cancelRideRequest);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [calendarAdded, setCalendarAdded] = useState(false);
+  const [offeringRide, setOfferingRide] = useState(false);
+  const [offerSeats, setOfferSeats] = useState(2);
+  const [offerNote, setOfferNote] = useState('');
+  const [requestingRide, setRequestingRide] = useState(false);
+  const [requestNote, setRequestNote] = useState('');
 
   if (!event) {
     return (
@@ -59,11 +73,29 @@ export default function EventDetail() {
   const eventPhotos = getEventPhotos(event.id, albumPhotos);
   const canAddPhotos = going || isHost;
   const canCheckIn = going || isHost;
+  const canCarpool = (going || isHost) && !isPast;
   const occurrences = event.recurrence ? getUpcomingOccurrences(event, new Date()) : [];
+  const carpoolOffers = allCarpoolOffers.filter((o) => o.eventId === event.id);
+  const carpoolRequests = allCarpoolRequests.filter((r) => r.eventId === event.id);
+  const myOffer = carpoolOffers.find((o) => o.driverId === ME.id);
+  const myRequest = carpoolRequests.find((r) => r.riderId === ME.id);
 
   const remove = () => {
     deleteEvent(event.id);
     router.back();
+  };
+
+  const submitOffer = () => {
+    offerRide(event.id, offerSeats, offerNote.trim());
+    setOfferingRide(false);
+    setOfferNote('');
+    setOfferSeats(2);
+  };
+
+  const submitRequest = () => {
+    requestRide(event.id, requestNote.trim());
+    setRequestingRide(false);
+    setRequestNote('');
   };
 
   const handleAddToCalendar = async () => {
@@ -297,6 +329,190 @@ export default function EventDetail() {
             );
           })}
         </View>
+
+        {(canCarpool || carpoolOffers.length > 0 || carpoolRequests.length > 0) && (
+          <>
+            <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+              Carpool
+            </Text>
+            <View className="gap-3">
+              {carpoolOffers.map((offer) => {
+                const driver = resolveUser(offer.driverId);
+                if (!driver) return null;
+                const isMyOffer = offer.driverId === ME.id;
+                const iAmRiding = offer.riderIds.includes(ME.id);
+                const full = offer.riderIds.length >= offer.seats;
+                return (
+                  <View key={offer.id} className="rounded-2xl bg-cream p-4">
+                    <View className="flex-row items-center gap-3">
+                      <Image source={{ uri: driver.avatar }} className="h-10 w-10 rounded-full" />
+                      <View className="flex-1">
+                        <Text className="font-medium text-charcoal">
+                          {isMyOffer ? 'You' : driver.name} driving · {offer.riderIds.length}/
+                          {offer.seats} seats
+                        </Text>
+                        {offer.note.length > 0 && (
+                          <Text className="mt-0.5 text-xs text-charcoal/50">{offer.note}</Text>
+                        )}
+                      </View>
+                    </View>
+                    {canCarpool && (
+                      <View className="mt-3 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
+                        {isMyOffer ? (
+                          <Pressable
+                            onPress={() => cancelOffer(event.id)}
+                            className="rounded-full bg-sand px-4 py-1.5"
+                          >
+                            <Text className="text-xs font-semibold text-charcoal">
+                              Cancel offer
+                            </Text>
+                          </Pressable>
+                        ) : iAmRiding ? (
+                          <Pressable
+                            onPress={() => leaveSeat(offer.id)}
+                            className="rounded-full bg-sage/20 px-4 py-1.5"
+                          >
+                            <Text className="text-xs font-semibold text-sage">
+                              You're riding ✓
+                            </Text>
+                          </Pressable>
+                        ) : full ? (
+                          <Text className="text-xs text-charcoal/50">Full</Text>
+                        ) : (
+                          <Pressable
+                            onPress={() => requestSeat(offer.id)}
+                            className="rounded-full bg-ink px-4 py-1.5"
+                          >
+                            <Text className="text-xs font-semibold text-paper">
+                              Request a seat
+                            </Text>
+                          </Pressable>
+                        )}
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+
+              {canCarpool &&
+                !myOffer &&
+                (offeringRide ? (
+                  <View className="gap-2.5 rounded-2xl bg-cream p-4">
+                    <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                      Seats available
+                    </Text>
+                    <View className="flex-row gap-2">
+                      {[1, 2, 3, 4].map((n) => (
+                        <Pressable
+                          key={n}
+                          onPress={() => setOfferSeats(n)}
+                          className={`h-9 w-9 items-center justify-center rounded-full ${
+                            offerSeats === n ? 'bg-terracotta' : 'bg-sand'
+                          }`}
+                        >
+                          <Text
+                            className={`text-sm font-semibold ${
+                              offerSeats === n ? 'text-paper' : 'text-charcoal'
+                            }`}
+                          >
+                            {n}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                    <TextInput
+                      value={offerNote}
+                      onChangeText={setOfferNote}
+                      placeholder="Where you're leaving from, timing..."
+                      placeholderTextColor="#3D3D3D80"
+                      className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+                    />
+                    <View className="flex-row justify-end gap-4">
+                      <Pressable onPress={() => setOfferingRide(false)}>
+                        <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                      </Pressable>
+                      <Pressable onPress={submitOffer}>
+                        <Text className="text-sm font-semibold text-terracotta">Post</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                ) : (
+                  <Pressable
+                    onPress={() => setOfferingRide(true)}
+                    className="flex-row items-center gap-2 rounded-2xl bg-sand p-4 active:opacity-80"
+                  >
+                    <Ionicons name="car-outline" size={18} className="text-charcoal" />
+                    <Text className="text-sm font-medium text-charcoal">Offer to drive</Text>
+                  </Pressable>
+                ))}
+
+              {carpoolRequests.length > 0 && (
+                <View className="mt-2 gap-2">
+                  <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                    Need a ride
+                  </Text>
+                  {carpoolRequests.map((req) => {
+                    const rider = resolveUser(req.riderId);
+                    if (!rider) return null;
+                    const isMe = req.riderId === ME.id;
+                    return (
+                      <View
+                        key={req.id}
+                        className="flex-row items-center gap-3 rounded-2xl bg-cream p-3"
+                      >
+                        <Image source={{ uri: rider.avatar }} className="h-9 w-9 rounded-full" />
+                        <View className="flex-1">
+                          <Text className="text-sm text-charcoal">{isMe ? 'You' : rider.name}</Text>
+                          {req.note.length > 0 && (
+                            <Text className="text-xs text-charcoal/50">{req.note}</Text>
+                          )}
+                        </View>
+                        {isMe && (
+                          <Pressable
+                            onPress={() => cancelRideRequest(event.id)}
+                            className="h-7 w-7 items-center justify-center rounded-full"
+                          >
+                            <Ionicons name="close" size={14} className="text-charcoal/50" />
+                          </Pressable>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+
+              {canCarpool &&
+                !myRequest &&
+                (requestingRide ? (
+                  <View className="gap-2.5 rounded-2xl bg-cream p-4">
+                    <TextInput
+                      value={requestNote}
+                      onChangeText={setRequestNote}
+                      placeholder="Where you'd need to be picked up..."
+                      placeholderTextColor="#3D3D3D80"
+                      className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+                    />
+                    <View className="flex-row justify-end gap-4">
+                      <Pressable onPress={() => setRequestingRide(false)}>
+                        <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                      </Pressable>
+                      <Pressable onPress={submitRequest}>
+                        <Text className="text-sm font-semibold text-terracotta">Post</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                ) : (
+                  <Pressable
+                    onPress={() => setRequestingRide(true)}
+                    className="flex-row items-center gap-2 rounded-2xl bg-sand p-4 active:opacity-80"
+                  >
+                    <Ionicons name="hand-left-outline" size={18} className="text-charcoal" />
+                    <Text className="text-sm font-medium text-charcoal">I need a ride</Text>
+                  </Pressable>
+                ))}
+            </View>
+          </>
+        )}
 
         {(eventPhotos.length > 0 || canAddPhotos) && (
           <>
