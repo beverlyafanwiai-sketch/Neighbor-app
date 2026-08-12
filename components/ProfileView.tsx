@@ -44,6 +44,7 @@ type Props = {
   onSettings?: () => void;
   onMoreOptions?: () => void;
   onSavedPosts?: () => void;
+  onRecs?: () => void;
   onPhotoPress?: (postId: string) => void;
   onCreatePost?: () => void;
 };
@@ -59,6 +60,7 @@ export default function ProfileView({
   onSettings,
   onMoreOptions,
   onSavedPosts,
+  onRecs,
   onPhotoPress,
   onCreatePost,
 }: Props) {
@@ -87,8 +89,16 @@ export default function ProfileView({
             <Ionicons name="chevron-back" size={22} color="#F5F2E9" />
           </Pressable>
         )}
-        {isMe && (onSettings || onSavedPosts) && (
+        {isMe && (onSettings || onSavedPosts || onRecs) && (
           <View className="absolute right-4 top-10 flex-row items-center gap-1.5">
+            {onRecs && (
+              <Pressable
+                onPress={onRecs}
+                className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
+              >
+                <Ionicons name="star-outline" size={19} color="#F5F2E9" />
+              </Pressable>
+            )}
             {onSavedPosts && (
               <Pressable
                 onPress={onSavedPosts}

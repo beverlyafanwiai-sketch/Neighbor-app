@@ -11,6 +11,7 @@ export const TYPE_ICON: Record<NotificationItem['type'], keyof typeof Ionicons.g
   message: 'chatbubble-ellipses',
   mention: 'at',
   lend: 'basket',
+  rec: 'star',
 };
 
 export function goToTarget(target?: NotificationTarget) {
@@ -36,5 +37,8 @@ export function goToTarget(target?: NotificationTarget) {
       return;
     case 'lend':
       router.push('/lend');
+      return;
+    case 'rec':
+      router.push('/recs');
   }
 }

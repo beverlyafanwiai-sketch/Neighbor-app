@@ -554,11 +554,12 @@ export type NotificationTarget =
   | { kind: 'chat'; id: string }
   | { kind: 'group-chat'; id: string }
   | { kind: 'post'; id: string }
-  | { kind: 'lend'; id: string };
+  | { kind: 'lend'; id: string }
+  | { kind: 'rec'; id: string };
 
 export type NotificationItem = {
   id: string;
-  type: 'friend' | 'friend_request' | 'event' | 'group' | 'message' | 'mention' | 'lend';
+  type: 'friend' | 'friend_request' | 'event' | 'group' | 'message' | 'mention' | 'lend' | 'rec';
   actorId?: string;
   text: string;
   time: string;
@@ -694,5 +695,70 @@ export const LEND_ITEMS: LendItem[] = [
     emoji: '🚲',
     title: "Kids' bike (age 6-8)",
     note: 'My nephew is visiting for a week and wants to ride around with the other kids.',
+  },
+];
+
+export type RecEntryKind = 'rec' | 'ask';
+
+export type RecEntry = {
+  id: string;
+  authorId: string;
+  kind: RecEntryKind;
+  emoji: string;
+  category: string;
+  name?: string;
+  note: string;
+  // Baseline count of other neighbors already agreeing (rec) or already
+  // having a suggestion (ask), *not including* ME — same pattern as
+  // event.spotsTaken / LendItem.helperCount.
+  agreeCount?: number;
+};
+
+export const REC_ENTRIES: RecEntry[] = [
+  {
+    id: 'rosas-plumbing',
+    authorId: 'sam',
+    kind: 'rec',
+    emoji: '🔧',
+    category: 'Plumber',
+    name: "Rosa's Plumbing",
+    note: 'Fixed our water heater same day and charged less than she quoted. Straightforward and fast.',
+    agreeCount: 3,
+  },
+  {
+    id: 'dog-groomer-ask',
+    authorId: 'nia',
+    kind: 'ask',
+    emoji: '🐕',
+    category: 'Dog groomer',
+    note: "New puppy, badly needs a first trim. Anyone have someone they trust nearby?",
+  },
+  {
+    id: 'green-thumb-landscaping',
+    authorId: 'theo',
+    kind: 'rec',
+    emoji: '🌿',
+    category: 'Landscaper',
+    name: 'Green Thumb Landscaping',
+    note: 'Redid our whole front yard in a weekend. Showed up on time both days, which honestly is the bar.',
+    agreeCount: 1,
+  },
+  {
+    id: 'electrician-ask',
+    authorId: 'priya',
+    kind: 'ask',
+    emoji: '💡',
+    category: 'Electrician',
+    note: 'Need an outlet added in the garage. Nothing urgent, just want someone reliable.',
+    agreeCount: 2,
+  },
+  {
+    id: 'maya-babysitter',
+    authorId: 'maya',
+    kind: 'rec',
+    emoji: '🧸',
+    category: 'Babysitter',
+    name: 'Elena R.',
+    note: "My kids adore her and she's never once been late. Books up fast though.",
   },
 ];

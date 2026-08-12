@@ -55,6 +55,7 @@ const NAV_ITEMS: { label: string; icon: keyof typeof Ionicons.glyphMap; href: st
   { label: 'Chat', icon: 'chatbubble-ellipses', href: '/(tabs)/chat' },
   { label: 'Discover', icon: 'compass', href: '/discover' },
   { label: 'Borrow & Lend', icon: 'basket', href: '/lend' },
+  { label: 'Neighborhood Recs', icon: 'star', href: '/recs' },
   { label: 'Saved', icon: 'bookmark', href: '/saved' },
   { label: 'Profile', icon: 'person', href: '/(tabs)/profile' },
 ];
