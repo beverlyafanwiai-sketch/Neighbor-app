@@ -55,6 +55,7 @@ export default function PostDetail() {
   const [sharing, setSharing] = useState(false);
   const [reactorsFor, setReactorsFor] = useState<'post' | string | null>(null);
   const [reporting, setReporting] = useState(false);
+  const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<{ id: string; name: string } | null>(null);
 
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
@@ -308,7 +309,7 @@ export default function PostDetail() {
                     </Pressable>
                   </View>
                 </View>
-                {isCommentAuthor && (
+                {isCommentAuthor ? (
                   <View className="flex-row items-center gap-1">
                     <Pressable
                       onPress={() => {
@@ -326,6 +327,13 @@ export default function PostDetail() {
                       <Ionicons name="trash-outline" size={13} className="text-terracotta" />
                     </Pressable>
                   </View>
+                ) : (
+                  <Pressable
+                    onPress={() => setReportingCommentId(item.id)}
+                    className="h-7 w-7 items-center justify-center rounded-full"
+                  >
+                    <Ionicons name="ellipsis-horizontal" size={15} className="text-charcoal/40" />
+                  </Pressable>
                 )}
               </View>
             );
@@ -396,6 +404,14 @@ export default function PostDetail() {
       )}
 
       {reporting && <ReportPostSheet onClose={() => setReporting(false)} />}
+
+      {reportingCommentId && (
+        <ReportPostSheet
+          onClose={() => setReportingCommentId(null)}
+          title="Comment options"
+          actionLabel="Report this comment"
+        />
+      )}
     </SafeAreaView>
   );
 }

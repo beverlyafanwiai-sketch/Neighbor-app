@@ -4,9 +4,15 @@ import { Ionicons } from '@expo/vector-icons';
 
 type Props = {
   onClose: () => void;
+  title?: string;
+  actionLabel?: string;
 };
 
-export default function ReportPostSheet({ onClose }: Props) {
+export default function ReportPostSheet({
+  onClose,
+  title = 'Post options',
+  actionLabel = 'Report this post',
+}: Props) {
   const [reported, setReported] = useState(false);
 
   return (
@@ -14,7 +20,7 @@ export default function ReportPostSheet({ onClose }: Props) {
       <Pressable className="absolute inset-0" onPress={onClose} />
       <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
         <View className="flex-row items-center justify-between">
-          <Text className="text-base font-bold text-charcoal">Post options</Text>
+          <Text className="text-base font-bold text-charcoal">{title}</Text>
           <Pressable
             onPress={onClose}
             className="h-8 w-8 items-center justify-center rounded-full bg-sand"
@@ -35,7 +41,7 @@ export default function ReportPostSheet({ onClose }: Props) {
             className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
           >
             <Ionicons name="flag-outline" size={20} className="text-charcoal" />
-            <Text className="text-sm font-medium text-charcoal">Report this post</Text>
+            <Text className="text-sm font-medium text-charcoal">{actionLabel}</Text>
           </Pressable>
         )}
       </View>
