@@ -21,13 +21,13 @@ export function getEventsAttendedTogether(profileUserId: string) {
   return EVENTS.filter(
     (e) =>
       e.status === 'past' &&
-      (e.metIds?.length ?? 0) > 0 &&
+      (e.checkedInIds?.length ?? 0) > 0 &&
       (e.attendeeIds.includes(profileUserId) || e.hostId === profileUserId)
   );
 }
 
 export function getEventsIAttended() {
-  return EVENTS.filter((e) => e.status === 'past' && (e.metIds?.length ?? 0) > 0);
+  return EVENTS.filter((e) => e.status === 'past' && (e.checkedInIds?.length ?? 0) > 0);
 }
 
 export function formatOwnTrustLine(friendCount: number, groupCount: number) {

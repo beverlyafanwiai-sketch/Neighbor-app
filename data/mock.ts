@@ -492,7 +492,10 @@ export type EventItem = {
   spotsTotal: number;
   attendeeIds: string[];
   status: 'upcoming' | 'past';
-  metIds?: string[];
+  // Baseline "who's checked in" list from other attendees — ME's own
+  // check-in lives in useCheckInStore instead, since it's something ME
+  // actually toggles.
+  checkedInIds?: string[];
   coverImageUri?: string;
   recurrence?: EventRecurrence;
   // Number of upcoming occurrences the host has skipped — advances the
@@ -553,7 +556,7 @@ export const EVENTS: EventItem[] = [
     spotsTotal: 6,
     attendeeIds: ['maya', 'priya', 'theo'],
     status: 'past',
-    metIds: ['maya', 'priya'],
+    checkedInIds: ['maya', 'priya'],
   },
   {
     id: 'pottery-open-studio',
@@ -570,7 +573,7 @@ export const EVENTS: EventItem[] = [
     spotsTotal: 10,
     attendeeIds: ['sam'],
     status: 'past',
-    metIds: ['sam'],
+    checkedInIds: ['sam'],
   },
 ];
 

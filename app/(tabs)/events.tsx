@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../../components/EmptyState';
 import { EVENT_CATEGORIES, ME, getUser, type EventCategory } from '../../data/mock';
+import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckInStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -35,6 +36,7 @@ export default function Events() {
   const leaveWaitlist = useRsvpStore((s) => s.leaveWaitlist);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
+  const myCheckIns = useCheckInStore((s) => s.myCheckIns);
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
   const [onlyOpen, setOnlyOpen] = useState(false);
@@ -355,7 +357,9 @@ export default function Events() {
         {tab === 'Past' && (
           <View className="gap-3">
             {past.map((e) => {
-              const met = (e.metIds ?? []).map((id) => getUser(id)).filter(Boolean);
+              const checkedIn = getEffectiveCheckedInIds(e, myCheckIns[e.id] ?? false)
+                .map((uid) => (uid === ME.id ? profile : getUser(uid)))
+                .filter(Boolean);
               return (
                 <Pressable
                   key={e.id}
@@ -367,41 +371,50 @@ export default function Events() {
                     {e.date} · {e.location}
                   </Text>
 
-                  <Text className="mb-2 mt-3 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
-                    People you met
-                  </Text>
-                  <View className="gap-2">
-                    {met.map((p) => {
-                      const status = friendStatuses[p!.id] ?? 'none';
-                      const settled = status === 'friends' || status === 'pending_out';
-                      return (
-                        <View key={p!.id} className="flex-row items-center gap-2.5">
-                          <Image source={{ uri: p!.avatar }} className="h-9 w-9 rounded-full" />
-                          <Text className="flex-1 text-sm text-charcoal">{p!.name}</Text>
-                          <Pressable
-                            onPress={(evt) => {
-                              evt.stopPropagation();
-                              respondFriend(p!.id);
-                            }}
-                            className={`flex-row items-center gap-1 rounded-full px-3 py-1.5 ${
-                              settled ? 'bg-sage/20' : 'bg-sand'
-                            }`}
-                          >
-                            <Ionicons
-                              name={status === 'friends' ? 'checkmark' : 'person-add-outline'}
-                              size={13}
-                              className={settled ? 'text-sage' : 'text-charcoal'}
-                            />
-                            <Text
-                              className={`text-xs font-medium ${settled ? 'text-sage' : 'text-charcoal'}`}
-                            >
-                              {FRIEND_LABEL[status]}
-                            </Text>
-                          </Pressable>
-                        </View>
-                      );
-                    })}
-                  </View>
+                  {checkedIn.length > 0 && (
+                    <>
+                      <Text className="mb-2 mt-3 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                        Who was there
+                      </Text>
+                      <View className="gap-2">
+                        {checkedIn.map((p) => {
+                          const isMe = p!.id === ME.id;
+                          const status = friendStatuses[p!.id] ?? 'none';
+                          const settled = status === 'friends' || status === 'pending_out';
+                          return (
+                            <View key={p!.id} className="flex-row items-center gap-2.5">
+                              <Image source={{ uri: p!.avatar }} className="h-9 w-9 rounded-full" />
+                              <Text className="flex-1 text-sm text-charcoal">
+                                {isMe ? 'You' : p!.name}
+                              </Text>
+                              {!isMe && (
+                                <Pressable
+                                  onPress={(evt) => {
+                                    evt.stopPropagation();
+                                    respondFriend(p!.id);
+                                  }}
+                                  className={`flex-row items-center gap-1 rounded-full px-3 py-1.5 ${
+                                    settled ? 'bg-sage/20' : 'bg-sand'
+                                  }`}
+                                >
+                                  <Ionicons
+                                    name={status === 'friends' ? 'checkmark' : 'person-add-outline'}
+                                    size={13}
+                                    className={settled ? 'text-sage' : 'text-charcoal'}
+                                  />
+                                  <Text
+                                    className={`text-xs font-medium ${settled ? 'text-sage' : 'text-charcoal'}`}
+                                  >
+                                    {FRIEND_LABEL[status]}
+                                  </Text>
+                                </Pressable>
+                              )}
+                            </View>
+                          );
+                        })}
+                      </View>
+                    </>
+                  )}
                 </Pressable>
               );
             })}

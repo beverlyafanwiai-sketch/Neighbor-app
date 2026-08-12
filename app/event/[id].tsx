@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ME, getUser } from '../../data/mock';
 import { addEventToCalendar } from '../../lib/ics';
 import { formatOccurrence, getUpcomingOccurrences, RECURRENCE_LABEL } from '../../lib/recurrence';
+import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckInStore';
 import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
@@ -27,6 +28,8 @@ export default function EventDetail() {
   const leaveWaitlist = useRsvpStore((s) => s.leaveWaitlist);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
+  const myCheckedIn = useCheckInStore((s) => (event ? (s.myCheckIns[event.id] ?? false) : false));
+  const toggleCheckIn = useCheckInStore((s) => s.toggleCheckIn);
   const albumPhotos = useEventAlbumStore((s) => s.photos);
   const addPhotos = useEventAlbumStore((s) => s.addPhotos);
   const removePhoto = useEventAlbumStore((s) => s.removePhoto);
@@ -49,9 +52,13 @@ export default function EventDetail() {
   const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(event.id, going);
   const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
   const attendees = going || isHost ? [profile, ...otherAttendees] : otherAttendees;
-  const met = (event.metIds ?? []).map((id) => getUser(id)).filter(Boolean);
+  const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
+  const checkedIn = getEffectiveCheckedInIds(event, myCheckedIn)
+    .map(resolveUser)
+    .filter(Boolean);
   const eventPhotos = getEventPhotos(event.id, albumPhotos);
   const canAddPhotos = going || isHost;
+  const canCheckIn = going || isHost;
   const occurrences = event.recurrence ? getUpcomingOccurrences(event, new Date()) : [];
 
   const remove = () => {
@@ -245,6 +252,26 @@ export default function EventDetail() {
               </Text>
             </Pressable>
           )}
+
+          {canCheckIn && (
+            <Pressable
+              onPress={() => toggleCheckIn(event.id)}
+              className={`mt-3 flex-row items-center justify-center gap-1.5 rounded-full py-3 ${
+                myCheckedIn ? 'bg-sage/20' : 'border border-charcoal/15'
+              }`}
+            >
+              <Ionicons
+                name={myCheckedIn ? 'checkmark-circle' : 'location-outline'}
+                size={16}
+                className={myCheckedIn ? 'text-sage' : 'text-charcoal'}
+              />
+              <Text
+                className={`text-sm font-semibold ${myCheckedIn ? 'text-sage' : 'text-charcoal'}`}
+              >
+                {myCheckedIn ? "You're checked in" : "I'm here"}
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
@@ -306,13 +333,14 @@ export default function EventDetail() {
           </>
         )}
 
-        {isPast && met.length > 0 && (
+        {checkedIn.length > 0 && (
           <>
             <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
-              People you met
+              {isPast ? 'Who was there' : 'Checked in'} ({checkedIn.length})
             </Text>
             <View className="gap-2">
-              {met.map((p) => {
+              {checkedIn.map((p) => {
+                const isMe = p!.id === ME.id;
                 const status = friendStatuses[p!.id] ?? 'none';
                 const settled = status === 'friends' || status === 'pending_out';
                 return (
@@ -321,22 +349,24 @@ export default function EventDetail() {
                     className="flex-row items-center gap-2.5 rounded-2xl bg-cream p-3"
                   >
                     <Image source={{ uri: p!.avatar }} className="h-9 w-9 rounded-full" />
-                    <Text className="flex-1 text-sm text-charcoal">{p!.name}</Text>
-                    <Pressable
-                      onPress={() => respondFriend(p!.id)}
-                      className={`flex-row items-center gap-1 rounded-full px-3 py-1.5 ${
-                        settled ? 'bg-sage/20' : 'bg-sand'
-                      }`}
-                    >
-                      <Ionicons
-                        name={status === 'friends' ? 'checkmark' : 'person-add-outline'}
-                        size={13}
-                        className={settled ? 'text-sage' : 'text-charcoal'}
-                      />
-                      <Text className={`text-xs font-medium ${settled ? 'text-sage' : 'text-charcoal'}`}>
-                        {FRIEND_LABEL[status]}
-                      </Text>
-                    </Pressable>
+                    <Text className="flex-1 text-sm text-charcoal">{isMe ? 'You' : p!.name}</Text>
+                    {!isMe && (
+                      <Pressable
+                        onPress={() => respondFriend(p!.id)}
+                        className={`flex-row items-center gap-1 rounded-full px-3 py-1.5 ${
+                          settled ? 'bg-sage/20' : 'bg-sand'
+                        }`}
+                      >
+                        <Ionicons
+                          name={status === 'friends' ? 'checkmark' : 'person-add-outline'}
+                          size={13}
+                          className={settled ? 'text-sage' : 'text-charcoal'}
+                        />
+                        <Text className={`text-xs font-medium ${settled ? 'text-sage' : 'text-charcoal'}`}>
+                          {FRIEND_LABEL[status]}
+                        </Text>
+                      </Pressable>
+                    )}
                   </View>
                 );
               })}
