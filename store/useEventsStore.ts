@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { EVENTS, ME, USERS, type EventCategory, type EventItem, type EventRecurrence } from '../data/mock';
+import { useGroupsStore } from './useGroupsStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
@@ -18,6 +19,7 @@ export type NewEventInput = {
   spotsTotal: number;
   coverImageUri?: string;
   recurrence?: EventRecurrence;
+  hostGroupId?: string;
 };
 
 type EventsState = {
@@ -47,6 +49,9 @@ export const useEventsStore = create<EventsState>((set, get) => ({
 
   createEvent: (input) => {
     const id = `${slugify(input.title)}-${Math.random().toString(36).slice(2, 7)}`;
+    const hostGroup = input.hostGroupId
+      ? useGroupsStore.getState().groups.find((g) => g.id === input.hostGroupId)
+      : undefined;
     const event: EventItem = {
       id,
       title: input.title,
@@ -57,8 +62,9 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       location: input.location,
       description: input.description,
       category: input.category,
-      hostLabel: `Hosted by ${ME.name}`,
+      hostLabel: hostGroup ? hostGroup.name : `Hosted by ${ME.name}`,
       hostId: ME.id,
+      hostGroupId: hostGroup?.id,
       spotsTaken: 0,
       spotsTotal: input.spotsTotal,
       attendeeIds: [],
@@ -71,7 +77,11 @@ export const useEventsStore = create<EventsState>((set, get) => ({
     setTimeout(() => {
       const current = get().events.find((e) => e.id === id);
       if (!current) return;
-      const attendee = USERS.find((u) => !current.attendeeIds.includes(u.id));
+
+      const candidatePool = hostGroup
+        ? hostGroup.memberIds.map((uid) => USERS.find((u) => u.id === uid)).filter((u): u is (typeof USERS)[number] => Boolean(u))
+        : USERS;
+      const attendee = candidatePool.find((u) => !current.attendeeIds.includes(u.id));
       if (!attendee || current.spotsTaken >= current.spotsTotal) return;
 
       set((s) => ({
@@ -86,7 +96,9 @@ export const useEventsStore = create<EventsState>((set, get) => ({
         useNotificationsStore.getState().addNotification({
           type: 'event',
           actorId: attendee.id,
-          text: `${attendee.name} RSVP'd to ${input.title}`,
+          text: hostGroup
+            ? `${attendee.name} from ${hostGroup.name} RSVP'd to ${input.title}`
+            : `${attendee.name} RSVP'd to ${input.title}`,
           time: 'Just now',
           target: { kind: 'event', id },
         });

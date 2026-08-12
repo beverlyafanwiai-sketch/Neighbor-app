@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CoverPhotoPicker from '../components/CoverPhotoPicker';
 import { EVENT_CATEGORIES, type EventCategory, type EventRecurrence } from '../data/mock';
 import { useEventsStore } from '../store/useEventsStore';
+import { useGroupsStore } from '../store/useGroupsStore';
 import { useRsvpStore } from '../store/useRsvpStore';
 
 const SUGGESTED_CAPS = [6, 8, 10];
@@ -34,8 +35,9 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateEvent() {
-  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const { id: editId, groupId } = useLocalSearchParams<{ id?: string; groupId?: string }>();
   const existing = useEventsStore((s) => (editId ? s.events.find((e) => e.id === editId) : undefined));
+  const hostGroup = useGroupsStore((s) => (groupId ? s.groups.find((g) => g.id === groupId) : undefined));
   const isEditing = Boolean(existing);
   const createEvent = useEventsStore((s) => s.createEvent);
   const updateEvent = useEventsStore((s) => s.updateEvent);
@@ -85,6 +87,7 @@ export default function CreateEvent() {
       recurrence,
       spotsTotal,
       coverImageUri,
+      hostGroupId: hostGroup?.id,
     });
     toggleRsvp(id);
     router.replace(`/event/${id}`);
@@ -100,7 +103,7 @@ export default function CreateEvent() {
           <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">
-          {isEditing ? 'Edit event' : 'Host an event'}
+          {isEditing ? 'Edit event' : hostGroup ? `Host for ${hostGroup.name}` : 'Host an event'}
         </Text>
         <Pressable
           onPress={save}
@@ -118,6 +121,15 @@ export default function CreateEvent() {
           <Text className="mt-2 text-sm text-charcoal/60">
             Small is good — a porch hangout for 6 beats a party for 60.
           </Text>
+
+          {hostGroup && (
+            <View className="mt-3 flex-row items-center gap-2 rounded-2xl bg-sage/15 p-3">
+              <Ionicons name="people" size={16} className="text-sage" />
+              <Text className="flex-1 text-xs text-sage">
+                Hosting for {hostGroup.name} — members will get first notice.
+              </Text>
+            </View>
+          )}
 
           <View className="mt-5">
             <CoverPhotoPicker imageUri={coverImageUri} onChange={setCoverImageUri} />

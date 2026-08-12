@@ -7,9 +7,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ME, getUser } from '../../data/mock';
 import { getGroupPhotos, useGroupAlbumStore } from '../../store/useGroupAlbumStore';
+import { useEventsStore } from '../../store/useEventsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
+import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
 const TONE_STYLE: Record<string, { bg: string; text: string }> = {
   Casual: { bg: 'bg-sage/20', text: 'text-sage' },
@@ -31,6 +33,8 @@ export default function GroupDetail() {
   const albumPhotos = useGroupAlbumStore((s) => s.photos);
   const addPhotos = useGroupAlbumStore((s) => s.addPhotos);
   const removePhoto = useGroupAlbumStore((s) => s.removePhoto);
+  const events = useEventsStore((s) => s.events);
+  const goingMap = useRsvpStore((s) => s.going);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   if (!group) {
@@ -54,6 +58,7 @@ export default function GroupDetail() {
       : getUser(pinnedMessage.senderId)
     : undefined;
   const groupPhotos = getGroupPhotos(group.id, albumPhotos);
+  const groupEvents = events.filter((e) => e.hostGroupId === group.id && e.status === 'upcoming');
 
   const remove = () => {
     deleteGroup(group.id);
@@ -176,6 +181,55 @@ export default function GroupDetail() {
               </Text>
             </View>
           </Pressable>
+        )}
+
+        {(groupEvents.length > 0 || joined) && (
+          <>
+            <View className="mb-3 mt-8 flex-row items-center justify-between">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                Events
+              </Text>
+              {joined && (
+                <Pressable
+                  onPress={() => router.push(`/create-event?groupId=${group.id}`)}
+                  className="flex-row items-center gap-1 rounded-full bg-terracotta/15 px-3 py-1"
+                >
+                  <Ionicons name="add" size={14} className="text-terracotta" />
+                  <Text className="text-xs font-semibold text-terracotta">Host an event</Text>
+                </Pressable>
+              )}
+            </View>
+            <View className="gap-3">
+              {groupEvents.map((e) => {
+                const going = goingMap[e.id] ?? false;
+                const { spotsTaken, spotsTotal } = getEffectiveSpots(e.id, going);
+                return (
+                  <Pressable
+                    key={e.id}
+                    onPress={() => router.push(`/event/${e.id}`)}
+                    className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+                  >
+                    <View className="h-12 w-12 items-center justify-center rounded-xl bg-terracotta">
+                      <Text className="text-[10px] font-semibold text-paper">{e.month}</Text>
+                      <Text className="text-lg font-bold text-paper">{e.day}</Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="font-semibold text-charcoal">{e.title}</Text>
+                      <Text className="mt-0.5 text-xs text-charcoal/60">
+                        {e.time} · {e.location}
+                      </Text>
+                    </View>
+                    <Text className="text-xs text-charcoal/50">
+                      {spotsTaken}/{spotsTotal}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+              {groupEvents.length === 0 && (
+                <Text className="text-sm text-charcoal/50">No events hosted yet.</Text>
+              )}
+            </View>
+          </>
         )}
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">

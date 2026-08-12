@@ -485,6 +485,7 @@ export type EventItem = {
   location: string;
   hostLabel: string;
   hostId?: string;
+  hostGroupId?: string;
   description: string;
   category: EventCategory;
   spotsTaken: number;
@@ -527,6 +528,7 @@ export const EVENTS: EventItem[] = [
     date: 'August 16',
     location: 'Sunset Ridge Trailhead',
     hostLabel: 'Weekend Hikers',
+    hostGroupId: 'weekend-hikers',
     description:
       'An easy 4-mile loop with a view worth the climb. All paces welcome — we regroup at every junction.',
     category: 'Outdoors',
