@@ -585,6 +585,7 @@ export type Message = {
   seen?: boolean;
   imageUri?: string;
   deleted?: boolean;
+  reactions?: Record<string, ReactionType>;
 };
 
 export type Conversation = {

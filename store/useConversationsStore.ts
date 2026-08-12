@@ -1,8 +1,12 @@
 import { create } from 'zustand';
 
-import { CONVERSATIONS, getUser, type Conversation, type Message } from '../data/mock';
+import { CONVERSATIONS, getUser, type Conversation, type Message, type ReactionType } from '../data/mock';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
+
+export function messageKey(conversationId: string, messageId: string) {
+  return `${conversationId}:${messageId}`;
+}
 
 const REPLY_DELAY_MS = 2500;
 const CANNED_REPLIES = [
@@ -18,10 +22,13 @@ type ConversationsState = {
   unread: Record<string, number>;
   lastActivity: Record<string, number>;
   typing: Record<string, boolean>;
+  myReactions: Record<string, ReactionType | undefined>;
   getOrCreate: (userId: string) => string;
   sendMessage: (conversationId: string, text: string, imageUri?: string) => void;
   markRead: (conversationId: string) => void;
   deleteMessage: (conversationId: string, messageId: string) => void;
+  tapReaction: (conversationId: string, messageId: string) => void;
+  setReaction: (conversationId: string, messageId: string, type: ReactionType) => void;
 };
 
 const initial: Record<string, Conversation> = Object.fromEntries(
@@ -49,6 +56,7 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
   unread: initialUnread,
   lastActivity: initialLastActivity,
   typing: {},
+  myReactions: {},
 
   getOrCreate: (userId) => {
     const id = `convo-${userId}`;
@@ -138,4 +146,18 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
         },
       };
     }),
+
+  tapReaction: (conversationId, messageId) => {
+    const key = messageKey(conversationId, messageId);
+    set((s) => ({
+      myReactions: { ...s.myReactions, [key]: s.myReactions[key] ? undefined : 'love' },
+    }));
+  },
+
+  setReaction: (conversationId, messageId, type) => {
+    const key = messageKey(conversationId, messageId);
+    set((s) => ({
+      myReactions: { ...s.myReactions, [key]: s.myReactions[key] === type ? undefined : type },
+    }));
+  },
 }));

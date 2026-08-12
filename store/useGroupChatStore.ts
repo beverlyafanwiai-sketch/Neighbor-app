@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { ME, getUser } from '../data/mock';
+import { ME, getUser, type ReactionType } from '../data/mock';
 import { useGroupsStore } from './useGroupsStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
@@ -13,7 +13,12 @@ export type GroupMessage = {
   seenBy?: string[];
   imageUri?: string;
   deleted?: boolean;
+  reactions?: Record<string, ReactionType>;
 };
+
+export function groupMessageKey(groupId: string, messageId: string) {
+  return `${groupId}:${messageId}`;
+}
 
 const REPLY_DELAY_MS = 2500;
 const CANNED_REPLIES = [
@@ -29,10 +34,13 @@ type GroupChatState = {
   lastActivity: Record<string, number>;
   typing: Record<string, string | undefined>;
   pinnedMessageId: Record<string, string | undefined>;
+  myReactions: Record<string, ReactionType | undefined>;
   sendMessage: (groupId: string, text: string, imageUri?: string) => void;
   pinMessage: (groupId: string, messageId: string) => void;
   unpinMessage: (groupId: string) => void;
   deleteMessage: (groupId: string, messageId: string) => void;
+  tapReaction: (groupId: string, messageId: string) => void;
+  setReaction: (groupId: string, messageId: string, type: ReactionType) => void;
 };
 
 const initialMessages: Record<string, GroupMessage[]> = {
@@ -65,6 +73,7 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
   lastActivity: initialLastActivity,
   typing: {},
   pinnedMessageId: {},
+  myReactions: {},
 
   pinMessage: (groupId, messageId) =>
     set((s) => ({ pinnedMessageId: { ...s.pinnedMessageId, [groupId]: messageId } })),
@@ -139,5 +148,19 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
         });
       }
     }, REPLY_DELAY_MS);
+  },
+
+  tapReaction: (groupId, messageId) => {
+    const key = groupMessageKey(groupId, messageId);
+    set((s) => ({
+      myReactions: { ...s.myReactions, [key]: s.myReactions[key] ? undefined : 'love' },
+    }));
+  },
+
+  setReaction: (groupId, messageId, type) => {
+    const key = groupMessageKey(groupId, messageId);
+    set((s) => ({
+      myReactions: { ...s.myReactions, [key]: s.myReactions[key] === type ? undefined : type },
+    }));
   },
 }));

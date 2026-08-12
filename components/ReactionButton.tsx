@@ -27,6 +27,7 @@ type Props = {
   onShowReactors?: () => void;
   fullWidth?: boolean;
   compact?: boolean;
+  pickerAlign?: 'left' | 'right';
 };
 
 export default function ReactionButton({
@@ -37,6 +38,7 @@ export default function ReactionButton({
   onShowReactors,
   fullWidth,
   compact,
+  pickerAlign = 'left',
 }: Props) {
   const [showPicker, setShowPicker] = useState(false);
   const counts = getEffectiveReactions(reactions, myReaction);
@@ -52,7 +54,9 @@ export default function ReactionButton({
     <View className={fullWidth ? 'flex-1' : undefined} style={{ position: 'relative' }}>
       {showPicker && (
         <View
-          className="absolute bottom-8 left-0 flex-row gap-1 rounded-full bg-cream px-2 py-1.5"
+          className={`absolute bottom-8 flex-row gap-1 rounded-full bg-cream px-2 py-1.5 ${
+            pickerAlign === 'right' ? 'right-0' : 'left-0'
+          }`}
           style={pickerShadow}
         >
           {REACTION_TYPES.map((type) => (

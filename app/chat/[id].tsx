@@ -16,8 +16,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
+import ReactionButton from '../../components/ReactionButton';
+import ReactorsSheet from '../../components/ReactorsSheet';
 import { getUser } from '../../data/mock';
-import { useConversationsStore } from '../../store/useConversationsStore';
+import { messageKey, useConversationsStore } from '../../store/useConversationsStore';
 
 export default function ChatThread() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,12 +27,16 @@ export default function ChatThread() {
   const sendMessage = useConversationsStore((s) => s.sendMessage);
   const markRead = useConversationsStore((s) => s.markRead);
   const deleteMessage = useConversationsStore((s) => s.deleteMessage);
+  const myReactions = useConversationsStore((s) => s.myReactions);
+  const tapReaction = useConversationsStore((s) => s.tapReaction);
+  const setReaction = useConversationsStore((s) => s.setReaction);
   const isTyping = useConversationsStore((s) => s.typing[id] ?? false);
   const user = conversation ? getUser(conversation.userId) : undefined;
 
   const [draft, setDraft] = useState('');
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
+  const [reactorsFor, setReactorsFor] = useState<string | null>(null);
 
   useEffect(() => {
     markRead(id);
@@ -170,7 +176,20 @@ export default function ChatThread() {
                     </>
                   )}
                 </View>
-                <Text className="mt-1 text-[11px] text-charcoal/40">{item.time}</Text>
+                {!item.deleted && (
+                  <View className="-mt-1">
+                    <ReactionButton
+                      reactions={item.reactions}
+                      myReaction={myReactions[messageKey(conversation.id, item.id)]}
+                      onTap={() => tapReaction(conversation.id, item.id)}
+                      onSelect={(type) => setReaction(conversation.id, item.id, type)}
+                      onShowReactors={() => setReactorsFor(item.id)}
+                      pickerAlign={isMine ? 'right' : 'left'}
+                      compact
+                    />
+                  </View>
+                )}
+                <Text className="mt-0.5 text-[11px] text-charcoal/40">{item.time}</Text>
                 {index === lastMeIndex && item.seen && !item.deleted && (
                   <Text className="mt-0.5 text-[11px] text-sage">Seen</Text>
                 )}
@@ -231,6 +250,18 @@ export default function ChatThread() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      {reactorsFor && (
+        <ReactorsSheet
+          reactions={messages.find((m) => m.id === reactorsFor)?.reactions}
+          myReaction={myReactions[messageKey(conversation.id, reactorsFor)]}
+          onClose={() => setReactorsFor(null)}
+          onPersonPress={(userId) => {
+            setReactorsFor(null);
+            router.push(`/profile/${userId}`);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }

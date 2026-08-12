@@ -16,9 +16,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
+import ReactionButton from '../../components/ReactionButton';
+import ReactorsSheet from '../../components/ReactorsSheet';
 import { ME, getUser } from '../../data/mock';
 import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
-import { useGroupChatStore, type GroupMessage } from '../../store/useGroupChatStore';
+import { groupMessageKey, useGroupChatStore, type GroupMessage } from '../../store/useGroupChatStore';
 
 const EMPTY_MESSAGES: GroupMessage[] = [];
 
@@ -33,6 +35,9 @@ export default function GroupChatThread() {
   const pinMessage = useGroupChatStore((s) => s.pinMessage);
   const unpinMessage = useGroupChatStore((s) => s.unpinMessage);
   const deleteMessage = useGroupChatStore((s) => s.deleteMessage);
+  const myReactions = useGroupChatStore((s) => s.myReactions);
+  const tapReaction = useGroupChatStore((s) => s.tapReaction);
+  const setReaction = useGroupChatStore((s) => s.setReaction);
   const markRead = useGroupsStore((s) => s.markRead);
   const toggleJoin = useGroupsStore((s) => s.toggle);
 
@@ -40,6 +45,7 @@ export default function GroupChatThread() {
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
+  const [reactorsFor, setReactorsFor] = useState<string | null>(null);
 
   useEffect(() => {
     if (group) markRead(group.id);
@@ -266,6 +272,19 @@ export default function GroupChatThread() {
                     </Pressable>
                   )}
                 </View>
+                {!item.deleted && (
+                  <View className="-mt-1">
+                    <ReactionButton
+                      reactions={item.reactions}
+                      myReaction={myReactions[groupMessageKey(group.id, item.id)]}
+                      onTap={() => tapReaction(group.id, item.id)}
+                      onSelect={(type) => setReaction(group.id, item.id, type)}
+                      onShowReactors={() => setReactorsFor(item.id)}
+                      pickerAlign={isMe ? 'right' : 'left'}
+                      compact
+                    />
+                  </View>
+                )}
                 {index === lastMeIndex && seenByNames.length > 0 && !item.deleted && (
                   <Text className="mt-0.5 text-[11px] text-sage">
                     Seen by {seenByNames.join(', ')}
@@ -332,6 +351,18 @@ export default function GroupChatThread() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      {reactorsFor && (
+        <ReactorsSheet
+          reactions={messages.find((m) => m.id === reactorsFor)?.reactions}
+          myReaction={myReactions[groupMessageKey(group.id, reactorsFor)]}
+          onClose={() => setReactorsFor(null)}
+          onPersonPress={(userId) => {
+            setReactorsFor(null);
+            router.push(`/profile/${userId}`);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
