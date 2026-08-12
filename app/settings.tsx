@@ -25,6 +25,7 @@ const NOTIFICATION_ROWS: { key: keyof NotificationPrefs; label: string; descript
   { key: 'friendRequests', label: 'Friend requests', description: 'When someone adds you as a friend' },
   { key: 'mentions', label: 'Mentions', description: 'When someone @mentions you in a post or comment' },
   { key: 'lendUpdates', label: 'Borrow & lend', description: 'Requests, approvals, and offers on the lending board' },
+  { key: 'saleUpdates', label: 'For sale', description: 'Interest and offers on items you’ve listed for sale' },
   { key: 'recsActivity', label: 'Neighborhood recs', description: 'Agreements and suggestions on the recommendations board' },
   { key: 'welcomeNotes', label: 'Welcome notes', description: 'Replies when you leave a note for a new neighbor' },
 ];

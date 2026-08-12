@@ -13,6 +13,7 @@ export const TYPE_ICON: Record<NotificationItem['type'], keyof typeof Ionicons.g
   lend: 'basket',
   rec: 'star',
   welcome: 'sparkles',
+  sale: 'pricetags',
 };
 
 export function goToTarget(target?: NotificationTarget) {
@@ -41,5 +42,8 @@ export function goToTarget(target?: NotificationTarget) {
       return;
     case 'rec':
       router.push('/recs');
+      return;
+    case 'sale':
+      router.push('/for-sale');
   }
 }

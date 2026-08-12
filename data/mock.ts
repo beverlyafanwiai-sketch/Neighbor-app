@@ -640,11 +640,22 @@ export type NotificationTarget =
   | { kind: 'group-chat'; id: string }
   | { kind: 'post'; id: string }
   | { kind: 'lend'; id: string }
-  | { kind: 'rec'; id: string };
+  | { kind: 'rec'; id: string }
+  | { kind: 'sale'; id: string };
 
 export type NotificationItem = {
   id: string;
-  type: 'friend' | 'friend_request' | 'event' | 'group' | 'message' | 'mention' | 'lend' | 'rec' | 'welcome';
+  type:
+    | 'friend'
+    | 'friend_request'
+    | 'event'
+    | 'group'
+    | 'message'
+    | 'mention'
+    | 'lend'
+    | 'rec'
+    | 'welcome'
+    | 'sale';
   actorId?: string;
   text: string;
   time: string;
@@ -876,6 +887,55 @@ export const LEND_ITEMS: LendItem[] = [
     emoji: '🚲',
     title: "Kids' bike (age 6-8)",
     note: 'My nephew is visiting for a week and wants to ride around with the other kids.',
+  },
+];
+
+export type SaleItem = {
+  id: string;
+  ownerId: string;
+  emoji: string;
+  title: string;
+  price: string;
+  note: string;
+  // Baseline count of other neighbors already interested — mirrors
+  // LendItem.helperCount as a "before ME" number.
+  interestedCount?: number;
+};
+
+export const SALE_ITEMS: SaleItem[] = [
+  {
+    id: 'kids-bike-16',
+    ownerId: 'sam',
+    emoji: '🚲',
+    title: "Kids' bike (16in)",
+    price: '$25',
+    note: 'Barely used, outgrown it fast. Blue, good tires, minor scuffs.',
+    interestedCount: 1,
+  },
+  {
+    id: 'standing-desk',
+    ownerId: 'theo',
+    emoji: '🪑',
+    title: 'Standing desk',
+    price: '$60',
+    note: 'Manual crank, sturdy top. Downsizing my home office, works great.',
+  },
+  {
+    id: 'record-player',
+    ownerId: 'maya',
+    emoji: '🎵',
+    title: 'Record player',
+    price: '$40',
+    note: 'Portable, built-in speakers. Selling since I upgraded to a proper turntable.',
+    interestedCount: 2,
+  },
+  {
+    id: 'patio-chairs',
+    ownerId: 'priya',
+    emoji: '🪴',
+    title: '2 patio chairs',
+    price: '$15',
+    note: 'Moving out of state, need these gone by the end of the month.',
   },
 ];
 
