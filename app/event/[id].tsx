@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ME, getUser } from '../../data/mock';
 import { addEventToCalendar } from '../../lib/ics';
+import { formatOccurrence, getUpcomingOccurrences, RECURRENCE_LABEL } from '../../lib/recurrence';
 import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
@@ -17,6 +18,7 @@ export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const event = useEventsStore((s) => s.events.find((e) => e.id === id));
   const deleteEvent = useEventsStore((s) => s.deleteEvent);
+  const skipNextOccurrence = useEventsStore((s) => s.skipNextOccurrence);
   const profile = useProfileStore((s) => s.profile);
   const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
   const waitlisted = useRsvpStore((s) => (event ? (s.waitlisted[event.id] ?? false) : false));
@@ -50,6 +52,7 @@ export default function EventDetail() {
   const met = (event.metIds ?? []).map((id) => getUser(id)).filter(Boolean);
   const eventPhotos = getEventPhotos(event.id, albumPhotos);
   const canAddPhotos = going || isHost;
+  const occurrences = event.recurrence ? getUpcomingOccurrences(event, new Date()) : [];
 
   const remove = () => {
     deleteEvent(event.id);
@@ -146,7 +149,43 @@ export default function EventDetail() {
             </View>
           </View>
 
+          {event.recurrence && (
+            <View className="mt-4 flex-row items-center gap-1.5">
+              <Ionicons name="repeat" size={14} className="text-terracotta" />
+              <Text className="text-xs font-medium text-terracotta">
+                {RECURRENCE_LABEL[event.recurrence]}
+              </Text>
+            </View>
+          )}
+
           <Text className="mt-4 text-[15px] leading-5 text-charcoal/80">{event.description}</Text>
+
+          {event.recurrence && occurrences.length > 0 && (
+            <View className="mt-4 rounded-2xl bg-sand p-3.5">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                Next occurrences
+              </Text>
+              <Text className="mt-1 text-sm text-charcoal/80">
+                {occurrences.map(formatOccurrence).join(', ')}
+              </Text>
+              {isHost && !isPast && (
+                <View className="mt-3 flex-row gap-2">
+                  <Pressable
+                    onPress={() => router.push(`/create-event?id=${event.id}`)}
+                    className="rounded-full bg-cream px-3.5 py-1.5"
+                  >
+                    <Text className="text-xs font-semibold text-charcoal">Edit series</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => skipNextOccurrence(event.id)}
+                    className="rounded-full bg-cream px-3.5 py-1.5"
+                  >
+                    <Text className="text-xs font-semibold text-charcoal">Skip next</Text>
+                  </Pressable>
+                </View>
+              )}
+            </View>
+          )}
 
           {isHost ? (
             <View className="mt-5 flex-row items-center justify-center gap-1.5 rounded-full bg-gold py-3">

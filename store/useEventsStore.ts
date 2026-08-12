@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { EVENTS, ME, USERS, type EventCategory, type EventItem } from '../data/mock';
+import { EVENTS, ME, USERS, type EventCategory, type EventItem, type EventRecurrence } from '../data/mock';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
@@ -17,6 +17,7 @@ export type NewEventInput = {
   category: EventCategory;
   spotsTotal: number;
   coverImageUri?: string;
+  recurrence?: EventRecurrence;
 };
 
 type EventsState = {
@@ -26,6 +27,7 @@ type EventsState = {
   updateEvent: (id: string, updates: Partial<NewEventInput>) => void;
   deleteEvent: (id: string) => void;
   decrementSpotsTaken: (id: string) => void;
+  skipNextOccurrence: (id: string) => void;
 };
 
 function slugify(title: string) {
@@ -62,6 +64,7 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       attendeeIds: [],
       status: 'upcoming',
       coverImageUri: input.coverImageUri,
+      recurrence: input.recurrence,
     };
     set((s) => ({ events: [event, ...s.events] }));
 
@@ -108,6 +111,13 @@ export const useEventsStore = create<EventsState>((set, get) => ({
     set((s) => ({
       events: s.events.map((e) =>
         e.id === id ? { ...e, spotsTaken: Math.max(0, e.spotsTaken - 1) } : e
+      ),
+    })),
+
+  skipNextOccurrence: (id) =>
+    set((s) => ({
+      events: s.events.map((e) =>
+        e.id === id ? { ...e, skipCount: (e.skipCount ?? 0) + 1 } : e
       ),
     })),
 }));

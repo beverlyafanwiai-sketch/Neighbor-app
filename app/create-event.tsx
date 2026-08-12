@@ -13,11 +13,17 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CoverPhotoPicker from '../components/CoverPhotoPicker';
-import { EVENT_CATEGORIES, type EventCategory } from '../data/mock';
+import { EVENT_CATEGORIES, type EventCategory, type EventRecurrence } from '../data/mock';
 import { useEventsStore } from '../store/useEventsStore';
 import { useRsvpStore } from '../store/useRsvpStore';
 
 const SUGGESTED_CAPS = [6, 8, 10];
+
+const REPEAT_OPTIONS: { value: EventRecurrence | undefined; label: string }[] = [
+  { value: undefined, label: "Doesn't repeat" },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'biweekly', label: 'Every 2 weeks' },
+];
 
 function FieldLabel({ children }: { children: string }) {
   return (
@@ -42,6 +48,7 @@ export default function CreateEvent() {
   const [location, setLocation] = useState(existing?.location ?? '');
   const [description, setDescription] = useState(existing?.description ?? '');
   const [category, setCategory] = useState<EventCategory>(existing?.category ?? 'Social');
+  const [recurrence, setRecurrence] = useState<EventRecurrence | undefined>(existing?.recurrence);
   const [spotsTotal, setSpotsTotal] = useState(existing?.spotsTotal ?? 8);
   const [coverImageUri, setCoverImageUri] = useState(existing?.coverImageUri);
 
@@ -59,6 +66,7 @@ export default function CreateEvent() {
         location: location.trim(),
         description: description.trim() || 'No details yet — just show up.',
         category,
+        recurrence,
         spotsTotal,
         coverImageUri,
       });
@@ -74,6 +82,7 @@ export default function CreateEvent() {
       location: location.trim(),
       description: description.trim() || 'No details yet — just show up.',
       category,
+      recurrence,
       spotsTotal,
       coverImageUri,
     });
@@ -188,6 +197,29 @@ export default function CreateEvent() {
                       }`}
                     >
                       {c}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            <View>
+              <FieldLabel>Repeats</FieldLabel>
+              <View className="flex-row flex-wrap gap-2">
+                {REPEAT_OPTIONS.map((opt) => (
+                  <Pressable
+                    key={opt.label}
+                    onPress={() => setRecurrence(opt.value)}
+                    className={`rounded-full px-3.5 py-1.5 ${
+                      recurrence === opt.value ? 'bg-terracotta' : 'bg-cream'
+                    }`}
+                  >
+                    <Text
+                      className={`text-xs font-medium ${
+                        recurrence === opt.value ? 'text-paper' : 'text-charcoal/60'
+                      }`}
+                    >
+                      {opt.label}
                     </Text>
                   </Pressable>
                 ))}

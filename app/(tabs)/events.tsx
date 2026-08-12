@@ -212,7 +212,12 @@ export default function Events() {
                     <Text className="text-xl font-bold text-paper">{e.day}</Text>
                   </View>
                   <View className="flex-1">
-                    <Text className="font-semibold text-charcoal">{e.title}</Text>
+                    <View className="flex-row items-center gap-1.5">
+                      <Text className="font-semibold text-charcoal">{e.title}</Text>
+                      {e.recurrence && (
+                        <Ionicons name="repeat" size={12} className="text-terracotta" />
+                      )}
+                    </View>
                     <Text className="mt-0.5 text-xs text-charcoal/60">
                       {e.time} · {e.location}
                     </Text>

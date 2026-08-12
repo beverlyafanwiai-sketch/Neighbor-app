@@ -473,6 +473,8 @@ export const EVENT_CATEGORIES: EventCategory[] = [
   'Kids',
 ];
 
+export type EventRecurrence = 'weekly' | 'biweekly';
+
 export type EventItem = {
   id: string;
   title: string;
@@ -491,6 +493,10 @@ export type EventItem = {
   status: 'upcoming' | 'past';
   metIds?: string[];
   coverImageUri?: string;
+  recurrence?: EventRecurrence;
+  // Number of upcoming occurrences the host has skipped — advances the
+  // computed "next occurrence" schedule without deleting the series.
+  skipCount?: number;
 };
 
 export const EVENTS: EventItem[] = [
@@ -528,6 +534,7 @@ export const EVENTS: EventItem[] = [
     spotsTotal: 6,
     attendeeIds: ['sam', 'theo'],
     status: 'upcoming',
+    recurrence: 'weekly',
   },
   {
     id: 'book-club-aug',
