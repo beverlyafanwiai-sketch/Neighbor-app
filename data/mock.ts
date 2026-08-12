@@ -381,6 +381,7 @@ export type Group = {
   memberIds: string[];
   joined: boolean;
   createdBy?: string;
+  coAdminIds?: string[];
   coverImageUri?: string;
 };
 
@@ -396,6 +397,8 @@ export const GROUPS: Group[] = [
     kind: 'circle',
     memberIds: ['theo', 'sam', 'maya'],
     joined: true,
+    createdBy: 'amara',
+    coAdminIds: ['theo'],
   },
   {
     id: 'book-bourbon',

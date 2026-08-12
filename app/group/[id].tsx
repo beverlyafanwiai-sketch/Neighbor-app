@@ -9,7 +9,7 @@ import { ME, getUser } from '../../data/mock';
 import { getGroupPhotos, useGroupAlbumStore } from '../../store/useGroupAlbumStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
-import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
+import { isGroupAdmin, memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
@@ -26,6 +26,8 @@ export default function GroupDetail() {
   const joined = useGroupsStore((s) => (group ? (s.joined[group.id] ?? false) : false));
   const toggleJoin = useGroupsStore((s) => s.toggle);
   const deleteGroup = useGroupsStore((s) => s.deleteGroup);
+  const promoteCoAdmin = useGroupsStore((s) => s.promoteCoAdmin);
+  const demoteCoAdmin = useGroupsStore((s) => s.demoteCoAdmin);
   const pinnedMessageId = useGroupChatStore((s) => (group ? s.pinnedMessageId[group.id] : undefined));
   const pinnedMessage = useGroupChatStore((s) =>
     group ? (s.messages[group.id] ?? []).find((m) => m.id === pinnedMessageId) : undefined
@@ -52,6 +54,7 @@ export default function GroupDetail() {
   const members = joined ? [profile, ...otherMembers] : otherMembers;
   const toneStyle = TONE_STYLE[group.tone] ?? TONE_STYLE.Casual;
   const isCreator = group.createdBy === ME.id;
+  const isAdmin = isGroupAdmin(group, ME.id);
   const pinnedSender = pinnedMessage
     ? pinnedMessage.senderId === ME.id
       ? profile
@@ -88,20 +91,24 @@ export default function GroupDetail() {
         >
           <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
-        {isCreator && (
+        {(isAdmin || isCreator) && (
           <View className="flex-row items-center gap-1.5">
-            <Pressable
-              onPress={() => router.push(`/create-group?id=${group.id}`)}
-              className="h-9 w-9 items-center justify-center rounded-full bg-cream"
-            >
-              <Ionicons name="pencil" size={17} className="text-charcoal" />
-            </Pressable>
-            <Pressable
-              onPress={() => setConfirmingDelete(true)}
-              className="h-9 w-9 items-center justify-center rounded-full bg-cream"
-            >
-              <Ionicons name="trash-outline" size={17} className="text-terracotta" />
-            </Pressable>
+            {isAdmin && (
+              <Pressable
+                onPress={() => router.push(`/create-group?id=${group.id}`)}
+                className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+              >
+                <Ionicons name="pencil" size={17} className="text-charcoal" />
+              </Pressable>
+            )}
+            {isCreator && (
+              <Pressable
+                onPress={() => setConfirmingDelete(true)}
+                className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+              >
+                <Ionicons name="trash-outline" size={17} className="text-terracotta" />
+              </Pressable>
+            )}
           </View>
         )}
       </View>
@@ -238,6 +245,8 @@ export default function GroupDetail() {
         <View className="gap-3">
           {members.map((m) => {
             const isMe = m!.id === ME.id;
+            const isMemberCreator = m!.id === group.createdBy;
+            const isMemberCoAdmin = (group.coAdminIds ?? []).includes(m!.id);
             return (
               <Pressable
                 key={m!.id}
@@ -251,6 +260,35 @@ export default function GroupDetail() {
                     {m!.tagline}
                   </Text>
                 </View>
+                {isMemberCoAdmin && (
+                  <View className="flex-row items-center gap-1.5">
+                    <View className="rounded-full bg-sage/20 px-2.5 py-1">
+                      <Text className="text-xs font-semibold text-sage">🛡️ Co-admin</Text>
+                    </View>
+                    {isCreator && !isMemberCreator && (
+                      <Pressable
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          demoteCoAdmin(group.id, m!.id);
+                        }}
+                        className="h-7 w-7 items-center justify-center rounded-full bg-sand"
+                      >
+                        <Ionicons name="close" size={14} className="text-charcoal/60" />
+                      </Pressable>
+                    )}
+                  </View>
+                )}
+                {isCreator && !isMemberCoAdmin && !isMemberCreator && (
+                  <Pressable
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      promoteCoAdmin(group.id, m!.id);
+                    }}
+                    className="rounded-full bg-sand px-3 py-1.5"
+                  >
+                    <Text className="text-xs font-semibold text-charcoal">Make co-admin</Text>
+                  </Pressable>
+                )}
               </Pressable>
             );
           })}

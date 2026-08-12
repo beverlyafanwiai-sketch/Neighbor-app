@@ -19,7 +19,7 @@ import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
 import { ME, getUser } from '../../data/mock';
-import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
+import { isGroupAdmin, memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { groupMessageKey, useGroupChatStore, type GroupMessage } from '../../store/useGroupChatStore';
 
 const EMPTY_MESSAGES: GroupMessage[] = [];
@@ -65,7 +65,7 @@ export default function GroupChatThread() {
   }
 
   const typingUser = typingId ? getUser(typingId) : undefined;
-  const isCreator = group.createdBy === ME.id;
+  const isAdmin = isGroupAdmin(group, ME.id);
   const pinnedMessage = messages.find((m) => m.id === pinnedMessageId);
   const pinnedSender = pinnedMessage
     ? pinnedMessage.senderId === ME.id
@@ -145,7 +145,7 @@ export default function GroupChatThread() {
               {pinnedMessage.text || 'Photo'}
             </Text>
           </View>
-          {isCreator && (
+          {isAdmin && (
             <Pressable
               onPress={() => unpinMessage(group.id)}
               className="h-7 w-7 items-center justify-center rounded-full"
@@ -255,7 +255,7 @@ export default function GroupChatThread() {
                 </View>
                 <View className="mt-1 flex-row items-center gap-1.5">
                   <Text className="text-[11px] text-charcoal/40">{item.time}</Text>
-                  {isCreator && !item.deleted && (
+                  {isAdmin && !item.deleted && (
                     <Pressable
                       onPress={() =>
                         item.id === pinnedMessageId

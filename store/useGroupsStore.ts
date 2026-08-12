@@ -23,6 +23,8 @@ type GroupsState = {
   updateGroup: (groupId: string, updates: Partial<GroupEdits>) => void;
   markRead: (groupId: string) => void;
   deleteGroup: (groupId: string) => void;
+  promoteCoAdmin: (groupId: string, userId: string) => void;
+  demoteCoAdmin: (groupId: string, userId: string) => void;
 };
 
 function slugify(name: string) {
@@ -106,10 +108,32 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
 
   deleteGroup: (groupId) =>
     set((s) => ({ groups: s.groups.filter((g) => g.id !== groupId) })),
+
+  promoteCoAdmin: (groupId, userId) =>
+    set((s) => ({
+      groups: s.groups.map((g) =>
+        g.id === groupId && !(g.coAdminIds ?? []).includes(userId)
+          ? { ...g, coAdminIds: [...(g.coAdminIds ?? []), userId] }
+          : g
+      ),
+    })),
+
+  demoteCoAdmin: (groupId, userId) =>
+    set((s) => ({
+      groups: s.groups.map((g) =>
+        g.id === groupId
+          ? { ...g, coAdminIds: (g.coAdminIds ?? []).filter((id) => id !== userId) }
+          : g
+      ),
+    })),
 }));
 
 export function getGroup(groupId: string): Group | undefined {
   return useGroupsStore.getState().groups.find((g) => g.id === groupId);
+}
+
+export function isGroupAdmin(group: Group, userId: string): boolean {
+  return group.createdBy === userId || (group.coAdminIds ?? []).includes(userId);
 }
 
 // group.memberCount is the baseline count of members *not including* the
