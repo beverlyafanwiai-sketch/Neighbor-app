@@ -584,6 +584,7 @@ export type Message = {
   time: string;
   seen?: boolean;
   imageUri?: string;
+  deleted?: boolean;
 };
 
 export type Conversation = {

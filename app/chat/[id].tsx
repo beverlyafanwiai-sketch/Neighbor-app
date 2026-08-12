@@ -24,11 +24,13 @@ export default function ChatThread() {
   const conversation = useConversationsStore((s) => s.conversations[id]);
   const sendMessage = useConversationsStore((s) => s.sendMessage);
   const markRead = useConversationsStore((s) => s.markRead);
+  const deleteMessage = useConversationsStore((s) => s.deleteMessage);
   const isTyping = useConversationsStore((s) => s.typing[id] ?? false);
   const user = conversation ? getUser(conversation.userId) : undefined;
 
   const [draft, setDraft] = useState('');
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
+  const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
 
   useEffect(() => {
     markRead(id);
@@ -113,34 +115,68 @@ export default function ChatThread() {
               </Text>
             </View>
           }
-          renderItem={({ item, index }) => (
-            <View
-              className={`max-w-[78%] ${item.from === 'me' ? 'self-end items-end' : 'self-start items-start'}`}
-            >
-              <View
-                className={`overflow-hidden rounded-2xl ${
-                  item.text ? 'px-4 py-3' : 'p-1'
-                } ${item.from === 'me' ? 'rounded-br-sm bg-terracotta' : 'rounded-bl-sm bg-cream'}`}
+          renderItem={({ item, index }) => {
+            const isMine = item.from === 'me';
+
+            if (deletingMessageId === item.id) {
+              return (
+                <View className="max-w-[85%] self-end gap-2 rounded-2xl bg-terracotta/10 p-3">
+                  <Text className="text-sm text-charcoal">Delete this message?</Text>
+                  <View className="flex-row justify-end gap-4">
+                    <Pressable onPress={() => setDeletingMessageId(null)}>
+                      <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        deleteMessage(conversation.id, item.id);
+                        setDeletingMessageId(null);
+                      }}
+                    >
+                      <Text className="text-sm font-semibold text-terracotta">Delete</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            }
+
+            return (
+              <Pressable
+                onLongPress={() => isMine && !item.deleted && setDeletingMessageId(item.id)}
+                className={`max-w-[78%] ${isMine ? 'self-end items-end' : 'self-start items-start'}`}
               >
-                {item.imageUri && (
-                  <Image
-                    source={{ uri: item.imageUri }}
-                    className={`w-48 rounded-xl ${item.text ? 'mb-2' : ''}`}
-                    style={{ aspectRatio: 4 / 3 }}
-                  />
+                <View
+                  className={`overflow-hidden rounded-2xl px-4 py-3 ${
+                    item.deleted
+                      ? 'border border-charcoal/15'
+                      : isMine
+                        ? 'rounded-br-sm bg-terracotta'
+                        : 'rounded-bl-sm bg-cream'
+                  }`}
+                >
+                  {item.deleted ? (
+                    <Text className="text-sm italic text-charcoal/50">You deleted a message</Text>
+                  ) : (
+                    <>
+                      {item.imageUri && (
+                        <Image
+                          source={{ uri: item.imageUri }}
+                          className={`w-48 rounded-xl ${item.text ? 'mb-2' : ''}`}
+                          style={{ aspectRatio: 4 / 3 }}
+                        />
+                      )}
+                      {item.text.length > 0 && (
+                        <Text className={isMine ? 'text-paper' : 'text-charcoal'}>{item.text}</Text>
+                      )}
+                    </>
+                  )}
+                </View>
+                <Text className="mt-1 text-[11px] text-charcoal/40">{item.time}</Text>
+                {index === lastMeIndex && item.seen && !item.deleted && (
+                  <Text className="mt-0.5 text-[11px] text-sage">Seen</Text>
                 )}
-                {item.text.length > 0 && (
-                  <Text className={item.from === 'me' ? 'text-paper' : 'text-charcoal'}>
-                    {item.text}
-                  </Text>
-                )}
-              </View>
-              <Text className="mt-1 text-[11px] text-charcoal/40">{item.time}</Text>
-              {index === lastMeIndex && item.seen && (
-                <Text className="mt-0.5 text-[11px] text-sage">Seen</Text>
-              )}
-            </View>
-          )}
+              </Pressable>
+            );
+          }}
           ListFooterComponent={
             isTyping ? (
               <View className="mt-2 max-w-[78%] items-start self-start">

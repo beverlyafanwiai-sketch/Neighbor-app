@@ -32,12 +32,14 @@ export default function GroupChatThread() {
   const sendMessage = useGroupChatStore((s) => s.sendMessage);
   const pinMessage = useGroupChatStore((s) => s.pinMessage);
   const unpinMessage = useGroupChatStore((s) => s.unpinMessage);
+  const deleteMessage = useGroupChatStore((s) => s.deleteMessage);
   const markRead = useGroupsStore((s) => s.markRead);
   const toggleJoin = useGroupsStore((s) => s.toggle);
 
   const [draft, setDraft] = useState('');
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
+  const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
 
   useEffect(() => {
     if (group) markRead(group.id);
@@ -184,8 +186,31 @@ export default function GroupChatThread() {
           renderItem={({ item, index }) => {
             const isMe = item.senderId === ME.id;
             const sender = isMe ? ME : getUser(item.senderId);
+
+            if (deletingMessageId === item.id) {
+              return (
+                <View className="max-w-[85%] self-end gap-2 rounded-2xl bg-terracotta/10 p-3">
+                  <Text className="text-sm text-charcoal">Delete this message?</Text>
+                  <View className="flex-row justify-end gap-4">
+                    <Pressable onPress={() => setDeletingMessageId(null)}>
+                      <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        deleteMessage(group.id, item.id);
+                        setDeletingMessageId(null);
+                      }}
+                    >
+                      <Text className="text-sm font-semibold text-terracotta">Delete</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            }
+
             return (
-              <View
+              <Pressable
+                onLongPress={() => isMe && !item.deleted && setDeletingMessageId(item.id)}
                 className={`max-w-[78%] ${isMe ? 'self-end items-end' : 'self-start items-start'}`}
               >
                 {!isMe && sender && (
@@ -195,24 +220,36 @@ export default function GroupChatThread() {
                   </View>
                 )}
                 <View
-                  className={`overflow-hidden rounded-2xl ${item.text ? 'px-4 py-3' : 'p-1'} ${
-                    isMe ? 'rounded-br-sm bg-terracotta' : 'rounded-bl-sm bg-cream'
+                  className={`overflow-hidden rounded-2xl px-4 py-3 ${
+                    item.deleted
+                      ? 'border border-charcoal/15'
+                      : isMe
+                        ? 'rounded-br-sm bg-terracotta'
+                        : 'rounded-bl-sm bg-cream'
                   }`}
                 >
-                  {item.imageUri && (
-                    <Image
-                      source={{ uri: item.imageUri }}
-                      className={`w-48 rounded-xl ${item.text ? 'mb-2' : ''}`}
-                      style={{ aspectRatio: 4 / 3 }}
-                    />
-                  )}
-                  {item.text.length > 0 && (
-                    <Text className={isMe ? 'text-paper' : 'text-charcoal'}>{item.text}</Text>
+                  {item.deleted ? (
+                    <Text className="text-sm italic text-charcoal/50">
+                      {isMe ? 'You deleted a message' : `${sender?.name ?? 'They'} deleted a message`}
+                    </Text>
+                  ) : (
+                    <>
+                      {item.imageUri && (
+                        <Image
+                          source={{ uri: item.imageUri }}
+                          className={`w-48 rounded-xl ${item.text ? 'mb-2' : ''}`}
+                          style={{ aspectRatio: 4 / 3 }}
+                        />
+                      )}
+                      {item.text.length > 0 && (
+                        <Text className={isMe ? 'text-paper' : 'text-charcoal'}>{item.text}</Text>
+                      )}
+                    </>
                   )}
                 </View>
                 <View className="mt-1 flex-row items-center gap-1.5">
                   <Text className="text-[11px] text-charcoal/40">{item.time}</Text>
-                  {isCreator && (
+                  {isCreator && !item.deleted && (
                     <Pressable
                       onPress={() =>
                         item.id === pinnedMessageId
@@ -229,12 +266,12 @@ export default function GroupChatThread() {
                     </Pressable>
                   )}
                 </View>
-                {index === lastMeIndex && seenByNames.length > 0 && (
+                {index === lastMeIndex && seenByNames.length > 0 && !item.deleted && (
                   <Text className="mt-0.5 text-[11px] text-sage">
                     Seen by {seenByNames.join(', ')}
                   </Text>
                 )}
-              </View>
+              </Pressable>
             );
           }}
           ListFooterComponent={

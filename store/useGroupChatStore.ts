@@ -12,6 +12,7 @@ export type GroupMessage = {
   time: string;
   seenBy?: string[];
   imageUri?: string;
+  deleted?: boolean;
 };
 
 const REPLY_DELAY_MS = 2500;
@@ -31,6 +32,7 @@ type GroupChatState = {
   sendMessage: (groupId: string, text: string, imageUri?: string) => void;
   pinMessage: (groupId: string, messageId: string) => void;
   unpinMessage: (groupId: string) => void;
+  deleteMessage: (groupId: string, messageId: string) => void;
 };
 
 const initialMessages: Record<string, GroupMessage[]> = {
@@ -69,6 +71,20 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
 
   unpinMessage: (groupId) =>
     set((s) => ({ pinnedMessageId: { ...s.pinnedMessageId, [groupId]: undefined } })),
+
+  deleteMessage: (groupId, messageId) =>
+    set((s) => ({
+      messages: {
+        ...s.messages,
+        [groupId]: (s.messages[groupId] ?? []).map((m) =>
+          m.id === messageId ? { ...m, text: '', imageUri: undefined, deleted: true } : m
+        ),
+      },
+      pinnedMessageId:
+        s.pinnedMessageId[groupId] === messageId
+          ? { ...s.pinnedMessageId, [groupId]: undefined }
+          : s.pinnedMessageId,
+    })),
 
   sendMessage: (groupId, text, imageUri) => {
     set((s) => {

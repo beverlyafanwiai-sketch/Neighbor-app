@@ -21,6 +21,7 @@ type ConversationsState = {
   getOrCreate: (userId: string) => string;
   sendMessage: (conversationId: string, text: string, imageUri?: string) => void;
   markRead: (conversationId: string) => void;
+  deleteMessage: (conversationId: string, messageId: string) => void;
 };
 
 const initial: Record<string, Conversation> = Object.fromEntries(
@@ -120,4 +121,21 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
 
   markRead: (conversationId) =>
     set((s) => ({ unread: { ...s.unread, [conversationId]: 0 } })),
+
+  deleteMessage: (conversationId, messageId) =>
+    set((s) => {
+      const convo = s.conversations[conversationId];
+      if (!convo) return s;
+      return {
+        conversations: {
+          ...s.conversations,
+          [conversationId]: {
+            ...convo,
+            messages: convo.messages.map((m) =>
+              m.id === messageId ? { ...m, text: '', imageUri: undefined, deleted: true } : m
+            ),
+          },
+        },
+      };
+    }),
 }));
