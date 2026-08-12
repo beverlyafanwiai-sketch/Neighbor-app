@@ -450,6 +450,17 @@ export const GROUPS: Group[] = [
   },
 ];
 
+export type EventCategory = 'Outdoors' | 'Social' | 'Learning' | 'Creative' | 'Fitness' | 'Kids';
+
+export const EVENT_CATEGORIES: EventCategory[] = [
+  'Outdoors',
+  'Social',
+  'Learning',
+  'Creative',
+  'Fitness',
+  'Kids',
+];
+
 export type EventItem = {
   id: string;
   title: string;
@@ -461,6 +472,7 @@ export type EventItem = {
   hostLabel: string;
   hostId?: string;
   description: string;
+  category: EventCategory;
   spotsTaken: number;
   spotsTotal: number;
   attendeeIds: string[];
@@ -482,6 +494,7 @@ export const EVENTS: EventItem[] = [
     hostId: 'amara',
     description:
       'Bring a dish, take a seat on the porch, no agenda. Just good food and slow conversation with a small group.',
+    category: 'Social',
     spotsTaken: 6,
     spotsTotal: 8,
     attendeeIds: ['maya', 'theo', 'priya'],
@@ -498,6 +511,7 @@ export const EVENTS: EventItem[] = [
     hostLabel: 'Weekend Hikers',
     description:
       'An easy 4-mile loop with a view worth the climb. All paces welcome — we regroup at every junction.',
+    category: 'Outdoors',
     spotsTaken: 5,
     spotsTotal: 6,
     attendeeIds: ['sam', 'theo'],
@@ -513,6 +527,7 @@ export const EVENTS: EventItem[] = [
     location: "Theo's place",
     hostLabel: 'Hosted by Theo',
     description: 'This month’s pick, discussed around a kitchen table with too much wine.',
+    category: 'Learning',
     spotsTaken: 6,
     spotsTotal: 6,
     attendeeIds: ['maya', 'priya', 'theo'],
@@ -529,6 +544,7 @@ export const EVENTS: EventItem[] = [
     location: 'Clay & Co Studio',
     hostLabel: 'Pottery Wheel Beginners',
     description: 'Open studio time — bring your own project or start something new.',
+    category: 'Creative',
     spotsTaken: 9,
     spotsTotal: 10,
     attendeeIds: ['sam'],

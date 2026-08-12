@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { EVENTS, ME, USERS, type EventItem } from '../data/mock';
+import { EVENTS, ME, USERS, type EventCategory, type EventItem } from '../data/mock';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
@@ -14,6 +14,7 @@ export type NewEventInput = {
   date: string;
   location: string;
   description: string;
+  category: EventCategory;
   spotsTotal: number;
   coverImageUri?: string;
 };
@@ -53,6 +54,7 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       date: input.date,
       location: input.location,
       description: input.description,
+      category: input.category,
       hostLabel: `Hosted by ${ME.name}`,
       hostId: ME.id,
       spotsTaken: 0,

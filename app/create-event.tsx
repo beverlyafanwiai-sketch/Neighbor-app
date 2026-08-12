@@ -13,6 +13,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CoverPhotoPicker from '../components/CoverPhotoPicker';
+import { EVENT_CATEGORIES, type EventCategory } from '../data/mock';
 import { useEventsStore } from '../store/useEventsStore';
 import { useRsvpStore } from '../store/useRsvpStore';
 
@@ -40,6 +41,7 @@ export default function CreateEvent() {
   const [time, setTime] = useState(existing?.time ?? '');
   const [location, setLocation] = useState(existing?.location ?? '');
   const [description, setDescription] = useState(existing?.description ?? '');
+  const [category, setCategory] = useState<EventCategory>(existing?.category ?? 'Social');
   const [spotsTotal, setSpotsTotal] = useState(existing?.spotsTotal ?? 8);
   const [coverImageUri, setCoverImageUri] = useState(existing?.coverImageUri);
 
@@ -56,6 +58,7 @@ export default function CreateEvent() {
         date: `${month.trim().toUpperCase()} ${day.trim()}`,
         location: location.trim(),
         description: description.trim() || 'No details yet — just show up.',
+        category,
         spotsTotal,
         coverImageUri,
       });
@@ -70,6 +73,7 @@ export default function CreateEvent() {
       date: `${month.trim().toUpperCase()} ${day.trim()}`,
       location: location.trim(),
       description: description.trim() || 'No details yet — just show up.',
+      category,
       spotsTotal,
       coverImageUri,
     });
@@ -165,6 +169,29 @@ export default function CreateEvent() {
                 placeholderTextColor="#3D3D3D80"
                 className="rounded-2xl bg-cream px-4 py-3 text-base text-charcoal"
               />
+            </View>
+
+            <View>
+              <FieldLabel>Category</FieldLabel>
+              <View className="flex-row flex-wrap gap-2">
+                {EVENT_CATEGORIES.map((c) => (
+                  <Pressable
+                    key={c}
+                    onPress={() => setCategory(c)}
+                    className={`rounded-full px-3.5 py-1.5 ${
+                      category === c ? 'bg-terracotta' : 'bg-cream'
+                    }`}
+                  >
+                    <Text
+                      className={`text-xs font-medium ${
+                        category === c ? 'text-cream' : 'text-charcoal/60'
+                      }`}
+                    >
+                      {c}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
 
             <View>

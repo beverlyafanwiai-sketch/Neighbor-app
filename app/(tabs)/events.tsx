@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../../components/EmptyState';
-import { ME, getUser } from '../../data/mock';
+import { EVENT_CATEGORIES, ME, getUser, type EventCategory } from '../../data/mock';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -13,6 +13,16 @@ import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
 const EVENT_TABS = ['Upcoming', 'Hosting', 'Past'] as const;
 type EventTab = (typeof EVENT_TABS)[number];
+
+const CATEGORY_FILTERS = ['All', ...EVENT_CATEGORIES] as const;
+type CategoryFilter = (typeof CATEGORY_FILTERS)[number];
+
+const SORTS = [
+  { value: 'soonest', label: 'Soonest' },
+  { value: 'popular', label: 'Most popular' },
+  { value: 'open', label: 'Most spots open' },
+] as const;
+type SortBy = (typeof SORTS)[number]['value'];
 
 export default function Events() {
   const [tab, setTab] = useState<EventTab>('Upcoming');
@@ -26,18 +36,42 @@ export default function Events() {
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
   const [query, setQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
+  const [onlyOpen, setOnlyOpen] = useState(false);
+  const [onlyGoing, setOnlyGoing] = useState(false);
+  const [sortBy, setSortBy] = useState<SortBy>('soonest');
 
   const q = query.trim().toLowerCase();
   const matches = (e: (typeof events)[number]) =>
-    q.length === 0 ||
-    e.title.toLowerCase().includes(q) ||
-    e.location.toLowerCase().includes(q) ||
-    e.description.toLowerCase().includes(q);
+    (categoryFilter === 'All' || e.category === categoryFilter) &&
+    (q.length === 0 ||
+      e.title.toLowerCase().includes(q) ||
+      e.location.toLowerCase().includes(q) ||
+      e.description.toLowerCase().includes(q));
 
-  const upcoming = events.filter((e) => e.status === 'upcoming' && matches(e));
-  const past = events.filter((e) => e.status === 'past' && matches(e));
   const hostingTotal = events.filter((e) => e.hostId === ME.id).length;
   const hosting = events.filter((e) => e.hostId === ME.id && matches(e));
+  const past = events.filter((e) => e.status === 'past' && matches(e));
+
+  let upcoming = events.filter((e) => e.status === 'upcoming' && matches(e));
+  if (onlyOpen) {
+    upcoming = upcoming.filter((e) => {
+      const { spotsTaken, spotsTotal } = getEffectiveSpots(e.id, goingMap[e.id] ?? false);
+      return spotsTaken < spotsTotal;
+    });
+  }
+  if (onlyGoing) {
+    upcoming = upcoming.filter((e) => goingMap[e.id] ?? false);
+  }
+  upcoming = [...upcoming].sort((a, b) => {
+    if (sortBy === 'popular') return b.spotsTaken - a.spotsTaken;
+    if (sortBy === 'open') {
+      const openA = a.spotsTotal - getEffectiveSpots(a.id, goingMap[a.id] ?? false).spotsTaken;
+      const openB = b.spotsTotal - getEffectiveSpots(b.id, goingMap[b.id] ?? false).spotsTaken;
+      return openB - openA;
+    }
+    return Number(a.day) - Number(b.day);
+  });
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -83,6 +117,81 @@ export default function Events() {
         ))}
       </View>
 
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2 px-5 pb-3">
+        {CATEGORY_FILTERS.map((c) => (
+          <Pressable
+            key={c}
+            onPress={() => setCategoryFilter(c)}
+            className={`rounded-full px-3.5 py-1.5 ${
+              categoryFilter === c ? 'bg-terracotta' : 'bg-cream'
+            }`}
+          >
+            <Text
+              className={`text-xs font-medium ${
+                categoryFilter === c ? 'text-cream' : 'text-charcoal/60'
+              }`}
+            >
+              {c}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
+      {tab === 'Upcoming' && (
+        <View className="gap-2 pb-3">
+          <View className="flex-row gap-2 px-5">
+            <Pressable
+              onPress={() => setOnlyOpen((v) => !v)}
+              className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-1.5 ${
+                onlyOpen ? 'bg-sage/20' : 'bg-cream'
+              }`}
+            >
+              {onlyOpen && <Ionicons name="checkmark" size={13} color="#81A684" />}
+              <Text className={`text-xs font-medium ${onlyOpen ? 'text-sage' : 'text-charcoal/60'}`}>
+                Has open spots
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setOnlyGoing((v) => !v)}
+              className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-1.5 ${
+                onlyGoing ? 'bg-sage/20' : 'bg-cream'
+              }`}
+            >
+              {onlyGoing && <Ionicons name="checkmark" size={13} color="#81A684" />}
+              <Text className={`text-xs font-medium ${onlyGoing ? 'text-sage' : 'text-charcoal/60'}`}>
+                I'm going
+              </Text>
+            </Pressable>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="items-center gap-2 px-5"
+          >
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+              Sort
+            </Text>
+            {SORTS.map((s) => (
+              <Pressable
+                key={s.value}
+                onPress={() => setSortBy(s.value)}
+                className={`rounded-full px-3.5 py-1.5 ${
+                  sortBy === s.value ? 'bg-charcoal' : 'bg-cream'
+                }`}
+              >
+                <Text
+                  className={`text-xs font-medium ${
+                    sortBy === s.value ? 'text-cream' : 'text-charcoal/60'
+                  }`}
+                >
+                  {s.label}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
         {tab === 'Upcoming' && (
           <View className="gap-3">
@@ -107,7 +216,9 @@ export default function Events() {
                     <Text className="mt-0.5 text-xs text-charcoal/60">
                       {e.time} · {e.location}
                     </Text>
-                    <Text className="mt-0.5 text-xs text-sage">{e.hostLabel}</Text>
+                    <Text className="mt-0.5 text-xs text-sage">
+                      {e.hostLabel} · {e.category}
+                    </Text>
 
                     <View className="mt-3 flex-row items-center justify-between">
                       <View className="flex-row items-center gap-2">
@@ -153,10 +264,17 @@ export default function Events() {
                 </Pressable>
               );
             })}
-            {upcoming.length === 0 && q.length > 0 && (
+            {upcoming.length === 0 && (
               <EmptyState
                 icon="search-outline"
-                title={`No upcoming events matching "${query.trim()}"`}
+                title={
+                  q.length > 0
+                    ? `No upcoming events matching "${query.trim()}"`
+                    : 'No upcoming events match these filters'
+                }
+                subtitle={
+                  q.length === 0 ? 'Try a different category, or clear "Has open spots" / "I\'m going".' : undefined
+                }
               />
             )}
           </View>
@@ -183,7 +301,14 @@ export default function Events() {
                 </Pressable>
               </View>
             ) : hosting.length === 0 ? (
-              <EmptyState icon="search-outline" title={`No hosted events matching "${query.trim()}"`} />
+              <EmptyState
+                icon="search-outline"
+                title={
+                  q.length > 0
+                    ? `No hosted events matching "${query.trim()}"`
+                    : 'No hosted events match this category'
+                }
+              />
             ) : (
               <View className="gap-3">
                 {hosting.map((e) => {
@@ -275,8 +400,15 @@ export default function Events() {
                 </Pressable>
               );
             })}
-            {past.length === 0 && q.length > 0 && (
-              <EmptyState icon="search-outline" title={`No past events matching "${query.trim()}"`} />
+            {past.length === 0 && (
+              <EmptyState
+                icon="search-outline"
+                title={
+                  q.length > 0
+                    ? `No past events matching "${query.trim()}"`
+                    : 'No past events match this category'
+                }
+              />
             )}
           </View>
         )}
