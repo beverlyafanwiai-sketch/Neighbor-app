@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Image,
@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
+import ChatMediaGallery from '../../components/ChatMediaGallery';
 import ForwardSheet, { type ForwardTarget } from '../../components/ForwardSheet';
 import MentionText from '../../components/MentionText';
 import MentionTextInput from '../../components/MentionTextInput';
@@ -56,6 +57,9 @@ export default function GroupChatThread() {
   const [reactorsFor, setReactorsFor] = useState<string | null>(null);
   const [forwardingMessage, setForwardingMessage] = useState<GroupMessage | null>(null);
   const [reportingMessageId, setReportingMessageId] = useState<string | null>(null);
+  const [showGallery, setShowGallery] = useState(false);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const listRef = useRef<FlatList>(null);
 
   useEffect(() => {
     if (group) markRead(group.id);
@@ -116,6 +120,21 @@ export default function GroupChatThread() {
     setEditingMessageId(null);
   };
 
+  const galleryPhotos = messages
+    .filter((m) => m.imageUri && !m.deleted)
+    .map((m) => ({ id: m.id, uri: m.imageUri! }));
+
+  const jumpToMessage = (messageId: string) => {
+    setShowGallery(false);
+    const index = messages.findIndex((m) => m.id === messageId);
+    if (index === -1) return;
+    setHighlightId(messageId);
+    setTimeout(() => {
+      listRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.4 });
+    }, 300);
+    setTimeout(() => setHighlightId((h) => (h === messageId ? null : h)), 1800);
+  };
+
   const handleForward = (target: ForwardTarget) => {
     if (!forwardingMessage) return;
     const sender = forwardingMessage.senderId === ME.id ? undefined : getUser(forwardingMessage.senderId);
@@ -162,6 +181,12 @@ export default function GroupChatThread() {
             <Text className="text-base font-semibold text-charcoal">{group.name}</Text>
             <Text className="text-xs text-sage">{memberCountLabel(group.id, joined)}</Text>
           </View>
+        </Pressable>
+        <Pressable
+          onPress={() => setShowGallery(true)}
+          className="h-9 w-9 items-center justify-center rounded-full"
+        >
+          <Ionicons name="images-outline" size={20} className="text-charcoal" />
         </Pressable>
         <Pressable
           onPress={() => setConfirmingLeave(true)}
@@ -213,9 +238,15 @@ export default function GroupChatThread() {
         keyboardVerticalOffset={90}
       >
         <FlatList
+          ref={listRef}
           data={messages}
           keyExtractor={(m) => m.id}
           contentContainerClassName="gap-2.5 px-4 py-4"
+          onScrollToIndexFailed={(info) => {
+            setTimeout(() => {
+              listRef.current?.scrollToIndex({ index: info.index, animated: true, viewPosition: 0.4 });
+            }, 100);
+          }}
           ListHeaderComponent={
             <View className="mb-4 items-center">
               <View className="h-36 w-36">
@@ -291,6 +322,8 @@ export default function GroupChatThread() {
                 )}
                 <View
                   className={`overflow-hidden rounded-2xl px-4 py-3 ${
+                    item.id === highlightId ? 'border-2 border-gold' : ''
+                  } ${
                     item.deleted
                       ? 'border border-charcoal/15'
                       : isMe
@@ -477,6 +510,15 @@ export default function GroupChatThread() {
           onClose={() => setReportingMessageId(null)}
           title="Message options"
           actionLabel="Report this message"
+        />
+      )}
+
+      {showGallery && (
+        <ChatMediaGallery
+          title={`Photos in ${group.name}`}
+          photos={galleryPhotos}
+          onSelectPhoto={jumpToMessage}
+          onClose={() => setShowGallery(false)}
         />
       )}
     </SafeAreaView>

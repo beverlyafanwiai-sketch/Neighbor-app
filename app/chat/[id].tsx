@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
+import ChatMediaGallery from '../../components/ChatMediaGallery';
 import ForwardSheet, { type ForwardTarget } from '../../components/ForwardSheet';
 import MentionText from '../../components/MentionText';
 import MentionTextInput from '../../components/MentionTextInput';
@@ -51,6 +52,7 @@ export default function ChatThread() {
   const [searchQuery, setSearchQuery] = useState('');
   const [matchIndex, setMatchIndex] = useState(0);
   const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [showGallery, setShowGallery] = useState(false);
   const listRef = useRef<FlatList>(null);
 
   const messages = conversation?.messages ?? [];
@@ -68,6 +70,21 @@ export default function ChatThread() {
     setHighlightId(target.m.id);
     listRef.current?.scrollToIndex({ index: target.i, animated: true, viewPosition: 0.4 });
     setTimeout(() => setHighlightId((h) => (h === target.m.id ? null : h)), 1500);
+  };
+
+  const galleryPhotos = messages
+    .filter((m) => m.imageUri && !m.deleted)
+    .map((m) => ({ id: m.id, uri: m.imageUri! }));
+
+  const jumpToMessage = (messageId: string) => {
+    setShowGallery(false);
+    const index = messages.findIndex((m) => m.id === messageId);
+    if (index === -1) return;
+    setHighlightId(messageId);
+    setTimeout(() => {
+      listRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0.4 });
+    }, 300);
+    setTimeout(() => setHighlightId((h) => (h === messageId ? null : h)), 1800);
   };
 
   useEffect(() => {
@@ -212,8 +229,11 @@ export default function ChatThread() {
           >
             <Ionicons name="search-outline" size={20} className="text-charcoal" />
           </Pressable>
-          <Pressable className="h-9 w-9 items-center justify-center rounded-full">
-            <Ionicons name="information-circle-outline" size={22} className="text-charcoal" />
+          <Pressable
+            onPress={() => setShowGallery(true)}
+            className="h-9 w-9 items-center justify-center rounded-full"
+          >
+            <Ionicons name="images-outline" size={20} className="text-charcoal" />
           </Pressable>
         </View>
       )}
@@ -463,6 +483,15 @@ export default function ChatThread() {
           onClose={() => setReportingMessageId(null)}
           title="Message options"
           actionLabel="Report this message"
+        />
+      )}
+
+      {showGallery && (
+        <ChatMediaGallery
+          title={`Photos with ${user.name}`}
+          photos={galleryPhotos}
+          onSelectPhoto={jumpToMessage}
+          onClose={() => setShowGallery(false)}
         />
       )}
     </SafeAreaView>
