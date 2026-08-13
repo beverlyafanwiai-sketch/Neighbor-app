@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -12,9 +13,14 @@ export default function RecsBoard() {
   const myAgreed = useRecsStore((s) => s.myAgreed);
   const toggleAgree = useRecsStore((s) => s.toggleAgree);
   const deleteEntry = useRecsStore((s) => s.deleteEntry);
+  const [categoryFilter, setCategoryFilter] = useState('All');
 
-  const myEntries = entries.filter((e) => e.authorId === ME.id);
-  const boardEntries = entries.filter((e) => e.authorId !== ME.id);
+  const categories = ['All', ...Array.from(new Set(entries.map((e) => e.category))).sort()];
+  const matchesCategory = (e: (typeof entries)[number]) =>
+    categoryFilter === 'All' || e.category === categoryFilter;
+
+  const myEntries = entries.filter((e) => e.authorId === ME.id && matchesCategory(e));
+  const boardEntries = entries.filter((e) => e.authorId !== ME.id && matchesCategory(e));
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -33,6 +39,32 @@ export default function RecsBoard() {
           <Ionicons name="add" size={20} className="text-paper" />
         </Pressable>
       </View>
+
+      {categories.length > 2 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="gap-2 px-5 pb-3"
+        >
+          {categories.map((c) => (
+            <Pressable
+              key={c}
+              onPress={() => setCategoryFilter(c)}
+              className={`rounded-full px-3.5 py-1.5 ${
+                categoryFilter === c ? 'bg-terracotta' : 'bg-cream'
+              }`}
+            >
+              <Text
+                className={`text-xs font-medium ${
+                  categoryFilter === c ? 'text-paper' : 'text-charcoal/60'
+                }`}
+              >
+                {c}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      )}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">
         <Text className="mt-1 text-sm text-charcoal/60">
@@ -146,8 +178,16 @@ export default function RecsBoard() {
             <EmptyState
               icon="star-outline"
               iconColorClassName="text-charcoal/50"
-              title="Nothing on the board yet"
-              subtitle="Recommend someone you trust, or ask your neighbors for a suggestion."
+              title={
+                categoryFilter === 'All'
+                  ? 'Nothing on the board yet'
+                  : `No ${categoryFilter} posts yet`
+              }
+              subtitle={
+                categoryFilter === 'All'
+                  ? 'Recommend someone you trust, or ask your neighbors for a suggestion.'
+                  : 'Try a different category, or clear the filter.'
+              }
             />
           )}
         </View>
