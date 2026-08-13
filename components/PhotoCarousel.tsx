@@ -1,12 +1,21 @@
 import { useState } from 'react';
-import { Image, LayoutChangeEvent, NativeSyntheticEvent, NativeScrollEvent, ScrollView, View } from 'react-native';
+import {
+  Image,
+  LayoutChangeEvent,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  Pressable,
+  ScrollView,
+  View,
+} from 'react-native';
 
 type Props = {
   uris: string[];
   className?: string;
+  onPhotoPress?: (index: number) => void;
 };
 
-export default function PhotoCarousel({ uris, className = 'mt-3' }: Props) {
+export default function PhotoCarousel({ uris, className = 'mt-3', onPhotoPress }: Props) {
   const [containerWidth, setContainerWidth] = useState(0);
   const [index, setIndex] = useState(0);
 
@@ -14,11 +23,13 @@ export default function PhotoCarousel({ uris, className = 'mt-3' }: Props) {
 
   if (uris.length === 1) {
     return (
-      <Image
-        source={{ uri: uris[0] }}
-        className={`w-full rounded-2xl ${className}`}
-        style={{ aspectRatio: 4 / 3 }}
-      />
+      <Pressable onPress={() => onPhotoPress?.(0)}>
+        <Image
+          source={{ uri: uris[0] }}
+          className={`w-full rounded-2xl ${className}`}
+          style={{ aspectRatio: 4 / 3 }}
+        />
+      </Pressable>
     );
   }
 
@@ -42,7 +53,9 @@ export default function PhotoCarousel({ uris, className = 'mt-3' }: Props) {
           style={{ width: containerWidth, aspectRatio: 4 / 3 }}
         >
           {uris.map((uri, i) => (
-            <Image key={i} source={{ uri }} style={{ width: containerWidth, aspectRatio: 4 / 3 }} />
+            <Pressable key={i} onPress={() => onPhotoPress?.(i)}>
+              <Image source={{ uri }} style={{ width: containerWidth, aspectRatio: 4 / 3 }} />
+            </Pressable>
           ))}
         </ScrollView>
       )}

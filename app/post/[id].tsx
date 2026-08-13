@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MentionText from '../../components/MentionText';
 import MentionTextInput from '../../components/MentionTextInput';
 import PhotoCarousel from '../../components/PhotoCarousel';
+import PhotoViewer from '../../components/PhotoViewer';
 import PollView from '../../components/PollView';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
@@ -74,6 +75,7 @@ export default function PostDetail() {
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<{ id: string; name: string } | null>(null);
   const [commentSort, setCommentSort] = useState<CommentSort>('oldest');
+  const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
 
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
   const author = post ? resolveUser(post.authorId) : undefined;
@@ -225,7 +227,11 @@ export default function PostDetail() {
               <MentionText text={post.body} className="text-[15px] leading-5 text-charcoal" />
 
               {post.imageUris && post.imageUris.length > 0 && (
-                <PhotoCarousel uris={post.imageUris} className="" />
+                <PhotoCarousel
+                  uris={post.imageUris}
+                  className=""
+                  onPhotoPress={(i) => setViewingPhotoIndex(i)}
+                />
               )}
 
               {post.poll && (
@@ -458,6 +464,14 @@ export default function PostDetail() {
           link={`https://neighbor.app/post/${post.id}`}
           previewText={post.body}
           onClose={() => setSharing(false)}
+        />
+      )}
+
+      {viewingPhotoIndex !== null && post.imageUris && (
+        <PhotoViewer
+          uris={post.imageUris}
+          initialIndex={viewingPhotoIndex}
+          onClose={() => setViewingPhotoIndex(null)}
         />
       )}
 

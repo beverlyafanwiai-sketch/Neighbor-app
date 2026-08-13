@@ -12,6 +12,7 @@ import BackgroundSlideshow from '../../components/BackgroundSlideshow';
 import EmptyState from '../../components/EmptyState';
 import MentionText from '../../components/MentionText';
 import PhotoCarousel from '../../components/PhotoCarousel';
+import PhotoViewer from '../../components/PhotoViewer';
 import PollView from '../../components/PollView';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
@@ -225,6 +226,7 @@ export default function HomeFeed() {
   const [sharingPost, setSharingPost] = useState<Post | null>(null);
   const [reactorsPost, setReactorsPost] = useState<Post | null>(null);
   const [reportingPost, setReportingPost] = useState<Post | null>(null);
+  const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
@@ -583,7 +585,10 @@ export default function HomeFeed() {
                   <MentionText text={post.body} className="mt-3 text-[15px] leading-5 text-charcoal" />
                 </Pressable>
                 {post.imageUris && post.imageUris.length > 0 && (
-                  <PhotoCarousel uris={post.imageUris} />
+                  <PhotoCarousel
+                    uris={post.imageUris}
+                    onPhotoPress={(i) => setViewingPhotos({ uris: post.imageUris!, index: i })}
+                  />
                 )}
                 {post.poll && (
                   <PollView
@@ -681,6 +686,14 @@ export default function HomeFeed() {
       )}
 
       {reportingPost && <ReportPostSheet onClose={() => setReportingPost(null)} />}
+
+      {viewingPhotos && (
+        <PhotoViewer
+          uris={viewingPhotos.uris}
+          initialIndex={viewingPhotos.index}
+          onClose={() => setViewingPhotos(null)}
+        />
+      )}
     </SafeAreaView>
   );
 }
