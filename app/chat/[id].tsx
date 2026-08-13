@@ -55,6 +55,9 @@ export default function ChatThread() {
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [showGallery, setShowGallery] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<{ id: string; senderName: string; preview: string } | null>(
+    null
+  );
   const listRef = useRef<FlatList>(null);
 
   const messages = conversation?.messages ?? [];
@@ -132,9 +135,10 @@ export default function ChatThread() {
 
   const send = () => {
     if (!draft.trim() && !imageUri) return;
-    sendMessage(conversation.id, draft.trim(), imageUri);
+    sendMessage(conversation.id, draft.trim(), imageUri, undefined, replyingTo?.id);
     setDraft('');
     setImageUri(undefined);
+    setReplyingTo(null);
   };
 
   const saveMessageEdit = () => {
@@ -327,6 +331,30 @@ export default function ChatThread() {
                 onLongPress={() => isMine && !item.deleted && setDeletingMessageId(item.id)}
                 className={`max-w-[78%] ${isMine ? 'self-end items-end' : 'self-start items-start'}`}
               >
+                {item.replyToId &&
+                  !item.deleted &&
+                  (() => {
+                    const replied = messages.find((m) => m.id === item.replyToId);
+                    if (!replied) return null;
+                    const repliedSenderName = replied.from === 'me' ? 'You' : user.name;
+                    return (
+                      <Pressable
+                        onPress={() => jumpToMessage(replied.id)}
+                        className="mb-1 max-w-[240px] rounded-lg border-l-2 border-charcoal/25 bg-charcoal/5 px-2 py-1.5"
+                      >
+                        <Text className="text-[11px] font-semibold text-charcoal/60">
+                          {repliedSenderName}
+                        </Text>
+                        <Text className="text-[11px] text-charcoal/50" numberOfLines={1}>
+                          {replied.deleted
+                            ? 'Message deleted'
+                            : replied.text.length > 0
+                              ? replied.text
+                              : '📷 Photo'}
+                        </Text>
+                      </Pressable>
+                    );
+                  })()}
                 {item.forwardedFrom && !item.deleted && (
                   <Text className="mb-0.5 text-[11px] italic text-charcoal/40">
                     Forwarded from {item.forwardedFrom}
@@ -377,6 +405,18 @@ export default function ChatThread() {
                       pickerAlign={isMine ? 'right' : 'left'}
                       compact
                     />
+                    <Pressable
+                      onPress={() =>
+                        setReplyingTo({
+                          id: item.id,
+                          senderName: isMine ? 'You' : user.name,
+                          preview: item.text.length > 0 ? item.text : '📷 Photo',
+                        })
+                      }
+                      className="h-6 w-6 items-center justify-center"
+                    >
+                      <Ionicons name="arrow-undo-outline" size={14} className="text-charcoal/40" />
+                    </Pressable>
                     <Pressable
                       onPress={() => setForwardingMessage(item)}
                       className="h-6 w-6 items-center justify-center"
@@ -452,9 +492,25 @@ export default function ChatThread() {
           </View>
         )}
 
+        {replyingTo && (
+          <View className="flex-row items-center justify-between gap-2 border-t border-charcoal/10 bg-cream px-4 pt-2">
+            <View className="flex-1">
+              <Text className="text-xs text-charcoal/50">
+                Replying to <Text className="font-semibold text-charcoal/70">{replyingTo.senderName}</Text>
+              </Text>
+              <Text className="text-xs text-charcoal/50" numberOfLines={1}>
+                {replyingTo.preview}
+              </Text>
+            </View>
+            <Pressable onPress={() => setReplyingTo(null)} className="p-1">
+              <Ionicons name="close" size={14} className="text-charcoal/50" />
+            </Pressable>
+          </View>
+        )}
+
         <View
           className={`flex-row items-center gap-2 bg-cream px-3 py-2.5 ${
-            imageUri ? '' : 'border-t border-charcoal/10'
+            imageUri || replyingTo ? '' : 'border-t border-charcoal/10'
           }`}
         >
           <Pressable
@@ -467,7 +523,7 @@ export default function ChatThread() {
             <MentionTextInput
               value={draft}
               onChangeText={setDraft}
-              placeholder={`Message ${user.name}...`}
+              placeholder={replyingTo ? `Reply to ${replyingTo.senderName}...` : `Message ${user.name}...`}
               className="rounded-full bg-sand px-4 py-2.5 text-charcoal"
               multiline
               dropdownPosition="above"

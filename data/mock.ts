@@ -591,6 +591,7 @@ export type Message = {
   edited?: boolean;
   reactions?: Record<string, ReactionType>;
   forwardedFrom?: string;
+  replyToId?: string;
 };
 
 export type Conversation = {
