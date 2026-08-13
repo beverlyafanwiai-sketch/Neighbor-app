@@ -157,6 +157,12 @@ export default function EventDetail() {
                 </Pressable>
               )}
               <Pressable
+                onPress={() => router.push(`/create-event?duplicateId=${event.id}`)}
+                className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+              >
+                <Ionicons name="copy-outline" size={17} className="text-charcoal" />
+              </Pressable>
+              <Pressable
                 onPress={() => setConfirmingDelete(true)}
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream"
               >

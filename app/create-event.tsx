@@ -35,24 +35,36 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateEvent() {
-  const { id: editId, groupId } = useLocalSearchParams<{ id?: string; groupId?: string }>();
+  const { id: editId, groupId, duplicateId } = useLocalSearchParams<{
+    id?: string;
+    groupId?: string;
+    duplicateId?: string;
+  }>();
   const existing = useEventsStore((s) => (editId ? s.events.find((e) => e.id === editId) : undefined));
+  const duplicateSource = useEventsStore((s) =>
+    duplicateId ? s.events.find((e) => e.id === duplicateId) : undefined
+  );
   const hostGroup = useGroupsStore((s) => (groupId ? s.groups.find((g) => g.id === groupId) : undefined));
   const isEditing = Boolean(existing);
+  const isDuplicating = Boolean(duplicateSource) && !isEditing;
   const createEvent = useEventsStore((s) => s.createEvent);
   const updateEvent = useEventsStore((s) => s.updateEvent);
   const toggleRsvp = useRsvpStore((s) => s.toggle);
 
-  const [title, setTitle] = useState(existing?.title ?? '');
+  const [title, setTitle] = useState(existing?.title ?? duplicateSource?.title ?? '');
   const [day, setDay] = useState(existing?.day ?? '');
   const [month, setMonth] = useState(existing?.month ?? '');
-  const [time, setTime] = useState(existing?.time ?? '');
-  const [location, setLocation] = useState(existing?.location ?? '');
-  const [description, setDescription] = useState(existing?.description ?? '');
-  const [category, setCategory] = useState<EventCategory>(existing?.category ?? 'Social');
-  const [recurrence, setRecurrence] = useState<EventRecurrence | undefined>(existing?.recurrence);
-  const [spotsTotal, setSpotsTotal] = useState(existing?.spotsTotal ?? 8);
-  const [coverImageUri, setCoverImageUri] = useState(existing?.coverImageUri);
+  const [time, setTime] = useState(existing?.time ?? duplicateSource?.time ?? '');
+  const [location, setLocation] = useState(existing?.location ?? duplicateSource?.location ?? '');
+  const [description, setDescription] = useState(existing?.description ?? duplicateSource?.description ?? '');
+  const [category, setCategory] = useState<EventCategory>(
+    existing?.category ?? duplicateSource?.category ?? 'Social'
+  );
+  const [recurrence, setRecurrence] = useState<EventRecurrence | undefined>(
+    existing?.recurrence ?? duplicateSource?.recurrence
+  );
+  const [spotsTotal, setSpotsTotal] = useState(existing?.spotsTotal ?? duplicateSource?.spotsTotal ?? 8);
+  const [coverImageUri, setCoverImageUri] = useState(existing?.coverImageUri ?? duplicateSource?.coverImageUri);
 
   const canSave = title.trim() && day.trim() && month.trim() && time.trim() && location.trim();
 
@@ -103,7 +115,13 @@ export default function CreateEvent() {
           <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">
-          {isEditing ? 'Edit event' : hostGroup ? `Host for ${hostGroup.name}` : 'Host an event'}
+          {isEditing
+            ? 'Edit event'
+            : isDuplicating
+              ? 'Duplicate event'
+              : hostGroup
+                ? `Host for ${hostGroup.name}`
+                : 'Host an event'}
         </Text>
         <Pressable
           onPress={save}
@@ -127,6 +145,15 @@ export default function CreateEvent() {
               <Ionicons name="people" size={16} className="text-sage" />
               <Text className="flex-1 text-xs text-sage">
                 Hosting for {hostGroup.name} — members will get first notice.
+              </Text>
+            </View>
+          )}
+
+          {isDuplicating && (
+            <View className="mt-3 flex-row items-center gap-2 rounded-2xl bg-gold/15 p-3">
+              <Ionicons name="copy-outline" size={16} className="text-gold" />
+              <Text className="flex-1 text-xs text-charcoal/70">
+                Details copied from "{duplicateSource!.title}" — pick a new day and month below.
               </Text>
             </View>
           )}
