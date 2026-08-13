@@ -8,13 +8,19 @@ type Props = {
   text: string;
   className?: string;
   numberOfLines?: number;
+  mentionClassName?: string;
 };
 
 function goToProfile(userId: string) {
   router.push(userId === ME.id ? '/(tabs)/profile' : `/profile/${userId}`);
 }
 
-export default function MentionText({ text, className, numberOfLines }: Props) {
+export default function MentionText({
+  text,
+  className,
+  numberOfLines,
+  mentionClassName = 'font-semibold text-terracotta',
+}: Props) {
   const parts = text.split(/(@\w+)/g);
 
   return (
@@ -24,7 +30,7 @@ export default function MentionText({ text, className, numberOfLines }: Props) {
         const user = match ? findUserByMentionToken(match[1]) : undefined;
         if (user) {
           return (
-            <Text key={i} onPress={() => goToProfile(user.id)} className="font-semibold text-terracotta">
+            <Text key={i} onPress={() => goToProfile(user.id)} className={mentionClassName}>
               {part}
             </Text>
           );

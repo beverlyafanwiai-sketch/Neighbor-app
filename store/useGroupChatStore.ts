@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 
 import { ME, getUser, type ReactionType } from '../data/mock';
+import { findMentionedUsers } from '../lib/mentions';
 import { useGroupsStore } from './useGroupsStore';
 import { useNotificationsStore } from './useNotificationsStore';
+import { useProfileStore } from './useProfileStore';
 import { useSettingsStore } from './useSettingsStore';
 
 export type GroupMessage = {
@@ -30,6 +32,21 @@ const CANNED_REPLIES = [
   'Can we do a bit later?',
   'Love this.',
 ];
+
+function notifyMentions(text: string, groupId: string) {
+  if (!useSettingsStore.getState().notificationPrefs.mentions) return;
+  const authorName = useProfileStore.getState().profile.name;
+  for (const user of findMentionedUsers(text)) {
+    if (user.id === ME.id) continue;
+    useNotificationsStore.getState().addNotification({
+      type: 'mention',
+      actorId: ME.id,
+      text: `${authorName} mentioned you in a group message`,
+      time: 'Just now',
+      target: { kind: 'group-chat', id: groupId },
+    });
+  }
+}
 
 type GroupChatState = {
   messages: Record<string, GroupMessage[]>;
@@ -124,6 +141,8 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
         lastActivity: { ...s.lastActivity, [groupId]: ++activitySeq },
       };
     });
+
+    notifyMentions(text, groupId);
 
     const group = useGroupsStore.getState().groups.find((g) => g.id === groupId);
     const otherMemberIds = (group?.memberIds ?? []).filter((id) => id !== ME.id);

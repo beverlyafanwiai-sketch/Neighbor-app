@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 
-import { CONVERSATIONS, getUser, type Conversation, type Message, type ReactionType } from '../data/mock';
+import { CONVERSATIONS, ME, getUser, type Conversation, type Message, type ReactionType } from '../data/mock';
+import { findMentionedUsers } from '../lib/mentions';
 import { useNotificationsStore } from './useNotificationsStore';
+import { useProfileStore } from './useProfileStore';
 import { useSettingsStore } from './useSettingsStore';
 
 export function messageKey(conversationId: string, messageId: string) {
@@ -16,6 +18,21 @@ const CANNED_REPLIES = [
   'Same time as always?',
   "Can't wait.",
 ];
+
+function notifyMentions(text: string, conversationId: string) {
+  if (!useSettingsStore.getState().notificationPrefs.mentions) return;
+  const authorName = useProfileStore.getState().profile.name;
+  for (const user of findMentionedUsers(text)) {
+    if (user.id === ME.id) continue;
+    useNotificationsStore.getState().addNotification({
+      type: 'mention',
+      actorId: ME.id,
+      text: `${authorName} mentioned you in a message`,
+      time: 'Just now',
+      target: { kind: 'chat', id: conversationId },
+    });
+  }
+}
 
 type ConversationsState = {
   conversations: Record<string, Conversation>;
@@ -91,6 +108,8 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
         typing: { ...s.typing, [conversationId]: true },
       };
     });
+
+    notifyMentions(text, conversationId);
 
     setTimeout(() => {
       const convo = get().conversations[conversationId];

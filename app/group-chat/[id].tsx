@@ -17,6 +17,8 @@ import { SvgXml } from 'react-native-svg';
 
 import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
 import ForwardSheet, { type ForwardTarget } from '../../components/ForwardSheet';
+import MentionText from '../../components/MentionText';
+import MentionTextInput from '../../components/MentionTextInput';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
 import { ME, getUser } from '../../data/mock';
@@ -308,7 +310,13 @@ export default function GroupChatThread() {
                         />
                       )}
                       {item.text.length > 0 && (
-                        <Text className={isMe ? 'text-paper' : 'text-charcoal'}>{item.text}</Text>
+                        <MentionText
+                          text={item.text}
+                          className={isMe ? 'text-paper' : 'text-charcoal'}
+                          mentionClassName={
+                            isMe ? 'font-semibold text-paper underline' : 'font-semibold text-terracotta'
+                          }
+                        />
                       )}
                     </>
                   )}
@@ -415,14 +423,16 @@ export default function GroupChatThread() {
           >
             <Ionicons name="image-outline" size={19} className="text-sage" />
           </Pressable>
-          <TextInput
-            value={draft}
-            onChangeText={setDraft}
-            placeholder={`Message ${group.name}...`}
-            placeholderTextColor="#3D3D3D80"
-            className="flex-1 rounded-full bg-sand px-4 py-2.5 text-charcoal"
-            multiline
-          />
+          <View className="flex-1">
+            <MentionTextInput
+              value={draft}
+              onChangeText={setDraft}
+              placeholder={`Message ${group.name}...`}
+              className="rounded-full bg-sand px-4 py-2.5 text-charcoal"
+              multiline
+              dropdownPosition="above"
+            />
+          </View>
           <Pressable
             onPress={send}
             className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"
