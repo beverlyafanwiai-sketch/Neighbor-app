@@ -27,6 +27,7 @@ type ConversationsState = {
   sendMessage: (conversationId: string, text: string, imageUri?: string, forwardedFrom?: string) => void;
   markRead: (conversationId: string) => void;
   deleteMessage: (conversationId: string, messageId: string) => void;
+  updateMessage: (conversationId: string, messageId: string, text: string) => void;
   tapReaction: (conversationId: string, messageId: string) => void;
   setReaction: (conversationId: string, messageId: string, type: ReactionType) => void;
 };
@@ -142,6 +143,23 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
             ...convo,
             messages: convo.messages.map((m) =>
               m.id === messageId ? { ...m, text: '', imageUri: undefined, deleted: true } : m
+            ),
+          },
+        },
+      };
+    }),
+
+  updateMessage: (conversationId, messageId, text) =>
+    set((s) => {
+      const convo = s.conversations[conversationId];
+      if (!convo) return s;
+      return {
+        conversations: {
+          ...s.conversations,
+          [conversationId]: {
+            ...convo,
+            messages: convo.messages.map((m) =>
+              m.id === messageId ? { ...m, text, edited: true } : m
             ),
           },
         },

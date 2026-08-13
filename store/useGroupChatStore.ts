@@ -13,6 +13,7 @@ export type GroupMessage = {
   seenBy?: string[];
   imageUri?: string;
   deleted?: boolean;
+  edited?: boolean;
   reactions?: Record<string, ReactionType>;
   forwardedFrom?: string;
 };
@@ -40,6 +41,7 @@ type GroupChatState = {
   pinMessage: (groupId: string, messageId: string) => void;
   unpinMessage: (groupId: string) => void;
   deleteMessage: (groupId: string, messageId: string) => void;
+  updateMessage: (groupId: string, messageId: string, text: string) => void;
   tapReaction: (groupId: string, messageId: string) => void;
   setReaction: (groupId: string, messageId: string, type: ReactionType) => void;
 };
@@ -94,6 +96,16 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
         s.pinnedMessageId[groupId] === messageId
           ? { ...s.pinnedMessageId, [groupId]: undefined }
           : s.pinnedMessageId,
+    })),
+
+  updateMessage: (groupId, messageId, text) =>
+    set((s) => ({
+      messages: {
+        ...s.messages,
+        [groupId]: (s.messages[groupId] ?? []).map((m) =>
+          m.id === messageId ? { ...m, text, edited: true } : m
+        ),
+      },
     })),
 
   sendMessage: (groupId, text, imageUri, forwardedFrom) => {

@@ -29,6 +29,7 @@ export default function ChatThread() {
   const sendMessage = useConversationsStore((s) => s.sendMessage);
   const markRead = useConversationsStore((s) => s.markRead);
   const deleteMessage = useConversationsStore((s) => s.deleteMessage);
+  const updateMessage = useConversationsStore((s) => s.updateMessage);
   const myReactions = useConversationsStore((s) => s.myReactions);
   const tapReaction = useConversationsStore((s) => s.tapReaction);
   const setReaction = useConversationsStore((s) => s.setReaction);
@@ -38,6 +39,8 @@ export default function ChatThread() {
   const [draft, setDraft] = useState('');
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState('');
   const [reactorsFor, setReactorsFor] = useState<string | null>(null);
   const [forwardingMessage, setForwardingMessage] = useState<Message | null>(null);
   const [searching, setSearching] = useState(false);
@@ -109,6 +112,12 @@ export default function ChatThread() {
     sendMessage(conversation.id, draft.trim(), imageUri);
     setDraft('');
     setImageUri(undefined);
+  };
+
+  const saveMessageEdit = () => {
+    if (!editDraft.trim() || !editingMessageId) return;
+    updateMessage(conversation.id, editingMessageId, editDraft.trim());
+    setEditingMessageId(null);
   };
 
   const handleForward = (target: ForwardTarget) => {
@@ -254,6 +263,28 @@ export default function ChatThread() {
               );
             }
 
+            if (editingMessageId === item.id) {
+              return (
+                <View className="max-w-[85%] self-end gap-2 rounded-2xl bg-cream p-3">
+                  <TextInput
+                    value={editDraft}
+                    onChangeText={setEditDraft}
+                    autoFocus
+                    multiline
+                    className="rounded-2xl bg-sand px-3 py-2 text-sm text-charcoal"
+                  />
+                  <View className="flex-row justify-end gap-4">
+                    <Pressable onPress={() => setEditingMessageId(null)}>
+                      <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                    </Pressable>
+                    <Pressable onPress={saveMessageEdit}>
+                      <Text className="text-sm font-semibold text-terracotta">Save</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            }
+
             return (
               <Pressable
                 onLongPress={() => isMine && !item.deleted && setDeletingMessageId(item.id)}
@@ -309,9 +340,23 @@ export default function ChatThread() {
                     >
                       <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/40" />
                     </Pressable>
+                    {isMine && (
+                      <Pressable
+                        onPress={() => {
+                          setEditingMessageId(item.id);
+                          setEditDraft(item.text);
+                        }}
+                        className="h-6 w-6 items-center justify-center"
+                      >
+                        <Ionicons name="pencil" size={13} className="text-charcoal/40" />
+                      </Pressable>
+                    )}
                   </View>
                 )}
-                <Text className="mt-0.5 text-[11px] text-charcoal/40">{item.time}</Text>
+                <Text className="mt-0.5 text-[11px] text-charcoal/40">
+                  {item.time}
+                  {item.edited && ' · edited'}
+                </Text>
                 {index === lastMeIndex && item.seen && !item.deleted && (
                   <Text className="mt-0.5 text-[11px] text-sage">Seen</Text>
                 )}

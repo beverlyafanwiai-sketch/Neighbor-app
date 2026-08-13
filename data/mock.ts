@@ -588,6 +588,7 @@ export type Message = {
   seen?: boolean;
   imageUri?: string;
   deleted?: boolean;
+  edited?: boolean;
   reactions?: Record<string, ReactionType>;
   forwardedFrom?: string;
 };

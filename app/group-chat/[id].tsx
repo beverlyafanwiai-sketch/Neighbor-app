@@ -37,6 +37,7 @@ export default function GroupChatThread() {
   const pinMessage = useGroupChatStore((s) => s.pinMessage);
   const unpinMessage = useGroupChatStore((s) => s.unpinMessage);
   const deleteMessage = useGroupChatStore((s) => s.deleteMessage);
+  const updateMessage = useGroupChatStore((s) => s.updateMessage);
   const myReactions = useGroupChatStore((s) => s.myReactions);
   const tapReaction = useGroupChatStore((s) => s.tapReaction);
   const setReaction = useGroupChatStore((s) => s.setReaction);
@@ -47,6 +48,8 @@ export default function GroupChatThread() {
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState('');
   const [reactorsFor, setReactorsFor] = useState<string | null>(null);
   const [forwardingMessage, setForwardingMessage] = useState<GroupMessage | null>(null);
 
@@ -101,6 +104,12 @@ export default function GroupChatThread() {
     sendMessage(group.id, draft.trim(), imageUri);
     setDraft('');
     setImageUri(undefined);
+  };
+
+  const saveMessageEdit = () => {
+    if (!editDraft.trim() || !editingMessageId) return;
+    updateMessage(group.id, editingMessageId, editDraft.trim());
+    setEditingMessageId(null);
   };
 
   const handleForward = (target: ForwardTarget) => {
@@ -238,6 +247,28 @@ export default function GroupChatThread() {
               );
             }
 
+            if (editingMessageId === item.id) {
+              return (
+                <View className="max-w-[85%] self-end gap-2 rounded-2xl bg-cream p-3">
+                  <TextInput
+                    value={editDraft}
+                    onChangeText={setEditDraft}
+                    autoFocus
+                    multiline
+                    className="rounded-2xl bg-sand px-3 py-2 text-sm text-charcoal"
+                  />
+                  <View className="flex-row justify-end gap-4">
+                    <Pressable onPress={() => setEditingMessageId(null)}>
+                      <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                    </Pressable>
+                    <Pressable onPress={saveMessageEdit}>
+                      <Text className="text-sm font-semibold text-terracotta">Save</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            }
+
             return (
               <Pressable
                 onLongPress={() => isMe && !item.deleted && setDeletingMessageId(item.id)}
@@ -283,7 +314,10 @@ export default function GroupChatThread() {
                   )}
                 </View>
                 <View className="mt-1 flex-row items-center gap-1.5">
-                  <Text className="text-[11px] text-charcoal/40">{item.time}</Text>
+                  <Text className="text-[11px] text-charcoal/40">
+                    {item.time}
+                    {item.edited && ' · edited'}
+                  </Text>
                   {isAdmin && !item.deleted && (
                     <Pressable
                       onPress={() =>
@@ -318,6 +352,17 @@ export default function GroupChatThread() {
                     >
                       <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/40" />
                     </Pressable>
+                    {isMe && (
+                      <Pressable
+                        onPress={() => {
+                          setEditingMessageId(item.id);
+                          setEditDraft(item.text);
+                        }}
+                        className="h-6 w-6 items-center justify-center"
+                      >
+                        <Ionicons name="pencil" size={13} className="text-charcoal/40" />
+                      </Pressable>
+                    )}
                   </View>
                 )}
                 {index === lastMeIndex && seenByNames.length > 0 && !item.deleted && (
