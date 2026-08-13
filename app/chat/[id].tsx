@@ -16,10 +16,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
+import ForwardSheet, { type ForwardTarget } from '../../components/ForwardSheet';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
-import { getUser } from '../../data/mock';
+import { getUser, type Message } from '../../data/mock';
 import { messageKey, useConversationsStore } from '../../store/useConversationsStore';
+import { useGroupChatStore } from '../../store/useGroupChatStore';
 
 export default function ChatThread() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -37,6 +39,7 @@ export default function ChatThread() {
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
   const [reactorsFor, setReactorsFor] = useState<string | null>(null);
+  const [forwardingMessage, setForwardingMessage] = useState<Message | null>(null);
   const [searching, setSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [matchIndex, setMatchIndex] = useState(0);
@@ -106,6 +109,26 @@ export default function ChatThread() {
     sendMessage(conversation.id, draft.trim(), imageUri);
     setDraft('');
     setImageUri(undefined);
+  };
+
+  const handleForward = (target: ForwardTarget) => {
+    if (!forwardingMessage) return;
+    const senderName = forwardingMessage.from === 'me' ? 'You' : user.name;
+    if (target.kind === 'dm') {
+      useConversationsStore.getState().sendMessage(
+        target.id,
+        forwardingMessage.text,
+        forwardingMessage.imageUri,
+        senderName
+      );
+    } else {
+      useGroupChatStore.getState().sendMessage(
+        target.id,
+        forwardingMessage.text,
+        forwardingMessage.imageUri,
+        senderName
+      );
+    }
   };
 
   return (
@@ -236,6 +259,11 @@ export default function ChatThread() {
                 onLongPress={() => isMine && !item.deleted && setDeletingMessageId(item.id)}
                 className={`max-w-[78%] ${isMine ? 'self-end items-end' : 'self-start items-start'}`}
               >
+                {item.forwardedFrom && !item.deleted && (
+                  <Text className="mb-0.5 text-[11px] italic text-charcoal/40">
+                    Forwarded from {item.forwardedFrom}
+                  </Text>
+                )}
                 <View
                   className={`overflow-hidden rounded-2xl px-4 py-3 ${
                     item.id === highlightId ? 'border-2 border-gold' : ''
@@ -265,7 +293,7 @@ export default function ChatThread() {
                   )}
                 </View>
                 {!item.deleted && (
-                  <View className="-mt-1">
+                  <View className="-mt-1 flex-row items-center gap-2">
                     <ReactionButton
                       reactions={item.reactions}
                       myReaction={myReactions[messageKey(conversation.id, item.id)]}
@@ -275,6 +303,12 @@ export default function ChatThread() {
                       pickerAlign={isMine ? 'right' : 'left'}
                       compact
                     />
+                    <Pressable
+                      onPress={() => setForwardingMessage(item)}
+                      className="h-6 w-6 items-center justify-center"
+                    >
+                      <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/40" />
+                    </Pressable>
                   </View>
                 )}
                 <Text className="mt-0.5 text-[11px] text-charcoal/40">{item.time}</Text>
@@ -348,6 +382,15 @@ export default function ChatThread() {
             setReactorsFor(null);
             router.push(`/profile/${userId}`);
           }}
+        />
+      )}
+
+      {forwardingMessage && (
+        <ForwardSheet
+          preview={forwardingMessage.imageUri ? '📷 Photo' : forwardingMessage.text}
+          excludeConversationId={conversation.id}
+          onForward={handleForward}
+          onClose={() => setForwardingMessage(null)}
         />
       )}
     </SafeAreaView>

@@ -16,9 +16,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
 import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
+import ForwardSheet, { type ForwardTarget } from '../../components/ForwardSheet';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
 import { ME, getUser } from '../../data/mock';
+import { useConversationsStore } from '../../store/useConversationsStore';
 import { isGroupAdmin, memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { groupMessageKey, useGroupChatStore, type GroupMessage } from '../../store/useGroupChatStore';
 
@@ -46,6 +48,7 @@ export default function GroupChatThread() {
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
   const [reactorsFor, setReactorsFor] = useState<string | null>(null);
+  const [forwardingMessage, setForwardingMessage] = useState<GroupMessage | null>(null);
 
   useEffect(() => {
     if (group) markRead(group.id);
@@ -98,6 +101,27 @@ export default function GroupChatThread() {
     sendMessage(group.id, draft.trim(), imageUri);
     setDraft('');
     setImageUri(undefined);
+  };
+
+  const handleForward = (target: ForwardTarget) => {
+    if (!forwardingMessage) return;
+    const sender = forwardingMessage.senderId === ME.id ? undefined : getUser(forwardingMessage.senderId);
+    const senderName = forwardingMessage.senderId === ME.id ? 'You' : (sender?.name ?? 'Someone');
+    if (target.kind === 'dm') {
+      useConversationsStore.getState().sendMessage(
+        target.id,
+        forwardingMessage.text,
+        forwardingMessage.imageUri,
+        senderName
+      );
+    } else {
+      useGroupChatStore.getState().sendMessage(
+        target.id,
+        forwardingMessage.text,
+        forwardingMessage.imageUri,
+        senderName
+      );
+    }
   };
 
   const leave = () => {
@@ -225,6 +249,11 @@ export default function GroupChatThread() {
                     <Text className="text-xs font-medium text-charcoal/60">{sender.name}</Text>
                   </View>
                 )}
+                {item.forwardedFrom && !item.deleted && (
+                  <Text className="mb-0.5 text-[11px] italic text-charcoal/40">
+                    Forwarded from {item.forwardedFrom}
+                  </Text>
+                )}
                 <View
                   className={`overflow-hidden rounded-2xl px-4 py-3 ${
                     item.deleted
@@ -273,7 +302,7 @@ export default function GroupChatThread() {
                   )}
                 </View>
                 {!item.deleted && (
-                  <View className="-mt-1">
+                  <View className="-mt-1 flex-row items-center gap-2">
                     <ReactionButton
                       reactions={item.reactions}
                       myReaction={myReactions[groupMessageKey(group.id, item.id)]}
@@ -283,6 +312,12 @@ export default function GroupChatThread() {
                       pickerAlign={isMe ? 'right' : 'left'}
                       compact
                     />
+                    <Pressable
+                      onPress={() => setForwardingMessage(item)}
+                      className="h-6 w-6 items-center justify-center"
+                    >
+                      <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/40" />
+                    </Pressable>
                   </View>
                 )}
                 {index === lastMeIndex && seenByNames.length > 0 && !item.deleted && (
@@ -361,6 +396,15 @@ export default function GroupChatThread() {
             setReactorsFor(null);
             router.push(`/profile/${userId}`);
           }}
+        />
+      )}
+
+      {forwardingMessage && (
+        <ForwardSheet
+          preview={forwardingMessage.imageUri ? '📷 Photo' : forwardingMessage.text}
+          excludeGroupId={group.id}
+          onForward={handleForward}
+          onClose={() => setForwardingMessage(null)}
         />
       )}
     </SafeAreaView>

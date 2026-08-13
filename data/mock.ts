@@ -589,6 +589,7 @@ export type Message = {
   imageUri?: string;
   deleted?: boolean;
   reactions?: Record<string, ReactionType>;
+  forwardedFrom?: string;
 };
 
 export type Conversation = {

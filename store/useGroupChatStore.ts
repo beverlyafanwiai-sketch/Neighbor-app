@@ -14,6 +14,7 @@ export type GroupMessage = {
   imageUri?: string;
   deleted?: boolean;
   reactions?: Record<string, ReactionType>;
+  forwardedFrom?: string;
 };
 
 export function groupMessageKey(groupId: string, messageId: string) {
@@ -35,7 +36,7 @@ type GroupChatState = {
   typing: Record<string, string | undefined>;
   pinnedMessageId: Record<string, string | undefined>;
   myReactions: Record<string, ReactionType | undefined>;
-  sendMessage: (groupId: string, text: string, imageUri?: string) => void;
+  sendMessage: (groupId: string, text: string, imageUri?: string, forwardedFrom?: string) => void;
   pinMessage: (groupId: string, messageId: string) => void;
   unpinMessage: (groupId: string) => void;
   deleteMessage: (groupId: string, messageId: string) => void;
@@ -95,7 +96,7 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
           : s.pinnedMessageId,
     })),
 
-  sendMessage: (groupId, text, imageUri) => {
+  sendMessage: (groupId, text, imageUri, forwardedFrom) => {
     set((s) => {
       const existing = s.messages[groupId] ?? [];
       const message: GroupMessage = {
@@ -104,6 +105,7 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
         text,
         time: 'Now',
         imageUri,
+        forwardedFrom,
       };
       return {
         messages: { ...s.messages, [groupId]: [...existing, message] },

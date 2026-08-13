@@ -24,7 +24,7 @@ type ConversationsState = {
   typing: Record<string, boolean>;
   myReactions: Record<string, ReactionType | undefined>;
   getOrCreate: (userId: string) => string;
-  sendMessage: (conversationId: string, text: string, imageUri?: string) => void;
+  sendMessage: (conversationId: string, text: string, imageUri?: string, forwardedFrom?: string) => void;
   markRead: (conversationId: string) => void;
   deleteMessage: (conversationId: string, messageId: string) => void;
   tapReaction: (conversationId: string, messageId: string) => void;
@@ -69,7 +69,7 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
     return id;
   },
 
-  sendMessage: (conversationId, text, imageUri) => {
+  sendMessage: (conversationId, text, imageUri, forwardedFrom) => {
     set((s) => {
       const convo = s.conversations[conversationId];
       if (!convo) return s;
@@ -79,6 +79,7 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
         text,
         time: 'Now',
         imageUri,
+        forwardedFrom,
       };
       return {
         conversations: {
