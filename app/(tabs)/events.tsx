@@ -12,6 +12,7 @@ import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
+import { useSavedEventsStore } from '../../store/useSavedEventsStore';
 
 const EVENT_TABS = ['Upcoming', 'Hosting', 'Past'] as const;
 type EventTab = (typeof EVENT_TABS)[number];
@@ -39,6 +40,8 @@ export default function Events() {
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
   const myCheckIns = useCheckInStore((s) => s.myCheckIns);
+  const savedEventIds = useSavedEventsStore((s) => s.savedIds);
+  const toggleSaveEvent = useSavedEventsStore((s) => s.toggleSave);
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
   const [onlyOpen, setOnlyOpen] = useState(false);
@@ -239,6 +242,7 @@ export default function Events() {
               const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(e.id, going);
               const otherAvatars = e.attendeeIds.map((id) => getUser(id)).filter(Boolean);
               const avatars = going ? [profile, ...otherAvatars] : otherAvatars;
+              const saved = savedEventIds[e.id] ?? false;
               return (
                 <Pressable
                   key={e.id}
@@ -251,10 +255,25 @@ export default function Events() {
                   </View>
                   <View className="flex-1">
                     <View className="flex-row items-center gap-1.5">
-                      <Text className="font-semibold text-charcoal">{e.title}</Text>
+                      <Text className="flex-1 font-semibold text-charcoal" numberOfLines={1}>
+                        {e.title}
+                      </Text>
                       {e.recurrence && (
                         <Ionicons name="repeat" size={12} className="text-terracotta" />
                       )}
+                      <Pressable
+                        onPress={(evt) => {
+                          evt.stopPropagation();
+                          toggleSaveEvent(e.id);
+                        }}
+                        className="h-6 w-6 items-center justify-center"
+                      >
+                        <Ionicons
+                          name={saved ? 'bookmark' : 'bookmark-outline'}
+                          size={15}
+                          className={saved ? 'text-gold' : 'text-charcoal/40'}
+                        />
+                      </Pressable>
                     </View>
                     <Text className="mt-0.5 text-xs text-charcoal/60">
                       {e.time} · {e.location}

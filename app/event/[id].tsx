@@ -15,6 +15,7 @@ import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
+import { useSavedEventsStore } from '../../store/useSavedEventsStore';
 
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -42,6 +43,8 @@ export default function EventDetail() {
   const leaveSeat = useCarpoolStore((s) => s.leaveSeat);
   const requestRide = useCarpoolStore((s) => s.requestRide);
   const cancelRideRequest = useCarpoolStore((s) => s.cancelRideRequest);
+  const savedIds = useSavedEventsStore((s) => s.savedIds);
+  const toggleSaveEvent = useSavedEventsStore((s) => s.toggleSave);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [calendarAdded, setCalendarAdded] = useState(false);
   const [offeringRide, setOfferingRide] = useState(false);
@@ -79,6 +82,7 @@ export default function EventDetail() {
   const carpoolRequests = allCarpoolRequests.filter((r) => r.eventId === event.id);
   const myOffer = carpoolOffers.find((o) => o.driverId === ME.id);
   const myRequest = carpoolRequests.find((r) => r.riderId === ME.id);
+  const saved = savedIds[event.id] ?? false;
 
   const remove = () => {
     deleteEvent(event.id);
@@ -131,24 +135,36 @@ export default function EventDetail() {
         >
           <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
-        {isHost && (
-          <View className="flex-row items-center gap-1.5">
-            {!isPast && (
+        <View className="flex-row items-center gap-1.5">
+          <Pressable
+            onPress={() => toggleSaveEvent(event.id)}
+            className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+          >
+            <Ionicons
+              name={saved ? 'bookmark' : 'bookmark-outline'}
+              size={17}
+              className={saved ? 'text-gold' : 'text-charcoal'}
+            />
+          </Pressable>
+          {isHost && (
+            <>
+              {!isPast && (
+                <Pressable
+                  onPress={() => router.push(`/create-event?id=${event.id}`)}
+                  className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+                >
+                  <Ionicons name="pencil" size={17} className="text-charcoal" />
+                </Pressable>
+              )}
               <Pressable
-                onPress={() => router.push(`/create-event?id=${event.id}`)}
+                onPress={() => setConfirmingDelete(true)}
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream"
               >
-                <Ionicons name="pencil" size={17} className="text-charcoal" />
+                <Ionicons name="trash-outline" size={17} className="text-terracotta" />
               </Pressable>
-            )}
-            <Pressable
-              onPress={() => setConfirmingDelete(true)}
-              className="h-9 w-9 items-center justify-center rounded-full bg-cream"
-            >
-              <Ionicons name="trash-outline" size={17} className="text-terracotta" />
-            </Pressable>
-          </View>
-        )}
+            </>
+          )}
+        </View>
       </View>
 
       {confirmingDelete && (
