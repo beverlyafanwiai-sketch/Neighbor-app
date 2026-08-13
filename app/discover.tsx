@@ -8,11 +8,17 @@ import EmptyState from '../components/EmptyState';
 import { DISCOVER_USERS, type Tone } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
-import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
+import { getEffectiveMemberCount, memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
 const MODES = ['People', 'Groups'] as const;
 type Mode = (typeof MODES)[number];
+
+const PEOPLE_SORTS = ['Suggested', 'A-Z', 'New neighbors'] as const;
+type PeopleSort = (typeof PEOPLE_SORTS)[number];
+
+const GROUP_SORTS = ['Suggested', 'A-Z', 'Most members'] as const;
+type GroupSort = (typeof GROUP_SORTS)[number];
 
 const TONE_STYLE: Record<Tone, { bg: string; text: string }> = {
   Casual: { bg: 'bg-sage/20', text: 'text-sage' },
@@ -28,6 +34,8 @@ function sharedTags(tags: string[], myTags: string[]) {
 export default function Discover() {
   const [mode, setMode] = useState<Mode>('People');
   const [query, setQuery] = useState('');
+  const [peopleSort, setPeopleSort] = useState<PeopleSort>('Suggested');
+  const [groupSort, setGroupSort] = useState<GroupSort>('Suggested');
   const allGroups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
@@ -45,11 +53,20 @@ export default function Discover() {
 
   const people = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return discoverableUsers;
-    return discoverableUsers.filter(
-      (u) => u.name.toLowerCase().includes(q) || u.tags.some((t) => t.includes(q))
-    );
-  }, [query, discoverableUsers]);
+    const base = !q
+      ? discoverableUsers
+      : discoverableUsers.filter(
+          (u) => u.name.toLowerCase().includes(q) || u.tags.some((t) => t.includes(q))
+        );
+    if (peopleSort === 'Suggested') return base;
+    const sorted = [...base];
+    if (peopleSort === 'A-Z') {
+      sorted.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (peopleSort === 'New neighbors') {
+      sorted.sort((a, b) => Number(Boolean(b.isNew)) - Number(Boolean(a.isNew)));
+    }
+    return sorted;
+  }, [query, discoverableUsers, peopleSort]);
 
   const redeemCode = () => {
     const groupId = joinByInviteCode(inviteCodeInput);
@@ -65,11 +82,22 @@ export default function Discover() {
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return discoverGroups;
-    return discoverGroups.filter(
-      (g) => g.name.toLowerCase().includes(q) || g.tag?.toLowerCase().includes(q)
-    );
-  }, [query, discoverGroups]);
+    const base = !q
+      ? discoverGroups
+      : discoverGroups.filter(
+          (g) => g.name.toLowerCase().includes(q) || g.tag?.toLowerCase().includes(q)
+        );
+    if (groupSort === 'Suggested') return base;
+    const sorted = [...base];
+    if (groupSort === 'A-Z') {
+      sorted.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (groupSort === 'Most members') {
+      sorted.sort(
+        (a, b) => getEffectiveMemberCount(b.id, false) - getEffectiveMemberCount(a.id, false)
+      );
+    }
+    return sorted;
+  }, [query, discoverGroups, groupSort]);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -108,6 +136,24 @@ export default function Discover() {
             </Text>
           </Pressable>
         ))}
+      </View>
+
+      <View className="flex-row items-center gap-2 px-5 pb-3">
+        <Ionicons name="swap-vertical-outline" size={14} className="text-charcoal/40" />
+        {(mode === 'People' ? PEOPLE_SORTS : GROUP_SORTS).map((s) => {
+          const active = mode === 'People' ? peopleSort === s : groupSort === s;
+          return (
+            <Pressable
+              key={s}
+              onPress={() => (mode === 'People' ? setPeopleSort(s as PeopleSort) : setGroupSort(s as GroupSort))}
+              className={`rounded-full px-3 py-1.5 ${active ? 'bg-sage/20' : 'bg-cream'}`}
+            >
+              <Text className={`text-xs font-medium ${active ? 'text-sage' : 'text-charcoal/60'}`}>
+                {s}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
