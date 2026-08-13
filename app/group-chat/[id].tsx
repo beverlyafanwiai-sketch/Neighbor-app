@@ -61,10 +61,38 @@ export default function GroupChatThread() {
   const [showGallery, setShowGallery] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [matchIndex, setMatchIndex] = useState(0);
   const [replyingTo, setReplyingTo] = useState<{ id: string; senderName: string; preview: string } | null>(
     null
   );
   const listRef = useRef<FlatList>(null);
+
+  const matches = searchQuery.trim()
+    ? messages
+        .map((m, i) => ({ m, i }))
+        .filter(({ m }) => !m.deleted && m.text.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    : [];
+
+  const goToMatch = (idx: number) => {
+    if (matches.length === 0) return;
+    const clamped = ((idx % matches.length) + matches.length) % matches.length;
+    setMatchIndex(clamped);
+    const target = matches[clamped];
+    setHighlightId(target.m.id);
+    listRef.current?.scrollToIndex({ index: target.i, animated: true, viewPosition: 0.4 });
+    setTimeout(() => setHighlightId((h) => (h === target.m.id ? null : h)), 1500);
+  };
+
+  useEffect(() => {
+    // Jump to the most recent match first, like most chat search UIs --
+    // matches/goToMatch are intentionally excluded from deps since they're
+    // recomputed every render and would otherwise re-trigger this on scroll.
+    if (!searching || matches.length === 0) return;
+    goToMatch(matches.length - 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, searching]);
 
   useEffect(() => {
     if (group) markRead(group.id);
@@ -180,38 +208,88 @@ export default function GroupChatThread() {
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
-      <View className="flex-row items-center gap-3 border-b border-charcoal/10 bg-cream px-4 py-3">
-        <Pressable
-          onPress={() => router.back()}
-          className="h-9 w-9 items-center justify-center rounded-full"
-        >
-          <Ionicons name="chevron-back" size={22} className="text-charcoal" />
-        </Pressable>
-        <Pressable
-          onPress={() => router.push(`/group/${group.id}`)}
-          className="flex-1 flex-row items-center gap-3"
-        >
-          <View className="h-10 w-10 items-center justify-center rounded-full bg-terracotta">
-            <Text className="text-base font-bold text-paper">{group.name.charAt(0)}</Text>
-          </View>
-          <View className="flex-1">
-            <Text className="text-base font-semibold text-charcoal">{group.name}</Text>
-            <Text className="text-xs text-sage">{memberCountLabel(group.id, joined)}</Text>
-          </View>
-        </Pressable>
-        <Pressable
-          onPress={() => setShowGallery(true)}
-          className="h-9 w-9 items-center justify-center rounded-full"
-        >
-          <Ionicons name="images-outline" size={20} className="text-charcoal" />
-        </Pressable>
-        <Pressable
-          onPress={() => setConfirmingLeave(true)}
-          className="h-9 w-9 items-center justify-center rounded-full"
-        >
-          <Ionicons name="information-circle-outline" size={22} className="text-charcoal" />
-        </Pressable>
-      </View>
+      {searching ? (
+        <View className="flex-row items-center gap-2 border-b border-charcoal/10 bg-cream px-4 py-3">
+          <Pressable
+            onPress={() => {
+              setSearching(false);
+              setSearchQuery('');
+              setHighlightId(null);
+            }}
+            className="h-9 w-9 items-center justify-center rounded-full"
+          >
+            <Ionicons name="chevron-back" size={22} className="text-charcoal" />
+          </Pressable>
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search this conversation..."
+            placeholderTextColor="#3D3D3D80"
+            autoFocus
+            className="flex-1 rounded-full bg-sand px-4 py-2 text-charcoal"
+          />
+          {searchQuery.trim().length > 0 && (
+            <Text className="text-xs text-charcoal/50">
+              {matches.length > 0 ? `${matchIndex + 1}/${matches.length}` : '0/0'}
+            </Text>
+          )}
+          {matches.length > 0 && (
+            <>
+              <Pressable
+                onPress={() => goToMatch(matchIndex - 1)}
+                className="h-8 w-8 items-center justify-center rounded-full"
+              >
+                <Ionicons name="chevron-up" size={18} className="text-charcoal" />
+              </Pressable>
+              <Pressable
+                onPress={() => goToMatch(matchIndex + 1)}
+                className="h-8 w-8 items-center justify-center rounded-full"
+              >
+                <Ionicons name="chevron-down" size={18} className="text-charcoal" />
+              </Pressable>
+            </>
+          )}
+        </View>
+      ) : (
+        <View className="flex-row items-center gap-3 border-b border-charcoal/10 bg-cream px-4 py-3">
+          <Pressable
+            onPress={() => router.back()}
+            className="h-9 w-9 items-center justify-center rounded-full"
+          >
+            <Ionicons name="chevron-back" size={22} className="text-charcoal" />
+          </Pressable>
+          <Pressable
+            onPress={() => router.push(`/group/${group.id}`)}
+            className="flex-1 flex-row items-center gap-3"
+          >
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-terracotta">
+              <Text className="text-base font-bold text-paper">{group.name.charAt(0)}</Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-base font-semibold text-charcoal">{group.name}</Text>
+              <Text className="text-xs text-sage">{memberCountLabel(group.id, joined)}</Text>
+            </View>
+          </Pressable>
+          <Pressable
+            onPress={() => setSearching(true)}
+            className="h-9 w-9 items-center justify-center rounded-full"
+          >
+            <Ionicons name="search-outline" size={20} className="text-charcoal" />
+          </Pressable>
+          <Pressable
+            onPress={() => setShowGallery(true)}
+            className="h-9 w-9 items-center justify-center rounded-full"
+          >
+            <Ionicons name="images-outline" size={20} className="text-charcoal" />
+          </Pressable>
+          <Pressable
+            onPress={() => setConfirmingLeave(true)}
+            className="h-9 w-9 items-center justify-center rounded-full"
+          >
+            <Ionicons name="information-circle-outline" size={22} className="text-charcoal" />
+          </Pressable>
+        </View>
+      )}
 
       {pinnedMessage && pinnedSender && (
         <View className="flex-row items-center gap-2.5 border-b border-charcoal/10 bg-gold/10 px-4 py-2.5">
