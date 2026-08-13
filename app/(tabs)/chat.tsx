@@ -15,6 +15,7 @@ export default function ChatList() {
   const conversations = useConversationsStore((s) => s.conversations);
   const dmUnread = useConversationsStore((s) => s.unread);
   const dmLastActivity = useConversationsStore((s) => s.lastActivity);
+  const dmMarkRead = useConversationsStore((s) => s.markRead);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const list = Object.values(conversations)
     .filter((c) => !blockedIds[c.userId])
@@ -22,16 +23,34 @@ export default function ChatList() {
 
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
+  const groupMarkRead = useGroupsStore((s) => s.markRead);
   const groupMessages = useGroupChatStore((s) => s.messages);
   const groupLastActivity = useGroupChatStore((s) => s.lastActivity);
   const myGroups = groups
     .filter((g) => joinedMap[g.id])
     .sort((a, b) => (groupLastActivity[b.id] ?? 0) - (groupLastActivity[a.id] ?? 0));
 
+  const hasUnread =
+    myGroups.some((g) => g.unread > 0) || list.some((c) => (dmUnread[c.id] ?? 0) > 0);
+
+  const markAllRead = () => {
+    myGroups.forEach((g) => {
+      if (g.unread > 0) groupMarkRead(g.id);
+    });
+    list.forEach((c) => {
+      if ((dmUnread[c.id] ?? 0) > 0) dmMarkRead(c.id);
+    });
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
-      <View className="px-5 pb-3 pt-2">
+      <View className="flex-row items-center justify-between px-5 pb-3 pt-2">
         <Text className="text-2xl font-bold text-charcoal">Chats</Text>
+        {hasUnread && (
+          <Pressable onPress={markAllRead}>
+            <Text className="text-sm font-medium text-terracotta">Mark all read</Text>
+          </Pressable>
+        )}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
