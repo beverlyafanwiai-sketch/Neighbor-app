@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../../components/EmptyState';
+import EventCalendar from '../../components/EventCalendar';
 import { EVENT_CATEGORIES, ME, getUser, type EventCategory } from '../../data/mock';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckInStore';
 import { useEventsStore } from '../../store/useEventsStore';
@@ -27,6 +28,7 @@ type SortBy = (typeof SORTS)[number]['value'];
 
 export default function Events() {
   const [tab, setTab] = useState<EventTab>('Upcoming');
+  const [view, setView] = useState<'list' | 'calendar'>('list');
   const profile = useProfileStore((s) => s.profile);
   const events = useEventsStore((s) => s.events);
   const goingMap = useRsvpStore((s) => s.going);
@@ -79,12 +81,42 @@ export default function Events() {
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center justify-between px-5 pb-3 pt-2">
         <Text className="text-2xl font-bold text-charcoal">Events</Text>
-        <Pressable
-          onPress={() => router.push('/create-event')}
-          className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"
-        >
-          <Ionicons name="add" size={22} className="text-paper" />
-        </Pressable>
+        <View className="flex-row items-center gap-2">
+          {tab === 'Upcoming' && (
+            <View className="flex-row items-center gap-1 rounded-full bg-cream p-1">
+              <Pressable
+                onPress={() => setView('list')}
+                className={`h-8 w-8 items-center justify-center rounded-full ${
+                  view === 'list' ? 'bg-ink' : ''
+                }`}
+              >
+                <Ionicons
+                  name="list-outline"
+                  size={16}
+                  className={view === 'list' ? 'text-paper' : 'text-charcoal/50'}
+                />
+              </Pressable>
+              <Pressable
+                onPress={() => setView('calendar')}
+                className={`h-8 w-8 items-center justify-center rounded-full ${
+                  view === 'calendar' ? 'bg-ink' : ''
+                }`}
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={16}
+                  className={view === 'calendar' ? 'text-paper' : 'text-charcoal/50'}
+                />
+              </Pressable>
+            </View>
+          )}
+          <Pressable
+            onPress={() => router.push('/create-event')}
+            className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"
+          >
+            <Ionicons name="add" size={22} className="text-paper" />
+          </Pressable>
+        </View>
       </View>
 
       <View className="px-5 pb-3">
@@ -195,7 +227,11 @@ export default function Events() {
       )}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
-        {tab === 'Upcoming' && (
+        {tab === 'Upcoming' && view === 'calendar' && (
+          <EventCalendar events={upcoming} onSelectEvent={(id) => router.push(`/event/${id}`)} />
+        )}
+
+        {tab === 'Upcoming' && view === 'list' && (
           <View className="gap-3">
             {upcoming.map((e) => {
               const going = goingMap[e.id] ?? false;

@@ -29,7 +29,7 @@ function addDays(date: Date, days: number) {
 // event.day/month are display-only strings with no year attached. This
 // finds the nearest occurrence of that day-of-month on or after `now`,
 // rolling into next year if the date has already passed this year.
-function anchorDate(event: EventItem, now: Date): Date {
+export function anchorDate(event: EventItem, now: Date): Date {
   const monthIndex = MONTH_NAMES.indexOf(event.month.toUpperCase());
   const day = Number(event.day);
   if (monthIndex === -1 || Number.isNaN(day)) return startOfDay(now);
@@ -62,4 +62,36 @@ export function getUpcomingOccurrences(event: EventItem, now: Date, count = 3): 
 
 export function formatOccurrence(date: Date): string {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+// All dates (one-off or recurring) this event lands on within
+// [rangeStart, rangeEnd) -- used to place dots on a calendar month grid.
+export function getEventOccurrencesInRange(
+  event: EventItem,
+  now: Date,
+  rangeStart: Date,
+  rangeEnd: Date
+): Date[] {
+  if (!event.recurrence) {
+    const date = anchorDate(event, now);
+    return date >= rangeStart && date < rangeEnd ? [date] : [];
+  }
+
+  const interval = INTERVAL_DAYS[event.recurrence];
+  const today = startOfDay(now);
+  let next = anchorDate(event, now);
+  while (next < today) next = addDays(next, interval);
+  next = addDays(next, (event.skipCount ?? 0) * interval);
+
+  while (next >= rangeStart) next = addDays(next, -interval);
+  while (next < rangeStart) next = addDays(next, interval);
+
+  const occurrences: Date[] = [];
+  let guard = 0;
+  while (next < rangeEnd && guard < 60) {
+    occurrences.push(next);
+    next = addDays(next, interval);
+    guard++;
+  }
+  return occurrences;
 }
