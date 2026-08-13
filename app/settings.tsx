@@ -8,6 +8,8 @@ import { useColorScheme } from 'nativewind';
 import { getUser } from '../data/mock';
 import { useAuthStore } from '../store/useAuthStore';
 import { useBlockedStore } from '../store/useBlockedStore';
+import { useGroupsStore } from '../store/useGroupsStore';
+import { useMutedGroupsStore } from '../store/useMutedGroupsStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { useSettingsStore, type NotificationPrefs } from '../store/useSettingsStore';
 import { useThemeStore, type ThemePreference } from '../store/useThemeStore';
@@ -62,6 +64,10 @@ export default function Settings() {
     .filter((id) => mutedIds[id])
     .map((id) => getUser(id))
     .filter((u): u is NonNullable<typeof u> => Boolean(u));
+  const groups = useGroupsStore((s) => s.groups);
+  const mutedGroupIds = useMutedGroupsStore((s) => s.mutedGroupIds);
+  const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
+  const mutedGroups = groups.filter((g) => mutedGroupIds[g.id]);
   const themePreference = useThemeStore((s) => s.preference);
   const setThemePreference = useThemeStore((s) => s.setPreference);
   const { setColorScheme } = useColorScheme();
@@ -148,6 +154,30 @@ export default function Settings() {
                 <Text className="flex-1 text-sm font-medium text-charcoal">{u.name}</Text>
                 <Pressable
                   onPress={() => toggleMuted(u.id)}
+                  className="rounded-full bg-sand px-4 py-2"
+                >
+                  <Text className="text-xs font-semibold text-charcoal">Unmute</Text>
+                </Pressable>
+              </View>
+            ))
+          )}
+        </View>
+
+        <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+          Muted groups
+        </Text>
+        <View className="gap-3">
+          {mutedGroups.length === 0 ? (
+            <Text className="text-sm text-charcoal/50">You haven't muted any groups.</Text>
+          ) : (
+            mutedGroups.map((g) => (
+              <View key={g.id} className="flex-row items-center gap-3 rounded-2xl bg-cream p-4">
+                <View className="h-9 w-9 items-center justify-center rounded-full bg-terracotta">
+                  <Text className="text-xs font-bold text-paper">{g.name.charAt(0)}</Text>
+                </View>
+                <Text className="flex-1 text-sm font-medium text-charcoal">{g.name}</Text>
+                <Pressable
+                  onPress={() => toggleMutedGroup(g.id)}
                   className="rounded-full bg-sand px-4 py-2"
                 >
                   <Text className="text-xs font-semibold text-charcoal">Unmute</Text>

@@ -11,6 +11,7 @@ import { getGroupPhotos, useGroupAlbumStore } from '../../store/useGroupAlbumSto
 import { useEventsStore } from '../../store/useEventsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { isGroupAdmin, memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
+import { useMutedGroupsStore } from '../../store/useMutedGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
@@ -39,6 +40,8 @@ export default function GroupDetail() {
   const events = useEventsStore((s) => s.events);
   const goingMap = useRsvpStore((s) => s.going);
   const inviteCode = useGroupsStore((s) => (group ? s.inviteCodes[group.id] : undefined));
+  const mutedGroupIds = useMutedGroupsStore((s) => s.mutedGroupIds);
+  const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [inviting, setInviting] = useState(false);
 
@@ -58,6 +61,7 @@ export default function GroupDetail() {
   const toneStyle = TONE_STYLE[group.tone] ?? TONE_STYLE.Casual;
   const isCreator = group.createdBy === ME.id;
   const isAdmin = isGroupAdmin(group, ME.id);
+  const isMuted = mutedGroupIds[group.id] ?? false;
   const pinnedSender = pinnedMessage
     ? pinnedMessage.senderId === ME.id
       ? profile
@@ -96,6 +100,16 @@ export default function GroupDetail() {
         </Pressable>
         {joined && (
           <View className="flex-row items-center gap-1.5">
+            <Pressable
+              onPress={() => toggleMutedGroup(group.id)}
+              className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+            >
+              <Ionicons
+                name={isMuted ? 'notifications-off' : 'notifications-outline'}
+                size={17}
+                className={isMuted ? 'text-terracotta' : 'text-charcoal'}
+              />
+            </Pressable>
             <Pressable
               onPress={() => setInviting(true)}
               className="h-9 w-9 items-center justify-center rounded-full bg-cream"
@@ -156,6 +170,12 @@ export default function GroupDetail() {
             <View className={`rounded-full px-2.5 py-1 ${toneStyle.bg}`}>
               <Text className={`text-xs font-semibold ${toneStyle.text}`}>{group.tone}</Text>
             </View>
+            {isMuted && (
+              <View className="flex-row items-center gap-1 rounded-full bg-charcoal/10 px-2.5 py-1">
+                <Ionicons name="notifications-off" size={11} className="text-charcoal/60" />
+                <Text className="text-xs font-semibold text-charcoal/60">Muted</Text>
+              </View>
+            )}
           </View>
           <Text className="mt-4 text-center text-[15px] leading-5 text-charcoal/80">
             {group.description}

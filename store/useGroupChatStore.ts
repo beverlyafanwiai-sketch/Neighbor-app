@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { ME, getUser, type ReactionType } from '../data/mock';
 import { findMentionedUsers } from '../lib/mentions';
 import { useGroupsStore } from './useGroupsStore';
+import { useMutedGroupsStore } from './useMutedGroupsStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useProfileStore } from './useProfileStore';
 import { useSettingsStore } from './useSettingsStore';
@@ -35,6 +36,7 @@ const CANNED_REPLIES = [
 
 function notifyMentions(text: string, groupId: string) {
   if (!useSettingsStore.getState().notificationPrefs.mentions) return;
+  if (useMutedGroupsStore.getState().mutedGroupIds[groupId]) return;
   const authorName = useProfileStore.getState().profile.name;
   for (const user of findMentionedUsers(text)) {
     if (user.id === ME.id) continue;
@@ -171,7 +173,10 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
         typing: { ...s.typing, [groupId]: undefined },
       }));
 
-      if (useSettingsStore.getState().notificationPrefs.groupActivity) {
+      if (
+        useSettingsStore.getState().notificationPrefs.groupActivity &&
+        !useMutedGroupsStore.getState().mutedGroupIds[groupId]
+      ) {
         useNotificationsStore.getState().addNotification({
           type: 'group',
           actorId: replierId,
