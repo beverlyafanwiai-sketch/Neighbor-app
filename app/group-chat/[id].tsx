@@ -27,7 +27,12 @@ import ReportPostSheet from '../../components/ReportPostSheet';
 import { ME, getUser } from '../../data/mock';
 import { useConversationsStore } from '../../store/useConversationsStore';
 import { isGroupAdmin, memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
-import { groupMessageKey, useGroupChatStore, type GroupMessage } from '../../store/useGroupChatStore';
+import {
+  groupMessageKey,
+  useGroupChatStore,
+  type GroupMessage,
+  type PollOption,
+} from '../../store/useGroupChatStore';
 
 const EMPTY_MESSAGES: GroupMessage[] = [];
 
@@ -46,6 +51,8 @@ export default function GroupChatThread() {
   const myReactions = useGroupChatStore((s) => s.myReactions);
   const tapReaction = useGroupChatStore((s) => s.tapReaction);
   const setReaction = useGroupChatStore((s) => s.setReaction);
+  const sendPoll = useGroupChatStore((s) => s.sendPoll);
+  const votePoll = useGroupChatStore((s) => s.votePoll);
   const markRead = useGroupsStore((s) => s.markRead);
   const toggleJoin = useGroupsStore((s) => s.toggle);
 
@@ -67,12 +74,19 @@ export default function GroupChatThread() {
   const [replyingTo, setReplyingTo] = useState<{ id: string; senderName: string; preview: string } | null>(
     null
   );
+  const [creatingPoll, setCreatingPoll] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState(['', '']);
   const listRef = useRef<FlatList>(null);
 
   const matches = searchQuery.trim()
     ? messages
         .map((m, i) => ({ m, i }))
-        .filter(({ m }) => !m.deleted && m.text.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+        .filter(({ m }) => {
+          if (m.deleted) return false;
+          const q = searchQuery.trim().toLowerCase();
+          return m.text.toLowerCase().includes(q) || Boolean(m.poll?.question.toLowerCase().includes(q));
+        })
     : [];
 
   const goToMatch = (idx: number) => {
@@ -146,6 +160,18 @@ export default function GroupChatThread() {
     setDraft('');
     setImageUri(undefined);
     setReplyingTo(null);
+  };
+
+  const canSubmitPoll =
+    pollQuestion.trim().length > 0 && pollOptions.filter((o) => o.trim().length > 0).length >= 2;
+
+  const submitPoll = () => {
+    const cleanOptions = pollOptions.map((o) => o.trim()).filter(Boolean);
+    if (!pollQuestion.trim() || cleanOptions.length < 2) return;
+    sendPoll(group.id, pollQuestion.trim(), cleanOptions);
+    setCreatingPoll(false);
+    setPollQuestion('');
+    setPollOptions(['', '']);
   };
 
   const saveMessageEdit = () => {
@@ -428,9 +454,11 @@ export default function GroupChatThread() {
                         <Text className="text-[11px] text-charcoal/50" numberOfLines={1}>
                           {replied.deleted
                             ? 'Message deleted'
-                            : replied.text.length > 0
-                              ? replied.text
-                              : '📷 Photo'}
+                            : replied.poll
+                              ? `📊 ${replied.poll.question}`
+                              : replied.text.length > 0
+                                ? replied.text
+                                : '📷 Photo'}
                         </Text>
                       </Pressable>
                     );
@@ -455,6 +483,60 @@ export default function GroupChatThread() {
                     <Text className="text-sm italic text-charcoal/50">
                       {isMe ? 'You deleted a message' : `${sender?.name ?? 'They'} deleted a message`}
                     </Text>
+                  ) : item.poll ? (
+                    <View className="w-56 gap-2">
+                      <Text className={`text-sm font-semibold ${isMe ? 'text-paper' : 'text-charcoal'}`}>
+                        {item.poll.question}
+                      </Text>
+                      {(() => {
+                        const poll = item.poll;
+                        const totalVotes = Object.keys(poll.votes).length;
+                        const myVote = poll.votes[ME.id];
+                        return poll.options.map((opt: PollOption) => {
+                          const optionVotes = Object.values(poll.votes).filter(
+                            (v) => v === opt.id
+                          ).length;
+                          const pct = totalVotes > 0 ? Math.round((optionVotes / totalVotes) * 100) : 0;
+                          const isMyVote = myVote === opt.id;
+                          return (
+                            <Pressable
+                              key={opt.id}
+                              onPress={() => votePoll(group.id, item.id, opt.id)}
+                              className={`overflow-hidden rounded-xl border ${
+                                isMyVote ? 'border-sage' : isMe ? 'border-paper/30' : 'border-charcoal/15'
+                              }`}
+                            >
+                              <View
+                                className={`absolute inset-y-0 left-0 ${
+                                  isMyVote ? 'bg-sage/25' : isMe ? 'bg-paper/15' : 'bg-charcoal/10'
+                                }`}
+                                style={{ width: `${pct}%` }}
+                              />
+                              <View className="flex-row items-center justify-between px-3 py-2">
+                                <Text
+                                  className={`mr-2 flex-1 text-xs font-medium ${
+                                    isMe ? 'text-paper' : 'text-charcoal'
+                                  }`}
+                                  numberOfLines={2}
+                                >
+                                  {isMyVote ? '✓ ' : ''}
+                                  {opt.text}
+                                </Text>
+                                <Text
+                                  className={`text-[11px] ${isMe ? 'text-paper/70' : 'text-charcoal/50'}`}
+                                >
+                                  {optionVotes}
+                                </Text>
+                              </View>
+                            </Pressable>
+                          );
+                        });
+                      })()}
+                      <Text className={`text-[11px] ${isMe ? 'text-paper/60' : 'text-charcoal/40'}`}>
+                        {Object.keys(item.poll.votes).length} vote
+                        {Object.keys(item.poll.votes).length === 1 ? '' : 's'}
+                      </Text>
+                    </View>
                   ) : (
                     <>
                       {item.imageUri && (
@@ -514,19 +596,25 @@ export default function GroupChatThread() {
                         setReplyingTo({
                           id: item.id,
                           senderName: isMe ? 'You' : (sender?.name ?? 'Someone'),
-                          preview: item.text.length > 0 ? item.text : '📷 Photo',
+                          preview: item.poll
+                            ? `📊 ${item.poll.question}`
+                            : item.text.length > 0
+                              ? item.text
+                              : '📷 Photo',
                         })
                       }
                       className="h-6 w-6 items-center justify-center"
                     >
                       <Ionicons name="arrow-undo-outline" size={14} className="text-charcoal/40" />
                     </Pressable>
-                    <Pressable
-                      onPress={() => setForwardingMessage(item)}
-                      className="h-6 w-6 items-center justify-center"
-                    >
-                      <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/40" />
-                    </Pressable>
+                    {!item.poll && (
+                      <Pressable
+                        onPress={() => setForwardingMessage(item)}
+                        className="h-6 w-6 items-center justify-center"
+                      >
+                        <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/40" />
+                      </Pressable>
+                    )}
                     {item.text.length > 0 && (
                       <Pressable
                         onPress={() => copyMessage(item.id, item.text)}
@@ -539,7 +627,7 @@ export default function GroupChatThread() {
                         />
                       </Pressable>
                     )}
-                    {isMe ? (
+                    {isMe && !item.poll ? (
                       <Pressable
                         onPress={() => {
                           setEditingMessageId(item.id);
@@ -549,14 +637,14 @@ export default function GroupChatThread() {
                       >
                         <Ionicons name="pencil" size={13} className="text-charcoal/40" />
                       </Pressable>
-                    ) : (
+                    ) : !isMe ? (
                       <Pressable
                         onPress={() => setReportingMessageId(item.id)}
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons name="ellipsis-horizontal" size={14} className="text-charcoal/40" />
                       </Pressable>
-                    )}
+                    ) : null}
                   </View>
                 )}
                 {index === lastMeIndex && seenByNames.length > 0 && !item.deleted && (
@@ -625,6 +713,12 @@ export default function GroupChatThread() {
           >
             <Ionicons name="image-outline" size={19} className="text-sage" />
           </Pressable>
+          <Pressable
+            onPress={() => setCreatingPoll(true)}
+            className="h-10 w-10 items-center justify-center rounded-full bg-sand"
+          >
+            <Ionicons name="stats-chart-outline" size={18} className="text-sage" />
+          </Pressable>
           <View className="flex-1">
             <MentionTextInput
               value={draft}
@@ -680,6 +774,90 @@ export default function GroupChatThread() {
           onSelectPhoto={jumpToMessage}
           onClose={() => setShowGallery(false)}
         />
+      )}
+
+      {creatingPoll && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => {
+              setCreatingPoll(false);
+              setPollQuestion('');
+              setPollOptions(['', '']);
+            }}
+          />
+          <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">New poll</Text>
+              <Pressable
+                onPress={() => {
+                  setCreatingPoll(false);
+                  setPollQuestion('');
+                  setPollOptions(['', '']);
+                }}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+
+            <TextInput
+              value={pollQuestion}
+              onChangeText={setPollQuestion}
+              placeholder="Ask the group something..."
+              placeholderTextColor="#3D3D3D80"
+              className="rounded-2xl bg-sand px-4 py-3 text-base text-charcoal"
+            />
+
+            <View className="gap-2">
+              {pollOptions.map((option, i) => (
+                <View key={i} className="flex-row items-center gap-2">
+                  <TextInput
+                    value={option}
+                    onChangeText={(v) =>
+                      setPollOptions((opts) => opts.map((o, oi) => (oi === i ? v : o)))
+                    }
+                    placeholder={`Option ${i + 1}`}
+                    placeholderTextColor="#3D3D3D80"
+                    className="flex-1 rounded-2xl bg-sand px-4 py-2.5 text-sm text-charcoal"
+                  />
+                  {pollOptions.length > 2 && (
+                    <Pressable
+                      onPress={() => setPollOptions((opts) => opts.filter((_, oi) => oi !== i))}
+                      className="h-8 w-8 items-center justify-center rounded-full"
+                    >
+                      <Ionicons name="close-circle" size={18} className="text-charcoal/30" />
+                    </Pressable>
+                  )}
+                </View>
+              ))}
+            </View>
+
+            {pollOptions.length < 4 && (
+              <Pressable
+                onPress={() => setPollOptions((opts) => [...opts, ''])}
+                className="flex-row items-center gap-1.5 self-start"
+              >
+                <Ionicons name="add-circle-outline" size={16} className="text-terracotta" />
+                <Text className="text-sm font-medium text-terracotta">Add option</Text>
+              </Pressable>
+            )}
+
+            <Pressable
+              onPress={submitPoll}
+              disabled={!canSubmitPoll}
+              className={`mt-1 items-center rounded-full py-3 ${
+                canSubmitPoll ? 'bg-terracotta' : 'bg-ink/10'
+              }`}
+            >
+              <Text
+                className={`text-sm font-semibold ${canSubmitPoll ? 'text-paper' : 'text-charcoal/40'}`}
+              >
+                Create poll
+              </Text>
+            </Pressable>
+          </View>
+        </View>
       )}
     </SafeAreaView>
   );

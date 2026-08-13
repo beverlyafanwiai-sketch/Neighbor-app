@@ -8,6 +8,14 @@ import { useNotificationsStore } from './useNotificationsStore';
 import { useProfileStore } from './useProfileStore';
 import { useSettingsStore } from './useSettingsStore';
 
+export type PollOption = { id: string; text: string };
+
+export type Poll = {
+  question: string;
+  options: PollOption[];
+  votes: Record<string, string>;
+};
+
 export type GroupMessage = {
   id: string;
   senderId: string;
@@ -20,6 +28,7 @@ export type GroupMessage = {
   reactions?: Record<string, ReactionType>;
   forwardedFrom?: string;
   replyToId?: string;
+  poll?: Poll;
 };
 
 export function groupMessageKey(groupId: string, messageId: string) {
@@ -70,6 +79,8 @@ type GroupChatState = {
   updateMessage: (groupId: string, messageId: string, text: string) => void;
   tapReaction: (groupId: string, messageId: string) => void;
   setReaction: (groupId: string, messageId: string, type: ReactionType) => void;
+  sendPoll: (groupId: string, question: string, options: string[]) => void;
+  votePoll: (groupId: string, messageId: string, optionId: string) => void;
 };
 
 const initialMessages: Record<string, GroupMessage[]> = {
@@ -115,7 +126,9 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
       messages: {
         ...s.messages,
         [groupId]: (s.messages[groupId] ?? []).map((m) =>
-          m.id === messageId ? { ...m, text: '', imageUri: undefined, deleted: true } : m
+          m.id === messageId
+            ? { ...m, text: '', imageUri: undefined, poll: undefined, deleted: true }
+            : m
         ),
       },
       pinnedMessageId:
@@ -209,4 +222,60 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
       myReactions: { ...s.myReactions, [key]: s.myReactions[key] === type ? undefined : type },
     }));
   },
+
+  sendPoll: (groupId, question, options) => {
+    const existing = get().messages[groupId] ?? [];
+    const messageId = String(existing.length + 1);
+    const pollOptions: PollOption[] = options.map((text, i) => ({ id: String(i + 1), text }));
+
+    set((s) => {
+      const current = s.messages[groupId] ?? [];
+      const message: GroupMessage = {
+        id: messageId,
+        senderId: ME.id,
+        text: '',
+        time: 'Now',
+        poll: { question, options: pollOptions, votes: {} },
+      };
+      return {
+        messages: { ...s.messages, [groupId]: [...current, message] },
+        lastActivity: { ...s.lastActivity, [groupId]: ++activitySeq },
+      };
+    });
+
+    const group = useGroupsStore.getState().groups.find((g) => g.id === groupId);
+    const otherMemberIds = (group?.memberIds ?? []).filter((id) => id !== ME.id);
+    if (otherMemberIds.length === 0) return;
+    const voterId = otherMemberIds[Math.floor(Math.random() * otherMemberIds.length)];
+
+    setTimeout(() => {
+      set((s) => ({
+        messages: {
+          ...s.messages,
+          [groupId]: (s.messages[groupId] ?? []).map((m) => {
+            if (m.id !== messageId || !m.poll) return m;
+            const chosen = m.poll.options[Math.floor(Math.random() * m.poll.options.length)];
+            return { ...m, poll: { ...m.poll, votes: { ...m.poll.votes, [voterId]: chosen.id } } };
+          }),
+        },
+      }));
+    }, REPLY_DELAY_MS);
+  },
+
+  votePoll: (groupId, messageId, optionId) =>
+    set((s) => ({
+      messages: {
+        ...s.messages,
+        [groupId]: (s.messages[groupId] ?? []).map((m) => {
+          if (m.id !== messageId || !m.poll) return m;
+          const votes = { ...m.poll.votes };
+          if (votes[ME.id] === optionId) {
+            delete votes[ME.id];
+          } else {
+            votes[ME.id] = optionId;
+          }
+          return { ...m, poll: { ...m.poll, votes } };
+        }),
+      },
+    })),
 }));
