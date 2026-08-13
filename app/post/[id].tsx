@@ -22,10 +22,23 @@ import ReactorsSheet from '../../components/ReactorsSheet';
 import ReportPostSheet from '../../components/ReportPostSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser, type CommentItem } from '../../data/mock';
-import { commentKey, getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
+import {
+  commentKey,
+  getEffectiveReactions,
+  getEffectiveReplies,
+  getReactionTotal,
+  usePostsStore,
+} from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 
 const EMPTY_COMMENTS: CommentItem[] = [];
+
+const COMMENT_SORTS = [
+  { value: 'oldest', label: 'Oldest' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'liked', label: 'Most liked' },
+] as const;
+type CommentSort = (typeof COMMENT_SORTS)[number]['value'];
 
 export default function PostDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -60,6 +73,7 @@ export default function PostDetail() {
   const [reporting, setReporting] = useState(false);
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<{ id: string; name: string } | null>(null);
+  const [commentSort, setCommentSort] = useState<CommentSort>('oldest');
 
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
   const author = post ? resolveUser(post.authorId) : undefined;
@@ -95,8 +109,21 @@ export default function PostDetail() {
     setEditingCommentId(null);
   };
 
+  const commentLikeTotal = (c: CommentItem) =>
+    getReactionTotal(getEffectiveReactions(c.reactions, myCommentReactions[commentKey(post.id, c.id)]));
+
+  const topLevelComments = comments.filter((c) => !c.parentId);
+  let sortedTopLevelComments = topLevelComments;
+  if (commentSort === 'newest') {
+    sortedTopLevelComments = [...topLevelComments].reverse();
+  } else if (commentSort === 'liked') {
+    sortedTopLevelComments = [...topLevelComments].sort(
+      (a, b) => commentLikeTotal(b) - commentLikeTotal(a)
+    );
+  }
+
   const commentRows: { comment: CommentItem; isReply: boolean }[] = [];
-  for (const c of comments.filter((c) => !c.parentId)) {
+  for (const c of sortedTopLevelComments) {
     commentRows.push({ comment: c, isReply: false });
     for (const r of comments.filter((r) => r.parentId === c.id)) {
       commentRows.push({ comment: r, isReply: true });
@@ -233,6 +260,31 @@ export default function PostDetail() {
                   />
                 </Pressable>
               </View>
+
+              {topLevelComments.length > 1 && (
+                <View className="flex-row items-center gap-2 border-t border-charcoal/10 pt-3">
+                  <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+                    Sort
+                  </Text>
+                  {COMMENT_SORTS.map((opt) => (
+                    <Pressable
+                      key={opt.value}
+                      onPress={() => setCommentSort(opt.value)}
+                      className={`rounded-full px-3 py-1 ${
+                        commentSort === opt.value ? 'bg-ink' : 'bg-sand'
+                      }`}
+                    >
+                      <Text
+                        className={`text-xs font-medium ${
+                          commentSort === opt.value ? 'text-paper' : 'text-charcoal/60'
+                        }`}
+                      >
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
             </View>
           }
           renderItem={({ item: row }) => {
