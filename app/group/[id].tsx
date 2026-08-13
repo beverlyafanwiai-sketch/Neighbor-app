@@ -6,6 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import InviteGroupSheet from '../../components/InviteGroupSheet';
+import ReportPostSheet from '../../components/ReportPostSheet';
 import { ME, getUser } from '../../data/mock';
 import { getGroupPhotos, useGroupAlbumStore } from '../../store/useGroupAlbumStore';
 import { useEventsStore } from '../../store/useEventsStore';
@@ -44,6 +45,7 @@ export default function GroupDetail() {
   const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [inviting, setInviting] = useState(false);
+  const [reportingGroup, setReportingGroup] = useState(false);
 
   if (!group) {
     return (
@@ -138,6 +140,14 @@ export default function GroupDetail() {
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream"
               >
                 <Ionicons name="trash-outline" size={17} className="text-terracotta" />
+              </Pressable>
+            )}
+            {!isCreator && (
+              <Pressable
+                onPress={() => setReportingGroup(true)}
+                className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+              >
+                <Ionicons name="flag-outline" size={17} className="text-charcoal" />
               </Pressable>
             )}
           </View>
@@ -372,6 +382,14 @@ export default function GroupDetail() {
           groupName={group.name}
           code={inviteCode ?? ''}
           onClose={() => setInviting(false)}
+        />
+      )}
+
+      {reportingGroup && (
+        <ReportPostSheet
+          onClose={() => setReportingGroup(false)}
+          title="Group options"
+          actionLabel="Report this group"
         />
       )}
     </SafeAreaView>
