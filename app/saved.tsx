@@ -18,11 +18,13 @@ import {
   usePostsStore,
 } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
+import { getEffectiveAgreeCount, useRecsStore } from '../store/useRecsStore';
 import { getEffectiveSpots, useRsvpStore } from '../store/useRsvpStore';
 import { useSavedEventsStore } from '../store/useSavedEventsStore';
+import { useSavedRecsStore } from '../store/useSavedRecsStore';
 
 const ALL_PEOPLE = [...USERS, ...DISCOVER_USERS];
-const MODES = ['Posts', 'Events'] as const;
+const MODES = ['Posts', 'Events', 'Recs'] as const;
 type Mode = (typeof MODES)[number];
 
 export default function Saved() {
@@ -40,8 +42,14 @@ export default function Saved() {
   const goingMap = useRsvpStore((s) => s.going);
   const myCheckIns = useCheckInStore((s) => s.myCheckIns);
 
+  const recEntries = useRecsStore((s) => s.entries);
+  const myAgreed = useRecsStore((s) => s.myAgreed);
+  const savedRecIds = useSavedRecsStore((s) => s.savedIds);
+  const toggleSaveRec = useSavedRecsStore((s) => s.toggleSave);
+
   const savedPosts = posts.filter((p) => savedIds[p.id] ?? false);
   const savedEvents = events.filter((e) => savedEventIds[e.id] ?? false);
+  const savedRecs = recEntries.filter((e) => savedRecIds[e.id] ?? false);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -85,6 +93,15 @@ export default function Saved() {
             iconColorClassName="text-charcoal/50"
             title="No saved events"
             subtitle="Tap the bookmark on any event to save it for later."
+          />
+        )}
+
+        {mode === 'Recs' && savedRecs.length === 0 && (
+          <EmptyState
+            icon="bookmark-outline"
+            iconColorClassName="text-charcoal/50"
+            title="No saved recs"
+            subtitle="Tap the bookmark on any board entry to save it for later."
           />
         )}
 
@@ -207,6 +224,58 @@ export default function Saved() {
                         : `${spotsTaken}/${spotsTotal} spots${going ? ' · Going' : isHost ? ' · Hosting' : ''}`}
                     </Text>
                   </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+
+        {mode === 'Recs' && (
+          <View className="gap-3">
+            {savedRecs.map((entry) => {
+              const author = entry.authorId === ME.id ? profile : ALL_PEOPLE.find((u) => u.id === entry.authorId);
+              if (!author) return null;
+              const agreed = myAgreed[entry.id] ?? false;
+              const count = getEffectiveAgreeCount(entry.id, agreed);
+              const isRec = entry.kind === 'rec';
+              return (
+                <Pressable
+                  key={entry.id}
+                  onPress={() => router.push('/recs')}
+                  className="rounded-2xl bg-cream p-4 active:opacity-80"
+                >
+                  <View className="flex-row items-center gap-3">
+                    <View className="h-11 w-11 items-center justify-center rounded-xl bg-sand">
+                      <Text style={{ fontSize: 20 }}>{entry.emoji}</Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="font-semibold text-charcoal">
+                        {isRec ? (entry.name ?? entry.category) : entry.category}
+                      </Text>
+                      <Text className="text-xs text-charcoal/50">
+                        {isRec ? `Recommended by ${author.name}` : `${author.name} is looking`}
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        toggleSaveRec(entry.id);
+                      }}
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons name="bookmark" size={18} className="text-gold" />
+                    </Pressable>
+                  </View>
+                  <Text className="mt-2 text-sm leading-5 text-charcoal/80">{entry.note}</Text>
+                  <Text className="mt-3 border-t border-charcoal/10 pt-3 text-xs text-charcoal/50">
+                    {count === 0
+                      ? isRec
+                        ? 'No agrees yet'
+                        : 'No neighbors yet'
+                      : isRec
+                        ? `+${count} other${count === 1 ? '' : 's'} agree`
+                        : `${count} neighbor${count === 1 ? '' : 's'} can help`}
+                  </Text>
                 </Pressable>
               );
             })}

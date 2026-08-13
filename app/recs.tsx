@@ -7,12 +7,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import EmptyState from '../components/EmptyState';
 import { getUser, ME } from '../data/mock';
 import { getEffectiveAgreeCount, useRecsStore } from '../store/useRecsStore';
+import { useSavedRecsStore } from '../store/useSavedRecsStore';
 
 export default function RecsBoard() {
   const entries = useRecsStore((s) => s.entries);
   const myAgreed = useRecsStore((s) => s.myAgreed);
   const toggleAgree = useRecsStore((s) => s.toggleAgree);
   const deleteEntry = useRecsStore((s) => s.deleteEntry);
+  const savedIds = useSavedRecsStore((s) => s.savedIds);
+  const toggleSave = useSavedRecsStore((s) => s.toggleSave);
   const [categoryFilter, setCategoryFilter] = useState('All');
 
   const categories = ['All', ...Array.from(new Set(entries.map((e) => e.category))).sort()];
@@ -127,6 +130,7 @@ export default function RecsBoard() {
             const agreed = myAgreed[entry.id] ?? false;
             const count = getEffectiveAgreeCount(entry.id, agreed);
             const isRec = entry.kind === 'rec';
+            const saved = savedIds[entry.id] ?? false;
 
             return (
               <View key={entry.id} className="rounded-2xl bg-cream p-4">
@@ -142,6 +146,16 @@ export default function RecsBoard() {
                       {isRec ? `Recommended by ${author.name}` : `${author.name} is looking`}
                     </Text>
                   </View>
+                  <Pressable
+                    onPress={() => toggleSave(entry.id)}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons
+                      name={saved ? 'bookmark' : 'bookmark-outline'}
+                      size={18}
+                      className={saved ? 'text-gold' : 'text-charcoal/40'}
+                    />
+                  </Pressable>
                 </View>
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{entry.note}</Text>
 
