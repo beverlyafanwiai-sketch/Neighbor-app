@@ -124,6 +124,14 @@ export default function GroupDetail() {
                 <Ionicons name="pencil" size={17} className="text-charcoal" />
               </Pressable>
             )}
+            {isAdmin && (
+              <Pressable
+                onPress={() => router.push(`/create-group?duplicateId=${group.id}`)}
+                className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+              >
+                <Ionicons name="copy-outline" size={17} className="text-charcoal" />
+              </Pressable>
+            )}
             {isCreator && (
               <Pressable
                 onPress={() => setConfirmingDelete(true)}

@@ -31,16 +31,24 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateGroup() {
-  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const { id: editId, duplicateId } = useLocalSearchParams<{ id?: string; duplicateId?: string }>();
   const existing = useGroupsStore((s) => (editId ? s.groups.find((g) => g.id === editId) : undefined));
   const isEditing = Boolean(existing);
+  const duplicateSource = useGroupsStore((s) =>
+    duplicateId ? s.groups.find((g) => g.id === duplicateId) : undefined
+  );
+  const isDuplicating = Boolean(duplicateSource) && !isEditing;
   const createGroup = useGroupsStore((s) => s.createGroup);
   const updateGroup = useGroupsStore((s) => s.updateGroup);
 
-  const [name, setName] = useState(existing?.name ?? '');
-  const [description, setDescription] = useState(existing?.description ?? '');
-  const [tone, setTone] = useState<Tone>(existing?.tone ?? 'Casual');
-  const [coverImageUri, setCoverImageUri] = useState(existing?.coverImageUri);
+  const [name, setName] = useState(existing?.name ?? duplicateSource?.name ?? '');
+  const [description, setDescription] = useState(
+    existing?.description ?? duplicateSource?.description ?? ''
+  );
+  const [tone, setTone] = useState<Tone>(existing?.tone ?? duplicateSource?.tone ?? 'Casual');
+  const [coverImageUri, setCoverImageUri] = useState(
+    existing?.coverImageUri ?? duplicateSource?.coverImageUri
+  );
 
   const canSave = name.trim() && description.trim();
 
@@ -75,7 +83,7 @@ export default function CreateGroup() {
           <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">
-          {isEditing ? 'Edit circle' : 'Start a circle'}
+          {isEditing ? 'Edit circle' : isDuplicating ? 'Duplicate circle' : 'Start a circle'}
         </Text>
         <Pressable
           onPress={save}
@@ -94,6 +102,14 @@ export default function CreateGroup() {
             A small circle for people who share something specific — a hobby, a street, a stage of
             life. You'll be the first member.
           </Text>
+
+          {isDuplicating && (
+            <View className="mt-4 rounded-2xl bg-gold/15 px-4 py-3">
+              <Text className="text-sm text-charcoal">
+                Details copied from "{duplicateSource!.name}" — give this circle its own name below.
+              </Text>
+            </View>
+          )}
 
           <View className="mt-5">
             <CoverPhotoPicker imageUri={coverImageUri} onChange={setCoverImageUri} />
