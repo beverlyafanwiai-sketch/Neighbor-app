@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
@@ -58,6 +59,7 @@ export default function GroupChatThread() {
   const [forwardingMessage, setForwardingMessage] = useState<GroupMessage | null>(null);
   const [reportingMessageId, setReportingMessageId] = useState<string | null>(null);
   const [showGallery, setShowGallery] = useState(false);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const listRef = useRef<FlatList>(null);
 
@@ -118,6 +120,17 @@ export default function GroupChatThread() {
     if (!editDraft.trim() || !editingMessageId) return;
     updateMessage(group.id, editingMessageId, editDraft.trim());
     setEditingMessageId(null);
+  };
+
+  const copyMessage = async (messageId: string, text: string) => {
+    try {
+      await Clipboard.setStringAsync(text);
+    } catch {
+      // Clipboard access can fail (unsupported browser, no permission) -- the
+      // copy icon just won't flip to a checkmark in that case.
+    }
+    setCopiedMessageId(messageId);
+    setTimeout(() => setCopiedMessageId((id) => (id === messageId ? null : id)), 1500);
   };
 
   const galleryPhotos = messages
@@ -395,6 +408,18 @@ export default function GroupChatThread() {
                     >
                       <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/40" />
                     </Pressable>
+                    {item.text.length > 0 && (
+                      <Pressable
+                        onPress={() => copyMessage(item.id, item.text)}
+                        className="h-6 w-6 items-center justify-center"
+                      >
+                        <Ionicons
+                          name={copiedMessageId === item.id ? 'checkmark' : 'copy-outline'}
+                          size={13}
+                          className={copiedMessageId === item.id ? 'text-sage' : 'text-charcoal/40'}
+                        />
+                      </Pressable>
+                    )}
                     {isMe ? (
                       <Pressable
                         onPress={() => {
