@@ -454,7 +454,11 @@ export default function PostDetail() {
       </KeyboardAvoidingView>
 
       {sharing && (
-        <ShareSheet postId={post.id} postBody={post.body} onClose={() => setSharing(false)} />
+        <ShareSheet
+          link={`https://neighbor.app/post/${post.id}`}
+          previewText={post.body}
+          onClose={() => setSharing(false)}
+        />
       )}
 
       {reactorsFor && (

@@ -4,14 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 
 type Props = {
-  postId: string;
-  postBody: string;
+  title?: string;
+  link: string;
+  previewText: string;
   onClose: () => void;
 };
 
-export default function ShareSheet({ postId, postBody, onClose }: Props) {
+export default function ShareSheet({ title = 'Share post', link, previewText, onClose }: Props) {
   const [copied, setCopied] = useState(false);
-  const link = `https://neighbor.app/post/${postId}`;
 
   const copyLink = async () => {
     try {
@@ -26,7 +26,7 @@ export default function ShareSheet({ postId, postBody, onClose }: Props) {
 
   const shareNative = async () => {
     try {
-      await Share.share({ message: `${postBody}\n\n${link}` });
+      await Share.share({ message: `${previewText}\n\n${link}` });
     } catch {
       // Share.share rejects when the platform has no share target (most
       // desktop browsers) -- Copy link above is the reliable fallback.
@@ -38,7 +38,7 @@ export default function ShareSheet({ postId, postBody, onClose }: Props) {
       <Pressable className="absolute inset-0" onPress={onClose} />
       <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
         <View className="flex-row items-center justify-between">
-          <Text className="text-base font-bold text-charcoal">Share post</Text>
+          <Text className="text-base font-bold text-charcoal">{title}</Text>
           <Pressable
             onPress={onClose}
             className="h-8 w-8 items-center justify-center rounded-full bg-sand"
@@ -48,7 +48,7 @@ export default function ShareSheet({ postId, postBody, onClose }: Props) {
         </View>
 
         <Text className="text-sm text-charcoal/60" numberOfLines={2}>
-          {postBody}
+          {previewText}
         </Text>
 
         <Pressable

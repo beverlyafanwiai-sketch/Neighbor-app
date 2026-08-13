@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser } from '../../data/mock';
 import { addEventToCalendar } from '../../lib/ics';
 import { formatOccurrence, getUpcomingOccurrences, RECURRENCE_LABEL } from '../../lib/recurrence';
@@ -52,6 +53,7 @@ export default function EventDetail() {
   const [offerNote, setOfferNote] = useState('');
   const [requestingRide, setRequestingRide] = useState(false);
   const [requestNote, setRequestNote] = useState('');
+  const [sharing, setSharing] = useState(false);
 
   if (!event) {
     return (
@@ -288,6 +290,14 @@ export default function EventDetail() {
               </Pressable>
             )
           )}
+
+          <Pressable
+            onPress={() => setSharing(true)}
+            className="mt-3 flex-row items-center justify-center gap-1.5 rounded-full border border-charcoal/15 py-3 active:opacity-70"
+          >
+            <Ionicons name="arrow-redo-outline" size={16} className="text-charcoal" />
+            <Text className="text-sm font-semibold text-charcoal">Share</Text>
+          </Pressable>
 
           {!isPast && (
             <Pressable
@@ -612,6 +622,15 @@ export default function EventDetail() {
           </>
         )}
       </ScrollView>
+
+      {sharing && (
+        <ShareSheet
+          title="Share event"
+          link={`https://neighbor.app/event/${event.id}`}
+          previewText={`${event.title} — ${event.date}, ${event.time} at ${event.location}`}
+          onClose={() => setSharing(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }

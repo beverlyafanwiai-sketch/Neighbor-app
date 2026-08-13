@@ -662,8 +662,8 @@ export default function HomeFeed() {
 
       {sharingPost && (
         <ShareSheet
-          postId={sharingPost.id}
-          postBody={sharingPost.body}
+          link={`https://neighbor.app/post/${sharingPost.id}`}
+          previewText={sharingPost.body}
           onClose={() => setSharingPost(null)}
         />
       )}
