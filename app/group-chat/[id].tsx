@@ -21,6 +21,7 @@ import MentionText from '../../components/MentionText';
 import MentionTextInput from '../../components/MentionTextInput';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
+import ReportPostSheet from '../../components/ReportPostSheet';
 import { ME, getUser } from '../../data/mock';
 import { useConversationsStore } from '../../store/useConversationsStore';
 import { isGroupAdmin, memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
@@ -54,6 +55,7 @@ export default function GroupChatThread() {
   const [editDraft, setEditDraft] = useState('');
   const [reactorsFor, setReactorsFor] = useState<string | null>(null);
   const [forwardingMessage, setForwardingMessage] = useState<GroupMessage | null>(null);
+  const [reportingMessageId, setReportingMessageId] = useState<string | null>(null);
 
   useEffect(() => {
     if (group) markRead(group.id);
@@ -360,7 +362,7 @@ export default function GroupChatThread() {
                     >
                       <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/40" />
                     </Pressable>
-                    {isMe && (
+                    {isMe ? (
                       <Pressable
                         onPress={() => {
                           setEditingMessageId(item.id);
@@ -369,6 +371,13 @@ export default function GroupChatThread() {
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons name="pencil" size={13} className="text-charcoal/40" />
+                      </Pressable>
+                    ) : (
+                      <Pressable
+                        onPress={() => setReportingMessageId(item.id)}
+                        className="h-6 w-6 items-center justify-center"
+                      >
+                        <Ionicons name="ellipsis-horizontal" size={14} className="text-charcoal/40" />
                       </Pressable>
                     )}
                   </View>
@@ -460,6 +469,14 @@ export default function GroupChatThread() {
           excludeGroupId={group.id}
           onForward={handleForward}
           onClose={() => setForwardingMessage(null)}
+        />
+      )}
+
+      {reportingMessageId && (
+        <ReportPostSheet
+          onClose={() => setReportingMessageId(null)}
+          title="Message options"
+          actionLabel="Report this message"
         />
       )}
     </SafeAreaView>

@@ -21,6 +21,7 @@ import MentionText from '../../components/MentionText';
 import MentionTextInput from '../../components/MentionTextInput';
 import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
+import ReportPostSheet from '../../components/ReportPostSheet';
 import { getUser, type Message } from '../../data/mock';
 import { messageKey, useConversationsStore } from '../../store/useConversationsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
@@ -45,6 +46,7 @@ export default function ChatThread() {
   const [editDraft, setEditDraft] = useState('');
   const [reactorsFor, setReactorsFor] = useState<string | null>(null);
   const [forwardingMessage, setForwardingMessage] = useState<Message | null>(null);
+  const [reportingMessageId, setReportingMessageId] = useState<string | null>(null);
   const [searching, setSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [matchIndex, setMatchIndex] = useState(0);
@@ -348,7 +350,7 @@ export default function ChatThread() {
                     >
                       <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/40" />
                     </Pressable>
-                    {isMine && (
+                    {isMine ? (
                       <Pressable
                         onPress={() => {
                           setEditingMessageId(item.id);
@@ -357,6 +359,13 @@ export default function ChatThread() {
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons name="pencil" size={13} className="text-charcoal/40" />
+                      </Pressable>
+                    ) : (
+                      <Pressable
+                        onPress={() => setReportingMessageId(item.id)}
+                        className="h-6 w-6 items-center justify-center"
+                      >
+                        <Ionicons name="ellipsis-horizontal" size={14} className="text-charcoal/40" />
                       </Pressable>
                     )}
                   </View>
@@ -446,6 +455,14 @@ export default function ChatThread() {
           excludeConversationId={conversation.id}
           onForward={handleForward}
           onClose={() => setForwardingMessage(null)}
+        />
+      )}
+
+      {reportingMessageId && (
+        <ReportPostSheet
+          onClose={() => setReportingMessageId(null)}
+          title="Message options"
+          actionLabel="Report this message"
         />
       )}
     </SafeAreaView>
