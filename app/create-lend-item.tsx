@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { LendItemKind } from '../data/mock';
@@ -31,17 +31,26 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateLendItem() {
+  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const existing = useLendStore((s) => (editId ? s.items.find((i) => i.id === editId) : undefined));
+  const isEditing = Boolean(existing);
   const createItem = useLendStore((s) => s.createItem);
+  const updateItem = useLendStore((s) => s.updateItem);
 
-  const [kind, setKind] = useState<LendItemKind>('have');
-  const [emoji, setEmoji] = useState('📦');
-  const [title, setTitle] = useState('');
-  const [note, setNote] = useState('');
+  const [kind, setKind] = useState<LendItemKind>(existing?.kind ?? 'have');
+  const [emoji, setEmoji] = useState(existing?.emoji ?? '📦');
+  const [title, setTitle] = useState(existing?.title ?? '');
+  const [note, setNote] = useState(existing?.note ?? '');
 
   const canSave = title.trim() && note.trim();
 
   const save = () => {
     if (!canSave) return;
+    if (existing) {
+      updateItem(existing.id, { kind, emoji, title: title.trim(), note: note.trim() });
+      router.replace('/lend');
+      return;
+    }
     createItem({ kind, emoji, title: title.trim(), note: note.trim() });
     router.replace('/lend');
   };
@@ -55,14 +64,16 @@ export default function CreateLendItem() {
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
-        <Text className="text-base font-bold text-charcoal">Post an item</Text>
+        <Text className="text-base font-bold text-charcoal">
+          {isEditing ? 'Edit item' : 'Post an item'}
+        </Text>
         <Pressable
           onPress={save}
           disabled={!canSave}
           className={`rounded-full px-4 py-2 ${canSave ? 'bg-terracotta' : 'bg-ink/10'}`}
         >
           <Text className={`text-sm font-semibold ${canSave ? 'text-paper' : 'text-charcoal/40'}`}>
-            Post
+            {isEditing ? 'Save' : 'Post'}
           </Text>
         </Pressable>
       </View>

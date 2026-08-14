@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useSaleStore } from '../store/useSaleStore';
@@ -25,17 +25,26 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateSaleItem() {
+  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const existing = useSaleStore((s) => (editId ? s.items.find((i) => i.id === editId) : undefined));
+  const isEditing = Boolean(existing);
   const createItem = useSaleStore((s) => s.createItem);
+  const updateItem = useSaleStore((s) => s.updateItem);
 
-  const [emoji, setEmoji] = useState('📦');
-  const [title, setTitle] = useState('');
-  const [price, setPrice] = useState('');
-  const [note, setNote] = useState('');
+  const [emoji, setEmoji] = useState(existing?.emoji ?? '📦');
+  const [title, setTitle] = useState(existing?.title ?? '');
+  const [price, setPrice] = useState(existing?.price ?? '');
+  const [note, setNote] = useState(existing?.note ?? '');
 
   const canSave = title.trim() && price.trim() && note.trim();
 
   const save = () => {
     if (!canSave) return;
+    if (existing) {
+      updateItem(existing.id, { emoji, title: title.trim(), price: price.trim(), note: note.trim() });
+      router.replace('/for-sale');
+      return;
+    }
     createItem({ emoji, title: title.trim(), price: price.trim(), note: note.trim() });
     router.replace('/for-sale');
   };
@@ -49,14 +58,16 @@ export default function CreateSaleItem() {
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
-        <Text className="text-base font-bold text-charcoal">List an item</Text>
+        <Text className="text-base font-bold text-charcoal">
+          {isEditing ? 'Edit listing' : 'List an item'}
+        </Text>
         <Pressable
           onPress={save}
           disabled={!canSave}
           className={`rounded-full px-4 py-2 ${canSave ? 'bg-terracotta' : 'bg-ink/10'}`}
         >
           <Text className={`text-sm font-semibold ${canSave ? 'text-paper' : 'text-charcoal/40'}`}>
-            Post
+            {isEditing ? 'Save' : 'Post'}
           </Text>
         </Pressable>
       </View>

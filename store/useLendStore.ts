@@ -26,6 +26,7 @@ type LendState = {
   pendingRequesterId: Record<string, string>;
   myOffers: Record<string, boolean>;
   createItem: (input: NewLendItemInput) => string;
+  updateItem: (itemId: string, updates: Partial<NewLendItemInput>) => void;
   requestToBorrow: (itemId: string) => void;
   cancelRequest: (itemId: string) => void;
   approveRequest: (itemId: string) => void;
@@ -160,6 +161,11 @@ export const useLendStore = create<LendState>((set, get) => ({
       }
     }, OFFER_THANKS_DELAY_MS);
   },
+
+  updateItem: (itemId, updates) =>
+    set((s) => ({
+      items: s.items.map((i) => (i.id === itemId ? { ...i, ...updates } : i)),
+    })),
 
   deleteItem: (itemId) => set((s) => ({ items: s.items.filter((i) => i.id !== itemId) })),
 }));

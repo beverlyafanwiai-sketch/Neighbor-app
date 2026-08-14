@@ -99,6 +99,12 @@ export default function ForSaleBoard() {
                         <Ionicons name="arrow-redo-outline" size={16} className="text-charcoal/50" />
                       </Pressable>
                       <Pressable
+                        onPress={() => router.push(`/create-sale-item?id=${item.id}`)}
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="pencil" size={16} className="text-charcoal/50" />
+                      </Pressable>
+                      <Pressable
                         onPress={() => setDeletingItemId(item.id)}
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >

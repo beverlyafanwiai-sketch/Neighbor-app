@@ -19,6 +19,7 @@ type SaleState = {
   sold: Record<string, boolean>;
   myInterest: Record<string, boolean>;
   createItem: (input: NewSaleItemInput) => string;
+  updateItem: (itemId: string, updates: Partial<NewSaleItemInput>) => void;
   toggleInterest: (itemId: string) => void;
   markSold: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
@@ -91,6 +92,11 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   },
 
   markSold: (itemId) => set((s) => ({ sold: { ...s.sold, [itemId]: true } })),
+
+  updateItem: (itemId, updates) =>
+    set((s) => ({
+      items: s.items.map((i) => (i.id === itemId ? { ...i, ...updates } : i)),
+    })),
 
   deleteItem: (itemId) => set((s) => ({ items: s.items.filter((i) => i.id !== itemId) })),
 }));
