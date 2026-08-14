@@ -22,15 +22,38 @@ export type NewEventInput = {
   hostGroupId?: string;
 };
 
+export type EventDraft = {
+  id: string;
+  title: string;
+  day: string;
+  month: string;
+  time: string;
+  location: string;
+  description: string;
+  category: EventCategory;
+  spotsTotal: number;
+  coverImageUri?: string;
+  recurrence?: EventRecurrence;
+  groupId?: string;
+  updatedAt: number;
+};
+
+type EventDraftInput = Omit<EventDraft, 'updatedAt' | 'id'> & { id?: string };
+
 type EventsState = {
   events: EventItem[];
+  drafts: EventDraft[];
   getEvent: (id: string) => EventItem | undefined;
   createEvent: (input: NewEventInput) => string;
   updateEvent: (id: string, updates: Partial<NewEventInput>) => void;
   deleteEvent: (id: string) => void;
   decrementSpotsTaken: (id: string) => void;
   skipNextOccurrence: (id: string) => void;
+  saveDraft: (input: EventDraftInput) => string;
+  deleteDraft: (id: string) => void;
 };
+
+let eventDraftSeq = 0;
 
 function slugify(title: string) {
   return (
@@ -44,6 +67,7 @@ function slugify(title: string) {
 
 export const useEventsStore = create<EventsState>((set, get) => ({
   events: EVENTS,
+  drafts: [],
 
   getEvent: (id) => get().events.find((e) => e.id === id),
 
@@ -132,4 +156,21 @@ export const useEventsStore = create<EventsState>((set, get) => ({
         e.id === id ? { ...e, skipCount: (e.skipCount ?? 0) + 1 } : e
       ),
     })),
+
+  saveDraft: (input) => {
+    const draftId = input.id ?? `event-draft-${++eventDraftSeq}`;
+    const updatedAt = Date.now();
+    set((s) => {
+      const draft: EventDraft = { ...input, id: draftId, updatedAt };
+      const exists = s.drafts.some((d) => d.id === draftId);
+      return {
+        drafts: exists
+          ? s.drafts.map((d) => (d.id === draftId ? draft : d))
+          : [draft, ...s.drafts],
+      };
+    });
+    return draftId;
+  },
+
+  deleteDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
 }));

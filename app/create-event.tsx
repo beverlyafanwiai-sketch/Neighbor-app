@@ -35,38 +35,60 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateEvent() {
-  const { id: editId, groupId, duplicateId } = useLocalSearchParams<{
+  const { id: editId, groupId, duplicateId, draftId } = useLocalSearchParams<{
     id?: string;
     groupId?: string;
     duplicateId?: string;
+    draftId?: string;
   }>();
   const existing = useEventsStore((s) => (editId ? s.events.find((e) => e.id === editId) : undefined));
   const duplicateSource = useEventsStore((s) =>
     duplicateId ? s.events.find((e) => e.id === duplicateId) : undefined
   );
-  const hostGroup = useGroupsStore((s) => (groupId ? s.groups.find((g) => g.id === groupId) : undefined));
+  const existingDraft = useEventsStore((s) =>
+    draftId ? s.drafts.find((d) => d.id === draftId) : undefined
+  );
+  const hostGroup = useGroupsStore((s) =>
+    s.groups.find((g) => g.id === (groupId ?? existingDraft?.groupId))
+  );
   const isEditing = Boolean(existing);
   const isDuplicating = Boolean(duplicateSource) && !isEditing;
   const createEvent = useEventsStore((s) => s.createEvent);
   const updateEvent = useEventsStore((s) => s.updateEvent);
+  const saveDraft = useEventsStore((s) => s.saveDraft);
+  const deleteDraft = useEventsStore((s) => s.deleteDraft);
   const toggleRsvp = useRsvpStore((s) => s.toggle);
 
-  const [title, setTitle] = useState(existing?.title ?? duplicateSource?.title ?? '');
-  const [day, setDay] = useState(existing?.day ?? '');
-  const [month, setMonth] = useState(existing?.month ?? '');
-  const [time, setTime] = useState(existing?.time ?? duplicateSource?.time ?? '');
-  const [location, setLocation] = useState(existing?.location ?? duplicateSource?.location ?? '');
-  const [description, setDescription] = useState(existing?.description ?? duplicateSource?.description ?? '');
+  const [title, setTitle] = useState(existing?.title ?? duplicateSource?.title ?? existingDraft?.title ?? '');
+  const [day, setDay] = useState(existing?.day ?? existingDraft?.day ?? '');
+  const [month, setMonth] = useState(existing?.month ?? existingDraft?.month ?? '');
+  const [time, setTime] = useState(existing?.time ?? duplicateSource?.time ?? existingDraft?.time ?? '');
+  const [location, setLocation] = useState(
+    existing?.location ?? duplicateSource?.location ?? existingDraft?.location ?? ''
+  );
+  const [description, setDescription] = useState(
+    existing?.description ?? duplicateSource?.description ?? existingDraft?.description ?? ''
+  );
   const [category, setCategory] = useState<EventCategory>(
-    existing?.category ?? duplicateSource?.category ?? 'Social'
+    existing?.category ?? duplicateSource?.category ?? existingDraft?.category ?? 'Social'
   );
   const [recurrence, setRecurrence] = useState<EventRecurrence | undefined>(
-    existing?.recurrence ?? duplicateSource?.recurrence
+    existing?.recurrence ?? duplicateSource?.recurrence ?? existingDraft?.recurrence
   );
-  const [spotsTotal, setSpotsTotal] = useState(existing?.spotsTotal ?? duplicateSource?.spotsTotal ?? 8);
-  const [coverImageUri, setCoverImageUri] = useState(existing?.coverImageUri ?? duplicateSource?.coverImageUri);
+  const [spotsTotal, setSpotsTotal] = useState(
+    existing?.spotsTotal ?? duplicateSource?.spotsTotal ?? existingDraft?.spotsTotal ?? 8
+  );
+  const [coverImageUri, setCoverImageUri] = useState(
+    existing?.coverImageUri ?? duplicateSource?.coverImageUri ?? existingDraft?.coverImageUri
+  );
+  const [confirmingClose, setConfirmingClose] = useState(false);
 
   const canSave = title.trim() && day.trim() && month.trim() && time.trim() && location.trim();
+  const hasUnsavedContent =
+    !isEditing &&
+    Boolean(
+      title.trim() || day.trim() || month.trim() || location.trim() || description.trim()
+    );
 
   const save = () => {
     if (!canSave) return;
@@ -102,14 +124,46 @@ export default function CreateEvent() {
       hostGroupId: hostGroup?.id,
     });
     toggleRsvp(id);
+    if (draftId) deleteDraft(draftId);
     router.replace(`/event/${id}`);
+  };
+
+  const close = () => {
+    if (isEditing || !hasUnsavedContent) {
+      router.back();
+      return;
+    }
+    setConfirmingClose(true);
+  };
+
+  const discardAndClose = () => {
+    if (draftId) deleteDraft(draftId);
+    router.back();
+  };
+
+  const saveDraftAndClose = () => {
+    saveDraft({
+      id: draftId,
+      title: title.trim(),
+      day: day.trim(),
+      month: month.trim(),
+      time: time.trim(),
+      location: location.trim(),
+      description: description.trim(),
+      category,
+      recurrence,
+      spotsTotal,
+      coverImageUri,
+      groupId: hostGroup?.id,
+    });
+    router.back();
   };
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={close}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
@@ -133,6 +187,23 @@ export default function CreateEvent() {
           </Text>
         </Pressable>
       </View>
+
+      {confirmingClose && (
+        <View className="gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="text-sm text-charcoal">Save this as a draft, or discard it?</Text>
+          <View className="flex-row justify-end gap-4">
+            <Pressable onPress={() => setConfirmingClose(false)}>
+              <Text className="text-sm font-medium text-charcoal/60">Keep editing</Text>
+            </Pressable>
+            <Pressable onPress={discardAndClose}>
+              <Text className="text-sm font-semibold text-terracotta">Discard</Text>
+            </Pressable>
+            <Pressable onPress={saveDraftAndClose}>
+              <Text className="text-sm font-semibold text-sage">Save draft</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">

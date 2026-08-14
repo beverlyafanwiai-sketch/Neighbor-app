@@ -32,6 +32,7 @@ export default function Events() {
   const [view, setView] = useState<'list' | 'calendar'>('list');
   const profile = useProfileStore((s) => s.profile);
   const events = useEventsStore((s) => s.events);
+  const eventDrafts = useEventsStore((s) => s.drafts);
   const goingMap = useRsvpStore((s) => s.going);
   const waitlistMap = useRsvpStore((s) => s.waitlisted);
   const toggleRsvp = useRsvpStore((s) => s.toggle);
@@ -112,6 +113,14 @@ export default function Events() {
                 />
               </Pressable>
             </View>
+          )}
+          {eventDrafts.length > 0 && (
+            <Pressable
+              onPress={() => router.push('/drafts')}
+              className="h-10 w-10 items-center justify-center rounded-full bg-cream"
+            >
+              <Ionicons name="document-text-outline" size={18} className="text-terracotta" />
+            </Pressable>
           )}
           <Pressable
             onPress={() => router.push('/create-event')}
