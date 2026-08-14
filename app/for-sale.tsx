@@ -11,6 +11,14 @@ import { getUser, ME } from '../data/mock';
 import { getEffectiveInterestCount, getEffectiveInterestedIds, useSaleStore } from '../store/useSaleStore';
 import { useProfileStore } from '../store/useProfileStore';
 
+const SALE_SORTS = ['Newest', 'Most interest', 'Price: low to high'] as const;
+type SaleSort = (typeof SALE_SORTS)[number];
+
+function parsePrice(price: string) {
+  const n = parseFloat(price.replace(/[^0-9.]/g, ''));
+  return Number.isNaN(n) ? Infinity : n;
+}
+
 export default function ForSaleBoard() {
   const items = useSaleStore((s) => s.items);
   const sold = useSaleStore((s) => s.sold);
@@ -24,9 +32,20 @@ export default function ForSaleBoard() {
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [reportingId, setReportingId] = useState<string | null>(null);
   const [viewingInterestedId, setViewingInterestedId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SaleSort>('Newest');
 
   const myItems = items.filter((i) => i.ownerId === ME.id);
-  const boardItems = items.filter((i) => i.ownerId !== ME.id);
+  const unsortedBoardItems = items.filter((i) => i.ownerId !== ME.id);
+  const boardItems =
+    sortBy === 'Most interest'
+      ? [...unsortedBoardItems].sort(
+          (a, b) =>
+            getEffectiveInterestCount(b.id, myInterest[b.id] ?? false) -
+            getEffectiveInterestCount(a.id, myInterest[a.id] ?? false)
+        )
+      : sortBy === 'Price: low to high'
+        ? [...unsortedBoardItems].sort((a, b) => parsePrice(a.price) - parsePrice(b.price))
+        : unsortedBoardItems;
   const sharingItem = items.find((i) => i.id === sharingId);
   const viewingInterestedItem = items.find((i) => i.id === viewingInterestedId);
   const viewingInterestedIds = viewingInterestedItem
@@ -58,6 +77,27 @@ export default function ForSaleBoard() {
         <Text className="mt-1 text-sm text-charcoal/60">
           Selling something you don't need? Post it here for neighbors to grab.
         </Text>
+
+        {unsortedBoardItems.length > 1 && (
+          <View className="mt-4 flex-row items-center gap-2">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+              Sort
+            </Text>
+            {SALE_SORTS.map((s) => (
+              <Pressable
+                key={s}
+                onPress={() => setSortBy(s)}
+                className={`rounded-full px-3 py-1 ${sortBy === s ? 'bg-ink' : 'bg-sand'}`}
+              >
+                <Text
+                  className={`text-xs font-medium ${sortBy === s ? 'text-paper' : 'text-charcoal/60'}`}
+                >
+                  {s}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
 
         {myItems.length > 0 && (
           <>

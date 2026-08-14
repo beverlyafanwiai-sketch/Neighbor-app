@@ -11,6 +11,9 @@ import { getUser, ME } from '../data/mock';
 import { getEffectiveHelperCount, getEffectiveHelperIds, useLendStore } from '../store/useLendStore';
 import { useProfileStore } from '../store/useProfileStore';
 
+const LEND_SORTS = ['Newest', 'A-Z'] as const;
+type LendSort = (typeof LEND_SORTS)[number];
+
 export default function LendBoard() {
   const items = useLendStore((s) => s.items);
   const status = useLendStore((s) => s.status);
@@ -31,9 +34,14 @@ export default function LendBoard() {
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [reportingId, setReportingId] = useState<string | null>(null);
   const [viewingHelpersId, setViewingHelpersId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<LendSort>('Newest');
 
   const myItems = items.filter((i) => i.ownerId === ME.id);
-  const boardItems = items.filter((i) => i.ownerId !== ME.id);
+  const unsortedBoardItems = items.filter((i) => i.ownerId !== ME.id);
+  const boardItems =
+    sortBy === 'A-Z'
+      ? [...unsortedBoardItems].sort((a, b) => a.title.localeCompare(b.title))
+      : unsortedBoardItems;
   const sharingItem = items.find((i) => i.id === sharingId);
   const viewingHelpersItem = items.find((i) => i.id === viewingHelpersId);
   const viewingHelpersIds = viewingHelpersItem
@@ -65,6 +73,27 @@ export default function LendBoard() {
         <Text className="mt-1 text-sm text-charcoal/60">
           Lend a hand, borrow a tool. No need to own everything when your neighbors already do.
         </Text>
+
+        {unsortedBoardItems.length > 1 && (
+          <View className="mt-4 flex-row items-center gap-2">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+              Sort
+            </Text>
+            {LEND_SORTS.map((s) => (
+              <Pressable
+                key={s}
+                onPress={() => setSortBy(s)}
+                className={`rounded-full px-3 py-1 ${sortBy === s ? 'bg-ink' : 'bg-sand'}`}
+              >
+                <Text
+                  className={`text-xs font-medium ${sortBy === s ? 'text-paper' : 'text-charcoal/60'}`}
+                >
+                  {s}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
 
         {myItems.length > 0 && (
           <>
