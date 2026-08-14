@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -33,6 +33,7 @@ type Mode = (typeof MODES)[number];
 
 export default function Saved() {
   const [mode, setMode] = useState<Mode>('Posts');
+  const [query, setQuery] = useState('');
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
@@ -63,11 +64,23 @@ export default function Saved() {
   const savedSaleIds = useSavedSaleStore((s) => s.savedIds);
   const toggleSaveSale = useSavedSaleStore((s) => s.toggleSave);
 
-  const savedPosts = posts.filter((p) => savedIds[p.id] ?? false);
-  const savedEvents = events.filter((e) => savedEventIds[e.id] ?? false);
-  const savedRecs = recEntries.filter((e) => savedRecIds[e.id] ?? false);
-  const savedLendItems = lendItems.filter((i) => savedLendIds[i.id] ?? false);
-  const savedSaleItems = saleItems.filter((i) => savedSaleIds[i.id] ?? false);
+  const q = query.trim().toLowerCase();
+  const matches = (...fields: (string | undefined)[]) =>
+    q.length === 0 || fields.some((f) => (f ?? '').toLowerCase().includes(q));
+
+  const savedPosts = posts.filter((p) => (savedIds[p.id] ?? false) && matches(p.body));
+  const savedEvents = events.filter(
+    (e) => (savedEventIds[e.id] ?? false) && matches(e.title, e.location)
+  );
+  const savedRecs = recEntries.filter(
+    (e) => (savedRecIds[e.id] ?? false) && matches(e.name, e.category, e.note)
+  );
+  const savedLendItems = lendItems.filter(
+    (i) => (savedLendIds[i.id] ?? false) && matches(i.title, i.note)
+  );
+  const savedSaleItems = saleItems.filter(
+    (i) => (savedSaleIds[i.id] ?? false) && matches(i.title, i.note)
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -95,49 +108,87 @@ export default function Saved() {
         ))}
       </View>
 
+      <View className="px-5 pb-3">
+        <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">
+          <Ionicons name="search" size={18} className="text-charcoal/50" />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search saved..."
+            placeholderTextColor="#3D3D3D80"
+            className="ml-2 flex-1 text-charcoal"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={() => setQuery('')}>
+              <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
+            </Pressable>
+          )}
+        </View>
+      </View>
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8 pt-2">
         {mode === 'Posts' && savedPosts.length === 0 && (
           <EmptyState
-            icon="bookmark-outline"
+            icon={q.length > 0 ? 'search-outline' : 'bookmark-outline'}
             iconColorClassName="text-charcoal/50"
-            title="Nothing saved yet"
-            subtitle="Tap the bookmark on any post to save it for later."
+            title={q.length > 0 ? `No results for "${query.trim()}"` : 'Nothing saved yet'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Tap the bookmark on any post to save it for later.'
+            }
           />
         )}
 
         {mode === 'Events' && savedEvents.length === 0 && (
           <EmptyState
-            icon="bookmark-outline"
+            icon={q.length > 0 ? 'search-outline' : 'bookmark-outline'}
             iconColorClassName="text-charcoal/50"
-            title="No saved events"
-            subtitle="Tap the bookmark on any event to save it for later."
+            title={q.length > 0 ? `No results for "${query.trim()}"` : 'No saved events'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Tap the bookmark on any event to save it for later.'
+            }
           />
         )}
 
         {mode === 'Recs' && savedRecs.length === 0 && (
           <EmptyState
-            icon="bookmark-outline"
+            icon={q.length > 0 ? 'search-outline' : 'bookmark-outline'}
             iconColorClassName="text-charcoal/50"
-            title="No saved recs"
-            subtitle="Tap the bookmark on any board entry to save it for later."
+            title={q.length > 0 ? `No results for "${query.trim()}"` : 'No saved recs'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Tap the bookmark on any board entry to save it for later.'
+            }
           />
         )}
 
         {mode === 'Lend' && savedLendItems.length === 0 && (
           <EmptyState
-            icon="bookmark-outline"
+            icon={q.length > 0 ? 'search-outline' : 'bookmark-outline'}
             iconColorClassName="text-charcoal/50"
-            title="No saved items"
-            subtitle="Tap the bookmark on any Borrow & Lend listing to save it for later."
+            title={q.length > 0 ? `No results for "${query.trim()}"` : 'No saved items'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Tap the bookmark on any Borrow & Lend listing to save it for later.'
+            }
           />
         )}
 
         {mode === 'For Sale' && savedSaleItems.length === 0 && (
           <EmptyState
-            icon="bookmark-outline"
+            icon={q.length > 0 ? 'search-outline' : 'bookmark-outline'}
             iconColorClassName="text-charcoal/50"
-            title="No saved listings"
-            subtitle="Tap the bookmark on any For Sale listing to save it for later."
+            title={q.length > 0 ? `No results for "${query.trim()}"` : 'No saved listings'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Tap the bookmark on any For Sale listing to save it for later.'
+            }
           />
         )}
 
