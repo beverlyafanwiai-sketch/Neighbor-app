@@ -32,6 +32,7 @@ export default function GroupDetail() {
   const deleteGroup = useGroupsStore((s) => s.deleteGroup);
   const promoteCoAdmin = useGroupsStore((s) => s.promoteCoAdmin);
   const demoteCoAdmin = useGroupsStore((s) => s.demoteCoAdmin);
+  const removeMember = useGroupsStore((s) => s.removeMember);
   const pinnedMessageId = useGroupChatStore((s) => (group ? s.pinnedMessageId[group.id] : undefined));
   const pinnedMessage = useGroupChatStore((s) =>
     group ? (s.messages[group.id] ?? []).find((m) => m.id === pinnedMessageId) : undefined
@@ -50,6 +51,7 @@ export default function GroupDetail() {
   const [reportingGroup, setReportingGroup] = useState(false);
   const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
   const [confirmingRemovePhotoId, setConfirmingRemovePhotoId] = useState<string | null>(null);
+  const [confirmingRemoveMemberId, setConfirmingRemoveMemberId] = useState<string | null>(null);
 
   if (!group) {
     return (
@@ -317,6 +319,31 @@ export default function GroupDetail() {
             const isMe = m!.id === ME.id;
             const isMemberCreator = m!.id === group.createdBy;
             const isMemberCoAdmin = (group.coAdminIds ?? []).includes(m!.id);
+            const canRemove = isCreator && !isMe && !isMemberCreator;
+
+            if (confirmingRemoveMemberId === m!.id) {
+              return (
+                <View key={m!.id} className="gap-2 rounded-2xl bg-terracotta/10 p-4">
+                  <Text className="text-sm text-charcoal">
+                    Remove {m!.name} from the group?
+                  </Text>
+                  <View className="flex-row justify-end gap-4">
+                    <Pressable onPress={() => setConfirmingRemoveMemberId(null)}>
+                      <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        removeMember(group.id, m!.id);
+                        setConfirmingRemoveMemberId(null);
+                      }}
+                    >
+                      <Text className="text-sm font-semibold text-terracotta">Remove</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            }
+
             return (
               <Pressable
                 key={m!.id}
@@ -357,6 +384,17 @@ export default function GroupDetail() {
                     className="rounded-full bg-sand px-3 py-1.5"
                   >
                     <Text className="text-xs font-semibold text-charcoal">Make co-admin</Text>
+                  </Pressable>
+                )}
+                {canRemove && (
+                  <Pressable
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      setConfirmingRemoveMemberId(m!.id);
+                    }}
+                    className="h-8 w-8 items-center justify-center rounded-full"
+                  >
+                    <Ionicons name="person-remove-outline" size={16} className="text-terracotta" />
                   </Pressable>
                 )}
               </Pressable>

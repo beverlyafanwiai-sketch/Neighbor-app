@@ -26,6 +26,7 @@ type GroupsState = {
   deleteGroup: (groupId: string) => void;
   promoteCoAdmin: (groupId: string, userId: string) => void;
   demoteCoAdmin: (groupId: string, userId: string) => void;
+  removeMember: (groupId: string, userId: string) => void;
   joinByInviteCode: (code: string) => string | null;
 };
 
@@ -141,6 +142,20 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
       groups: s.groups.map((g) =>
         g.id === groupId
           ? { ...g, coAdminIds: (g.coAdminIds ?? []).filter((id) => id !== userId) }
+          : g
+      ),
+    })),
+
+  removeMember: (groupId, userId) =>
+    set((s) => ({
+      groups: s.groups.map((g) =>
+        g.id === groupId
+          ? {
+              ...g,
+              memberIds: g.memberIds.filter((id) => id !== userId),
+              coAdminIds: (g.coAdminIds ?? []).filter((id) => id !== userId),
+              memberCount: Math.max(0, g.memberCount - 1),
+            }
           : g
       ),
     })),
