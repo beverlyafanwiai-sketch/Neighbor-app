@@ -495,6 +495,10 @@ export type EventItem = {
   spotsTotal: number;
   attendeeIds: string[];
   status: 'upcoming' | 'past';
+  // A cancelled event keeps its 'upcoming' status (so it stays visible in
+  // the same lists) but is flagged separately, distinct from deleteEvent
+  // which removes it entirely.
+  cancelled?: boolean;
   // Baseline "who's checked in" list from other attendees — ME's own
   // check-in lives in useCheckInStore instead, since it's something ME
   // actually toggles.

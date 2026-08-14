@@ -47,6 +47,8 @@ type EventsState = {
   createEvent: (input: NewEventInput) => string;
   updateEvent: (id: string, updates: Partial<NewEventInput>) => void;
   deleteEvent: (id: string) => void;
+  cancelEvent: (id: string) => void;
+  reinstateEvent: (id: string) => void;
   decrementSpotsTaken: (id: string) => void;
   skipNextOccurrence: (id: string) => void;
   saveDraft: (input: EventDraftInput) => string;
@@ -142,6 +144,16 @@ export const useEventsStore = create<EventsState>((set, get) => ({
     })),
 
   deleteEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
+
+  cancelEvent: (id) =>
+    set((s) => ({
+      events: s.events.map((e) => (e.id === id ? { ...e, cancelled: true } : e)),
+    })),
+
+  reinstateEvent: (id) =>
+    set((s) => ({
+      events: s.events.map((e) => (e.id === id ? { ...e, cancelled: false } : e)),
+    })),
 
   decrementSpotsTaken: (id) =>
     set((s) => ({

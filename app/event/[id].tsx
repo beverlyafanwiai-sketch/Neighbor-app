@@ -25,6 +25,8 @@ export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const event = useEventsStore((s) => s.events.find((e) => e.id === id));
   const deleteEvent = useEventsStore((s) => s.deleteEvent);
+  const cancelEvent = useEventsStore((s) => s.cancelEvent);
+  const reinstateEvent = useEventsStore((s) => s.reinstateEvent);
   const skipNextOccurrence = useEventsStore((s) => s.skipNextOccurrence);
   const profile = useProfileStore((s) => s.profile);
   const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
@@ -52,6 +54,7 @@ export default function EventDetail() {
   const myRatings = useEventRatingsStore((s) => s.myRatings);
   const rateEvent = useEventRatingsStore((s) => s.rateEvent);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [calendarAdded, setCalendarAdded] = useState(false);
   const [offeringRide, setOfferingRide] = useState(false);
   const [offerSeats, setOfferSeats] = useState(2);
@@ -76,7 +79,8 @@ export default function EventDetail() {
   }
 
   const isPast = event.status === 'past';
-  const countdownLabel = isPast ? null : getCountdownLabel(event);
+  const isCancelled = Boolean(event.cancelled);
+  const countdownLabel = isPast || isCancelled ? null : getCountdownLabel(event);
   const isHost = event.hostId === ME.id;
   const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(event.id, going);
   const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
@@ -87,8 +91,8 @@ export default function EventDetail() {
     .filter(Boolean);
   const eventPhotos = getEventPhotos(event.id, albumPhotos);
   const canAddPhotos = going || isHost;
-  const canCheckIn = going || isHost;
-  const canCarpool = (going || isHost) && !isPast;
+  const canCheckIn = (going || isHost) && !isCancelled;
+  const canCarpool = (going || isHost) && !isPast && !isCancelled;
   const occurrences = event.recurrence ? getUpcomingOccurrences(event, new Date()) : [];
   const carpoolOffers = allCarpoolOffers.filter((o) => o.eventId === event.id);
   const carpoolRequests = allCarpoolRequests.filter((r) => r.eventId === event.id);
@@ -101,6 +105,11 @@ export default function EventDetail() {
   const remove = () => {
     deleteEvent(event.id);
     router.back();
+  };
+
+  const confirmCancel = () => {
+    cancelEvent(event.id);
+    setConfirmingCancel(false);
   };
 
   const submitOffer = () => {
@@ -188,6 +197,22 @@ export default function EventDetail() {
               >
                 <Ionicons name="copy-outline" size={17} className="text-charcoal" />
               </Pressable>
+              {!isPast &&
+                (isCancelled ? (
+                  <Pressable
+                    onPress={() => reinstateEvent(event.id)}
+                    className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+                  >
+                    <Ionicons name="arrow-undo-outline" size={17} className="text-sage" />
+                  </Pressable>
+                ) : (
+                  <Pressable
+                    onPress={() => setConfirmingCancel(true)}
+                    className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+                  >
+                    <Ionicons name="ban-outline" size={17} className="text-terracotta" />
+                  </Pressable>
+                ))}
               <Pressable
                 onPress={() => setConfirmingDelete(true)}
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream"
@@ -213,6 +238,23 @@ export default function EventDetail() {
         </View>
       )}
 
+      {confirmingCancel && (
+        <View className="gap-2 bg-terracotta/10 px-4 py-3">
+          <Text className="text-sm text-charcoal">
+            Cancel this event? It'll stay visible to neighbors, marked as cancelled, instead of
+            disappearing.
+          </Text>
+          <View className="flex-row justify-end gap-4">
+            <Pressable onPress={() => setConfirmingCancel(false)} className="rounded-full px-3 py-1.5">
+              <Text className="text-sm font-medium text-charcoal/60">Keep it</Text>
+            </Pressable>
+            <Pressable onPress={confirmCancel} className="rounded-full bg-terracotta px-3 py-1.5">
+              <Text className="text-sm font-semibold text-paper">Cancel event</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
         {event.coverImageUri && (
           <Image
@@ -232,7 +274,12 @@ export default function EventDetail() {
                 <Text className="flex-1 text-lg font-bold text-charcoal" numberOfLines={1}>
                   {event.title}
                 </Text>
-                {countdownLabel && (
+                {isCancelled && (
+                  <View className="rounded-full bg-terracotta/15 px-2.5 py-1">
+                    <Text className="text-xs font-semibold text-terracotta">Cancelled</Text>
+                  </View>
+                )}
+                {!isCancelled && countdownLabel && (
                   <View className="rounded-full bg-terracotta/15 px-2.5 py-1">
                     <Text className="text-xs font-semibold text-terracotta">{countdownLabel}</Text>
                   </View>
@@ -283,7 +330,14 @@ export default function EventDetail() {
             </View>
           )}
 
-          {isHost ? (
+          {isCancelled ? (
+            <View className="mt-5 flex-row items-center justify-center gap-1.5 rounded-full bg-terracotta/15 py-3">
+              <Ionicons name="ban-outline" size={15} className="text-terracotta" />
+              <Text className="text-sm font-semibold text-terracotta">
+                {isHost ? 'You cancelled this event' : 'Cancelled by the host'}
+              </Text>
+            </View>
+          ) : isHost ? (
             <View className="mt-5 flex-row items-center justify-center gap-1.5 rounded-full bg-gold py-3">
               <Ionicons name="megaphone" size={15} className="text-charcoal" />
               <Text className="text-sm font-semibold text-charcoal">
@@ -332,7 +386,7 @@ export default function EventDetail() {
             <Text className="text-sm font-semibold text-charcoal">Share</Text>
           </Pressable>
 
-          {!isPast && (
+          {!isPast && !isCancelled && (
             <Pressable
               onPress={handleAddToCalendar}
               className="mt-3 flex-row items-center justify-center gap-1.5 rounded-full border border-charcoal/15 py-3 active:opacity-70"

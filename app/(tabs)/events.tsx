@@ -293,10 +293,14 @@ export default function Events() {
                       <Text className="text-xs text-sage">
                         {e.hostLabel} · {e.category}
                       </Text>
-                      {countdownLabel && (
-                        <Text className="text-xs font-semibold text-terracotta">
-                          · {countdownLabel}
-                        </Text>
+                      {e.cancelled ? (
+                        <Text className="text-xs font-semibold text-terracotta">· Cancelled</Text>
+                      ) : (
+                        countdownLabel && (
+                          <Text className="text-xs font-semibold text-terracotta">
+                            · {countdownLabel}
+                          </Text>
+                        )
                       )}
                     </View>
 
@@ -316,29 +320,35 @@ export default function Events() {
                           {spotsTaken}/{spotsTotal} spots
                         </Text>
                       </View>
-                      <Pressable
-                        onPress={(evt) => {
-                          evt.stopPropagation();
-                          if (going) {
-                            toggleRsvp(e.id);
-                          } else if (isFull) {
-                            waitlisted ? leaveWaitlist(e.id) : joinWaitlist(e.id);
-                          } else {
-                            toggleRsvp(e.id);
-                          }
-                        }}
-                        className={`rounded-full px-4 py-1.5 ${
-                          going ? 'bg-gold' : waitlisted ? 'bg-sage/20' : 'bg-sand'
-                        }`}
-                      >
-                        <Text
-                          className={`text-xs font-semibold ${
-                            going ? 'text-charcoal' : waitlisted ? 'text-sage' : 'text-charcoal/70'
+                      {e.cancelled ? (
+                        <View className="rounded-full bg-terracotta/10 px-4 py-1.5">
+                          <Text className="text-xs font-semibold text-terracotta">Cancelled</Text>
+                        </View>
+                      ) : (
+                        <Pressable
+                          onPress={(evt) => {
+                            evt.stopPropagation();
+                            if (going) {
+                              toggleRsvp(e.id);
+                            } else if (isFull) {
+                              waitlisted ? leaveWaitlist(e.id) : joinWaitlist(e.id);
+                            } else {
+                              toggleRsvp(e.id);
+                            }
+                          }}
+                          className={`rounded-full px-4 py-1.5 ${
+                            going ? 'bg-gold' : waitlisted ? 'bg-sage/20' : 'bg-sand'
                           }`}
                         >
-                          {going ? 'Going' : waitlisted ? 'Waitlisted' : isFull ? 'Join waitlist' : 'RSVP'}
-                        </Text>
-                      </Pressable>
+                          <Text
+                            className={`text-xs font-semibold ${
+                              going ? 'text-charcoal' : waitlisted ? 'text-sage' : 'text-charcoal/70'
+                            }`}
+                          >
+                            {going ? 'Going' : waitlisted ? 'Waitlisted' : isFull ? 'Join waitlist' : 'RSVP'}
+                          </Text>
+                        </Pressable>
+                      )}
                     </View>
                   </View>
                 </Pressable>
@@ -412,9 +422,17 @@ export default function Events() {
                           <Text className="text-xs text-charcoal/50">
                             {spotsTaken}/{spotsTotal} spots
                           </Text>
-                          <View className="rounded-full bg-gold px-4 py-1.5">
-                            <Text className="text-xs font-semibold text-charcoal">
-                              {e.status === 'past' ? 'Hosted' : 'Hosting'}
+                          <View
+                            className={`rounded-full px-4 py-1.5 ${
+                              e.cancelled ? 'bg-terracotta/10' : 'bg-gold'
+                            }`}
+                          >
+                            <Text
+                              className={`text-xs font-semibold ${
+                                e.cancelled ? 'text-terracotta' : 'text-charcoal'
+                              }`}
+                            >
+                              {e.cancelled ? 'Cancelled' : e.status === 'past' ? 'Hosted' : 'Hosting'}
                             </Text>
                           </View>
                         </View>
