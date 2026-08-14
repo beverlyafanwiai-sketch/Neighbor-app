@@ -11,7 +11,7 @@ function pad(n: number) {
   return n.toString().padStart(2, '0');
 }
 
-function parseEventStart(event: EventItem): Date {
+export function parseEventStart(event: EventItem): Date {
   const monthIndex = MONTHS.indexOf(event.month.toUpperCase());
   const day = parseInt(event.day, 10);
 

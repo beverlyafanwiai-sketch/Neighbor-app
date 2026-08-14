@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser } from '../../data/mock';
+import { getCountdownLabel } from '../../lib/eventCountdown';
 import { addEventToCalendar } from '../../lib/ics';
 import { formatOccurrence, getUpcomingOccurrences, RECURRENCE_LABEL } from '../../lib/recurrence';
 import { useCarpoolStore } from '../../store/useCarpoolStore';
@@ -73,6 +74,7 @@ export default function EventDetail() {
   }
 
   const isPast = event.status === 'past';
+  const countdownLabel = isPast ? null : getCountdownLabel(event);
   const isHost = event.hostId === ME.id;
   const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(event.id, going);
   const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
@@ -224,7 +226,16 @@ export default function EventDetail() {
               <Text className="text-xl font-bold text-paper">{event.day}</Text>
             </View>
             <View className="flex-1">
-              <Text className="text-lg font-bold text-charcoal">{event.title}</Text>
+              <View className="flex-row items-center gap-1.5">
+                <Text className="flex-1 text-lg font-bold text-charcoal" numberOfLines={1}>
+                  {event.title}
+                </Text>
+                {countdownLabel && (
+                  <View className="rounded-full bg-terracotta/15 px-2.5 py-1">
+                    <Text className="text-xs font-semibold text-terracotta">{countdownLabel}</Text>
+                  </View>
+                )}
+              </View>
               <Text className="mt-0.5 text-sm text-charcoal/60">
                 {event.time} · {event.location}
               </Text>

@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import EmptyState from '../../components/EmptyState';
 import EventCalendar from '../../components/EventCalendar';
 import { EVENT_CATEGORIES, ME, getUser, type EventCategory } from '../../data/mock';
+import { getCountdownLabel } from '../../lib/eventCountdown';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckInStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
@@ -252,6 +253,7 @@ export default function Events() {
               const otherAvatars = e.attendeeIds.map((id) => getUser(id)).filter(Boolean);
               const avatars = going ? [profile, ...otherAvatars] : otherAvatars;
               const saved = savedEventIds[e.id] ?? false;
+              const countdownLabel = getCountdownLabel(e);
               return (
                 <Pressable
                   key={e.id}
@@ -287,9 +289,16 @@ export default function Events() {
                     <Text className="mt-0.5 text-xs text-charcoal/60">
                       {e.time} · {e.location}
                     </Text>
-                    <Text className="mt-0.5 text-xs text-sage">
-                      {e.hostLabel} · {e.category}
-                    </Text>
+                    <View className="mt-0.5 flex-row items-center gap-1.5">
+                      <Text className="text-xs text-sage">
+                        {e.hostLabel} · {e.category}
+                      </Text>
+                      {countdownLabel && (
+                        <Text className="text-xs font-semibold text-terracotta">
+                          · {countdownLabel}
+                        </Text>
+                      )}
+                    </View>
 
                     <View className="mt-3 flex-row items-center justify-between">
                       <View className="flex-row items-center gap-2">
