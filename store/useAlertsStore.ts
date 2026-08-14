@@ -5,6 +5,10 @@ import { ME, NEIGHBORHOOD_ALERTS, type AlertCategoryValue, type NeighborhoodAler
 type AlertsState = {
   alerts: NeighborhoodAlert[];
   postAlert: (input: { category: AlertCategoryValue; text: string; durationHours: number }) => void;
+  updateAlert: (
+    id: string,
+    input: { category: AlertCategoryValue; text: string; durationHours: number }
+  ) => void;
   deleteAlert: (id: string) => void;
 };
 
@@ -23,6 +27,15 @@ export const useAlertsStore = create<AlertsState>((set) => ({
     };
     set((s) => ({ alerts: [alert, ...s.alerts] }));
   },
+
+  updateAlert: (id, { category, text, durationHours }) =>
+    set((s) => ({
+      alerts: s.alerts.map((a) =>
+        a.id === id
+          ? { ...a, category, text, expiresAt: Date.now() + durationHours * 60 * 60 * 1000 }
+          : a
+      ),
+    })),
 
   deleteAlert: (id) => set((s) => ({ alerts: s.alerts.filter((a) => a.id !== id) })),
 }));

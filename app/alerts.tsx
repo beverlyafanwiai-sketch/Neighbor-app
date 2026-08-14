@@ -64,12 +64,20 @@ export default function NeighborhoodAlerts() {
                     </Text>
                   </View>
                   {isMine && (
-                    <Pressable
-                      onPress={() => deleteAlert(alert.id)}
-                      className="h-8 w-8 items-center justify-center rounded-full"
-                    >
-                      <Ionicons name="trash-outline" size={16} className="text-terracotta" />
-                    </Pressable>
+                    <View className="flex-row gap-1">
+                      <Pressable
+                        onPress={() => router.push(`/create-alert?editId=${alert.id}`)}
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="pencil" size={16} className="text-charcoal/50" />
+                      </Pressable>
+                      <Pressable
+                        onPress={() => deleteAlert(alert.id)}
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="trash-outline" size={16} className="text-terracotta" />
+                      </Pressable>
+                    </View>
                   )}
                 </View>
               </View>

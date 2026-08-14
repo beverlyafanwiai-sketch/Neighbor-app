@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ALERT_CATEGORIES, type AlertCategoryValue } from '../data/mock';
@@ -30,17 +30,25 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateAlert() {
+  const { editId } = useLocalSearchParams<{ editId?: string }>();
   const postAlert = useAlertsStore((s) => s.postAlert);
+  const updateAlert = useAlertsStore((s) => s.updateAlert);
+  const existing = useAlertsStore((s) => (editId ? s.alerts.find((a) => a.id === editId) : undefined));
+  const isEditing = Boolean(existing);
 
-  const [category, setCategory] = useState<AlertCategoryValue>('lost-pet');
-  const [text, setText] = useState('');
+  const [category, setCategory] = useState<AlertCategoryValue>(existing?.category ?? 'lost-pet');
+  const [text, setText] = useState(existing?.text ?? '');
   const [durationHours, setDurationHours] = useState(24);
 
   const canPost = text.trim().length > 0;
 
   const save = () => {
     if (!canPost) return;
-    postAlert({ category, text: text.trim(), durationHours });
+    if (existing) {
+      updateAlert(existing.id, { category, text: text.trim(), durationHours });
+    } else {
+      postAlert({ category, text: text.trim(), durationHours });
+    }
     router.replace('/alerts');
   };
 
@@ -53,14 +61,16 @@ export default function CreateAlert() {
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
-        <Text className="text-base font-bold text-charcoal">Post an alert</Text>
+        <Text className="text-base font-bold text-charcoal">
+          {isEditing ? 'Edit alert' : 'Post an alert'}
+        </Text>
         <Pressable
           onPress={save}
           disabled={!canPost}
           className={`rounded-full px-4 py-2 ${canPost ? 'bg-terracotta' : 'bg-ink/10'}`}
         >
           <Text className={`text-sm font-semibold ${canPost ? 'text-paper' : 'text-charcoal/40'}`}>
-            Post
+            {isEditing ? 'Save' : 'Post'}
           </Text>
         </Pressable>
       </View>
@@ -110,7 +120,7 @@ export default function CreateAlert() {
             </View>
 
             <View>
-              <FieldLabel>Expires in</FieldLabel>
+              <FieldLabel>{isEditing ? 'Renew for' : 'Expires in'}</FieldLabel>
               <View className="flex-row gap-2">
                 {DURATION_OPTIONS.map((opt) => (
                   <Pressable
