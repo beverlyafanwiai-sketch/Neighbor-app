@@ -46,10 +46,12 @@ export default function EventDetail() {
   const allCarpoolOffers = useCarpoolStore((s) => s.offers);
   const allCarpoolRequests = useCarpoolStore((s) => s.requests);
   const offerRide = useCarpoolStore((s) => s.offerRide);
+  const updateOffer = useCarpoolStore((s) => s.updateOffer);
   const cancelOffer = useCarpoolStore((s) => s.cancelOffer);
   const requestSeat = useCarpoolStore((s) => s.requestSeat);
   const leaveSeat = useCarpoolStore((s) => s.leaveSeat);
   const requestRide = useCarpoolStore((s) => s.requestRide);
+  const updateRequest = useCarpoolStore((s) => s.updateRequest);
   const cancelRideRequest = useCarpoolStore((s) => s.cancelRideRequest);
   const savedIds = useSavedEventsStore((s) => s.savedIds);
   const toggleSaveEvent = useSavedEventsStore((s) => s.toggleSave);
@@ -119,16 +121,37 @@ export default function EventDetail() {
   };
 
   const submitOffer = () => {
-    offerRide(event.id, offerSeats, offerNote.trim());
+    if (myOffer) {
+      updateOffer(event.id, offerSeats, offerNote.trim());
+    } else {
+      offerRide(event.id, offerSeats, offerNote.trim());
+    }
     setOfferingRide(false);
     setOfferNote('');
     setOfferSeats(2);
   };
 
+  const startEditingOffer = () => {
+    if (!myOffer) return;
+    setOfferSeats(myOffer.seats);
+    setOfferNote(myOffer.note);
+    setOfferingRide(true);
+  };
+
   const submitRequest = () => {
-    requestRide(event.id, requestNote.trim());
+    if (myRequest) {
+      updateRequest(event.id, requestNote.trim());
+    } else {
+      requestRide(event.id, requestNote.trim());
+    }
     setRequestingRide(false);
     setRequestNote('');
+  };
+
+  const startEditingRequest = () => {
+    if (!myRequest) return;
+    setRequestNote(myRequest.note);
+    setRequestingRide(true);
   };
 
   const startEditingRating = () => {
@@ -644,16 +667,24 @@ export default function EventDetail() {
                       </View>
                     )}
                     {canCarpool && confirmingCancelOfferId !== offer.id && (
-                      <View className="mt-3 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
+                      <View className="mt-3 flex-row items-center justify-end gap-2 border-t border-charcoal/10 pt-3">
                         {isMyOffer ? (
-                          <Pressable
-                            onPress={() => setConfirmingCancelOfferId(offer.id)}
-                            className="rounded-full bg-sand px-4 py-1.5"
-                          >
-                            <Text className="text-xs font-semibold text-charcoal">
-                              Cancel offer
-                            </Text>
-                          </Pressable>
+                          <>
+                            <Pressable
+                              onPress={startEditingOffer}
+                              className="rounded-full bg-sand px-4 py-1.5"
+                            >
+                              <Text className="text-xs font-semibold text-charcoal">Edit</Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => setConfirmingCancelOfferId(offer.id)}
+                              className="rounded-full bg-sand px-4 py-1.5"
+                            >
+                              <Text className="text-xs font-semibold text-charcoal">
+                                Cancel offer
+                              </Text>
+                            </Pressable>
+                          </>
                         ) : iAmRiding ? (
                           <Pressable
                             onPress={() => leaveSeat(offer.id)}
@@ -682,30 +713,34 @@ export default function EventDetail() {
               })}
 
               {canCarpool &&
-                !myOffer &&
                 (offeringRide ? (
                   <View className="gap-2.5 rounded-2xl bg-cream p-4">
                     <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
                       Seats available
                     </Text>
                     <View className="flex-row gap-2">
-                      {[1, 2, 3, 4].map((n) => (
-                        <Pressable
-                          key={n}
-                          onPress={() => setOfferSeats(n)}
-                          className={`h-9 w-9 items-center justify-center rounded-full ${
-                            offerSeats === n ? 'bg-terracotta' : 'bg-sand'
-                          }`}
-                        >
-                          <Text
-                            className={`text-sm font-semibold ${
-                              offerSeats === n ? 'text-paper' : 'text-charcoal'
-                            }`}
+                      {[1, 2, 3, 4].map((n) => {
+                        const minSeats = myOffer?.riderIds.length ?? 0;
+                        const tooFew = n < minSeats;
+                        return (
+                          <Pressable
+                            key={n}
+                            disabled={tooFew}
+                            onPress={() => setOfferSeats(n)}
+                            className={`h-9 w-9 items-center justify-center rounded-full ${
+                              offerSeats === n ? 'bg-terracotta' : 'bg-sand'
+                            } ${tooFew ? 'opacity-30' : ''}`}
                           >
-                            {n}
-                          </Text>
-                        </Pressable>
-                      ))}
+                            <Text
+                              className={`text-sm font-semibold ${
+                                offerSeats === n ? 'text-paper' : 'text-charcoal'
+                              }`}
+                            >
+                              {n}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
                     </View>
                     <TextInput
                       value={offerNote}
@@ -715,22 +750,32 @@ export default function EventDetail() {
                       className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
                     />
                     <View className="flex-row justify-end gap-4">
-                      <Pressable onPress={() => setOfferingRide(false)}>
+                      <Pressable
+                        onPress={() => {
+                          setOfferingRide(false);
+                          setOfferNote('');
+                          setOfferSeats(2);
+                        }}
+                      >
                         <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
                       </Pressable>
                       <Pressable onPress={submitOffer}>
-                        <Text className="text-sm font-semibold text-terracotta">Post</Text>
+                        <Text className="text-sm font-semibold text-terracotta">
+                          {myOffer ? 'Save' : 'Post'}
+                        </Text>
                       </Pressable>
                     </View>
                   </View>
                 ) : (
-                  <Pressable
-                    onPress={() => setOfferingRide(true)}
-                    className="flex-row items-center gap-2 rounded-2xl bg-sand p-4 active:opacity-80"
-                  >
-                    <Ionicons name="car-outline" size={18} className="text-charcoal" />
-                    <Text className="text-sm font-medium text-charcoal">Offer to drive</Text>
-                  </Pressable>
+                  !myOffer && (
+                    <Pressable
+                      onPress={() => setOfferingRide(true)}
+                      className="flex-row items-center gap-2 rounded-2xl bg-sand p-4 active:opacity-80"
+                    >
+                      <Ionicons name="car-outline" size={18} className="text-charcoal" />
+                      <Text className="text-sm font-medium text-charcoal">Offer to drive</Text>
+                    </Pressable>
+                  )
                 ))}
 
               {carpoolRequests.length > 0 && (
@@ -754,13 +799,21 @@ export default function EventDetail() {
                             <Text className="text-xs text-charcoal/50">{req.note}</Text>
                           )}
                         </View>
-                        {isMe && (
-                          <Pressable
-                            onPress={() => cancelRideRequest(event.id)}
-                            className="h-7 w-7 items-center justify-center rounded-full"
-                          >
-                            <Ionicons name="close" size={14} className="text-charcoal/50" />
-                          </Pressable>
+                        {isMe && !requestingRide && (
+                          <>
+                            <Pressable
+                              onPress={startEditingRequest}
+                              className="h-7 w-7 items-center justify-center rounded-full"
+                            >
+                              <Ionicons name="pencil" size={13} className="text-charcoal/50" />
+                            </Pressable>
+                            <Pressable
+                              onPress={() => cancelRideRequest(event.id)}
+                              className="h-7 w-7 items-center justify-center rounded-full"
+                            >
+                              <Ionicons name="close" size={14} className="text-charcoal/50" />
+                            </Pressable>
+                          </>
                         )}
                       </View>
                     );
@@ -769,7 +822,6 @@ export default function EventDetail() {
               )}
 
               {canCarpool &&
-                !myRequest &&
                 (requestingRide ? (
                   <View className="gap-2.5 rounded-2xl bg-cream p-4">
                     <TextInput
@@ -780,22 +832,31 @@ export default function EventDetail() {
                       className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
                     />
                     <View className="flex-row justify-end gap-4">
-                      <Pressable onPress={() => setRequestingRide(false)}>
+                      <Pressable
+                        onPress={() => {
+                          setRequestingRide(false);
+                          setRequestNote('');
+                        }}
+                      >
                         <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
                       </Pressable>
                       <Pressable onPress={submitRequest}>
-                        <Text className="text-sm font-semibold text-terracotta">Post</Text>
+                        <Text className="text-sm font-semibold text-terracotta">
+                          {myRequest ? 'Save' : 'Post'}
+                        </Text>
                       </Pressable>
                     </View>
                   </View>
                 ) : (
-                  <Pressable
-                    onPress={() => setRequestingRide(true)}
-                    className="flex-row items-center gap-2 rounded-2xl bg-sand p-4 active:opacity-80"
-                  >
-                    <Ionicons name="hand-left-outline" size={18} className="text-charcoal" />
-                    <Text className="text-sm font-medium text-charcoal">I need a ride</Text>
-                  </Pressable>
+                  !myRequest && (
+                    <Pressable
+                      onPress={() => setRequestingRide(true)}
+                      className="flex-row items-center gap-2 rounded-2xl bg-sand p-4 active:opacity-80"
+                    >
+                      <Ionicons name="hand-left-outline" size={18} className="text-charcoal" />
+                      <Text className="text-sm font-medium text-charcoal">I need a ride</Text>
+                    </Pressable>
+                  )
                 ))}
             </View>
           </>
