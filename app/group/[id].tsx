@@ -45,6 +45,7 @@ export default function GroupDetail() {
   const mutedGroupIds = useMutedGroupsStore((s) => s.mutedGroupIds);
   const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [reportingGroup, setReportingGroup] = useState(false);
   const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
@@ -77,6 +78,11 @@ export default function GroupDetail() {
   const remove = () => {
     deleteGroup(group.id);
     router.back();
+  };
+
+  const leave = () => {
+    toggleJoin(group.id);
+    setConfirmingLeave(false);
   };
 
   const pickPhotos = async () => {
@@ -170,6 +176,20 @@ export default function GroupDetail() {
         </View>
       )}
 
+      {confirmingLeave && (
+        <View className="flex-row items-center gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="flex-1 text-sm text-charcoal">
+            Leave {group.name}? You'll stop seeing messages from this circle.
+          </Text>
+          <Pressable onPress={() => setConfirmingLeave(false)} className="rounded-full px-3 py-1.5">
+            <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+          </Pressable>
+          <Pressable onPress={leave} className="rounded-full bg-terracotta px-3 py-1.5">
+            <Text className="text-sm font-semibold text-paper">Leave</Text>
+          </Pressable>
+        </View>
+      )}
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
         {group.coverImageUri && (
           <Image
@@ -203,7 +223,7 @@ export default function GroupDetail() {
 
           <View className="mt-5 flex-row gap-3">
             <Pressable
-              onPress={() => toggleJoin(group.id)}
+              onPress={() => (joined ? setConfirmingLeave(true) : toggleJoin(group.id))}
               className={`rounded-full px-6 py-3 ${joined ? 'bg-sand' : 'bg-ink'}`}
             >
               <Text className={`text-sm font-semibold ${joined ? 'text-charcoal' : 'text-paper'}`}>
