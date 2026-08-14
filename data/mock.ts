@@ -962,7 +962,7 @@ export type RecEntry = {
   category: string;
   name?: string;
   note: string;
-  imageUri?: string;
+  imageUris?: string[];
   // Baseline ids of other neighbors already agreeing (rec) or already
   // having a suggestion (ask), *not including* ME — same pattern as
   // event.attendeeIds / event.checkedInIds.

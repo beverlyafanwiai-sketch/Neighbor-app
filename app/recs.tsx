@@ -14,6 +14,8 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import PhotoCarousel from '../components/PhotoCarousel';
+import PhotoViewer from '../components/PhotoViewer';
 import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
@@ -57,6 +59,7 @@ export default function RecsBoard() {
   const [commentDraft, setCommentDraft] = useState('');
   const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
+  const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
 
   const sharingEntry = entries.find((e) => e.id === sharingId);
   const viewingAgreedEntry = entries.find((e) => e.id === viewingAgreedId);
@@ -282,11 +285,10 @@ export default function RecsBoard() {
                         <Ionicons name="trash-outline" size={16} className="text-terracotta" />
                       </Pressable>
                     </View>
-                    {entry.imageUri && (
-                      <Image
-                        source={{ uri: entry.imageUri }}
-                        className="mt-3 w-full rounded-xl"
-                        style={{ aspectRatio: 16 / 9 }}
+                    {entry.imageUris && entry.imageUris.length > 0 && (
+                      <PhotoCarousel
+                        uris={entry.imageUris}
+                        onPhotoPress={(i) => setViewingPhotos({ uris: entry.imageUris!, index: i })}
                       />
                     )}
                     <Pressable
@@ -375,11 +377,10 @@ export default function RecsBoard() {
                   </Pressable>
                 </View>
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{entry.note}</Text>
-                {entry.imageUri && (
-                  <Image
-                    source={{ uri: entry.imageUri }}
-                    className="mt-3 w-full rounded-xl"
-                    style={{ aspectRatio: 16 / 9 }}
+                {entry.imageUris && entry.imageUris.length > 0 && (
+                  <PhotoCarousel
+                    uris={entry.imageUris}
+                    onPhotoPress={(i) => setViewingPhotos({ uris: entry.imageUris!, index: i })}
                   />
                 )}
 
@@ -648,6 +649,14 @@ export default function RecsBoard() {
           onClose={() => setReportingCommentId(null)}
           title="Comment options"
           actionLabel="Report this comment"
+        />
+      )}
+
+      {viewingPhotos && (
+        <PhotoViewer
+          uris={viewingPhotos.uris}
+          initialIndex={viewingPhotos.index}
+          onClose={() => setViewingPhotos(null)}
         />
       )}
     </SafeAreaView>

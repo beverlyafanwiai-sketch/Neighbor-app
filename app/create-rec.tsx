@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -10,9 +11,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import CoverPhotoPicker from '../components/CoverPhotoPicker';
 import type { RecEntryKind } from '../data/mock';
 import { useRecsStore } from '../store/useRecsStore';
 
@@ -22,6 +23,7 @@ const KINDS: { value: RecEntryKind; label: string; description: string }[] = [
 ];
 
 const EMOJI_PRESETS = ['🔧', '💡', '🌿', '🧸', '🐕', '🚗', '🧹', '🎨', '⭐', '📦'];
+const MAX_PHOTOS = 4;
 
 function FieldLabel({ children }: { children: string }) {
   return (
@@ -43,9 +45,27 @@ export default function CreateRec() {
   const [category, setCategory] = useState(existing?.category ?? '');
   const [name, setName] = useState(existing?.name ?? '');
   const [note, setNote] = useState(existing?.note ?? '');
-  const [imageUri, setImageUri] = useState(existing?.imageUri);
+  const [imageUris, setImageUris] = useState<string[]>(existing?.imageUris ?? []);
 
   const canSave = category.trim() && note.trim() && (kind === 'ask' || name.trim());
+
+  const pickImages = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_PHOTOS - imageUris.length,
+    });
+    if (!result.canceled && result.assets.length > 0) {
+      setImageUris((prev) => [...prev, ...result.assets.map((a) => a.uri)].slice(0, MAX_PHOTOS));
+    }
+  };
+
+  const removeImage = (uri: string) => {
+    setImageUris((prev) => prev.filter((u) => u !== uri));
+  };
 
   const save = () => {
     if (!canSave) return;
@@ -56,7 +76,7 @@ export default function CreateRec() {
         category: category.trim(),
         name: kind === 'rec' ? name.trim() : undefined,
         note: note.trim(),
-        imageUri,
+        imageUris,
       });
       router.replace('/recs');
       return;
@@ -67,7 +87,7 @@ export default function CreateRec() {
       category: category.trim(),
       name: kind === 'rec' ? name.trim() : undefined,
       note: note.trim(),
-      imageUri,
+      imageUris,
     });
     router.replace('/recs');
   };
@@ -127,9 +147,40 @@ export default function CreateRec() {
             ))}
           </View>
 
-          <View className="mt-5">
-            <CoverPhotoPicker imageUri={imageUri} onChange={setImageUri} />
-          </View>
+          {imageUris.length > 0 && (
+            <View className="mt-5 flex-row flex-wrap gap-2">
+              {imageUris.map((uri) => (
+                <View key={uri} className="w-[47%]" style={{ aspectRatio: 1 }}>
+                  <Image source={{ uri }} className="h-full w-full rounded-2xl bg-cream" />
+                  <Pressable
+                    onPress={() => removeImage(uri)}
+                    className="absolute right-1.5 top-1.5 h-7 w-7 items-center justify-center rounded-full bg-ink/60"
+                  >
+                    <Ionicons name="close" size={14} className="text-paper" />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {imageUris.length < MAX_PHOTOS ? (
+            <Pressable
+              onPress={pickImages}
+              className="mt-5 flex-row items-center justify-center gap-2 rounded-2xl bg-cream py-3"
+            >
+              <Ionicons name="image-outline" size={18} className="text-sage" />
+              <Text className="text-sm font-medium text-charcoal">
+                {imageUris.length > 0 ? 'Add more photos' : 'Add photos'}
+              </Text>
+            </Pressable>
+          ) : (
+            <View className="mt-5 flex-row items-center justify-center gap-2 rounded-2xl bg-cream py-3">
+              <Ionicons name="image" size={18} className="text-sage" />
+              <Text className="text-sm font-medium text-charcoal/50">
+                {MAX_PHOTOS}/{MAX_PHOTOS} photos
+              </Text>
+            </View>
+          )}
 
           <View className="mt-5 gap-4">
             <View>
