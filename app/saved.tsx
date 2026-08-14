@@ -31,9 +31,17 @@ const ALL_PEOPLE = [...USERS, ...DISCOVER_USERS];
 const MODES = ['Posts', 'Events', 'Recs', 'Lend', 'For Sale'] as const;
 type Mode = (typeof MODES)[number];
 
+const SAVED_SORTS = ['Newest', 'A-Z'] as const;
+type SavedSort = (typeof SAVED_SORTS)[number];
+
+function sortByTitle<T>(items: T[], sortBy: SavedSort, titleOf: (item: T) => string) {
+  return sortBy === 'A-Z' ? [...items].sort((a, b) => titleOf(a).localeCompare(titleOf(b))) : items;
+}
+
 export default function Saved() {
   const [mode, setMode] = useState<Mode>('Posts');
   const [query, setQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SavedSort>('Newest');
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
@@ -69,17 +77,25 @@ export default function Saved() {
     q.length === 0 || fields.some((f) => (f ?? '').toLowerCase().includes(q));
 
   const savedPosts = posts.filter((p) => (savedIds[p.id] ?? false) && matches(p.body));
-  const savedEvents = events.filter(
-    (e) => (savedEventIds[e.id] ?? false) && matches(e.title, e.location)
+  const savedEvents = sortByTitle(
+    events.filter((e) => (savedEventIds[e.id] ?? false) && matches(e.title, e.location)),
+    sortBy,
+    (e) => e.title
   );
-  const savedRecs = recEntries.filter(
-    (e) => (savedRecIds[e.id] ?? false) && matches(e.name, e.category, e.note)
+  const savedRecs = sortByTitle(
+    recEntries.filter((e) => (savedRecIds[e.id] ?? false) && matches(e.name, e.category, e.note)),
+    sortBy,
+    (e) => e.name ?? e.category
   );
-  const savedLendItems = lendItems.filter(
-    (i) => (savedLendIds[i.id] ?? false) && matches(i.title, i.note)
+  const savedLendItems = sortByTitle(
+    lendItems.filter((i) => (savedLendIds[i.id] ?? false) && matches(i.title, i.note)),
+    sortBy,
+    (i) => i.title
   );
-  const savedSaleItems = saleItems.filter(
-    (i) => (savedSaleIds[i.id] ?? false) && matches(i.title, i.note)
+  const savedSaleItems = sortByTitle(
+    saleItems.filter((i) => (savedSaleIds[i.id] ?? false) && matches(i.title, i.note)),
+    sortBy,
+    (i) => i.title
   );
 
   return (
@@ -125,6 +141,34 @@ export default function Saved() {
           )}
         </View>
       </View>
+
+      {mode !== 'Posts' &&
+        (mode === 'Events'
+          ? savedEvents.length
+          : mode === 'Recs'
+            ? savedRecs.length
+            : mode === 'Lend'
+              ? savedLendItems.length
+              : savedSaleItems.length) > 1 && (
+          <View className="flex-row items-center gap-2 px-5 pb-3">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+              Sort
+            </Text>
+            {SAVED_SORTS.map((s) => (
+              <Pressable
+                key={s}
+                onPress={() => setSortBy(s)}
+                className={`rounded-full px-3 py-1 ${sortBy === s ? 'bg-ink' : 'bg-cream'}`}
+              >
+                <Text
+                  className={`text-xs font-medium ${sortBy === s ? 'text-paper' : 'text-charcoal/60'}`}
+                >
+                  {s}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8 pt-2">
         {mode === 'Posts' && savedPosts.length === 0 && (
