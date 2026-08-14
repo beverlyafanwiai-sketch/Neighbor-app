@@ -14,6 +14,7 @@ export default function Notifications() {
   const allNotifications = useNotificationsStore((s) => s.notifications);
   const markRead = useNotificationsStore((s) => s.markRead);
   const markAllRead = useNotificationsStore((s) => s.markAllRead);
+  const deleteNotification = useNotificationsStore((s) => s.deleteNotification);
   const mutedIds = useMutedStore((s) => s.mutedIds);
   const notifications = allNotifications.filter((n) => !n.actorId || !mutedIds[n.actorId]);
   const hasUnread = notifications.some((n) => !n.read);
@@ -53,30 +54,38 @@ export default function Notifications() {
                 key={n.id}
                 className={`rounded-2xl p-4 ${n.read ? 'bg-cream' : 'bg-cream border border-terracotta/30'}`}
               >
-                <Pressable
-                  onPress={() => {
-                    markRead(n.id);
-                    goToTarget(n.target);
-                  }}
-                  className="flex-row items-center gap-3 active:opacity-80"
-                >
-                  {actor ? (
-                    <Image source={{ uri: actor.avatar }} className="h-11 w-11 rounded-full" />
-                  ) : (
-                    <View className="h-11 w-11 items-center justify-center rounded-full bg-sage/20">
-                      <Ionicons name={TYPE_ICON[n.type]} size={18} className="text-sage" />
+                <View className="flex-row items-center gap-2">
+                  <Pressable
+                    onPress={() => {
+                      markRead(n.id);
+                      goToTarget(n.target);
+                    }}
+                    className="flex-1 flex-row items-center gap-3 active:opacity-80"
+                  >
+                    {actor ? (
+                      <Image source={{ uri: actor.avatar }} className="h-11 w-11 rounded-full" />
+                    ) : (
+                      <View className="h-11 w-11 items-center justify-center rounded-full bg-sage/20">
+                        <Ionicons name={TYPE_ICON[n.type]} size={18} className="text-sage" />
+                      </View>
+                    )}
+                    <View className="flex-1">
+                      <Text
+                        className={`text-[15px] ${n.read ? 'text-charcoal/80' : 'font-semibold text-charcoal'}`}
+                      >
+                        {n.text}
+                      </Text>
+                      <Text className="mt-0.5 text-xs text-charcoal/50">{n.time}</Text>
                     </View>
-                  )}
-                  <View className="flex-1">
-                    <Text
-                      className={`text-[15px] ${n.read ? 'text-charcoal/80' : 'font-semibold text-charcoal'}`}
-                    >
-                      {n.text}
-                    </Text>
-                    <Text className="mt-0.5 text-xs text-charcoal/50">{n.time}</Text>
-                  </View>
-                  {!n.read && <View className="h-2.5 w-2.5 rounded-full bg-terracotta" />}
-                </Pressable>
+                    {!n.read && <View className="h-2.5 w-2.5 rounded-full bg-terracotta" />}
+                  </Pressable>
+                  <Pressable
+                    onPress={() => deleteNotification(n.id)}
+                    className="h-7 w-7 items-center justify-center rounded-full"
+                  >
+                    <Ionicons name="close" size={16} className="text-charcoal/40" />
+                  </Pressable>
+                </View>
 
                 {isPendingRequest && (
                   <View className="ml-14 mt-3 flex-row gap-2">

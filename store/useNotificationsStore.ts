@@ -9,6 +9,7 @@ type NotificationsState = {
   markAllRead: () => void;
   addNotification: (item: Omit<NotificationItem, 'id' | 'read'>) => void;
   dismissToast: () => void;
+  deleteNotification: (id: string) => void;
 };
 
 export const useNotificationsStore = create<NotificationsState>((set) => ({
@@ -29,4 +30,7 @@ export const useNotificationsStore = create<NotificationsState>((set) => ({
   },
 
   dismissToast: () => set({ toast: null }),
+
+  deleteNotification: (id) =>
+    set((s) => ({ notifications: s.notifications.filter((n) => n.id !== id) })),
 }));
