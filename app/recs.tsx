@@ -7,8 +7,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import EmptyState from '../components/EmptyState';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
-import { getEffectiveAgreeCount, useRecsStore } from '../store/useRecsStore';
+import { getEffectiveAgreeCount, getEffectiveAgreedIds, useRecsStore } from '../store/useRecsStore';
 import { useSavedRecsStore } from '../store/useSavedRecsStore';
+import { useProfileStore } from '../store/useProfileStore';
 
 const KIND_FILTERS = ['All', 'Recs', 'Asks'] as const;
 type KindFilter = (typeof KIND_FILTERS)[number];
@@ -20,12 +21,18 @@ export default function RecsBoard() {
   const deleteEntry = useRecsStore((s) => s.deleteEntry);
   const savedIds = useSavedRecsStore((s) => s.savedIds);
   const toggleSave = useSavedRecsStore((s) => s.toggleSave);
+  const profile = useProfileStore((s) => s.profile);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [query, setQuery] = useState('');
   const [sharingId, setSharingId] = useState<string | null>(null);
+  const [viewingAgreedId, setViewingAgreedId] = useState<string | null>(null);
 
   const sharingEntry = entries.find((e) => e.id === sharingId);
+  const viewingAgreedEntry = entries.find((e) => e.id === viewingAgreedId);
+  const viewingAgreedIds = viewingAgreedEntry
+    ? getEffectiveAgreedIds(viewingAgreedEntry.id, myAgreed[viewingAgreedEntry.id] ?? false)
+    : [];
 
   const categories = ['All', ...Array.from(new Set(entries.map((e) => e.category))).sort()];
   const matchesCategory = (e: (typeof entries)[number]) =>
@@ -170,15 +177,21 @@ export default function RecsBoard() {
                         style={{ aspectRatio: 16 / 9 }}
                       />
                     )}
-                    <Text className="mt-3 border-t border-charcoal/10 pt-3 text-sm text-charcoal/50">
-                      {count === 0
-                        ? entry.kind === 'rec'
-                          ? 'No one else has agreed yet'
-                          : 'No suggestions yet'
-                        : entry.kind === 'rec'
-                          ? `${count} neighbor${count === 1 ? '' : 's'} agree`
-                          : `${count} neighbor${count === 1 ? '' : 's'} have a suggestion`}
-                    </Text>
+                    <Pressable
+                      disabled={count === 0}
+                      onPress={() => setViewingAgreedId(entry.id)}
+                      className="mt-3 border-t border-charcoal/10 pt-3"
+                    >
+                      <Text className="text-sm text-charcoal/50">
+                        {count === 0
+                          ? entry.kind === 'rec'
+                            ? 'No one else has agreed yet'
+                            : 'No suggestions yet'
+                          : entry.kind === 'rec'
+                            ? `${count} neighbor${count === 1 ? '' : 's'} agree`
+                            : `${count} neighbor${count === 1 ? '' : 's'} have a suggestion`}
+                      </Text>
+                    </Pressable>
                   </View>
                 );
               })}
@@ -240,15 +253,21 @@ export default function RecsBoard() {
                 )}
 
                 <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
-                  <Text className="flex-1 text-sm text-charcoal/50">
-                    {count === 0
-                      ? isRec
-                        ? 'No agrees yet'
-                        : 'No neighbors yet'
-                      : isRec
-                        ? `+${count} other${count === 1 ? '' : 's'} agree`
-                        : `${count} neighbor${count === 1 ? '' : 's'} can help`}
-                  </Text>
+                  <Pressable
+                    disabled={count === 0}
+                    onPress={() => setViewingAgreedId(entry.id)}
+                    className="flex-1"
+                  >
+                    <Text className="text-sm text-charcoal/50">
+                      {count === 0
+                        ? isRec
+                          ? 'No agrees yet'
+                          : 'No neighbors yet'
+                        : isRec
+                          ? `+${count} other${count === 1 ? '' : 's'} agree`
+                          : `${count} neighbor${count === 1 ? '' : 's'} can help`}
+                    </Text>
+                  </Pressable>
                   <Pressable
                     onPress={() => toggleAgree(entry.id)}
                     className={`rounded-full px-4 py-1.5 ${agreed ? 'bg-sage/20' : 'bg-ink'}`}
@@ -302,6 +321,48 @@ export default function RecsBoard() {
           }
           onClose={() => setSharingId(null)}
         />
+      )}
+
+      {viewingAgreedEntry && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={() => setViewingAgreedId(null)} />
+          <View className="max-h-[70%] w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">
+                {viewingAgreedEntry.kind === 'rec' ? 'Also recommend this' : 'Can help'}
+              </Text>
+              <Pressable
+                onPress={() => setViewingAgreedId(null)}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View className="gap-1">
+                {viewingAgreedIds.map((userId) => {
+                  const isMe = userId === ME.id;
+                  const person = isMe ? profile : getUser(userId);
+                  if (!person) return null;
+                  return (
+                    <Pressable
+                      key={userId}
+                      onPress={() => {
+                        if (isMe) return;
+                        setViewingAgreedId(null);
+                        router.push(`/profile/${userId}`);
+                      }}
+                      className="flex-row items-center gap-3 rounded-2xl p-2 active:opacity-70"
+                    >
+                      <Image source={{ uri: person.avatar }} className="h-9 w-9 rounded-full" />
+                      <Text className="font-medium text-charcoal">{isMe ? 'You' : person.name}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
       )}
     </SafeAreaView>
   );

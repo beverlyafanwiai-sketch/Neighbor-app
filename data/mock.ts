@@ -958,10 +958,10 @@ export type RecEntry = {
   name?: string;
   note: string;
   imageUri?: string;
-  // Baseline count of other neighbors already agreeing (rec) or already
+  // Baseline ids of other neighbors already agreeing (rec) or already
   // having a suggestion (ask), *not including* ME — same pattern as
-  // event.spotsTaken / LendItem.helperCount.
-  agreeCount?: number;
+  // event.attendeeIds / event.checkedInIds.
+  agreedByIds?: string[];
 };
 
 export const REC_ENTRIES: RecEntry[] = [
@@ -973,7 +973,7 @@ export const REC_ENTRIES: RecEntry[] = [
     category: 'Plumber',
     name: "Rosa's Plumbing",
     note: 'Fixed our water heater same day and charged less than she quoted. Straightforward and fast.',
-    agreeCount: 3,
+    agreedByIds: ['theo', 'maya', 'priya'],
   },
   {
     id: 'dog-groomer-ask',
@@ -991,7 +991,7 @@ export const REC_ENTRIES: RecEntry[] = [
     category: 'Landscaper',
     name: 'Green Thumb Landscaping',
     note: 'Redid our whole front yard in a weekend. Showed up on time both days, which honestly is the bar.',
-    agreeCount: 1,
+    agreedByIds: ['sam'],
   },
   {
     id: 'electrician-ask',
@@ -1000,7 +1000,7 @@ export const REC_ENTRIES: RecEntry[] = [
     emoji: '💡',
     category: 'Electrician',
     note: 'Need an outlet added in the garage. Nothing urgent, just want someone reliable.',
-    agreeCount: 2,
+    agreedByIds: ['maya', 'nia'],
   },
   {
     id: 'maya-babysitter',

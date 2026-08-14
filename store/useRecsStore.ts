@@ -51,7 +51,7 @@ export const useRecsStore = create<RecsState>((set, get) => ({
 
       set((s) => ({
         entries: s.entries.map((e) =>
-          e.id === id ? { ...e, agreeCount: (e.agreeCount ?? 0) + 1 } : e
+          e.id === id ? { ...e, agreedByIds: [...(e.agreedByIds ?? []), neighbor.id] } : e
         ),
       }));
 
@@ -83,10 +83,14 @@ export const useRecsStore = create<RecsState>((set, get) => ({
   deleteEntry: (entryId) => set((s) => ({ entries: s.entries.filter((e) => e.id !== entryId) })),
 }));
 
-// entry.agreeCount is the baseline count of other neighbors *not including*
-// ME. Effective totals fold in ME's own agreement/offer on top of that.
-export function getEffectiveAgreeCount(entryId: string, agreed: boolean) {
+// entry.agreedByIds is the baseline list of other neighbors *not including*
+// ME. Effective totals/ids fold in ME's own agreement/offer on top of that.
+export function getEffectiveAgreedIds(entryId: string, agreed: boolean): string[] {
   const entry = useRecsStore.getState().entries.find((e) => e.id === entryId);
-  const base = entry?.agreeCount ?? 0;
-  return base + (agreed ? 1 : 0);
+  const base = entry?.agreedByIds ?? [];
+  return agreed ? [...base, ME.id] : base;
+}
+
+export function getEffectiveAgreeCount(entryId: string, agreed: boolean) {
+  return getEffectiveAgreedIds(entryId, agreed).length;
 }
