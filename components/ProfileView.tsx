@@ -5,7 +5,7 @@ import { SvgXml } from 'react-native-svg';
 
 import { GROUP_SELFIE_SVG } from '../assets/illustrations/group-selfie';
 import { getUser, ME, type User, type VerificationBadge } from '../data/mock';
-import { formatMutualTrustLine, formatOwnTrustLine } from '../lib/trust';
+import { formatMutualTrustLine, formatOwnTrustLine, getSharedGroups } from '../lib/trust';
 import { isAvailable, useAvailabilityStore } from '../store/useAvailabilityStore';
 import { getEndorsementGroups, useEndorsementsStore } from '../store/useEndorsementsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
@@ -50,6 +50,7 @@ type Props = {
   onRecs?: () => void;
   onPhotoPress?: (postId: string) => void;
   onCreatePost?: () => void;
+  onGroupPress?: (groupId: string) => void;
 };
 
 export default function ProfileView({
@@ -66,6 +67,7 @@ export default function ProfileView({
   onRecs,
   onPhotoPress,
   onCreatePost,
+  onGroupPress,
 }: Props) {
   const [tab, setTab] = useState<Tab>('About');
   const myAvailable = useAvailabilityStore((s) => s.myAvailable);
@@ -94,6 +96,7 @@ export default function ProfileView({
   const trustLine = isMe
     ? formatOwnTrustLine(myFriendIds.length, myJoinedGroupIds.length)
     : formatMutualTrustLine(user, myFriendIds, ME.id, myJoinedGroupIds);
+  const sharedGroups = isMe ? [] : getSharedGroups(user.id, myJoinedGroupIds);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} className="flex-1 bg-cream">
@@ -369,6 +372,28 @@ export default function ProfileView({
               </Text>
               <Text className="mt-1 text-charcoal">{trustLine}</Text>
             </View>
+            {sharedGroups.length > 0 && (
+              <View className="rounded-2xl bg-sand p-4">
+                <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                  {sharedGroups.length === 1 ? 'Group in common' : 'Groups in common'}
+                </Text>
+                <View className="mt-2 gap-2">
+                  {sharedGroups.map((g) => (
+                    <Pressable
+                      key={g.id}
+                      onPress={() => onGroupPress?.(g.id)}
+                      className="flex-row items-center gap-2.5 rounded-xl bg-cream p-2.5 active:opacity-70"
+                    >
+                      <View className="h-8 w-8 items-center justify-center rounded-full bg-terracotta">
+                        <Text className="text-xs font-bold text-paper">{g.name.charAt(0)}</Text>
+                      </View>
+                      <Text className="flex-1 text-sm font-medium text-charcoal">{g.name}</Text>
+                      <Ionicons name="chevron-forward" size={16} className="text-charcoal/30" />
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            )}
             <View className="rounded-2xl bg-sand p-4">
               <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
                 Endorsements

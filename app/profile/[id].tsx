@@ -73,6 +73,7 @@ export default function OtherProfile() {
         onFriendPress={goToFriend}
         onMoreOptions={() => setShowActions(true)}
         onPhotoPress={(postId) => router.push(`/post/${postId}`)}
+        onGroupPress={(groupId) => router.push(`/group/${groupId}`)}
       />
 
       {showActions && (
