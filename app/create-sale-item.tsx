@@ -25,16 +25,20 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateSaleItem() {
-  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const { id: editId, duplicateId } = useLocalSearchParams<{ id?: string; duplicateId?: string }>();
   const existing = useSaleStore((s) => (editId ? s.items.find((i) => i.id === editId) : undefined));
   const isEditing = Boolean(existing);
+  const duplicateSource = useSaleStore((s) =>
+    duplicateId ? s.items.find((i) => i.id === duplicateId) : undefined
+  );
+  const isDuplicating = Boolean(duplicateSource) && !isEditing;
   const createItem = useSaleStore((s) => s.createItem);
   const updateItem = useSaleStore((s) => s.updateItem);
 
-  const [emoji, setEmoji] = useState(existing?.emoji ?? '📦');
-  const [title, setTitle] = useState(existing?.title ?? '');
-  const [price, setPrice] = useState(existing?.price ?? '');
-  const [note, setNote] = useState(existing?.note ?? '');
+  const [emoji, setEmoji] = useState(existing?.emoji ?? duplicateSource?.emoji ?? '📦');
+  const [title, setTitle] = useState(existing?.title ?? duplicateSource?.title ?? '');
+  const [price, setPrice] = useState(existing?.price ?? duplicateSource?.price ?? '');
+  const [note, setNote] = useState(existing?.note ?? duplicateSource?.note ?? '');
 
   const canSave = title.trim() && price.trim() && note.trim();
 
@@ -59,7 +63,7 @@ export default function CreateSaleItem() {
           <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">
-          {isEditing ? 'Edit listing' : 'List an item'}
+          {isEditing ? 'Edit listing' : isDuplicating ? 'Duplicate listing' : 'List an item'}
         </Text>
         <Pressable
           onPress={save}
@@ -74,6 +78,15 @@ export default function CreateSaleItem() {
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">
+          {isDuplicating && (
+            <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-gold/15 p-3">
+              <Ionicons name="copy-outline" size={16} className="text-gold" />
+              <Text className="flex-1 text-xs text-charcoal/70">
+                Details copied from "{duplicateSource!.title}" — give it a fresh look if needed.
+              </Text>
+            </View>
+          )}
+
           <View className="mt-2 gap-4">
             <View>
               <FieldLabel>Icon</FieldLabel>
