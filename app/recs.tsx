@@ -56,6 +56,7 @@ export default function RecsBoard() {
   const [viewingCommentsId, setViewingCommentsId] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
   const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
+  const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
 
   const sharingEntry = entries.find((e) => e.id === sharingId);
   const viewingAgreedEntry = entries.find((e) => e.id === viewingAgreedId);
@@ -596,12 +597,19 @@ export default function RecsBoard() {
                             onSelect={(type) => setCommentReaction(viewingCommentsEntry.id, c.id, type)}
                           />
                         </View>
-                        {isMine && (
+                        {isMine ? (
                           <Pressable
                             onPress={() => setConfirmingDeleteCommentId(c.id)}
                             className="h-7 w-7 items-center justify-center"
                           >
                             <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
+                          </Pressable>
+                        ) : (
+                          <Pressable
+                            onPress={() => setReportingCommentId(c.id)}
+                            className="h-7 w-7 items-center justify-center"
+                          >
+                            <Ionicons name="ellipsis-horizontal" size={15} className="text-charcoal/40" />
                           </Pressable>
                         )}
                       </View>
@@ -633,6 +641,14 @@ export default function RecsBoard() {
             </View>
           </KeyboardAvoidingView>
         </View>
+      )}
+
+      {reportingCommentId && (
+        <ReportPostSheet
+          onClose={() => setReportingCommentId(null)}
+          title="Comment options"
+          actionLabel="Report this comment"
+        />
       )}
     </SafeAreaView>
   );
