@@ -14,6 +14,9 @@ import { useProfileStore } from '../store/useProfileStore';
 const KIND_FILTERS = ['All', 'Recs', 'Asks'] as const;
 type KindFilter = (typeof KIND_FILTERS)[number];
 
+const RECS_SORTS = ['Newest', 'Most agreed'] as const;
+type RecsSort = (typeof RECS_SORTS)[number];
+
 export default function RecsBoard() {
   const entries = useRecsStore((s) => s.entries);
   const myAgreed = useRecsStore((s) => s.myAgreed);
@@ -24,6 +27,7 @@ export default function RecsBoard() {
   const profile = useProfileStore((s) => s.profile);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
+  const [sortBy, setSortBy] = useState<RecsSort>('Newest');
   const [query, setQuery] = useState('');
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [viewingAgreedId, setViewingAgreedId] = useState<string | null>(null);
@@ -49,9 +53,17 @@ export default function RecsBoard() {
   const myEntries = entries.filter(
     (e) => e.authorId === ME.id && matchesCategory(e) && matchesKind(e) && matchesQuery(e)
   );
-  const boardEntries = entries.filter(
+  const filteredBoardEntries = entries.filter(
     (e) => e.authorId !== ME.id && matchesCategory(e) && matchesKind(e) && matchesQuery(e)
   );
+  const boardEntries =
+    sortBy === 'Most agreed'
+      ? [...filteredBoardEntries].sort(
+          (a, b) =>
+            getEffectiveAgreeCount(b.id, myAgreed[b.id] ?? false) -
+            getEffectiveAgreeCount(a.id, myAgreed[a.id] ?? false)
+        )
+      : filteredBoardEntries;
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -128,6 +140,27 @@ export default function RecsBoard() {
         <Text className="mt-1 text-sm text-charcoal/60">
           Who do you trust? Share a recommendation, or ask when you need one.
         </Text>
+
+        {boardEntries.length > 1 && (
+          <View className="mt-4 flex-row items-center gap-2">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+              Sort
+            </Text>
+            {RECS_SORTS.map((s) => (
+              <Pressable
+                key={s}
+                onPress={() => setSortBy(s)}
+                className={`rounded-full px-3 py-1 ${sortBy === s ? 'bg-ink' : 'bg-sand'}`}
+              >
+                <Text
+                  className={`text-xs font-medium ${sortBy === s ? 'text-paper' : 'text-charcoal/60'}`}
+                >
+                  {s}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
 
         {myEntries.length > 0 && (
           <>
