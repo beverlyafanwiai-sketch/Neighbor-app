@@ -22,6 +22,8 @@ type RecsState = {
   updateEntry: (entryId: string, updates: Partial<NewRecEntryInput>) => void;
   toggleAgree: (entryId: string) => void;
   deleteEntry: (entryId: string) => void;
+  resolveEntry: (entryId: string) => void;
+  reopenEntry: (entryId: string) => void;
 };
 
 export const useRecsStore = create<RecsState>((set, get) => ({
@@ -81,6 +83,16 @@ export const useRecsStore = create<RecsState>((set, get) => ({
     set((s) => ({ myAgreed: { ...s.myAgreed, [entryId]: !s.myAgreed[entryId] } })),
 
   deleteEntry: (entryId) => set((s) => ({ entries: s.entries.filter((e) => e.id !== entryId) })),
+
+  resolveEntry: (entryId) =>
+    set((s) => ({
+      entries: s.entries.map((e) => (e.id === entryId ? { ...e, resolved: true } : e)),
+    })),
+
+  reopenEntry: (entryId) =>
+    set((s) => ({
+      entries: s.entries.map((e) => (e.id === entryId ? { ...e, resolved: false } : e)),
+    })),
 }));
 
 // entry.agreedByIds is the baseline list of other neighbors *not including*

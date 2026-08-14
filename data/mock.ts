@@ -966,6 +966,9 @@ export type RecEntry = {
   // having a suggestion (ask), *not including* ME — same pattern as
   // event.attendeeIds / event.checkedInIds.
   agreedByIds?: string[];
+  // Only meaningful for kind 'ask' — marks that the author found what
+  // they needed, without deleting the record.
+  resolved?: boolean;
 };
 
 export const REC_ENTRIES: RecEntry[] = [

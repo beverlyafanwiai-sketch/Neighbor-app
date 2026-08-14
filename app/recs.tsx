@@ -23,6 +23,8 @@ export default function RecsBoard() {
   const myAgreed = useRecsStore((s) => s.myAgreed);
   const toggleAgree = useRecsStore((s) => s.toggleAgree);
   const deleteEntry = useRecsStore((s) => s.deleteEntry);
+  const resolveEntry = useRecsStore((s) => s.resolveEntry);
+  const reopenEntry = useRecsStore((s) => s.reopenEntry);
   const savedIds = useSavedRecsStore((s) => s.savedIds);
   const toggleSave = useSavedRecsStore((s) => s.toggleSave);
   const profile = useProfileStore((s) => s.profile);
@@ -204,13 +206,34 @@ export default function RecsBoard() {
                         <Text style={{ fontSize: 20 }}>{entry.emoji}</Text>
                       </View>
                       <View className="flex-1">
-                        <Text className="font-semibold text-charcoal">
-                          {entry.kind === 'rec' ? (entry.name ?? entry.category) : entry.category}
-                        </Text>
+                        <View className="flex-row items-center gap-1.5">
+                          <Text className="font-semibold text-charcoal">
+                            {entry.kind === 'rec' ? (entry.name ?? entry.category) : entry.category}
+                          </Text>
+                          {entry.kind === 'ask' && entry.resolved && (
+                            <View className="rounded-full bg-sage/20 px-2 py-0.5">
+                              <Text className="text-[10px] font-bold text-sage">RESOLVED</Text>
+                            </View>
+                          )}
+                        </View>
                         <Text className="text-xs text-charcoal/50">
                           {entry.kind === 'rec' ? `Your ${entry.category} recommendation` : 'You asked the board'}
                         </Text>
                       </View>
+                      {entry.kind === 'ask' && (
+                        <Pressable
+                          onPress={() =>
+                            entry.resolved ? reopenEntry(entry.id) : resolveEntry(entry.id)
+                          }
+                          className="h-8 w-8 items-center justify-center rounded-full"
+                        >
+                          <Ionicons
+                            name={entry.resolved ? 'checkmark-circle' : 'checkmark-circle-outline'}
+                            size={18}
+                            className={entry.resolved ? 'text-sage' : 'text-charcoal/50'}
+                          />
+                        </Pressable>
+                      )}
                       <Pressable
                         onPress={() => setSharingId(entry.id)}
                         className="h-8 w-8 items-center justify-center rounded-full"
@@ -279,9 +302,16 @@ export default function RecsBoard() {
                     <Text style={{ fontSize: 20 }}>{entry.emoji}</Text>
                   </View>
                   <View className="flex-1">
-                    <Text className="font-semibold text-charcoal">
-                      {isRec ? (entry.name ?? entry.category) : entry.category}
-                    </Text>
+                    <View className="flex-row items-center gap-1.5">
+                      <Text className="font-semibold text-charcoal">
+                        {isRec ? (entry.name ?? entry.category) : entry.category}
+                      </Text>
+                      {!isRec && entry.resolved && (
+                        <View className="rounded-full bg-sage/20 px-2 py-0.5">
+                          <Text className="text-[10px] font-bold text-sage">RESOLVED</Text>
+                        </View>
+                      )}
+                    </View>
                     <Text className="text-xs text-charcoal/50">
                       {isRec ? `Recommended by ${author.name}` : `${author.name} is looking`}
                     </Text>
@@ -336,16 +366,29 @@ export default function RecsBoard() {
                   </Pressable>
                   <Pressable
                     onPress={() => toggleAgree(entry.id)}
-                    className={`rounded-full px-4 py-1.5 ${agreed ? 'bg-sage/20' : 'bg-ink'}`}
+                    disabled={!isRec && entry.resolved}
+                    className={`rounded-full px-4 py-1.5 ${
+                      !isRec && entry.resolved ? 'bg-sand' : agreed ? 'bg-sage/20' : 'bg-ink'
+                    }`}
                   >
-                    <Text className={`text-xs font-semibold ${agreed ? 'text-sage' : 'text-paper'}`}>
-                      {agreed
-                        ? isRec
-                          ? 'You agree ✓'
-                          : 'You offered ✓'
-                        : isRec
-                          ? "+1, I've used them too"
-                          : 'I have one'}
+                    <Text
+                      className={`text-xs font-semibold ${
+                        !isRec && entry.resolved
+                          ? 'text-charcoal/40'
+                          : agreed
+                            ? 'text-sage'
+                            : 'text-paper'
+                      }`}
+                    >
+                      {!isRec && entry.resolved
+                        ? 'Resolved'
+                        : agreed
+                          ? isRec
+                            ? 'You agree ✓'
+                            : 'You offered ✓'
+                          : isRec
+                            ? "+1, I've used them too"
+                            : 'I have one'}
                     </Text>
                   </Pressable>
                 </View>
