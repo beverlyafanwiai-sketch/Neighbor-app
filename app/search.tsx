@@ -13,6 +13,7 @@ import { useEventsStore } from '../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { useGroupChatStore } from '../store/useGroupChatStore';
 import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
+import { useLendStore } from '../store/useLendStore';
 import {
   getEffectiveReactions,
   getEffectiveReplies,
@@ -22,6 +23,8 @@ import {
   usePostsStore,
 } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
+import { useRecsStore } from '../store/useRecsStore';
+import { useSaleStore } from '../store/useSaleStore';
 
 const ALL_PEOPLE = [...USERS, ...DISCOVER_USERS];
 
@@ -60,6 +63,11 @@ export default function Search() {
 
   const conversations = useConversationsStore((s) => s.conversations);
   const groupMessages = useGroupChatStore((s) => s.messages);
+
+  const recEntries = useRecsStore((s) => s.entries);
+  const lendItems = useLendStore((s) => s.items);
+  const saleItems = useSaleStore((s) => s.items);
+  const soldMap = useSaleStore((s) => s.sold);
 
   const q = query.trim().toLowerCase();
 
@@ -153,12 +161,39 @@ export default function Search() {
 
   const matchedMessages = [...matchedDmMessages, ...matchedGroupMessages];
 
+  const matchedRecs =
+    q.length === 0
+      ? []
+      : recEntries.filter(
+          (e) =>
+            e.category.toLowerCase().includes(q) ||
+            (e.name ?? '').toLowerCase().includes(q) ||
+            e.note.toLowerCase().includes(q)
+        );
+
+  const matchedLendItems =
+    q.length === 0
+      ? []
+      : lendItems.filter(
+          (i) => i.title.toLowerCase().includes(q) || i.note.toLowerCase().includes(q)
+        );
+
+  const matchedSaleItems =
+    q.length === 0
+      ? []
+      : saleItems.filter(
+          (i) => i.title.toLowerCase().includes(q) || i.note.toLowerCase().includes(q)
+        );
+
   const hasAnyResults =
     matchedPosts.length +
       matchedPeople.length +
       matchedGroups.length +
       matchedEvents.length +
-      matchedMessages.length >
+      matchedMessages.length +
+      matchedRecs.length +
+      matchedLendItems.length +
+      matchedSaleItems.length >
     0;
 
   return (
@@ -352,6 +387,105 @@ export default function Search() {
                   <Text className="text-xs text-charcoal/40">{m.time}</Text>
                 </Pressable>
               ))}
+            </View>
+          </>
+        )}
+
+        {matchedRecs.length > 0 && (
+          <>
+            <SectionLabel>Neighborhood Recs</SectionLabel>
+            <View className="gap-3">
+              {matchedRecs.map((entry) => {
+                const author = getUser(entry.authorId);
+                const isRec = entry.kind === 'rec';
+                return (
+                  <Pressable
+                    key={entry.id}
+                    onPress={() => router.push('/recs')}
+                    className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+                  >
+                    <View className="h-11 w-11 items-center justify-center rounded-xl bg-sand">
+                      <Text style={{ fontSize: 20 }}>{entry.emoji}</Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="font-semibold text-charcoal">
+                        {isRec ? (entry.name ?? entry.category) : entry.category}
+                      </Text>
+                      <Text className="text-xs text-charcoal/50" numberOfLines={1}>
+                        {isRec
+                          ? `Recommended by ${author?.name ?? entry.category}`
+                          : `${author?.name ?? 'Someone'} is looking · ${entry.note}`}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
+        )}
+
+        {matchedLendItems.length > 0 && (
+          <>
+            <SectionLabel>Borrow & Lend</SectionLabel>
+            <View className="gap-3">
+              {matchedLendItems.map((item) => {
+                const owner = getUser(item.ownerId);
+                return (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => router.push('/lend')}
+                    className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+                  >
+                    <View className="h-11 w-11 items-center justify-center rounded-xl bg-sand">
+                      <Text style={{ fontSize: 20 }}>{item.emoji}</Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="font-semibold text-charcoal">{item.title}</Text>
+                      <Text className="text-xs text-charcoal/50" numberOfLines={1}>
+                        {item.kind === 'have'
+                          ? `${owner?.name ?? 'Someone'} has this to lend`
+                          : `${owner?.name ?? 'Someone'} is looking to borrow`}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </>
+        )}
+
+        {matchedSaleItems.length > 0 && (
+          <>
+            <SectionLabel>For Sale</SectionLabel>
+            <View className="gap-3">
+              {matchedSaleItems.map((item) => {
+                const owner = getUser(item.ownerId);
+                const isSold = soldMap[item.id] ?? false;
+                return (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => router.push('/for-sale')}
+                    className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+                  >
+                    <View className="h-11 w-11 items-center justify-center rounded-xl bg-sand">
+                      <Text style={{ fontSize: 20 }}>{item.emoji}</Text>
+                    </View>
+                    <View className="flex-1">
+                      <View className="flex-row items-center gap-1.5">
+                        <Text className="font-semibold text-charcoal">{item.title}</Text>
+                        {isSold && (
+                          <View className="rounded-full bg-charcoal/10 px-2 py-0.5">
+                            <Text className="text-[10px] font-bold text-charcoal/60">SOLD</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text className="text-xs text-charcoal/50" numberOfLines={1}>
+                        {item.price} · {owner?.name ?? 'Someone'}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
           </>
         )}
