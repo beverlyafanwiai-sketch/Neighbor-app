@@ -13,7 +13,11 @@ import { addEventToCalendar } from '../../lib/ics';
 import { formatOccurrence, getUpcomingOccurrences, RECURRENCE_LABEL } from '../../lib/recurrence';
 import { useCarpoolStore } from '../../store/useCarpoolStore';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckInStore';
-import { getEffectiveRatingSummary, useEventRatingsStore } from '../../store/useEventRatingsStore';
+import {
+  getEffectiveRatings,
+  getEffectiveRatingSummary,
+  useEventRatingsStore,
+} from '../../store/useEventRatingsStore';
 import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumStore';
 import { canManageEvent, useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
@@ -70,6 +74,7 @@ export default function EventDetail() {
   const [ratingDraftStars, setRatingDraftStars] = useState(0);
   const [ratingDraftComment, setRatingDraftComment] = useState('');
   const [editingRating, setEditingRating] = useState(false);
+  const [viewingRatings, setViewingRatings] = useState(false);
   const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
   const [confirmingRemovePhotoId, setConfirmingRemovePhotoId] = useState<string | null>(null);
 
@@ -109,6 +114,7 @@ export default function EventDetail() {
   const saved = savedIds[event.id] ?? false;
   const myRating = myRatings[event.id];
   const ratingSummary = getEffectiveRatingSummary(event.id, myRating);
+  const effectiveRatings = getEffectiveRatings(event.id, myRating);
 
   const remove = () => {
     deleteEvent(event.id);
@@ -524,7 +530,10 @@ export default function EventDetail() {
             </Text>
             <View className="rounded-2xl bg-cream p-4">
               {ratingSummary.count > 0 && (
-                <View className="mb-3 flex-row items-center gap-2">
+                <Pressable
+                  onPress={() => setViewingRatings(true)}
+                  className="mb-3 flex-row items-center gap-2"
+                >
                   <View className="flex-row">
                     {[1, 2, 3, 4, 5].map((n) => (
                       <Ionicons
@@ -539,7 +548,7 @@ export default function EventDetail() {
                     {ratingSummary.avg.toFixed(1)} · {ratingSummary.count} rating
                     {ratingSummary.count === 1 ? '' : 's'}
                   </Text>
-                </View>
+                </Pressable>
               )}
 
               {editingRating ? (
@@ -981,6 +990,63 @@ export default function EventDetail() {
                 <Text className="text-sm font-semibold text-terracotta">Remove</Text>
               </Pressable>
             </View>
+          </View>
+        </View>
+      )}
+
+      {viewingRatings && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={() => setViewingRatings(false)} />
+          <View className="max-h-[70%] w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Ratings & reviews</Text>
+              <Pressable
+                onPress={() => setViewingRatings(false)}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View className="gap-2">
+                {effectiveRatings.map((r) => {
+                  const isMe = r.userId === ME.id;
+                  const person = isMe ? profile : getUser(r.userId);
+                  if (!person) return null;
+                  return (
+                    <Pressable
+                      key={r.userId}
+                      onPress={() => {
+                        if (isMe) return;
+                        setViewingRatings(false);
+                        router.push(`/profile/${r.userId}`);
+                      }}
+                      className="gap-1.5 rounded-2xl bg-sand p-3 active:opacity-70"
+                    >
+                      <View className="flex-row items-center gap-2.5">
+                        <Image source={{ uri: person.avatar }} className="h-8 w-8 rounded-full" />
+                        <Text className="flex-1 font-medium text-charcoal">
+                          {isMe ? 'You' : person.name}
+                        </Text>
+                        <View className="flex-row">
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <Ionicons
+                              key={n}
+                              name={n <= r.stars ? 'star' : 'star-outline'}
+                              size={13}
+                              className="text-gold"
+                            />
+                          ))}
+                        </View>
+                      </View>
+                      {r.comment.length > 0 && (
+                        <Text className="text-sm leading-5 text-charcoal/70">{r.comment}</Text>
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </ScrollView>
           </View>
         </View>
       )}

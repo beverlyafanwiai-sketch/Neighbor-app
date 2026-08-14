@@ -511,7 +511,9 @@ export type EventItem = {
   skipCount?: number;
   // Baseline star ratings from other neighbors, *not including* ME —
   // same "baseline + mine" pattern as spotsTaken / helperCount.
-  ratingBaseline?: { avg: number; count: number };
+  // Baseline ratings from other neighbors, *not including* ME — same
+  // "baseline + mine" pattern as attendeeIds/agreedByIds.
+  ratingBaseline?: { userId: string; stars: number; comment: string }[];
 };
 
 export const EVENTS: EventItem[] = [
@@ -568,7 +570,12 @@ export const EVENTS: EventItem[] = [
     attendeeIds: ['maya', 'priya', 'theo'],
     status: 'past',
     checkedInIds: ['maya', 'priya'],
-    ratingBaseline: { avg: 4.5, count: 4 },
+    ratingBaseline: [
+      { userId: 'maya', stars: 5, comment: 'Loved this month’s pick, discussion ran long in the best way.' },
+      { userId: 'priya', stars: 4, comment: 'Good talk, though we could’ve used more snacks.' },
+      { userId: 'theo', stars: 5, comment: 'Best one yet, already excited for next month.' },
+      { userId: 'sam', stars: 4, comment: 'Solid pick, would come again.' },
+    ],
   },
   {
     id: 'pottery-open-studio',
@@ -586,7 +593,14 @@ export const EVENTS: EventItem[] = [
     attendeeIds: ['sam'],
     status: 'past',
     checkedInIds: ['sam'],
-    ratingBaseline: { avg: 4, count: 6 },
+    ratingBaseline: [
+      { userId: 'sam', stars: 4, comment: 'Relaxing afternoon, good music playing too.' },
+      { userId: 'maya', stars: 4, comment: 'Great studio space, plenty of wheels open.' },
+      { userId: 'theo', stars: 3, comment: 'A bit crowded when I went, but still fun.' },
+      { userId: 'priya', stars: 5, comment: 'Loved it, staff were really patient with beginners.' },
+      { userId: 'nia', stars: 4, comment: 'Fun way to spend a Sunday, would do again.' },
+      { userId: 'kai', stars: 4, comment: 'Good vibe, made a very lopsided bowl.' },
+    ],
   },
 ];
 

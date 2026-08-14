@@ -1,8 +1,10 @@
 import { create } from 'zustand';
 
+import { ME } from '../data/mock';
 import { useEventsStore } from './useEventsStore';
 
 export type EventRating = { stars: number; comment: string };
+export type EventRatingEntry = { userId: string; stars: number; comment: string };
 
 type EventRatingsState = {
   myRatings: Record<string, EventRating>;
@@ -16,14 +18,23 @@ export const useEventRatingsStore = create<EventRatingsState>((set) => ({
     set((s) => ({ myRatings: { ...s.myRatings, [eventId]: { stars, comment } } })),
 }));
 
-// event.ratingBaseline is the average/count from other neighbors, *not
-// including* ME -- same "baseline + mine" pattern as spotsTaken/helperCount.
-export function getEffectiveRatingSummary(eventId: string, myRating: EventRating | undefined) {
+// event.ratingBaseline is the list of individual ratings from other
+// neighbors, *not including* ME -- same "baseline + mine" pattern as
+// spotsTaken/helperCount.
+export function getEffectiveRatings(
+  eventId: string,
+  myRating: EventRating | undefined
+): EventRatingEntry[] {
   const event = useEventsStore.getState().getEvent(eventId);
-  const baseline = event?.ratingBaseline;
-  const baseCount = baseline?.count ?? 0;
-  const baseTotal = (baseline?.avg ?? 0) * baseCount;
-  const count = baseCount + (myRating ? 1 : 0);
-  const total = baseTotal + (myRating ? myRating.stars : 0);
+  const baseline = event?.ratingBaseline ?? [];
+  return myRating
+    ? [...baseline, { userId: ME.id, stars: myRating.stars, comment: myRating.comment }]
+    : baseline;
+}
+
+export function getEffectiveRatingSummary(eventId: string, myRating: EventRating | undefined) {
+  const ratings = getEffectiveRatings(eventId, myRating);
+  const count = ratings.length;
+  const total = ratings.reduce((sum, r) => sum + r.stars, 0);
   return { avg: count > 0 ? total / count : 0, count };
 }
