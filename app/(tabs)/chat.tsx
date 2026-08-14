@@ -12,6 +12,7 @@ import { useBlockedStore } from '../../store/useBlockedStore';
 import { useConversationsStore } from '../../store/useConversationsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { useGroupsStore } from '../../store/useGroupsStore';
+import { usePinnedChatsStore } from '../../store/usePinnedChatsStore';
 
 export default function ChatList() {
   const [query, setQuery] = useState('');
@@ -20,10 +21,15 @@ export default function ChatList() {
   const dmLastActivity = useConversationsStore((s) => s.lastActivity);
   const dmMarkRead = useConversationsStore((s) => s.markRead);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const pinnedIds = usePinnedChatsStore((s) => s.pinnedIds);
+  const togglePin = usePinnedChatsStore((s) => s.togglePin);
   const q = query.trim().toLowerCase();
   const allList = Object.values(conversations)
     .filter((c) => !blockedIds[c.userId])
-    .sort((a, b) => (dmLastActivity[b.id] ?? 0) - (dmLastActivity[a.id] ?? 0));
+    .sort((a, b) => {
+      const pinDiff = Number(pinnedIds[b.id] ?? false) - Number(pinnedIds[a.id] ?? false);
+      return pinDiff !== 0 ? pinDiff : (dmLastActivity[b.id] ?? 0) - (dmLastActivity[a.id] ?? 0);
+    });
   const list = allList.filter(
     (c) => q.length === 0 || (getUser(c.userId)?.name ?? '').toLowerCase().includes(q)
   );
@@ -35,7 +41,10 @@ export default function ChatList() {
   const groupLastActivity = useGroupChatStore((s) => s.lastActivity);
   const allMyGroups = groups
     .filter((g) => joinedMap[g.id])
-    .sort((a, b) => (groupLastActivity[b.id] ?? 0) - (groupLastActivity[a.id] ?? 0));
+    .sort((a, b) => {
+      const pinDiff = Number(pinnedIds[b.id] ?? false) - Number(pinnedIds[a.id] ?? false);
+      return pinDiff !== 0 ? pinDiff : (groupLastActivity[b.id] ?? 0) - (groupLastActivity[a.id] ?? 0);
+    });
   const myGroups = allMyGroups.filter((g) => q.length === 0 || g.name.toLowerCase().includes(q));
 
   const hasUnread =
@@ -97,13 +106,29 @@ export default function ChatList() {
                   <Text className="text-lg font-bold text-paper">{g.name.charAt(0)}</Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="font-semibold text-charcoal">{g.name}</Text>
+                  <View className="flex-row items-center gap-1">
+                    {pinnedIds[g.id] && <Ionicons name="pin" size={12} className="text-gold" />}
+                    <Text className="font-semibold text-charcoal">{g.name}</Text>
+                  </View>
                   <Text className="mt-0.5 text-sm text-charcoal/60" numberOfLines={1}>
                     {last
                       ? `${last.senderId === ME.id ? 'You: ' : `${getUser(last.senderId)?.name.split(' ')[0]}: `}${last.text}`
                       : 'No messages yet'}
                   </Text>
                 </View>
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    togglePin(g.id);
+                  }}
+                  className="h-8 w-8 items-center justify-center"
+                >
+                  <Ionicons
+                    name={pinnedIds[g.id] ? 'pin' : 'pin-outline'}
+                    size={16}
+                    className={pinnedIds[g.id] ? 'text-gold' : 'text-charcoal/30'}
+                  />
+                </Pressable>
                 <View className="items-end gap-1.5">
                   {last && <Text className="text-xs text-charcoal/40">{last.time}</Text>}
                   {g.unread > 0 && (
@@ -146,7 +171,10 @@ export default function ChatList() {
               >
                 <Image source={{ uri: user.avatar }} className="h-12 w-12 rounded-full" />
                 <View className="flex-1">
-                  <Text className="font-semibold text-charcoal">{user.name}</Text>
+                  <View className="flex-row items-center gap-1">
+                    {pinnedIds[c.id] && <Ionicons name="pin" size={12} className="text-gold" />}
+                    <Text className="font-semibold text-charcoal">{user.name}</Text>
+                  </View>
                   <Text
                     className={`mt-0.5 text-sm ${unread > 0 ? 'font-medium text-charcoal' : 'text-charcoal/60'}`}
                     numberOfLines={1}
@@ -154,6 +182,19 @@ export default function ChatList() {
                     {last ? `${last.from === 'me' ? 'You: ' : ''}${last.text}` : 'Say hi 👋'}
                   </Text>
                 </View>
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    togglePin(c.id);
+                  }}
+                  className="h-8 w-8 items-center justify-center"
+                >
+                  <Ionicons
+                    name={pinnedIds[c.id] ? 'pin' : 'pin-outline'}
+                    size={16}
+                    className={pinnedIds[c.id] ? 'text-gold' : 'text-charcoal/30'}
+                  />
+                </Pressable>
                 <View className="items-end gap-1.5">
                   {last && <Text className="text-xs text-charcoal/40">{last.time}</Text>}
                   {unread > 0 && (
