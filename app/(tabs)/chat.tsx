@@ -1,4 +1,6 @@
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,32 +14,38 @@ import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { useGroupsStore } from '../../store/useGroupsStore';
 
 export default function ChatList() {
+  const [query, setQuery] = useState('');
   const conversations = useConversationsStore((s) => s.conversations);
   const dmUnread = useConversationsStore((s) => s.unread);
   const dmLastActivity = useConversationsStore((s) => s.lastActivity);
   const dmMarkRead = useConversationsStore((s) => s.markRead);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
-  const list = Object.values(conversations)
+  const q = query.trim().toLowerCase();
+  const allList = Object.values(conversations)
     .filter((c) => !blockedIds[c.userId])
     .sort((a, b) => (dmLastActivity[b.id] ?? 0) - (dmLastActivity[a.id] ?? 0));
+  const list = allList.filter(
+    (c) => q.length === 0 || (getUser(c.userId)?.name ?? '').toLowerCase().includes(q)
+  );
 
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const groupMarkRead = useGroupsStore((s) => s.markRead);
   const groupMessages = useGroupChatStore((s) => s.messages);
   const groupLastActivity = useGroupChatStore((s) => s.lastActivity);
-  const myGroups = groups
+  const allMyGroups = groups
     .filter((g) => joinedMap[g.id])
     .sort((a, b) => (groupLastActivity[b.id] ?? 0) - (groupLastActivity[a.id] ?? 0));
+  const myGroups = allMyGroups.filter((g) => q.length === 0 || g.name.toLowerCase().includes(q));
 
   const hasUnread =
-    myGroups.some((g) => g.unread > 0) || list.some((c) => (dmUnread[c.id] ?? 0) > 0);
+    allMyGroups.some((g) => g.unread > 0) || allList.some((c) => (dmUnread[c.id] ?? 0) > 0);
 
   const markAllRead = () => {
-    myGroups.forEach((g) => {
+    allMyGroups.forEach((g) => {
       if (g.unread > 0) groupMarkRead(g.id);
     });
-    list.forEach((c) => {
+    allList.forEach((c) => {
       if ((dmUnread[c.id] ?? 0) > 0) dmMarkRead(c.id);
     });
   };
@@ -51,6 +59,24 @@ export default function ChatList() {
             <Text className="text-sm font-medium text-terracotta">Mark all read</Text>
           </Pressable>
         )}
+      </View>
+
+      <View className="px-5 pb-3">
+        <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">
+          <Ionicons name="search" size={18} className="text-charcoal/50" />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search chats..."
+            placeholderTextColor="#3D3D3D80"
+            className="ml-2 flex-1 text-charcoal"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={() => setQuery('')}>
+              <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
@@ -89,7 +115,10 @@ export default function ChatList() {
               </Pressable>
             );
           })}
-          {myGroups.length === 0 && (
+          {myGroups.length === 0 && q.length > 0 && (
+            <EmptyState icon="search-outline" title={`No group chats matching "${query.trim()}"`} />
+          )}
+          {myGroups.length === 0 && q.length === 0 && (
             <EmptyState
               illustration={PARK_FRIENDS_SVG}
               title="No group chats yet"
@@ -136,7 +165,10 @@ export default function ChatList() {
               </Pressable>
             );
           })}
-          {list.length === 0 && (
+          {list.length === 0 && q.length > 0 && (
+            <EmptyState icon="search-outline" title={`No conversations matching "${query.trim()}"`} />
+          )}
+          {list.length === 0 && q.length === 0 && (
             <EmptyState
               illustration={CONVERSATION_SVG}
               title="No conversations yet"
