@@ -16,6 +16,7 @@ export type NewLendItemInput = {
   emoji: string;
   title: string;
   note: string;
+  imageUris?: string[];
 };
 
 type LendState = {
@@ -59,6 +60,7 @@ export const useLendStore = create<LendState>((set, get) => ({
       emoji: input.emoji,
       title: input.title,
       note: input.note,
+      imageUris: input.imageUris,
     };
     set((s) => ({ items: [item, ...s.items] }));
 

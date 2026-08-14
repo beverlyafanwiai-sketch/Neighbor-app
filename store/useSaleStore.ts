@@ -12,6 +12,7 @@ export type NewSaleItemInput = {
   title: string;
   price: string;
   note: string;
+  imageUris?: string[];
 };
 
 type SaleState = {
@@ -39,6 +40,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
       title: input.title,
       price: input.price,
       note: input.note,
+      imageUris: input.imageUris,
     };
     set((s) => ({ items: [item, ...s.items] }));
 

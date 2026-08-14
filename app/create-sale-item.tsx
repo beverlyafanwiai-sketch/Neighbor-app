@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -10,11 +11,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useSaleStore } from '../store/useSaleStore';
 
 const EMOJI_PRESETS = ['🚲', '🪑', '🎵', '🪴', '🧰', '📦', '🛋️', '📚', '🖥️', '🎉'];
+const MAX_PHOTOS = 4;
 
 function FieldLabel({ children }: { children: string }) {
   return (
@@ -39,17 +42,44 @@ export default function CreateSaleItem() {
   const [title, setTitle] = useState(existing?.title ?? duplicateSource?.title ?? '');
   const [price, setPrice] = useState(existing?.price ?? duplicateSource?.price ?? '');
   const [note, setNote] = useState(existing?.note ?? duplicateSource?.note ?? '');
+  const [imageUris, setImageUris] = useState<string[]>(
+    existing?.imageUris ?? duplicateSource?.imageUris ?? []
+  );
 
   const canSave = title.trim() && price.trim() && note.trim();
+
+  const pickImages = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_PHOTOS - imageUris.length,
+    });
+    if (!result.canceled && result.assets.length > 0) {
+      setImageUris((prev) => [...prev, ...result.assets.map((a) => a.uri)].slice(0, MAX_PHOTOS));
+    }
+  };
+
+  const removeImage = (uri: string) => {
+    setImageUris((prev) => prev.filter((u) => u !== uri));
+  };
 
   const save = () => {
     if (!canSave) return;
     if (existing) {
-      updateItem(existing.id, { emoji, title: title.trim(), price: price.trim(), note: note.trim() });
+      updateItem(existing.id, {
+        emoji,
+        title: title.trim(),
+        price: price.trim(),
+        note: note.trim(),
+        imageUris,
+      });
       router.replace('/for-sale');
       return;
     }
-    createItem({ emoji, title: title.trim(), price: price.trim(), note: note.trim() });
+    createItem({ emoji, title: title.trim(), price: price.trim(), note: note.trim(), imageUris });
     router.replace('/for-sale');
   };
 
@@ -83,6 +113,43 @@ export default function CreateSaleItem() {
               <Ionicons name="copy-outline" size={16} className="text-gold" />
               <Text className="flex-1 text-xs text-charcoal/70">
                 Details copied from "{duplicateSource!.title}" — give it a fresh look if needed.
+              </Text>
+            </View>
+          )}
+
+          {imageUris.length > 0 && (
+            <View className="flex-row flex-wrap gap-2">
+              {imageUris.map((uri) => (
+                <View key={uri} className="w-[47%]" style={{ aspectRatio: 1 }}>
+                  <Image source={{ uri }} className="h-full w-full rounded-2xl bg-cream" />
+                  <Pressable
+                    onPress={() => removeImage(uri)}
+                    className="absolute right-1.5 top-1.5 h-7 w-7 items-center justify-center rounded-full bg-ink/60"
+                  >
+                    <Ionicons name="close" size={14} className="text-paper" />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {imageUris.length < MAX_PHOTOS ? (
+            <Pressable
+              onPress={pickImages}
+              className={`flex-row items-center justify-center gap-2 rounded-2xl bg-cream py-3 ${
+                imageUris.length > 0 ? 'mt-2' : ''
+              }`}
+            >
+              <Ionicons name="image-outline" size={18} className="text-sage" />
+              <Text className="text-sm font-medium text-charcoal">
+                {imageUris.length > 0 ? 'Add more photos' : 'Add photos'}
+              </Text>
+            </Pressable>
+          ) : (
+            <View className="mt-2 flex-row items-center justify-center gap-2 rounded-2xl bg-cream py-3">
+              <Ionicons name="image" size={18} className="text-sage" />
+              <Text className="text-sm font-medium text-charcoal/50">
+                {MAX_PHOTOS}/{MAX_PHOTOS} photos
               </Text>
             </View>
           )}

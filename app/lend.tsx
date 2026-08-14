@@ -5,6 +5,8 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import PhotoCarousel from '../components/PhotoCarousel';
+import PhotoViewer from '../components/PhotoViewer';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
@@ -43,6 +45,7 @@ export default function LendBoard() {
   const [sortBy, setSortBy] = useState<LendSort>('Newest');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [query, setQuery] = useState('');
+  const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
 
   const matchesKind = (i: (typeof items)[number]) =>
     kindFilter === 'All' || (kindFilter === 'Have' ? i.kind === 'have' : i.kind === 'want');
@@ -216,6 +219,12 @@ export default function LendBoard() {
                         <Ionicons name="trash-outline" size={16} className="text-terracotta" />
                       </Pressable>
                     </View>
+                    {item.imageUris && item.imageUris.length > 0 && (
+                      <PhotoCarousel
+                        uris={item.imageUris}
+                        onPhotoPress={(i) => setViewingPhotos({ uris: item.imageUris!, index: i })}
+                      />
+                    )}
 
                     {item.kind === 'have' ? (
                       requester ? (
@@ -321,6 +330,12 @@ export default function LendBoard() {
                     </Pressable>
                   </View>
                   <Text className="mt-2 text-sm leading-5 text-charcoal/80">{item.note}</Text>
+                  {item.imageUris && item.imageUris.length > 0 && (
+                    <PhotoCarousel
+                      uris={item.imageUris}
+                      onPhotoPress={(i) => setViewingPhotos({ uris: item.imageUris!, index: i })}
+                    />
+                  )}
 
                   <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
                     {itemStatus === 'lent' ? (
@@ -397,6 +412,12 @@ export default function LendBoard() {
                   </Pressable>
                 </View>
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{item.note}</Text>
+                {item.imageUris && item.imageUris.length > 0 && (
+                  <PhotoCarousel
+                    uris={item.imageUris}
+                    onPhotoPress={(i) => setViewingPhotos({ uris: item.imageUris!, index: i })}
+                  />
+                )}
 
                 <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
                   <Pressable
@@ -501,6 +522,14 @@ export default function LendBoard() {
             </ScrollView>
           </View>
         </View>
+      )}
+
+      {viewingPhotos && (
+        <PhotoViewer
+          uris={viewingPhotos.uris}
+          initialIndex={viewingPhotos.index}
+          onClose={() => setViewingPhotos(null)}
+        />
       )}
     </SafeAreaView>
   );

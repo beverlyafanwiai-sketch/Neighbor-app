@@ -845,6 +845,7 @@ export type LendItem = {
   emoji: string;
   title: string;
   note: string;
+  imageUris?: string[];
   // Baseline ids of other neighbors already offering to help, for 'want'
   // items — mirrors event.attendeeIds as a "before ME" list.
   helperIds?: string[];
@@ -910,6 +911,7 @@ export type SaleItem = {
   title: string;
   price: string;
   note: string;
+  imageUris?: string[];
   // Baseline ids of other neighbors already interested — mirrors
   // LendItem.helperIds as a "before ME" list.
   interestedByIds?: string[];

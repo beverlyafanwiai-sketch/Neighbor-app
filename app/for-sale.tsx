@@ -5,6 +5,8 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import PhotoCarousel from '../components/PhotoCarousel';
+import PhotoViewer from '../components/PhotoViewer';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
@@ -37,6 +39,7 @@ export default function ForSaleBoard() {
   const [viewingInterestedId, setViewingInterestedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SaleSort>('Newest');
   const [query, setQuery] = useState('');
+  const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
 
   const q = query.trim().toLowerCase();
   const matchesQuery = (i: (typeof items)[number]) =>
@@ -193,6 +196,12 @@ export default function ForSaleBoard() {
                         <Ionicons name="trash-outline" size={16} className="text-terracotta" />
                       </Pressable>
                     </View>
+                    {item.imageUris && item.imageUris.length > 0 && (
+                      <PhotoCarousel
+                        uris={item.imageUris}
+                        onPhotoPress={(i) => setViewingPhotos({ uris: item.imageUris!, index: i })}
+                      />
+                    )}
 
                     <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
                       <Pressable
@@ -272,6 +281,12 @@ export default function ForSaleBoard() {
                   </Pressable>
                 </View>
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{item.note}</Text>
+                {item.imageUris && item.imageUris.length > 0 && (
+                  <PhotoCarousel
+                    uris={item.imageUris}
+                    onPhotoPress={(i) => setViewingPhotos({ uris: item.imageUris!, index: i })}
+                  />
+                )}
 
                 <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
                   {isSold ? (
@@ -376,6 +391,14 @@ export default function ForSaleBoard() {
             </ScrollView>
           </View>
         </View>
+      )}
+
+      {viewingPhotos && (
+        <PhotoViewer
+          uris={viewingPhotos.uris}
+          initialIndex={viewingPhotos.index}
+          onClose={() => setViewingPhotos(null)}
+        />
       )}
     </SafeAreaView>
   );
