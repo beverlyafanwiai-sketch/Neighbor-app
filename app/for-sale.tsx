@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import ReportPostSheet from '../components/ReportPostSheet';
+import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
 import { getEffectiveInterestCount, useSaleStore } from '../store/useSaleStore';
 
@@ -15,8 +18,13 @@ export default function ForSaleBoard() {
   const markSold = useSaleStore((s) => s.markSold);
   const deleteItem = useSaleStore((s) => s.deleteItem);
 
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+  const [sharingId, setSharingId] = useState<string | null>(null);
+  const [reportingId, setReportingId] = useState<string | null>(null);
+
   const myItems = items.filter((i) => i.ownerId === ME.id);
   const boardItems = items.filter((i) => i.ownerId !== ME.id);
+  const sharingItem = items.find((i) => i.id === sharingId);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -51,6 +59,29 @@ export default function ForSaleBoard() {
                 const isSold = sold[item.id] ?? false;
                 const interestCount = getEffectiveInterestCount(item.id, false);
 
+                if (deletingItemId === item.id) {
+                  return (
+                    <View key={item.id} className="gap-2 rounded-2xl bg-terracotta/10 p-4">
+                      <Text className="text-sm text-charcoal">
+                        Delete this listing? This can't be undone.
+                      </Text>
+                      <View className="flex-row justify-end gap-4">
+                        <Pressable onPress={() => setDeletingItemId(null)}>
+                          <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => {
+                            deleteItem(item.id);
+                            setDeletingItemId(null);
+                          }}
+                        >
+                          <Text className="text-sm font-semibold text-terracotta">Delete</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  );
+                }
+
                 return (
                   <View key={item.id} className="rounded-2xl bg-cream p-4">
                     <View className="flex-row items-center gap-3">
@@ -62,7 +93,13 @@ export default function ForSaleBoard() {
                         <Text className="text-xs text-charcoal/50">{item.price}</Text>
                       </View>
                       <Pressable
-                        onPress={() => deleteItem(item.id)}
+                        onPress={() => setSharingId(item.id)}
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="arrow-redo-outline" size={16} className="text-charcoal/50" />
+                      </Pressable>
+                      <Pressable
+                        onPress={() => setDeletingItemId(item.id)}
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons name="trash-outline" size={16} className="text-terracotta" />
@@ -117,6 +154,18 @@ export default function ForSaleBoard() {
                       {owner.name} · {item.price}
                     </Text>
                   </View>
+                  <Pressable
+                    onPress={() => setSharingId(item.id)}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons name="arrow-redo-outline" size={18} className="text-charcoal/40" />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setReportingId(item.id)}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons name="flag-outline" size={17} className="text-charcoal/40" />
+                  </Pressable>
                 </View>
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{item.note}</Text>
 
@@ -157,6 +206,23 @@ export default function ForSaleBoard() {
           )}
         </View>
       </ScrollView>
+
+      {sharingItem && (
+        <ShareSheet
+          title="Share listing"
+          link={`https://neighbor.app/for-sale/${sharingItem.id}`}
+          previewText={`${sharingItem.title} — ${sharingItem.price} — ${sharingItem.note}`}
+          onClose={() => setSharingId(null)}
+        />
+      )}
+
+      {reportingId && (
+        <ReportPostSheet
+          onClose={() => setReportingId(null)}
+          title="Post options"
+          actionLabel="Report this post"
+        />
+      )}
     </SafeAreaView>
   );
 }
