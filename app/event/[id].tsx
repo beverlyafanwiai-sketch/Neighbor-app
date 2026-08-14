@@ -57,6 +57,7 @@ export default function EventDetail() {
   const rateEvent = useEventRatingsStore((s) => s.rateEvent);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [confirmingCancelOfferId, setConfirmingCancelOfferId] = useState<string | null>(null);
   const [calendarAdded, setCalendarAdded] = useState(false);
   const [offeringRide, setOfferingRide] = useState(false);
   const [offerSeats, setOfferSeats] = useState(2);
@@ -618,11 +619,35 @@ export default function EventDetail() {
                         )}
                       </View>
                     </View>
-                    {canCarpool && (
+                    {canCarpool && confirmingCancelOfferId === offer.id && (
+                      <View className="mt-3 gap-2 border-t border-charcoal/10 pt-3">
+                        <Text className="text-sm text-charcoal">
+                          {offer.riderIds.length > 0
+                            ? `Cancel your offer to drive? ${offer.riderIds.length} neighbor${offer.riderIds.length === 1 ? '' : 's'} already claimed a seat and will need another ride.`
+                            : 'Cancel your offer to drive?'}
+                        </Text>
+                        <View className="flex-row justify-end gap-4">
+                          <Pressable onPress={() => setConfirmingCancelOfferId(null)}>
+                            <Text className="text-sm font-medium text-charcoal/60">Keep it</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => {
+                              cancelOffer(event.id);
+                              setConfirmingCancelOfferId(null);
+                            }}
+                          >
+                            <Text className="text-sm font-semibold text-terracotta">
+                              Cancel offer
+                            </Text>
+                          </Pressable>
+                        </View>
+                      </View>
+                    )}
+                    {canCarpool && confirmingCancelOfferId !== offer.id && (
                       <View className="mt-3 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
                         {isMyOffer ? (
                           <Pressable
-                            onPress={() => cancelOffer(event.id)}
+                            onPress={() => setConfirmingCancelOfferId(offer.id)}
                             className="rounded-full bg-sand px-4 py-1.5"
                           >
                             <Text className="text-xs font-semibold text-charcoal">
