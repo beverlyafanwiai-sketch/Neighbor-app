@@ -82,10 +82,13 @@ export default function ProfileView({
   const allWelcomeNotes = useWelcomeNotesStore((s) => s.notes);
   const addWelcomeNote = useWelcomeNotesStore((s) => s.addNote);
   const deleteWelcomeNote = useWelcomeNotesStore((s) => s.deleteNote);
+  const editWelcomeNote = useWelcomeNotesStore((s) => s.editNote);
   const welcomeNotes = getWelcomeNotes(user.id, allWelcomeNotes);
   const [composingNote, setComposingNote] = useState(false);
   const [noteDraft, setNoteDraft] = useState('');
   const [confirmingDeleteNoteId, setConfirmingDeleteNoteId] = useState<string | null>(null);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editNoteDraft, setEditNoteDraft] = useState('');
   const endorsements = useEndorsementsStore((s) => s.endorsements);
   const addEndorsement = useEndorsementsStore((s) => s.addEndorsement);
   const removeEndorsement = useEndorsementsStore((s) => s.removeEndorsement);
@@ -307,21 +310,60 @@ export default function ProfileView({
                   );
                 }
 
+                if (editingNoteId === note.id) {
+                  return (
+                    <View key={note.id} className="gap-2 rounded-2xl bg-sand p-3">
+                      <TextInput
+                        value={editNoteDraft}
+                        onChangeText={setEditNoteDraft}
+                        autoFocus
+                        multiline
+                        className="min-h-[60px] rounded-xl bg-cream px-3 py-2 text-sm text-charcoal"
+                      />
+                      <View className="flex-row justify-end gap-4">
+                        <Pressable onPress={() => setEditingNoteId(null)}>
+                          <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => {
+                            editWelcomeNote(note.id, editNoteDraft);
+                            setEditingNoteId(null);
+                          }}
+                        >
+                          <Text className="text-sm font-semibold text-terracotta">Save</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  );
+                }
+
                 return (
                   <View key={note.id} className="flex-row items-start gap-2 rounded-2xl bg-sand p-3">
                     <View className="flex-1">
                       <Text className="text-sm leading-5 text-charcoal">“{note.text}”</Text>
                       <Text className="mt-1 text-xs text-charcoal/50">
                         — {isMine ? 'You' : (author?.name ?? 'A neighbor')}
+                        {note.edited && ' · edited'}
                       </Text>
                     </View>
                     {isMine && (
-                      <Pressable
-                        onPress={() => setConfirmingDeleteNoteId(note.id)}
-                        className="h-7 w-7 items-center justify-center rounded-full"
-                      >
-                        <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
-                      </Pressable>
+                      <>
+                        <Pressable
+                          onPress={() => {
+                            setEditingNoteId(note.id);
+                            setEditNoteDraft(note.text);
+                          }}
+                          className="h-7 w-7 items-center justify-center rounded-full"
+                        >
+                          <Ionicons name="pencil" size={13} className="text-charcoal/40" />
+                        </Pressable>
+                        <Pressable
+                          onPress={() => setConfirmingDeleteNoteId(note.id)}
+                          className="h-7 w-7 items-center justify-center rounded-full"
+                        >
+                          <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
+                        </Pressable>
+                      </>
                     )}
                   </View>
                 );

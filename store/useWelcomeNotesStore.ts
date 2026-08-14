@@ -9,6 +9,7 @@ const THANKS_DELAY_MS = 2500;
 type WelcomeNotesState = {
   notes: WelcomeNote[];
   addNote: (toUserId: string, text: string) => void;
+  editNote: (noteId: string, text: string) => void;
   deleteNote: (noteId: string) => void;
 };
 
@@ -37,6 +38,14 @@ export const useWelcomeNotesStore = create<WelcomeNotesState>((set) => ({
         });
       }
     }, THANKS_DELAY_MS);
+  },
+
+  editNote: (noteId, text) => {
+    const clean = text.trim();
+    if (!clean) return;
+    set((s) => ({
+      notes: s.notes.map((n) => (n.id === noteId ? { ...n, text: clean, edited: true } : n)),
+    }));
   },
 
   deleteNote: (noteId) =>

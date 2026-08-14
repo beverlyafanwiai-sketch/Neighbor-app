@@ -760,6 +760,7 @@ export type WelcomeNote = {
   toUserId: string;
   fromUserId: string;
   text: string;
+  edited?: boolean;
 };
 
 export const WELCOME_NOTES: WelcomeNote[] = [
