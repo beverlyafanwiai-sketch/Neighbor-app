@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
 import { getEffectiveAgreeCount, useRecsStore } from '../store/useRecsStore';
 import { useSavedRecsStore } from '../store/useSavedRecsStore';
@@ -22,6 +23,9 @@ export default function RecsBoard() {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [query, setQuery] = useState('');
+  const [sharingId, setSharingId] = useState<string | null>(null);
+
+  const sharingEntry = entries.find((e) => e.id === sharingId);
 
   const categories = ['All', ...Array.from(new Set(entries.map((e) => e.category))).sort()];
   const matchesCategory = (e: (typeof entries)[number]) =>
@@ -141,6 +145,12 @@ export default function RecsBoard() {
                         </Text>
                       </View>
                       <Pressable
+                        onPress={() => setSharingId(entry.id)}
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="arrow-redo-outline" size={16} className="text-charcoal/50" />
+                      </Pressable>
+                      <Pressable
                         onPress={() => router.push(`/create-rec?id=${entry.id}`)}
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
@@ -196,6 +206,12 @@ export default function RecsBoard() {
                       {isRec ? `Recommended by ${author.name}` : `${author.name} is looking`}
                     </Text>
                   </View>
+                  <Pressable
+                    onPress={() => setSharingId(entry.id)}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons name="arrow-redo-outline" size={18} className="text-charcoal/40" />
+                  </Pressable>
                   <Pressable
                     onPress={() => toggleSave(entry.id)}
                     className="h-8 w-8 items-center justify-center"
@@ -260,6 +276,19 @@ export default function RecsBoard() {
           )}
         </View>
       </ScrollView>
+
+      {sharingEntry && (
+        <ShareSheet
+          title={sharingEntry.kind === 'rec' ? 'Share recommendation' : 'Share ask'}
+          link={`https://neighbor.app/recs/${sharingEntry.id}`}
+          previewText={
+            sharingEntry.kind === 'rec'
+              ? `${sharingEntry.name ?? sharingEntry.category} — ${sharingEntry.note}`
+              : `${sharingEntry.category}: ${sharingEntry.note}`
+          }
+          onClose={() => setSharingId(null)}
+        />
+      )}
     </SafeAreaView>
   );
 }
