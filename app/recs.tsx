@@ -9,6 +9,9 @@ import { getUser, ME } from '../data/mock';
 import { getEffectiveAgreeCount, useRecsStore } from '../store/useRecsStore';
 import { useSavedRecsStore } from '../store/useSavedRecsStore';
 
+const KIND_FILTERS = ['All', 'Recs', 'Asks'] as const;
+type KindFilter = (typeof KIND_FILTERS)[number];
+
 export default function RecsBoard() {
   const entries = useRecsStore((s) => s.entries);
   const myAgreed = useRecsStore((s) => s.myAgreed);
@@ -17,11 +20,14 @@ export default function RecsBoard() {
   const savedIds = useSavedRecsStore((s) => s.savedIds);
   const toggleSave = useSavedRecsStore((s) => s.toggleSave);
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [query, setQuery] = useState('');
 
   const categories = ['All', ...Array.from(new Set(entries.map((e) => e.category))).sort()];
   const matchesCategory = (e: (typeof entries)[number]) =>
     categoryFilter === 'All' || e.category === categoryFilter;
+  const matchesKind = (e: (typeof entries)[number]) =>
+    kindFilter === 'All' || (kindFilter === 'Recs' ? e.kind === 'rec' : e.kind === 'ask');
   const q = query.trim().toLowerCase();
   const matchesQuery = (e: (typeof entries)[number]) =>
     q.length === 0 ||
@@ -29,9 +35,11 @@ export default function RecsBoard() {
     (e.name ?? '').toLowerCase().includes(q) ||
     e.note.toLowerCase().includes(q);
 
-  const myEntries = entries.filter((e) => e.authorId === ME.id && matchesCategory(e) && matchesQuery(e));
+  const myEntries = entries.filter(
+    (e) => e.authorId === ME.id && matchesCategory(e) && matchesKind(e) && matchesQuery(e)
+  );
   const boardEntries = entries.filter(
-    (e) => e.authorId !== ME.id && matchesCategory(e) && matchesQuery(e)
+    (e) => e.authorId !== ME.id && matchesCategory(e) && matchesKind(e) && matchesQuery(e)
   );
 
   return (
@@ -63,6 +71,20 @@ export default function RecsBoard() {
             className="ml-2 flex-1 text-charcoal"
           />
         </View>
+      </View>
+
+      <View className="flex-row gap-2 px-5 pb-3">
+        {KIND_FILTERS.map((k) => (
+          <Pressable
+            key={k}
+            onPress={() => setKindFilter(k)}
+            className={`rounded-full px-4 py-2 ${kindFilter === k ? 'bg-ink' : 'bg-cream'}`}
+          >
+            <Text className={`text-sm font-medium ${kindFilter === k ? 'text-paper' : 'text-charcoal/60'}`}>
+              {k}
+            </Text>
+          </Pressable>
+        ))}
       </View>
 
       {categories.length > 2 && (
@@ -217,16 +239,16 @@ export default function RecsBoard() {
               title={
                 q.length > 0
                   ? `No results for "${query.trim()}"`
-                  : categoryFilter === 'All'
+                  : categoryFilter === 'All' && kindFilter === 'All'
                     ? 'Nothing on the board yet'
-                    : `No ${categoryFilter} posts yet`
+                    : `No ${categoryFilter === 'All' ? kindFilter.toLowerCase() : categoryFilter} posts yet`
               }
               subtitle={
                 q.length > 0
                   ? 'Try a different search term.'
-                  : categoryFilter === 'All'
+                  : categoryFilter === 'All' && kindFilter === 'All'
                     ? 'Recommend someone you trust, or ask your neighbors for a suggestion.'
-                    : 'Try a different category, or clear the filter.'
+                    : 'Try a different filter, or clear it.'
               }
             />
           )}
