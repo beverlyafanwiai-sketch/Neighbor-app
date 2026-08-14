@@ -66,6 +66,7 @@ export default function EventDetail() {
   const [ratingDraftComment, setRatingDraftComment] = useState('');
   const [editingRating, setEditingRating] = useState(false);
   const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
+  const [confirmingRemovePhotoId, setConfirmingRemovePhotoId] = useState<string | null>(null);
 
   if (!event) {
     return (
@@ -745,7 +746,7 @@ export default function EventDetail() {
                   </Pressable>
                   {photo.uploaderId === ME.id && (
                     <Pressable
-                      onPress={() => removePhoto(photo.id)}
+                      onPress={() => setConfirmingRemovePhotoId(photo.id)}
                       className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-ink/60"
                     >
                       <Ionicons name="close" size={12} className="text-paper" />
@@ -826,6 +827,33 @@ export default function EventDetail() {
           initialIndex={viewingPhotoIndex}
           onClose={() => setViewingPhotoIndex(null)}
         />
+      )}
+
+      {confirmingRemovePhotoId && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => setConfirmingRemovePhotoId(null)}
+          />
+          <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <Text className="text-sm text-charcoal">
+              Remove this photo? This can't be undone.
+            </Text>
+            <View className="flex-row justify-end gap-4">
+              <Pressable onPress={() => setConfirmingRemovePhotoId(null)}>
+                <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  removePhoto(confirmingRemovePhotoId);
+                  setConfirmingRemovePhotoId(null);
+                }}
+              >
+                <Text className="text-sm font-semibold text-terracotta">Remove</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
       )}
     </SafeAreaView>
   );
