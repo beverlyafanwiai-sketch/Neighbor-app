@@ -31,6 +31,7 @@ export default function RecsBoard() {
   const [query, setQuery] = useState('');
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [viewingAgreedId, setViewingAgreedId] = useState<string | null>(null);
+  const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
 
   const sharingEntry = entries.find((e) => e.id === sharingId);
   const viewingAgreedEntry = entries.find((e) => e.id === viewingAgreedId);
@@ -170,6 +171,30 @@ export default function RecsBoard() {
             <View className="gap-3">
               {myEntries.map((entry) => {
                 const count = getEffectiveAgreeCount(entry.id, false);
+
+                if (deletingEntryId === entry.id) {
+                  return (
+                    <View key={entry.id} className="gap-2 rounded-2xl bg-terracotta/10 p-4">
+                      <Text className="text-sm text-charcoal">
+                        Delete this post? This can't be undone.
+                      </Text>
+                      <View className="flex-row justify-end gap-4">
+                        <Pressable onPress={() => setDeletingEntryId(null)}>
+                          <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => {
+                            deleteEntry(entry.id);
+                            setDeletingEntryId(null);
+                          }}
+                        >
+                          <Text className="text-sm font-semibold text-terracotta">Delete</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  );
+                }
+
                 return (
                   <View key={entry.id} className="rounded-2xl bg-cream p-4">
                     <View className="flex-row items-center gap-3">
@@ -197,7 +222,7 @@ export default function RecsBoard() {
                         <Ionicons name="pencil" size={16} className="text-charcoal/50" />
                       </Pressable>
                       <Pressable
-                        onPress={() => deleteEntry(entry.id)}
+                        onPress={() => setDeletingEntryId(entry.id)}
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons name="trash-outline" size={16} className="text-terracotta" />
