@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,13 +17,22 @@ export default function RecsBoard() {
   const savedIds = useSavedRecsStore((s) => s.savedIds);
   const toggleSave = useSavedRecsStore((s) => s.toggleSave);
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [query, setQuery] = useState('');
 
   const categories = ['All', ...Array.from(new Set(entries.map((e) => e.category))).sort()];
   const matchesCategory = (e: (typeof entries)[number]) =>
     categoryFilter === 'All' || e.category === categoryFilter;
+  const q = query.trim().toLowerCase();
+  const matchesQuery = (e: (typeof entries)[number]) =>
+    q.length === 0 ||
+    e.category.toLowerCase().includes(q) ||
+    (e.name ?? '').toLowerCase().includes(q) ||
+    e.note.toLowerCase().includes(q);
 
-  const myEntries = entries.filter((e) => e.authorId === ME.id && matchesCategory(e));
-  const boardEntries = entries.filter((e) => e.authorId !== ME.id && matchesCategory(e));
+  const myEntries = entries.filter((e) => e.authorId === ME.id && matchesCategory(e) && matchesQuery(e));
+  const boardEntries = entries.filter(
+    (e) => e.authorId !== ME.id && matchesCategory(e) && matchesQuery(e)
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -41,6 +50,19 @@ export default function RecsBoard() {
         >
           <Ionicons name="add" size={20} className="text-paper" />
         </Pressable>
+      </View>
+
+      <View className="px-5 pb-3">
+        <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">
+          <Ionicons name="search" size={18} className="text-charcoal/50" />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search recs..."
+            placeholderTextColor="#3D3D3D80"
+            className="ml-2 flex-1 text-charcoal"
+          />
+        </View>
       </View>
 
       {categories.length > 2 && (
@@ -193,14 +215,18 @@ export default function RecsBoard() {
               icon="star-outline"
               iconColorClassName="text-charcoal/50"
               title={
-                categoryFilter === 'All'
-                  ? 'Nothing on the board yet'
-                  : `No ${categoryFilter} posts yet`
+                q.length > 0
+                  ? `No results for "${query.trim()}"`
+                  : categoryFilter === 'All'
+                    ? 'Nothing on the board yet'
+                    : `No ${categoryFilter} posts yet`
               }
               subtitle={
-                categoryFilter === 'All'
-                  ? 'Recommend someone you trust, or ask your neighbors for a suggestion.'
-                  : 'Try a different category, or clear the filter.'
+                q.length > 0
+                  ? 'Try a different search term.'
+                  : categoryFilter === 'All'
+                    ? 'Recommend someone you trust, or ask your neighbors for a suggestion.'
+                    : 'Try a different category, or clear the filter.'
               }
             />
           )}
