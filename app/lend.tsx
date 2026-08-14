@@ -15,6 +15,9 @@ import { useSavedLendStore } from '../store/useSavedLendStore';
 const LEND_SORTS = ['Newest', 'A-Z'] as const;
 type LendSort = (typeof LEND_SORTS)[number];
 
+const KIND_FILTERS = ['All', 'Have', 'Want'] as const;
+type KindFilter = (typeof KIND_FILTERS)[number];
+
 export default function LendBoard() {
   const items = useLendStore((s) => s.items);
   const status = useLendStore((s) => s.status);
@@ -38,9 +41,13 @@ export default function LendBoard() {
   const [reportingId, setReportingId] = useState<string | null>(null);
   const [viewingHelpersId, setViewingHelpersId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<LendSort>('Newest');
+  const [kindFilter, setKindFilter] = useState<KindFilter>('All');
 
-  const myItems = items.filter((i) => i.ownerId === ME.id);
-  const unsortedBoardItems = items.filter((i) => i.ownerId !== ME.id);
+  const matchesKind = (i: (typeof items)[number]) =>
+    kindFilter === 'All' || (kindFilter === 'Have' ? i.kind === 'have' : i.kind === 'want');
+
+  const myItems = items.filter((i) => i.ownerId === ME.id && matchesKind(i));
+  const unsortedBoardItems = items.filter((i) => i.ownerId !== ME.id && matchesKind(i));
   const boardItems =
     sortBy === 'A-Z'
       ? [...unsortedBoardItems].sort((a, b) => a.title.localeCompare(b.title))
@@ -70,6 +77,20 @@ export default function LendBoard() {
         >
           <Ionicons name="add" size={20} className="text-paper" />
         </Pressable>
+      </View>
+
+      <View className="flex-row gap-2 px-5 pb-3">
+        {KIND_FILTERS.map((k) => (
+          <Pressable
+            key={k}
+            onPress={() => setKindFilter(k)}
+            className={`rounded-full px-4 py-2 ${kindFilter === k ? 'bg-ink' : 'bg-cream'}`}
+          >
+            <Text className={`text-sm font-medium ${kindFilter === k ? 'text-paper' : 'text-charcoal/60'}`}>
+              {k}
+            </Text>
+          </Pressable>
+        ))}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">
@@ -376,8 +397,12 @@ export default function LendBoard() {
             <EmptyState
               icon="basket-outline"
               iconColorClassName="text-charcoal/50"
-              title="Nothing on the board yet"
-              subtitle="Be the first to post something you can lend, or something you need."
+              title={kindFilter === 'All' ? 'Nothing on the board yet' : `No ${kindFilter.toLowerCase()} items`}
+              subtitle={
+                kindFilter === 'All'
+                  ? 'Be the first to post something you can lend, or something you need.'
+                  : 'Try a different filter, or clear it.'
+              }
             />
           )}
         </View>
