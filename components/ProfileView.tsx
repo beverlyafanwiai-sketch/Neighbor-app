@@ -81,9 +81,11 @@ export default function ProfileView({
   const photoPosts = posts.filter((p) => p.authorId === user.id && (p.imageUris?.length ?? 0) > 0);
   const allWelcomeNotes = useWelcomeNotesStore((s) => s.notes);
   const addWelcomeNote = useWelcomeNotesStore((s) => s.addNote);
+  const deleteWelcomeNote = useWelcomeNotesStore((s) => s.deleteNote);
   const welcomeNotes = getWelcomeNotes(user.id, allWelcomeNotes);
   const [composingNote, setComposingNote] = useState(false);
   const [noteDraft, setNoteDraft] = useState('');
+  const [confirmingDeleteNoteId, setConfirmingDeleteNoteId] = useState<string | null>(null);
   const endorsements = useEndorsementsStore((s) => s.endorsements);
   const addEndorsement = useEndorsementsStore((s) => s.addEndorsement);
   const removeEndorsement = useEndorsementsStore((s) => s.removeEndorsement);
@@ -282,12 +284,45 @@ export default function ProfileView({
             <View className="mt-3 gap-2">
               {welcomeNotes.map((note) => {
                 const author = getUser(note.fromUserId);
+                const isMine = note.fromUserId === ME.id;
+
+                if (confirmingDeleteNoteId === note.id) {
+                  return (
+                    <View key={note.id} className="gap-2 rounded-2xl bg-terracotta/10 p-3">
+                      <Text className="text-sm text-charcoal">Delete this welcome note?</Text>
+                      <View className="flex-row justify-end gap-4">
+                        <Pressable onPress={() => setConfirmingDeleteNoteId(null)}>
+                          <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => {
+                            deleteWelcomeNote(note.id);
+                            setConfirmingDeleteNoteId(null);
+                          }}
+                        >
+                          <Text className="text-sm font-semibold text-terracotta">Delete</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  );
+                }
+
                 return (
-                  <View key={note.id} className="rounded-2xl bg-sand p-3">
-                    <Text className="text-sm leading-5 text-charcoal">“{note.text}”</Text>
-                    <Text className="mt-1 text-xs text-charcoal/50">
-                      — {author?.name ?? 'A neighbor'}
-                    </Text>
+                  <View key={note.id} className="flex-row items-start gap-2 rounded-2xl bg-sand p-3">
+                    <View className="flex-1">
+                      <Text className="text-sm leading-5 text-charcoal">“{note.text}”</Text>
+                      <Text className="mt-1 text-xs text-charcoal/50">
+                        — {isMine ? 'You' : (author?.name ?? 'A neighbor')}
+                      </Text>
+                    </View>
+                    {isMine && (
+                      <Pressable
+                        onPress={() => setConfirmingDeleteNoteId(note.id)}
+                        className="h-7 w-7 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
+                      </Pressable>
+                    )}
                   </View>
                 );
               })}
