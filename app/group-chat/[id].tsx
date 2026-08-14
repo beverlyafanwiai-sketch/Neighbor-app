@@ -54,6 +54,7 @@ export default function GroupChatThread() {
   const sendPoll = useGroupChatStore((s) => s.sendPoll);
   const votePoll = useGroupChatStore((s) => s.votePoll);
   const closePoll = useGroupChatStore((s) => s.closePoll);
+  const reopenPoll = useGroupChatStore((s) => s.reopenPoll);
   const markRead = useGroupsStore((s) => s.markRead);
   const toggleJoin = useGroupsStore((s) => s.toggle);
 
@@ -548,11 +549,20 @@ export default function GroupChatThread() {
                           {Object.keys(item.poll.votes).length} vote
                           {Object.keys(item.poll.votes).length === 1 ? '' : 's'}
                         </Text>
-                        {isMe && !item.poll.closed && (
-                          <Pressable onPress={() => closePoll(group.id, item.id)}>
-                            <Text className="text-[11px] font-semibold text-paper/80">Close poll</Text>
-                          </Pressable>
-                        )}
+                        {isMe &&
+                          (item.poll.closed ? (
+                            <Pressable onPress={() => reopenPoll(group.id, item.id)}>
+                              <Text className="text-[11px] font-semibold text-paper/80">
+                                Reopen poll
+                              </Text>
+                            </Pressable>
+                          ) : (
+                            <Pressable onPress={() => closePoll(group.id, item.id)}>
+                              <Text className="text-[11px] font-semibold text-paper/80">
+                                Close poll
+                              </Text>
+                            </Pressable>
+                          ))}
                       </View>
                     </View>
                   ) : (

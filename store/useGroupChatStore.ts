@@ -83,6 +83,7 @@ type GroupChatState = {
   sendPoll: (groupId: string, question: string, options: string[]) => void;
   votePoll: (groupId: string, messageId: string, optionId: string) => void;
   closePoll: (groupId: string, messageId: string) => void;
+  reopenPoll: (groupId: string, messageId: string) => void;
 };
 
 const initialMessages: Record<string, GroupMessage[]> = {
@@ -287,6 +288,16 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
         ...s.messages,
         [groupId]: (s.messages[groupId] ?? []).map((m) =>
           m.id === messageId && m.poll ? { ...m, poll: { ...m.poll, closed: true } } : m
+        ),
+      },
+    })),
+
+  reopenPoll: (groupId, messageId) =>
+    set((s) => ({
+      messages: {
+        ...s.messages,
+        [groupId]: (s.messages[groupId] ?? []).map((m) =>
+          m.id === messageId && m.poll ? { ...m, poll: { ...m.poll, closed: false } } : m
         ),
       },
     })),
