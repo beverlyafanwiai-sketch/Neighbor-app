@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +17,7 @@ import EmptyState from '../components/EmptyState';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
+import { useRecCommentsStore } from '../store/useRecCommentsStore';
 import { getEffectiveAgreeCount, getEffectiveAgreedIds, useRecsStore } from '../store/useRecsStore';
 import { useSavedRecsStore } from '../store/useSavedRecsStore';
 import { useProfileStore } from '../store/useProfileStore';
@@ -28,6 +38,9 @@ export default function RecsBoard() {
   const savedIds = useSavedRecsStore((s) => s.savedIds);
   const toggleSave = useSavedRecsStore((s) => s.toggleSave);
   const profile = useProfileStore((s) => s.profile);
+  const comments = useRecCommentsStore((s) => s.comments);
+  const addComment = useRecCommentsStore((s) => s.addComment);
+  const deleteComment = useRecCommentsStore((s) => s.deleteComment);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [sortBy, setSortBy] = useState<RecsSort>('Newest');
@@ -36,12 +49,17 @@ export default function RecsBoard() {
   const [viewingAgreedId, setViewingAgreedId] = useState<string | null>(null);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
   const [reportingId, setReportingId] = useState<string | null>(null);
+  const [viewingCommentsId, setViewingCommentsId] = useState<string | null>(null);
+  const [commentDraft, setCommentDraft] = useState('');
+  const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
 
   const sharingEntry = entries.find((e) => e.id === sharingId);
   const viewingAgreedEntry = entries.find((e) => e.id === viewingAgreedId);
   const viewingAgreedIds = viewingAgreedEntry
     ? getEffectiveAgreedIds(viewingAgreedEntry.id, myAgreed[viewingAgreedEntry.id] ?? false)
     : [];
+  const viewingCommentsEntry = entries.find((e) => e.id === viewingCommentsId);
+  const viewingComments = viewingCommentsEntry ? (comments[viewingCommentsEntry.id] ?? []) : [];
 
   const categories = ['All', ...Array.from(new Set(entries.map((e) => e.category))).sort()];
   const matchesCategory = (e: (typeof entries)[number]) =>
@@ -241,6 +259,12 @@ export default function RecsBoard() {
                         <Ionicons name="arrow-redo-outline" size={16} className="text-charcoal/50" />
                       </Pressable>
                       <Pressable
+                        onPress={() => setViewingCommentsId(entry.id)}
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="chatbubble-outline" size={15} className="text-charcoal/50" />
+                      </Pressable>
+                      <Pressable
                         onPress={() => router.push(`/create-rec?id=${entry.id}`)}
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
@@ -321,6 +345,12 @@ export default function RecsBoard() {
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="arrow-redo-outline" size={18} className="text-charcoal/40" />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setViewingCommentsId(entry.id)}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons name="chatbubble-outline" size={17} className="text-charcoal/40" />
                   </Pressable>
                   <Pressable
                     onPress={() => toggleSave(entry.id)}
@@ -479,6 +509,118 @@ export default function RecsBoard() {
               </View>
             </ScrollView>
           </View>
+        </View>
+      )}
+
+      {viewingCommentsEntry && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => {
+              setViewingCommentsId(null);
+              setConfirmingDeleteCommentId(null);
+              setCommentDraft('');
+            }}
+          />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            className="w-full"
+          >
+            <View className="max-h-[75%] w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-base font-bold text-charcoal">Comments</Text>
+                <Pressable
+                  onPress={() => {
+                    setViewingCommentsId(null);
+                    setConfirmingDeleteCommentId(null);
+                    setCommentDraft('');
+                  }}
+                  className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+                >
+                  <Ionicons name="close" size={16} className="text-charcoal" />
+                </Pressable>
+              </View>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View className="gap-2">
+                  {viewingComments.length === 0 && (
+                    <Text className="py-2 text-sm text-charcoal/50">
+                      No comments yet — ask a question or add a note.
+                    </Text>
+                  )}
+                  {viewingComments.map((c) => {
+                    const isMine = c.authorId === ME.id;
+                    const author = isMine ? profile : getUser(c.authorId);
+                    if (!author) return null;
+
+                    if (confirmingDeleteCommentId === c.id) {
+                      return (
+                        <View key={c.id} className="gap-2 rounded-2xl bg-terracotta/10 p-3">
+                          <Text className="text-sm text-charcoal">Delete this comment?</Text>
+                          <View className="flex-row justify-end gap-4">
+                            <Pressable onPress={() => setConfirmingDeleteCommentId(null)}>
+                              <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => {
+                                deleteComment(viewingCommentsEntry.id, c.id);
+                                setConfirmingDeleteCommentId(null);
+                              }}
+                            >
+                              <Text className="text-sm font-semibold text-terracotta">Delete</Text>
+                            </Pressable>
+                          </View>
+                        </View>
+                      );
+                    }
+
+                    return (
+                      <View key={c.id} className="flex-row items-start gap-2.5 rounded-2xl bg-sand p-3">
+                        <Image source={{ uri: author.avatar }} className="h-8 w-8 rounded-full" />
+                        <View className="flex-1">
+                          <View className="flex-row items-center gap-1.5">
+                            <Text className="text-sm font-semibold text-charcoal">
+                              {isMine ? 'You' : author.name}
+                            </Text>
+                            <Text className="text-xs text-charcoal/40">{c.time}</Text>
+                          </View>
+                          <Text className="mt-0.5 text-sm leading-5 text-charcoal">{c.text}</Text>
+                        </View>
+                        {isMine && (
+                          <Pressable
+                            onPress={() => setConfirmingDeleteCommentId(c.id)}
+                            className="h-7 w-7 items-center justify-center"
+                          >
+                            <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
+                          </Pressable>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+              <View className="flex-row items-center gap-2 border-t border-charcoal/10 pt-3">
+                <TextInput
+                  value={commentDraft}
+                  onChangeText={setCommentDraft}
+                  placeholder="Add a comment..."
+                  placeholderTextColor="#3D3D3D80"
+                  multiline
+                  className="max-h-24 flex-1 rounded-2xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+                />
+                <Pressable
+                  disabled={!commentDraft.trim()}
+                  onPress={() => {
+                    addComment(viewingCommentsEntry.id, commentDraft);
+                    setCommentDraft('');
+                  }}
+                  className="h-9 w-9 items-center justify-center rounded-full bg-terracotta"
+                  style={{ opacity: commentDraft.trim() ? 1 : 0.4 }}
+                >
+                  <Ionicons name="arrow-up" size={18} className="text-paper" />
+                </Pressable>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
         </View>
       )}
     </SafeAreaView>
