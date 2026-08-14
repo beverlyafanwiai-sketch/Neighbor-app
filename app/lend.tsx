@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,7 +8,8 @@ import EmptyState from '../components/EmptyState';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
-import { getEffectiveHelperCount, useLendStore } from '../store/useLendStore';
+import { getEffectiveHelperCount, getEffectiveHelperIds, useLendStore } from '../store/useLendStore';
+import { useProfileStore } from '../store/useProfileStore';
 
 export default function LendBoard() {
   const items = useLendStore((s) => s.items);
@@ -24,14 +25,23 @@ export default function LendBoard() {
   const markReturned = useLendStore((s) => s.markReturned);
   const offerToHelp = useLendStore((s) => s.offerToHelp);
   const deleteItem = useLendStore((s) => s.deleteItem);
+  const profile = useProfileStore((s) => s.profile);
 
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [reportingId, setReportingId] = useState<string | null>(null);
+  const [viewingHelpersId, setViewingHelpersId] = useState<string | null>(null);
 
   const myItems = items.filter((i) => i.ownerId === ME.id);
   const boardItems = items.filter((i) => i.ownerId !== ME.id);
   const sharingItem = items.find((i) => i.id === sharingId);
+  const viewingHelpersItem = items.find((i) => i.id === viewingHelpersId);
+  const viewingHelpersIds = viewingHelpersItem
+    ? getEffectiveHelperIds(
+        viewingHelpersItem.id,
+        viewingHelpersItem.ownerId === ME.id ? false : myOffers[viewingHelpersItem.id] ?? false
+      )
+    : [];
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -164,11 +174,17 @@ export default function LendBoard() {
                         </Text>
                       )
                     ) : (
-                      <Text className="mt-3 border-t border-charcoal/10 pt-3 text-sm text-charcoal/50">
-                        {helperCount === 0
-                          ? 'No offers yet'
-                          : `${helperCount} neighbor${helperCount === 1 ? '' : 's'} offered to help`}
-                      </Text>
+                      <Pressable
+                        disabled={helperCount === 0}
+                        onPress={() => setViewingHelpersId(item.id)}
+                        className="mt-3 border-t border-charcoal/10 pt-3"
+                      >
+                        <Text className="text-sm text-charcoal/50">
+                          {helperCount === 0
+                            ? 'No offers yet'
+                            : `${helperCount} neighbor${helperCount === 1 ? '' : 's'} offered to help`}
+                        </Text>
+                      </Pressable>
                     )}
                   </View>
                 );
@@ -280,11 +296,17 @@ export default function LendBoard() {
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{item.note}</Text>
 
                 <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
-                  <Text className="flex-1 text-sm text-charcoal/50">
-                    {helperCount === 0
-                      ? 'No neighbors yet'
-                      : `${helperCount} neighbor${helperCount === 1 ? '' : 's'} can help`}
-                  </Text>
+                  <Pressable
+                    disabled={helperCount === 0}
+                    onPress={() => setViewingHelpersId(item.id)}
+                    className="flex-1"
+                  >
+                    <Text className="text-sm text-charcoal/50">
+                      {helperCount === 0
+                        ? 'No neighbors yet'
+                        : `${helperCount} neighbor${helperCount === 1 ? '' : 's'} can help`}
+                    </Text>
+                  </Pressable>
                   <Pressable
                     onPress={() => offerToHelp(item.id)}
                     className={`rounded-full px-4 py-1.5 ${offered ? 'bg-sage/20' : 'bg-ink'}`}
@@ -324,6 +346,46 @@ export default function LendBoard() {
           title="Post options"
           actionLabel="Report this post"
         />
+      )}
+
+      {viewingHelpersItem && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={() => setViewingHelpersId(null)} />
+          <View className="max-h-[70%] w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Can help</Text>
+              <Pressable
+                onPress={() => setViewingHelpersId(null)}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View className="gap-1">
+                {viewingHelpersIds.map((userId) => {
+                  const isMe = userId === ME.id;
+                  const person = isMe ? profile : getUser(userId);
+                  if (!person) return null;
+                  return (
+                    <Pressable
+                      key={userId}
+                      onPress={() => {
+                        if (isMe) return;
+                        setViewingHelpersId(null);
+                        router.push(`/profile/${userId}`);
+                      }}
+                      className="flex-row items-center gap-3 rounded-2xl p-2 active:opacity-70"
+                    >
+                      <Image source={{ uri: person.avatar }} className="h-9 w-9 rounded-full" />
+                      <Text className="font-medium text-charcoal">{isMe ? 'You' : person.name}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
       )}
     </SafeAreaView>
   );

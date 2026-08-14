@@ -845,9 +845,9 @@ export type LendItem = {
   emoji: string;
   title: string;
   note: string;
-  // Baseline count of other neighbors already offering to help, for 'want'
-  // items — mirrors event.spotsTaken as a "before ME" number.
-  helperCount?: number;
+  // Baseline ids of other neighbors already offering to help, for 'want'
+  // items — mirrors event.attendeeIds as a "before ME" list.
+  helperIds?: string[];
 };
 
 export const LEND_ITEMS: LendItem[] = [
@@ -866,7 +866,7 @@ export const LEND_ITEMS: LendItem[] = [
     emoji: '🥧',
     title: 'Stand mixer',
     note: 'Baking a big batch of bread for the block party — anyone have one I could borrow for a day?',
-    helperCount: 2,
+    helperIds: ['maya', 'sam'],
   },
   {
     id: 'drill',
@@ -891,7 +891,7 @@ export const LEND_ITEMS: LendItem[] = [
     emoji: '💦',
     title: 'Pressure washer',
     note: 'My driveway needs a good clean before fall. Willing to fill up your tank as thanks.',
-    helperCount: 1,
+    helperIds: ['priya'],
   },
   {
     id: 'kids-bike',
@@ -910,9 +910,9 @@ export type SaleItem = {
   title: string;
   price: string;
   note: string;
-  // Baseline count of other neighbors already interested — mirrors
-  // LendItem.helperCount as a "before ME" number.
-  interestedCount?: number;
+  // Baseline ids of other neighbors already interested — mirrors
+  // LendItem.helperIds as a "before ME" list.
+  interestedByIds?: string[];
 };
 
 export const SALE_ITEMS: SaleItem[] = [
@@ -923,7 +923,7 @@ export const SALE_ITEMS: SaleItem[] = [
     title: "Kids' bike (16in)",
     price: '$25',
     note: 'Barely used, outgrown it fast. Blue, good tires, minor scuffs.',
-    interestedCount: 1,
+    interestedByIds: ['maya'],
   },
   {
     id: 'standing-desk',
@@ -940,7 +940,7 @@ export const SALE_ITEMS: SaleItem[] = [
     title: 'Record player',
     price: '$40',
     note: 'Portable, built-in speakers. Selling since I upgraded to a proper turntable.',
-    interestedCount: 2,
+    interestedByIds: ['theo', 'priya'],
   },
   {
     id: 'patio-chairs',

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,7 +8,8 @@ import EmptyState from '../components/EmptyState';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
-import { getEffectiveInterestCount, useSaleStore } from '../store/useSaleStore';
+import { getEffectiveInterestCount, getEffectiveInterestedIds, useSaleStore } from '../store/useSaleStore';
+import { useProfileStore } from '../store/useProfileStore';
 
 export default function ForSaleBoard() {
   const items = useSaleStore((s) => s.items);
@@ -17,14 +18,23 @@ export default function ForSaleBoard() {
   const toggleInterest = useSaleStore((s) => s.toggleInterest);
   const markSold = useSaleStore((s) => s.markSold);
   const deleteItem = useSaleStore((s) => s.deleteItem);
+  const profile = useProfileStore((s) => s.profile);
 
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [reportingId, setReportingId] = useState<string | null>(null);
+  const [viewingInterestedId, setViewingInterestedId] = useState<string | null>(null);
 
   const myItems = items.filter((i) => i.ownerId === ME.id);
   const boardItems = items.filter((i) => i.ownerId !== ME.id);
   const sharingItem = items.find((i) => i.id === sharingId);
+  const viewingInterestedItem = items.find((i) => i.id === viewingInterestedId);
+  const viewingInterestedIds = viewingInterestedItem
+    ? getEffectiveInterestedIds(
+        viewingInterestedItem.id,
+        viewingInterestedItem.ownerId === ME.id ? false : myInterest[viewingInterestedItem.id] ?? false
+      )
+    : [];
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -113,13 +123,19 @@ export default function ForSaleBoard() {
                     </View>
 
                     <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
-                      <Text className={`flex-1 text-sm ${isSold ? 'text-sage' : 'text-charcoal/50'}`}>
-                        {isSold
-                          ? 'Marked as sold'
-                          : interestCount === 0
-                            ? 'No interest yet'
-                            : `${interestCount} neighbor${interestCount === 1 ? '' : 's'} interested`}
-                      </Text>
+                      <Pressable
+                        disabled={isSold || interestCount === 0}
+                        onPress={() => setViewingInterestedId(item.id)}
+                        className="flex-1"
+                      >
+                        <Text className={`text-sm ${isSold ? 'text-sage' : 'text-charcoal/50'}`}>
+                          {isSold
+                            ? 'Marked as sold'
+                            : interestCount === 0
+                              ? 'No interest yet'
+                              : `${interestCount} neighbor${interestCount === 1 ? '' : 's'} interested`}
+                        </Text>
+                      </Pressable>
                       {!isSold && (
                         <Pressable
                           onPress={() => markSold(item.id)}
@@ -180,11 +196,17 @@ export default function ForSaleBoard() {
                     <Text className="flex-1 text-sm text-charcoal/50">Sold</Text>
                   ) : (
                     <>
-                      <Text className="flex-1 text-sm text-charcoal/50">
-                        {interestCount === 0
-                          ? 'No interest yet'
-                          : `${interestCount} neighbor${interestCount === 1 ? '' : 's'} interested`}
-                      </Text>
+                      <Pressable
+                        disabled={interestCount === 0}
+                        onPress={() => setViewingInterestedId(item.id)}
+                        className="flex-1"
+                      >
+                        <Text className="text-sm text-charcoal/50">
+                          {interestCount === 0
+                            ? 'No interest yet'
+                            : `${interestCount} neighbor${interestCount === 1 ? '' : 's'} interested`}
+                        </Text>
+                      </Pressable>
                       <Pressable
                         onPress={() => toggleInterest(item.id)}
                         className={`rounded-full px-4 py-1.5 ${interested ? 'bg-sage/20' : 'bg-ink'}`}
@@ -228,6 +250,46 @@ export default function ForSaleBoard() {
           title="Post options"
           actionLabel="Report this post"
         />
+      )}
+
+      {viewingInterestedItem && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={() => setViewingInterestedId(null)} />
+          <View className="max-h-[70%] w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Interested</Text>
+              <Pressable
+                onPress={() => setViewingInterestedId(null)}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View className="gap-1">
+                {viewingInterestedIds.map((userId) => {
+                  const isMe = userId === ME.id;
+                  const person = isMe ? profile : getUser(userId);
+                  if (!person) return null;
+                  return (
+                    <Pressable
+                      key={userId}
+                      onPress={() => {
+                        if (isMe) return;
+                        setViewingInterestedId(null);
+                        router.push(`/profile/${userId}`);
+                      }}
+                      className="flex-row items-center gap-3 rounded-2xl p-2 active:opacity-70"
+                    >
+                      <Image source={{ uri: person.avatar }} className="h-9 w-9 rounded-full" />
+                      <Text className="font-medium text-charcoal">{isMe ? 'You' : person.name}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
       )}
     </SafeAreaView>
   );

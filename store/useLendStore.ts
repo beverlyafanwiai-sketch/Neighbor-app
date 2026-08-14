@@ -170,10 +170,14 @@ export const useLendStore = create<LendState>((set, get) => ({
   deleteItem: (itemId) => set((s) => ({ items: s.items.filter((i) => i.id !== itemId) })),
 }));
 
-// item.helperCount is the baseline count of other neighbors already offering
-// to help *not including* ME. Effective totals fold in ME's own offer on top.
-export function getEffectiveHelperCount(itemId: string, offered: boolean) {
+// item.helperIds is the baseline list of other neighbors already offering
+// to help *not including* ME. Effective totals/ids fold in ME's own offer on top.
+export function getEffectiveHelperIds(itemId: string, offered: boolean): string[] {
   const item = useLendStore.getState().items.find((i) => i.id === itemId);
-  const base = item?.helperCount ?? 0;
-  return base + (offered ? 1 : 0);
+  const base = item?.helperIds ?? [];
+  return offered ? [...base, ME.id] : base;
+}
+
+export function getEffectiveHelperCount(itemId: string, offered: boolean) {
+  return getEffectiveHelperIds(itemId, offered).length;
 }

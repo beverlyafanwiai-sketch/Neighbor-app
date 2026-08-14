@@ -51,7 +51,9 @@ export const useSaleStore = create<SaleState>((set, get) => ({
 
       set((s) => ({
         items: s.items.map((i) =>
-          i.id === id ? { ...i, interestedCount: (i.interestedCount ?? 0) + 1 } : i
+          i.id === id
+            ? { ...i, interestedByIds: [...(i.interestedByIds ?? []), interested.id] }
+            : i
         ),
       }));
 
@@ -101,10 +103,14 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   deleteItem: (itemId) => set((s) => ({ items: s.items.filter((i) => i.id !== itemId) })),
 }));
 
-// item.interestedCount is the baseline count of other neighbors already
-// interested *not including* ME — mirrors LendItem.helperCount.
-export function getEffectiveInterestCount(itemId: string, interested: boolean) {
+// item.interestedByIds is the baseline list of other neighbors already
+// interested *not including* ME — mirrors LendItem.helperIds.
+export function getEffectiveInterestedIds(itemId: string, interested: boolean): string[] {
   const item = useSaleStore.getState().items.find((i) => i.id === itemId);
-  const base = item?.interestedCount ?? 0;
-  return base + (interested ? 1 : 0);
+  const base = item?.interestedByIds ?? [];
+  return interested ? [...base, ME.id] : base;
+}
+
+export function getEffectiveInterestCount(itemId: string, interested: boolean) {
+  return getEffectiveInterestedIds(itemId, interested).length;
 }
