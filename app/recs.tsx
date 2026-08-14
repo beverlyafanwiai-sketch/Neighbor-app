@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
 import { getEffectiveAgreeCount, getEffectiveAgreedIds, useRecsStore } from '../store/useRecsStore';
@@ -32,6 +33,7 @@ export default function RecsBoard() {
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [viewingAgreedId, setViewingAgreedId] = useState<string | null>(null);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
+  const [reportingId, setReportingId] = useState<string | null>(null);
 
   const sharingEntry = entries.find((e) => e.id === sharingId);
   const viewingAgreedEntry = entries.find((e) => e.id === viewingAgreedId);
@@ -300,6 +302,12 @@ export default function RecsBoard() {
                       className={saved ? 'text-gold' : 'text-charcoal/40'}
                     />
                   </Pressable>
+                  <Pressable
+                    onPress={() => setReportingId(entry.id)}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons name="flag-outline" size={17} className="text-charcoal/40" />
+                  </Pressable>
                 </View>
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{entry.note}</Text>
                 {entry.imageUri && (
@@ -378,6 +386,14 @@ export default function RecsBoard() {
               : `${sharingEntry.category}: ${sharingEntry.note}`
           }
           onClose={() => setSharingId(null)}
+        />
+      )}
+
+      {reportingId && (
+        <ReportPostSheet
+          onClose={() => setReportingId(null)}
+          title="Post options"
+          actionLabel="Report this post"
         />
       )}
 
