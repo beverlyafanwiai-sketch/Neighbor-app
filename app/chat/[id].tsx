@@ -25,8 +25,10 @@ import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
 import ReportPostSheet from '../../components/ReportPostSheet';
 import { getUser, type Message } from '../../data/mock';
+import { useBlockedStore } from '../../store/useBlockedStore';
 import { messageKey, useConversationsStore } from '../../store/useConversationsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
+import { useMutedStore } from '../../store/useMutedStore';
 
 export default function ChatThread() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -40,6 +42,10 @@ export default function ChatThread() {
   const setReaction = useConversationsStore((s) => s.setReaction);
   const isTyping = useConversationsStore((s) => s.typing[id] ?? false);
   const user = conversation ? getUser(conversation.userId) : undefined;
+  const isBlocked = useBlockedStore((s) => (user ? (s.blockedIds[user.id] ?? false) : false));
+  const toggleBlocked = useBlockedStore((s) => s.toggle);
+  const isMuted = useMutedStore((s) => (user ? (s.mutedIds[user.id] ?? false) : false));
+  const toggleMuted = useMutedStore((s) => s.toggle);
 
   const [draft, setDraft] = useState('');
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
@@ -55,6 +61,9 @@ export default function ChatThread() {
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [showGallery, setShowGallery] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const [showActions, setShowActions] = useState(false);
+  const [confirmingBlock, setConfirmingBlock] = useState(false);
+  const [reportedPerson, setReportedPerson] = useState(false);
   const [replyingTo, setReplyingTo] = useState<{ id: string; senderName: string; preview: string } | null>(
     null
   );
@@ -145,6 +154,17 @@ export default function ChatThread() {
     if (!editDraft.trim() || !editingMessageId) return;
     updateMessage(conversation.id, editingMessageId, editDraft.trim());
     setEditingMessageId(null);
+  };
+
+  const closeActions = () => {
+    setShowActions(false);
+    setConfirmingBlock(false);
+    setReportedPerson(false);
+  };
+
+  const confirmBlock = () => {
+    toggleBlocked(user.id);
+    router.back();
   };
 
   const copyMessage = async (messageId: string, text: string) => {
@@ -251,6 +271,12 @@ export default function ChatThread() {
             className="h-9 w-9 items-center justify-center rounded-full"
           >
             <Ionicons name="images-outline" size={20} className="text-charcoal" />
+          </Pressable>
+          <Pressable
+            onPress={() => setShowActions(true)}
+            className="h-9 w-9 items-center justify-center rounded-full"
+          >
+            <Ionicons name="ellipsis-horizontal" size={20} className="text-charcoal" />
           </Pressable>
         </View>
       )}
@@ -574,6 +600,91 @@ export default function ChatThread() {
           onSelectPhoto={jumpToMessage}
           onClose={() => setShowGallery(false)}
         />
+      )}
+
+      {showActions && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={closeActions} />
+          <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">{user.name}</Text>
+              <Pressable
+                onPress={closeActions}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+
+            <Pressable
+              onPress={() => toggleMuted(user.id)}
+              className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
+            >
+              <Ionicons
+                name={isMuted ? 'volume-high-outline' : 'volume-mute-outline'}
+                size={20}
+                className="text-charcoal"
+              />
+              <View className="flex-1">
+                <Text className="text-sm font-medium text-charcoal">
+                  {isMuted ? `Unmute ${user.name}` : `Mute ${user.name}`}
+                </Text>
+                {!isMuted && (
+                  <Text className="mt-0.5 text-xs text-charcoal/50">
+                    Quietly hide their posts — they won't be notified
+                  </Text>
+                )}
+              </View>
+            </Pressable>
+
+            {confirmingBlock ? (
+              <View className="gap-3 rounded-2xl bg-terracotta/10 p-4">
+                <Text className="text-sm text-charcoal">
+                  Block {user.name}? You won't see their posts or messages, and they won't be able
+                  to reach you.
+                </Text>
+                <View className="flex-row justify-end gap-4">
+                  <Pressable onPress={() => setConfirmingBlock(false)}>
+                    <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                  </Pressable>
+                  <Pressable onPress={confirmBlock}>
+                    <Text className="text-sm font-semibold text-terracotta">Block</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => (isBlocked ? confirmBlock() : setConfirmingBlock(true))}
+                className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
+              >
+                <Ionicons
+                  name={isBlocked ? 'checkmark-circle-outline' : 'ban-outline'}
+                  size={20}
+                  className="text-terracotta"
+                />
+                <Text className="text-sm font-medium text-terracotta">
+                  {isBlocked ? `Unblock ${user.name}` : `Block ${user.name}`}
+                </Text>
+              </Pressable>
+            )}
+
+            {reportedPerson ? (
+              <View className="rounded-2xl bg-sage/15 p-4">
+                <Text className="text-sm text-sage">
+                  Thanks — we've received your report and will take a look.
+                </Text>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => setReportedPerson(true)}
+                className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
+              >
+                <Ionicons name="flag-outline" size={20} className="text-charcoal" />
+                <Text className="text-sm font-medium text-charcoal">Report {user.name}</Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
       )}
     </SafeAreaView>
   );
