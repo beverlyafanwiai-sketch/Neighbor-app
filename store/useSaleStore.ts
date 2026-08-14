@@ -23,6 +23,7 @@ type SaleState = {
   updateItem: (itemId: string, updates: Partial<NewSaleItemInput>) => void;
   toggleInterest: (itemId: string) => void;
   markSold: (itemId: string) => void;
+  relistItem: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
 };
 
@@ -96,6 +97,8 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   },
 
   markSold: (itemId) => set((s) => ({ sold: { ...s.sold, [itemId]: true } })),
+
+  relistItem: (itemId) => set((s) => ({ sold: { ...s.sold, [itemId]: false } })),
 
   updateItem: (itemId, updates) =>
     set((s) => ({

@@ -28,6 +28,7 @@ export default function ForSaleBoard() {
   const myInterest = useSaleStore((s) => s.myInterest);
   const toggleInterest = useSaleStore((s) => s.toggleInterest);
   const markSold = useSaleStore((s) => s.markSold);
+  const relistItem = useSaleStore((s) => s.relistItem);
   const deleteItem = useSaleStore((s) => s.deleteItem);
   const profile = useProfileStore((s) => s.profile);
   const savedIds = useSavedSaleStore((s) => s.savedIds);
@@ -217,7 +218,14 @@ export default function ForSaleBoard() {
                               : `${interestCount} neighbor${interestCount === 1 ? '' : 's'} interested`}
                         </Text>
                       </Pressable>
-                      {!isSold && (
+                      {isSold ? (
+                        <Pressable
+                          onPress={() => relistItem(item.id)}
+                          className="rounded-full bg-sand px-4 py-1.5"
+                        >
+                          <Text className="text-xs font-semibold text-charcoal">Relist</Text>
+                        </Pressable>
+                      ) : (
                         <Pressable
                           onPress={() => markSold(item.id)}
                           className="rounded-full bg-sage/20 px-4 py-1.5"
