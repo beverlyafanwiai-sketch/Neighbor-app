@@ -6,6 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import InviteGroupSheet from '../../components/InviteGroupSheet';
+import PhotoViewer from '../../components/PhotoViewer';
 import ReportPostSheet from '../../components/ReportPostSheet';
 import { ME, getUser } from '../../data/mock';
 import { getGroupPhotos, useGroupAlbumStore } from '../../store/useGroupAlbumStore';
@@ -46,6 +47,7 @@ export default function GroupDetail() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [reportingGroup, setReportingGroup] = useState(false);
+  const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
 
   if (!group) {
     return (
@@ -347,9 +349,11 @@ export default function GroupDetail() {
               Group photos{groupPhotos.length > 0 ? ` (${groupPhotos.length})` : ''}
             </Text>
             <View className="flex-row flex-wrap gap-3">
-              {groupPhotos.map((photo) => (
+              {groupPhotos.map((photo, index) => (
                 <View key={photo.id} className="w-[31%]" style={{ aspectRatio: 1 }}>
-                  <Image source={{ uri: photo.uri }} className="h-full w-full rounded-xl" />
+                  <Pressable onPress={() => setViewingPhotoIndex(index)}>
+                    <Image source={{ uri: photo.uri }} className="h-full w-full rounded-xl" />
+                  </Pressable>
                   {photo.uploaderId === ME.id && (
                     <Pressable
                       onPress={() => removePhoto(photo.id)}
@@ -390,6 +394,14 @@ export default function GroupDetail() {
           onClose={() => setReportingGroup(false)}
           title="Group options"
           actionLabel="Report this group"
+        />
+      )}
+
+      {viewingPhotoIndex !== null && (
+        <PhotoViewer
+          uris={groupPhotos.map((p) => p.uri)}
+          initialIndex={viewingPhotoIndex}
+          onClose={() => setViewingPhotoIndex(null)}
         />
       )}
     </SafeAreaView>

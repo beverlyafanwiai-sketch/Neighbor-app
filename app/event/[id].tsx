@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import PhotoViewer from '../../components/PhotoViewer';
 import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser } from '../../data/mock';
 import { getCountdownLabel } from '../../lib/eventCountdown';
@@ -61,6 +62,7 @@ export default function EventDetail() {
   const [ratingDraftStars, setRatingDraftStars] = useState(0);
   const [ratingDraftComment, setRatingDraftComment] = useState('');
   const [editingRating, setEditingRating] = useState(false);
+  const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
 
   if (!event) {
     return (
@@ -682,9 +684,11 @@ export default function EventDetail() {
               Photos from this event{eventPhotos.length > 0 ? ` (${eventPhotos.length})` : ''}
             </Text>
             <View className="flex-row flex-wrap gap-3">
-              {eventPhotos.map((photo) => (
+              {eventPhotos.map((photo, index) => (
                 <View key={photo.id} className="w-[31%]" style={{ aspectRatio: 1 }}>
-                  <Image source={{ uri: photo.uri }} className="h-full w-full rounded-xl" />
+                  <Pressable onPress={() => setViewingPhotoIndex(index)}>
+                    <Image source={{ uri: photo.uri }} className="h-full w-full rounded-xl" />
+                  </Pressable>
                   {photo.uploaderId === ME.id && (
                     <Pressable
                       onPress={() => removePhoto(photo.id)}
@@ -759,6 +763,14 @@ export default function EventDetail() {
           link={`https://neighbor.app/event/${event.id}`}
           previewText={`${event.title} — ${event.date}, ${event.time} at ${event.location}`}
           onClose={() => setSharing(false)}
+        />
+      )}
+
+      {viewingPhotoIndex !== null && (
+        <PhotoViewer
+          uris={eventPhotos.map((p) => p.uri)}
+          initialIndex={viewingPhotoIndex}
+          onClose={() => setViewingPhotoIndex(null)}
         />
       )}
     </SafeAreaView>
