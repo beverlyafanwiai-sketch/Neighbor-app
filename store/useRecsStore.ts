@@ -18,6 +18,7 @@ type RecsState = {
   entries: RecEntry[];
   myAgreed: Record<string, boolean>;
   createEntry: (input: NewRecEntryInput) => string;
+  updateEntry: (entryId: string, updates: Partial<NewRecEntryInput>) => void;
   toggleAgree: (entryId: string) => void;
   deleteEntry: (entryId: string) => void;
 };
@@ -68,6 +69,11 @@ export const useRecsStore = create<RecsState>((set, get) => ({
 
     return id;
   },
+
+  updateEntry: (entryId, updates) =>
+    set((s) => ({
+      entries: s.entries.map((e) => (e.id === entryId ? { ...e, ...updates } : e)),
+    })),
 
   toggleAgree: (entryId) =>
     set((s) => ({ myAgreed: { ...s.myAgreed, [entryId]: !s.myAgreed[entryId] } })),

@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { RecEntryKind } from '../data/mock';
@@ -31,18 +31,33 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateRec() {
+  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const existing = useRecsStore((s) => (editId ? s.entries.find((e) => e.id === editId) : undefined));
+  const isEditing = Boolean(existing);
   const createEntry = useRecsStore((s) => s.createEntry);
+  const updateEntry = useRecsStore((s) => s.updateEntry);
 
-  const [kind, setKind] = useState<RecEntryKind>('rec');
-  const [emoji, setEmoji] = useState('⭐');
-  const [category, setCategory] = useState('');
-  const [name, setName] = useState('');
-  const [note, setNote] = useState('');
+  const [kind, setKind] = useState<RecEntryKind>(existing?.kind ?? 'rec');
+  const [emoji, setEmoji] = useState(existing?.emoji ?? '⭐');
+  const [category, setCategory] = useState(existing?.category ?? '');
+  const [name, setName] = useState(existing?.name ?? '');
+  const [note, setNote] = useState(existing?.note ?? '');
 
   const canSave = category.trim() && note.trim() && (kind === 'ask' || name.trim());
 
   const save = () => {
     if (!canSave) return;
+    if (existing) {
+      updateEntry(existing.id, {
+        kind,
+        emoji,
+        category: category.trim(),
+        name: kind === 'rec' ? name.trim() : undefined,
+        note: note.trim(),
+      });
+      router.replace('/recs');
+      return;
+    }
     createEntry({
       kind,
       emoji,
@@ -62,14 +77,16 @@ export default function CreateRec() {
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
-        <Text className="text-base font-bold text-charcoal">Post to the board</Text>
+        <Text className="text-base font-bold text-charcoal">
+          {isEditing ? 'Edit post' : 'Post to the board'}
+        </Text>
         <Pressable
           onPress={save}
           disabled={!canSave}
           className={`rounded-full px-4 py-2 ${canSave ? 'bg-terracotta' : 'bg-ink/10'}`}
         >
           <Text className={`text-sm font-semibold ${canSave ? 'text-paper' : 'text-charcoal/40'}`}>
-            Post
+            {isEditing ? 'Save' : 'Post'}
           </Text>
         </Pressable>
       </View>
