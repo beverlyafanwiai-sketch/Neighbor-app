@@ -14,10 +14,11 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
-import { useRecCommentsStore } from '../store/useRecCommentsStore';
+import { recCommentKey, useRecCommentsStore } from '../store/useRecCommentsStore';
 import { getEffectiveAgreeCount, getEffectiveAgreedIds, useRecsStore } from '../store/useRecsStore';
 import { useSavedRecsStore } from '../store/useSavedRecsStore';
 import { useProfileStore } from '../store/useProfileStore';
@@ -41,6 +42,9 @@ export default function RecsBoard() {
   const comments = useRecCommentsStore((s) => s.comments);
   const addComment = useRecCommentsStore((s) => s.addComment);
   const deleteComment = useRecCommentsStore((s) => s.deleteComment);
+  const myCommentReactions = useRecCommentsStore((s) => s.myReactions);
+  const tapCommentReaction = useRecCommentsStore((s) => s.tapReaction);
+  const setCommentReaction = useRecCommentsStore((s) => s.setReaction);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [sortBy, setSortBy] = useState<RecsSort>('Newest');
@@ -584,6 +588,13 @@ export default function RecsBoard() {
                             <Text className="text-xs text-charcoal/40">{c.time}</Text>
                           </View>
                           <Text className="mt-0.5 text-sm leading-5 text-charcoal">{c.text}</Text>
+                          <ReactionButton
+                            compact
+                            reactions={c.reactions}
+                            myReaction={myCommentReactions[recCommentKey(viewingCommentsEntry.id, c.id)]}
+                            onTap={() => tapCommentReaction(viewingCommentsEntry.id, c.id)}
+                            onSelect={(type) => setCommentReaction(viewingCommentsEntry.id, c.id, type)}
+                          />
                         </View>
                         {isMine && (
                           <Pressable

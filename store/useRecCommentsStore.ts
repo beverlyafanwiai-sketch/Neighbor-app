@@ -1,18 +1,26 @@
 import { create } from 'zustand';
 
-import { ME } from '../data/mock';
+import { ME, type ReactionType } from '../data/mock';
 
 export type RecComment = {
   id: string;
   authorId: string;
   text: string;
   time: string;
+  reactions?: Record<string, ReactionType>;
 };
+
+export function recCommentKey(entryId: string, commentId: string) {
+  return `${entryId}:${commentId}`;
+}
 
 type RecCommentsState = {
   comments: Record<string, RecComment[]>;
+  myReactions: Record<string, ReactionType | undefined>;
   addComment: (entryId: string, text: string) => void;
   deleteComment: (entryId: string, commentId: string) => void;
+  tapReaction: (entryId: string, commentId: string) => void;
+  setReaction: (entryId: string, commentId: string, type: ReactionType) => void;
 };
 
 const SEED: Record<string, RecComment[]> = {
@@ -22,12 +30,14 @@ const SEED: Record<string, RecComment[]> = {
       authorId: 'theo',
       text: 'Good to know — did she also handle a slow leak, or mostly bigger jobs?',
       time: '1d ago',
+      reactions: { maya: 'love' },
     },
   ],
 };
 
 export const useRecCommentsStore = create<RecCommentsState>((set) => ({
   comments: SEED,
+  myReactions: {},
 
   addComment: (entryId, text) => {
     const clean = text.trim();
@@ -50,4 +60,18 @@ export const useRecCommentsStore = create<RecCommentsState>((set) => ({
         [entryId]: (s.comments[entryId] ?? []).filter((c) => c.id !== commentId),
       },
     })),
+
+  tapReaction: (entryId, commentId) => {
+    const key = recCommentKey(entryId, commentId);
+    set((s) => ({
+      myReactions: { ...s.myReactions, [key]: s.myReactions[key] ? undefined : 'love' },
+    }));
+  },
+
+  setReaction: (entryId, commentId, type) => {
+    const key = recCommentKey(entryId, commentId);
+    set((s) => ({
+      myReactions: { ...s.myReactions, [key]: s.myReactions[key] === type ? undefined : type },
+    }));
+  },
 }));
