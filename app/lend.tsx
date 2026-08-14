@@ -10,6 +10,7 @@ import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
 import { getEffectiveHelperCount, getEffectiveHelperIds, useLendStore } from '../store/useLendStore';
 import { useProfileStore } from '../store/useProfileStore';
+import { useSavedLendStore } from '../store/useSavedLendStore';
 
 const LEND_SORTS = ['Newest', 'A-Z'] as const;
 type LendSort = (typeof LEND_SORTS)[number];
@@ -29,6 +30,8 @@ export default function LendBoard() {
   const offerToHelp = useLendStore((s) => s.offerToHelp);
   const deleteItem = useLendStore((s) => s.deleteItem);
   const profile = useProfileStore((s) => s.profile);
+  const savedIds = useSavedLendStore((s) => s.savedIds);
+  const toggleSave = useSavedLendStore((s) => s.toggleSave);
 
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -250,6 +253,16 @@ export default function LendBoard() {
                       <Ionicons name="arrow-redo-outline" size={18} className="text-charcoal/40" />
                     </Pressable>
                     <Pressable
+                      onPress={() => toggleSave(item.id)}
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons
+                        name={savedIds[item.id] ? 'bookmark' : 'bookmark-outline'}
+                        size={18}
+                        className={savedIds[item.id] ? 'text-gold' : 'text-charcoal/40'}
+                      />
+                    </Pressable>
+                    <Pressable
                       onPress={() => setReportingId(item.id)}
                       className="h-8 w-8 items-center justify-center"
                     >
@@ -314,6 +327,16 @@ export default function LendBoard() {
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="arrow-redo-outline" size={18} className="text-charcoal/40" />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => toggleSave(item.id)}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons
+                      name={savedIds[item.id] ? 'bookmark' : 'bookmark-outline'}
+                      size={18}
+                      className={savedIds[item.id] ? 'text-gold' : 'text-charcoal/40'}
+                    />
                   </Pressable>
                   <Pressable
                     onPress={() => setReportingId(item.id)}

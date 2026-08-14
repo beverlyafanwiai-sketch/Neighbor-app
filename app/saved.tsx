@@ -9,6 +9,7 @@ import MentionText from '../components/MentionText';
 import { DISCOVER_USERS, ME, USERS } from '../data/mock';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../store/useCheckInStore';
 import { useEventsStore } from '../store/useEventsStore';
+import { getEffectiveHelperCount, useLendStore } from '../store/useLendStore';
 import {
   getEffectiveReactions,
   getEffectiveReplies,
@@ -20,11 +21,14 @@ import {
 import { useProfileStore } from '../store/useProfileStore';
 import { getEffectiveAgreeCount, useRecsStore } from '../store/useRecsStore';
 import { getEffectiveSpots, useRsvpStore } from '../store/useRsvpStore';
+import { getEffectiveInterestCount, useSaleStore } from '../store/useSaleStore';
 import { useSavedEventsStore } from '../store/useSavedEventsStore';
+import { useSavedLendStore } from '../store/useSavedLendStore';
 import { useSavedRecsStore } from '../store/useSavedRecsStore';
+import { useSavedSaleStore } from '../store/useSavedSaleStore';
 
 const ALL_PEOPLE = [...USERS, ...DISCOVER_USERS];
-const MODES = ['Posts', 'Events', 'Recs'] as const;
+const MODES = ['Posts', 'Events', 'Recs', 'Lend', 'For Sale'] as const;
 type Mode = (typeof MODES)[number];
 
 export default function Saved() {
@@ -47,9 +51,23 @@ export default function Saved() {
   const savedRecIds = useSavedRecsStore((s) => s.savedIds);
   const toggleSaveRec = useSavedRecsStore((s) => s.toggleSave);
 
+  const lendItems = useLendStore((s) => s.items);
+  const lendStatus = useLendStore((s) => s.status);
+  const myOffers = useLendStore((s) => s.myOffers);
+  const savedLendIds = useSavedLendStore((s) => s.savedIds);
+  const toggleSaveLend = useSavedLendStore((s) => s.toggleSave);
+
+  const saleItems = useSaleStore((s) => s.items);
+  const sold = useSaleStore((s) => s.sold);
+  const myInterest = useSaleStore((s) => s.myInterest);
+  const savedSaleIds = useSavedSaleStore((s) => s.savedIds);
+  const toggleSaveSale = useSavedSaleStore((s) => s.toggleSave);
+
   const savedPosts = posts.filter((p) => savedIds[p.id] ?? false);
   const savedEvents = events.filter((e) => savedEventIds[e.id] ?? false);
   const savedRecs = recEntries.filter((e) => savedRecIds[e.id] ?? false);
+  const savedLendItems = lendItems.filter((i) => savedLendIds[i.id] ?? false);
+  const savedSaleItems = saleItems.filter((i) => savedSaleIds[i.id] ?? false);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -102,6 +120,24 @@ export default function Saved() {
             iconColorClassName="text-charcoal/50"
             title="No saved recs"
             subtitle="Tap the bookmark on any board entry to save it for later."
+          />
+        )}
+
+        {mode === 'Lend' && savedLendItems.length === 0 && (
+          <EmptyState
+            icon="bookmark-outline"
+            iconColorClassName="text-charcoal/50"
+            title="No saved items"
+            subtitle="Tap the bookmark on any Borrow & Lend listing to save it for later."
+          />
+        )}
+
+        {mode === 'For Sale' && savedSaleItems.length === 0 && (
+          <EmptyState
+            icon="bookmark-outline"
+            iconColorClassName="text-charcoal/50"
+            title="No saved listings"
+            subtitle="Tap the bookmark on any For Sale listing to save it for later."
           />
         )}
 
@@ -275,6 +311,106 @@ export default function Saved() {
                       : isRec
                         ? `+${count} other${count === 1 ? '' : 's'} agree`
                         : `${count} neighbor${count === 1 ? '' : 's'} can help`}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+
+        {mode === 'Lend' && (
+          <View className="gap-3">
+            {savedLendItems.map((item) => {
+              const owner = item.ownerId === ME.id ? profile : ALL_PEOPLE.find((u) => u.id === item.ownerId);
+              if (!owner) return null;
+              const offered = myOffers[item.id] ?? false;
+              const helperCount = getEffectiveHelperCount(item.id, offered);
+              const itemStatus = lendStatus[item.id] ?? 'available';
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => router.push('/lend')}
+                  className="rounded-2xl bg-cream p-4 active:opacity-80"
+                >
+                  <View className="flex-row items-center gap-3">
+                    <View className="h-11 w-11 items-center justify-center rounded-xl bg-sand">
+                      <Text style={{ fontSize: 20 }}>{item.emoji}</Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="font-semibold text-charcoal">{item.title}</Text>
+                      <Text className="text-xs text-charcoal/50">
+                        {item.kind === 'have' ? owner.name : `${owner.name} is looking`}
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        toggleSaveLend(item.id);
+                      }}
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons name="bookmark" size={18} className="text-gold" />
+                    </Pressable>
+                  </View>
+                  <Text className="mt-2 text-sm leading-5 text-charcoal/80">{item.note}</Text>
+                  <Text className="mt-3 border-t border-charcoal/10 pt-3 text-xs text-charcoal/50">
+                    {item.kind === 'have'
+                      ? itemStatus === 'lent'
+                        ? 'Already lent'
+                        : itemStatus === 'requested'
+                          ? 'Request sent'
+                          : 'Available to lend'
+                      : helperCount === 0
+                        ? 'No neighbors yet'
+                        : `${helperCount} neighbor${helperCount === 1 ? '' : 's'} can help`}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+
+        {mode === 'For Sale' && (
+          <View className="gap-3">
+            {savedSaleItems.map((item) => {
+              const owner = item.ownerId === ME.id ? profile : ALL_PEOPLE.find((u) => u.id === item.ownerId);
+              if (!owner) return null;
+              const isSold = sold[item.id] ?? false;
+              const interested = myInterest[item.id] ?? false;
+              const interestCount = getEffectiveInterestCount(item.id, interested);
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => router.push('/for-sale')}
+                  className="rounded-2xl bg-cream p-4 active:opacity-80"
+                >
+                  <View className="flex-row items-center gap-3">
+                    <View className="h-11 w-11 items-center justify-center rounded-xl bg-sand">
+                      <Text style={{ fontSize: 20 }}>{item.emoji}</Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="font-semibold text-charcoal">{item.title}</Text>
+                      <Text className="text-xs text-charcoal/50">
+                        {owner.name} · {item.price}
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        toggleSaveSale(item.id);
+                      }}
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons name="bookmark" size={18} className="text-gold" />
+                    </Pressable>
+                  </View>
+                  <Text className="mt-2 text-sm leading-5 text-charcoal/80">{item.note}</Text>
+                  <Text className="mt-3 border-t border-charcoal/10 pt-3 text-xs text-charcoal/50">
+                    {isSold
+                      ? 'Sold'
+                      : interestCount === 0
+                        ? 'No interest yet'
+                        : `${interestCount} neighbor${interestCount === 1 ? '' : 's'} interested`}
                   </Text>
                 </Pressable>
               );
