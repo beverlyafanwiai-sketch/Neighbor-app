@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 
-import { ME } from '../data/mock';
+import { getUser, ME } from '../data/mock';
+import { useEventsStore } from './useEventsStore';
+import { useNotificationsStore } from './useNotificationsStore';
+import { useSettingsStore } from './useSettingsStore';
+
+const INBOUND_SEAT_REQUEST_DELAY_MS = 4000;
 
 export type CarpoolOffer = {
   id: string;
@@ -51,17 +56,46 @@ const SEED_REQUESTS: CarpoolRequest[] = [
   },
 ];
 
-export const useCarpoolStore = create<CarpoolState>((set) => ({
+export const useCarpoolStore = create<CarpoolState>((set, get) => ({
   offers: SEED_OFFERS,
   requests: SEED_REQUESTS,
 
-  offerRide: (eventId, seats, note) =>
+  offerRide: (eventId, seats, note) => {
+    const offerId = `carpool-${Date.now()}`;
     set((s) => ({
       offers: [
         ...s.offers.filter((o) => !(o.eventId === eventId && o.driverId === ME.id)),
-        { id: `carpool-${Date.now()}`, eventId, driverId: ME.id, seats, note, riderIds: [] },
+        { id: offerId, eventId, driverId: ME.id, seats, note, riderIds: [] },
       ],
-    })),
+    }));
+
+    setTimeout(() => {
+      const offer = get().offers.find((o) => o.id === offerId);
+      if (!offer || offer.riderIds.length >= offer.seats) return;
+
+      const rider = getUser(
+        ['maya', 'theo', 'priya', 'sam', 'nia'].find((uid) => uid !== ME.id)!
+      );
+      if (!rider) return;
+
+      set((s) => ({
+        offers: s.offers.map((o) =>
+          o.id === offerId ? { ...o, riderIds: [...o.riderIds, rider.id] } : o
+        ),
+      }));
+
+      if (useSettingsStore.getState().notificationPrefs.carpoolUpdates) {
+        const event = useEventsStore.getState().getEvent(eventId);
+        useNotificationsStore.getState().addNotification({
+          type: 'carpool',
+          actorId: rider.id,
+          text: `${rider.name} claimed a seat in your carpool for ${event?.title ?? 'your event'}`,
+          time: 'Just now',
+          target: { kind: 'event', id: eventId },
+        });
+      }
+    }, INBOUND_SEAT_REQUEST_DELAY_MS);
+  },
 
   updateOffer: (eventId, seats, note) =>
     set((s) => ({

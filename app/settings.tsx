@@ -30,6 +30,7 @@ const NOTIFICATION_ROWS: { key: keyof NotificationPrefs; label: string; descript
   { key: 'saleUpdates', label: 'For sale', description: 'Interest and offers on items you’ve listed for sale' },
   { key: 'recsActivity', label: 'Neighborhood recs', description: 'Agreements and suggestions on the recommendations board' },
   { key: 'welcomeNotes', label: 'Welcome notes', description: 'Replies when you leave a note for a new neighbor' },
+  { key: 'carpoolUpdates', label: 'Carpool', description: 'Seat requests and offer changes on events you carpool to' },
 ];
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {

@@ -14,6 +14,7 @@ export const TYPE_ICON: Record<NotificationItem['type'], keyof typeof Ionicons.g
   rec: 'star',
   welcome: 'sparkles',
   sale: 'pricetags',
+  carpool: 'car',
 };
 
 export function goToTarget(target?: NotificationTarget) {

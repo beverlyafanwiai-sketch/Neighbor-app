@@ -682,7 +682,8 @@ export type NotificationItem = {
     | 'lend'
     | 'rec'
     | 'welcome'
-    | 'sale';
+    | 'sale'
+    | 'carpool';
   actorId?: string;
   text: string;
   time: string;
