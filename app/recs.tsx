@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -163,6 +163,13 @@ export default function RecsBoard() {
                         <Ionicons name="trash-outline" size={16} className="text-terracotta" />
                       </Pressable>
                     </View>
+                    {entry.imageUri && (
+                      <Image
+                        source={{ uri: entry.imageUri }}
+                        className="mt-3 w-full rounded-xl"
+                        style={{ aspectRatio: 16 / 9 }}
+                      />
+                    )}
                     <Text className="mt-3 border-t border-charcoal/10 pt-3 text-sm text-charcoal/50">
                       {count === 0
                         ? entry.kind === 'rec'
@@ -224,6 +231,13 @@ export default function RecsBoard() {
                   </Pressable>
                 </View>
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{entry.note}</Text>
+                {entry.imageUri && (
+                  <Image
+                    source={{ uri: entry.imageUri }}
+                    className="mt-3 w-full rounded-xl"
+                    style={{ aspectRatio: 16 / 9 }}
+                  />
+                )}
 
                 <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
                   <Text className="flex-1 text-sm text-charcoal/50">

@@ -957,6 +957,7 @@ export type RecEntry = {
   category: string;
   name?: string;
   note: string;
+  imageUri?: string;
   // Baseline count of other neighbors already agreeing (rec) or already
   // having a suggestion (ask), *not including* ME — same pattern as
   // event.spotsTaken / LendItem.helperCount.

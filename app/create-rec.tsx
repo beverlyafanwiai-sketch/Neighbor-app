@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import CoverPhotoPicker from '../components/CoverPhotoPicker';
 import type { RecEntryKind } from '../data/mock';
 import { useRecsStore } from '../store/useRecsStore';
 
@@ -42,6 +43,7 @@ export default function CreateRec() {
   const [category, setCategory] = useState(existing?.category ?? '');
   const [name, setName] = useState(existing?.name ?? '');
   const [note, setNote] = useState(existing?.note ?? '');
+  const [imageUri, setImageUri] = useState(existing?.imageUri);
 
   const canSave = category.trim() && note.trim() && (kind === 'ask' || name.trim());
 
@@ -54,6 +56,7 @@ export default function CreateRec() {
         category: category.trim(),
         name: kind === 'rec' ? name.trim() : undefined,
         note: note.trim(),
+        imageUri,
       });
       router.replace('/recs');
       return;
@@ -64,6 +67,7 @@ export default function CreateRec() {
       category: category.trim(),
       name: kind === 'rec' ? name.trim() : undefined,
       note: note.trim(),
+      imageUri,
     });
     router.replace('/recs');
   };
@@ -121,6 +125,10 @@ export default function CreateRec() {
                 {kind === k.value && <Ionicons name="checkmark-circle" size={20} className="text-paper" />}
               </Pressable>
             ))}
+          </View>
+
+          <View className="mt-5">
+            <CoverPhotoPicker imageUri={imageUri} onChange={setImageUri} />
           </View>
 
           <View className="mt-5 gap-4">

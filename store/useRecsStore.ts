@@ -12,6 +12,7 @@ export type NewRecEntryInput = {
   category: string;
   name?: string;
   note: string;
+  imageUri?: string;
 };
 
 type RecsState = {
@@ -37,6 +38,7 @@ export const useRecsStore = create<RecsState>((set, get) => ({
       category: input.category,
       name: input.name,
       note: input.note,
+      imageUri: input.imageUri,
     };
     set((s) => ({ entries: [entry, ...s.entries] }));
 
