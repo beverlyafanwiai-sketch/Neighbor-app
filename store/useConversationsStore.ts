@@ -49,6 +49,7 @@ type ConversationsState = {
     replyToId?: string
   ) => void;
   markRead: (conversationId: string) => void;
+  deleteConversation: (conversationId: string) => void;
   deleteMessage: (conversationId: string, messageId: string) => void;
   updateMessage: (conversationId: string, messageId: string, text: string) => void;
   tapReaction: (conversationId: string, messageId: string) => void;
@@ -157,6 +158,14 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
 
   markRead: (conversationId) =>
     set((s) => ({ unread: { ...s.unread, [conversationId]: 0 } })),
+
+  deleteConversation: (conversationId) =>
+    set((s) => {
+      const { [conversationId]: _c, ...conversations } = s.conversations;
+      const { [conversationId]: _u, ...unread } = s.unread;
+      const { [conversationId]: _l, ...lastActivity } = s.lastActivity;
+      return { conversations, unread, lastActivity };
+    }),
 
   deleteMessage: (conversationId, messageId) =>
     set((s) => {

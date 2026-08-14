@@ -36,6 +36,7 @@ export default function ChatThread() {
   const sendMessage = useConversationsStore((s) => s.sendMessage);
   const markRead = useConversationsStore((s) => s.markRead);
   const deleteMessage = useConversationsStore((s) => s.deleteMessage);
+  const deleteConversation = useConversationsStore((s) => s.deleteConversation);
   const updateMessage = useConversationsStore((s) => s.updateMessage);
   const myReactions = useConversationsStore((s) => s.myReactions);
   const tapReaction = useConversationsStore((s) => s.tapReaction);
@@ -63,6 +64,7 @@ export default function ChatThread() {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [showActions, setShowActions] = useState(false);
   const [confirmingBlock, setConfirmingBlock] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [reportedPerson, setReportedPerson] = useState(false);
   const [replyingTo, setReplyingTo] = useState<{ id: string; senderName: string; preview: string } | null>(
     null
@@ -159,11 +161,17 @@ export default function ChatThread() {
   const closeActions = () => {
     setShowActions(false);
     setConfirmingBlock(false);
+    setConfirmingDelete(false);
     setReportedPerson(false);
   };
 
   const confirmBlock = () => {
     toggleBlocked(user.id);
+    router.back();
+  };
+
+  const confirmDeleteConversation = () => {
+    deleteConversation(conversation.id);
     router.back();
   };
 
@@ -665,6 +673,30 @@ export default function ChatThread() {
                 <Text className="text-sm font-medium text-terracotta">
                   {isBlocked ? `Unblock ${user.name}` : `Block ${user.name}`}
                 </Text>
+              </Pressable>
+            )}
+
+            {confirmingDelete ? (
+              <View className="gap-3 rounded-2xl bg-terracotta/10 p-4">
+                <Text className="text-sm text-charcoal">
+                  Delete this conversation? This can't be undone.
+                </Text>
+                <View className="flex-row justify-end gap-4">
+                  <Pressable onPress={() => setConfirmingDelete(false)}>
+                    <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                  </Pressable>
+                  <Pressable onPress={confirmDeleteConversation}>
+                    <Text className="text-sm font-semibold text-terracotta">Delete</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => setConfirmingDelete(true)}
+                className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
+              >
+                <Ionicons name="trash-outline" size={20} className="text-terracotta" />
+                <Text className="text-sm font-medium text-terracotta">Delete conversation</Text>
               </Pressable>
             )}
 
