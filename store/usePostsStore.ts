@@ -64,6 +64,7 @@ type PostsState = {
   comments: Record<string, CommentItem[]>;
   myPollVotes: Record<string, string>;
   pinnedPostId: string | null;
+  pinnedCommentId: Record<string, string | undefined>;
   createPost: (body: string, imageUris?: string[], poll?: Poll) => void;
   updatePost: (id: string, updates: PostEdits) => void;
   deletePost: (id: string) => void;
@@ -83,6 +84,8 @@ type PostsState = {
   addComment: (postId: string, text: string, parentId?: string) => void;
   updateComment: (postId: string, commentId: string, text: string) => void;
   deleteComment: (postId: string, commentId: string) => void;
+  pinComment: (postId: string, commentId: string) => void;
+  unpinComment: (postId: string) => void;
 };
 
 export const usePostsStore = create<PostsState>((set, get) => ({
@@ -95,6 +98,7 @@ export const usePostsStore = create<PostsState>((set, get) => ({
   comments: COMMENTS,
   myPollVotes: {},
   pinnedPostId: null,
+  pinnedCommentId: {},
 
   createPost: (body, imageUris, poll) => {
     const post: Post = {
@@ -256,7 +260,17 @@ export const usePostsStore = create<PostsState>((set, get) => ({
         ...s.comments,
         [postId]: (s.comments[postId] ?? []).filter((c) => c.id !== commentId),
       },
+      pinnedCommentId:
+        s.pinnedCommentId[postId] === commentId
+          ? { ...s.pinnedCommentId, [postId]: undefined }
+          : s.pinnedCommentId,
     })),
+
+  pinComment: (postId, commentId) =>
+    set((s) => ({ pinnedCommentId: { ...s.pinnedCommentId, [postId]: commentId } })),
+
+  unpinComment: (postId) =>
+    set((s) => ({ pinnedCommentId: { ...s.pinnedCommentId, [postId]: undefined } })),
 }));
 
 export function getAllReactors(

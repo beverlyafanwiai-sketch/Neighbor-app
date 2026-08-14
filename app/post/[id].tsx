@@ -58,6 +58,9 @@ export default function PostDetail() {
   const addComment = usePostsStore((s) => s.addComment);
   const updateComment = usePostsStore((s) => s.updateComment);
   const deleteComment = usePostsStore((s) => s.deleteComment);
+  const pinnedCommentId = usePostsStore((s) => (post ? s.pinnedCommentId[post.id] : undefined));
+  const pinComment = usePostsStore((s) => s.pinComment);
+  const unpinComment = usePostsStore((s) => s.unpinComment);
   const deletePost = usePostsStore((s) => s.deletePost);
   const pinnedPostId = usePostsStore((s) => s.pinnedPostId);
   const pinPost = usePostsStore((s) => s.pinPost);
@@ -131,6 +134,9 @@ export default function PostDetail() {
       commentRows.push({ comment: r, isReply: true });
     }
   }
+
+  const pinnedComment = comments.find((c) => c.id === pinnedCommentId);
+  const pinnedCommentAuthor = pinnedComment ? resolveUser(pinnedComment.authorId) : undefined;
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -267,6 +273,28 @@ export default function PostDetail() {
                 </Pressable>
               </View>
 
+              {pinnedComment && pinnedCommentAuthor && (
+                <View className="flex-row items-center gap-2.5 rounded-2xl border-t border-charcoal/10 bg-gold/10 p-3 pt-3">
+                  <Ionicons name="pin" size={14} className="text-gold" />
+                  <View className="flex-1">
+                    <Text className="text-xs font-semibold text-charcoal/60">
+                      Pinned · {pinnedCommentAuthor.name}
+                    </Text>
+                    <Text className="mt-0.5 text-sm text-charcoal" numberOfLines={2}>
+                      {pinnedComment.text}
+                    </Text>
+                  </View>
+                  {isAuthor && (
+                    <Pressable
+                      onPress={() => unpinComment(post.id)}
+                      className="h-7 w-7 items-center justify-center"
+                    >
+                      <Ionicons name="close" size={15} className="text-charcoal/50" />
+                    </Pressable>
+                  )}
+                </View>
+              )}
+
               {topLevelComments.length > 1 && (
                 <View className="flex-row items-center gap-2 border-t border-charcoal/10 pt-3">
                   <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
@@ -387,32 +415,50 @@ export default function PostDetail() {
                     </Pressable>
                   </View>
                 </View>
-                {isCommentAuthor ? (
-                  <View className="flex-row items-center gap-1">
+                <View className="flex-row items-center gap-1">
+                  {isAuthor && (
                     <Pressable
-                      onPress={() => {
-                        setEditingCommentId(item.id);
-                        setEditDraft(item.text);
-                      }}
+                      onPress={() =>
+                        pinnedCommentId === item.id
+                          ? unpinComment(post.id)
+                          : pinComment(post.id, item.id)
+                      }
                       className="h-7 w-7 items-center justify-center rounded-full"
                     >
-                      <Ionicons name="pencil" size={13} className="text-charcoal/50" />
+                      <Ionicons
+                        name={pinnedCommentId === item.id ? 'pin' : 'pin-outline'}
+                        size={13}
+                        className={pinnedCommentId === item.id ? 'text-gold' : 'text-charcoal/40'}
+                      />
                     </Pressable>
+                  )}
+                  {isCommentAuthor ? (
+                    <>
+                      <Pressable
+                        onPress={() => {
+                          setEditingCommentId(item.id);
+                          setEditDraft(item.text);
+                        }}
+                        className="h-7 w-7 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="pencil" size={13} className="text-charcoal/50" />
+                      </Pressable>
+                      <Pressable
+                        onPress={() => setDeletingCommentId(item.id)}
+                        className="h-7 w-7 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="trash-outline" size={13} className="text-terracotta" />
+                      </Pressable>
+                    </>
+                  ) : (
                     <Pressable
-                      onPress={() => setDeletingCommentId(item.id)}
+                      onPress={() => setReportingCommentId(item.id)}
                       className="h-7 w-7 items-center justify-center rounded-full"
                     >
-                      <Ionicons name="trash-outline" size={13} className="text-terracotta" />
+                      <Ionicons name="ellipsis-horizontal" size={15} className="text-charcoal/40" />
                     </Pressable>
-                  </View>
-                ) : (
-                  <Pressable
-                    onPress={() => setReportingCommentId(item.id)}
-                    className="h-7 w-7 items-center justify-center rounded-full"
-                  >
-                    <Ionicons name="ellipsis-horizontal" size={15} className="text-charcoal/40" />
-                  </Pressable>
-                )}
+                  )}
+                </View>
               </View>
             );
           }}
