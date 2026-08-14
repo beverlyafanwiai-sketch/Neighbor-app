@@ -504,6 +504,9 @@ export type EventItem = {
   // Number of upcoming occurrences the host has skipped — advances the
   // computed "next occurrence" schedule without deleting the series.
   skipCount?: number;
+  // Baseline star ratings from other neighbors, *not including* ME —
+  // same "baseline + mine" pattern as spotsTaken / helperCount.
+  ratingBaseline?: { avg: number; count: number };
 };
 
 export const EVENTS: EventItem[] = [
@@ -560,6 +563,7 @@ export const EVENTS: EventItem[] = [
     attendeeIds: ['maya', 'priya', 'theo'],
     status: 'past',
     checkedInIds: ['maya', 'priya'],
+    ratingBaseline: { avg: 4.5, count: 4 },
   },
   {
     id: 'pottery-open-studio',
@@ -577,6 +581,7 @@ export const EVENTS: EventItem[] = [
     attendeeIds: ['sam'],
     status: 'past',
     checkedInIds: ['sam'],
+    ratingBaseline: { avg: 4, count: 6 },
   },
 ];
 

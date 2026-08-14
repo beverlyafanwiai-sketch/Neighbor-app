@@ -11,6 +11,7 @@ import { addEventToCalendar } from '../../lib/ics';
 import { formatOccurrence, getUpcomingOccurrences, RECURRENCE_LABEL } from '../../lib/recurrence';
 import { useCarpoolStore } from '../../store/useCarpoolStore';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckInStore';
+import { getEffectiveRatingSummary, useEventRatingsStore } from '../../store/useEventRatingsStore';
 import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
@@ -46,6 +47,8 @@ export default function EventDetail() {
   const cancelRideRequest = useCarpoolStore((s) => s.cancelRideRequest);
   const savedIds = useSavedEventsStore((s) => s.savedIds);
   const toggleSaveEvent = useSavedEventsStore((s) => s.toggleSave);
+  const myRatings = useEventRatingsStore((s) => s.myRatings);
+  const rateEvent = useEventRatingsStore((s) => s.rateEvent);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [calendarAdded, setCalendarAdded] = useState(false);
   const [offeringRide, setOfferingRide] = useState(false);
@@ -54,6 +57,9 @@ export default function EventDetail() {
   const [requestingRide, setRequestingRide] = useState(false);
   const [requestNote, setRequestNote] = useState('');
   const [sharing, setSharing] = useState(false);
+  const [ratingDraftStars, setRatingDraftStars] = useState(0);
+  const [ratingDraftComment, setRatingDraftComment] = useState('');
+  const [editingRating, setEditingRating] = useState(false);
 
   if (!event) {
     return (
@@ -85,6 +91,8 @@ export default function EventDetail() {
   const myOffer = carpoolOffers.find((o) => o.driverId === ME.id);
   const myRequest = carpoolRequests.find((r) => r.riderId === ME.id);
   const saved = savedIds[event.id] ?? false;
+  const myRating = myRatings[event.id];
+  const ratingSummary = getEffectiveRatingSummary(event.id, myRating);
 
   const remove = () => {
     deleteEvent(event.id);
@@ -102,6 +110,18 @@ export default function EventDetail() {
     requestRide(event.id, requestNote.trim());
     setRequestingRide(false);
     setRequestNote('');
+  };
+
+  const startEditingRating = () => {
+    setRatingDraftStars(myRating?.stars ?? 0);
+    setRatingDraftComment(myRating?.comment ?? '');
+    setEditingRating(true);
+  };
+
+  const submitRating = () => {
+    if (ratingDraftStars === 0) return;
+    rateEvent(event.id, ratingDraftStars, ratingDraftComment.trim());
+    setEditingRating(false);
   };
 
   const handleAddToCalendar = async () => {
@@ -361,6 +381,105 @@ export default function EventDetail() {
             );
           })}
         </View>
+
+        {isPast && (
+          <>
+            <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+              Rating
+            </Text>
+            <View className="rounded-2xl bg-cream p-4">
+              {ratingSummary.count > 0 && (
+                <View className="mb-3 flex-row items-center gap-2">
+                  <View className="flex-row">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Ionicons
+                        key={n}
+                        name={n <= Math.round(ratingSummary.avg) ? 'star' : 'star-outline'}
+                        size={16}
+                        className="text-gold"
+                      />
+                    ))}
+                  </View>
+                  <Text className="text-sm text-charcoal/60">
+                    {ratingSummary.avg.toFixed(1)} · {ratingSummary.count} rating
+                    {ratingSummary.count === 1 ? '' : 's'}
+                  </Text>
+                </View>
+              )}
+
+              {editingRating ? (
+                <View className="gap-3">
+                  <View className="flex-row gap-1.5">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Pressable key={n} onPress={() => setRatingDraftStars(n)}>
+                        <Ionicons
+                          name={n <= ratingDraftStars ? 'star' : 'star-outline'}
+                          size={28}
+                          className="text-gold"
+                        />
+                      </Pressable>
+                    ))}
+                  </View>
+                  <TextInput
+                    value={ratingDraftComment}
+                    onChangeText={setRatingDraftComment}
+                    placeholder="Add a comment (optional)"
+                    placeholderTextColor="#3D3D3D80"
+                    multiline
+                    className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+                  />
+                  <View className="flex-row justify-end gap-4">
+                    <Pressable onPress={() => setEditingRating(false)}>
+                      <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                    </Pressable>
+                    <Pressable onPress={submitRating} disabled={ratingDraftStars === 0}>
+                      <Text
+                        className={`text-sm font-semibold ${
+                          ratingDraftStars === 0 ? 'text-charcoal/30' : 'text-terracotta'
+                        }`}
+                      >
+                        Save
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ) : myRating ? (
+                <Pressable
+                  onPress={startEditingRating}
+                  className="flex-row items-center justify-between"
+                >
+                  <View className="flex-1">
+                    <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                      Your rating
+                    </Text>
+                    <View className="mt-1 flex-row">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Ionicons
+                          key={n}
+                          name={n <= myRating.stars ? 'star' : 'star-outline'}
+                          size={16}
+                          className="text-gold"
+                        />
+                      ))}
+                    </View>
+                    {myRating.comment.length > 0 && (
+                      <Text className="mt-1.5 text-sm text-charcoal/70">{myRating.comment}</Text>
+                    )}
+                  </View>
+                  <Ionicons name="pencil" size={16} className="text-charcoal/40" />
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={startEditingRating}
+                  className="flex-row items-center justify-center gap-1.5 rounded-full bg-sand py-2.5"
+                >
+                  <Ionicons name="star-outline" size={16} className="text-charcoal" />
+                  <Text className="text-sm font-semibold text-charcoal">Rate this event</Text>
+                </Pressable>
+              )}
+            </View>
+          </>
+        )}
 
         {(canCarpool || carpoolOffers.length > 0 || carpoolRequests.length > 0) && (
           <>
