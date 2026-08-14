@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -36,9 +36,14 @@ export default function ForSaleBoard() {
   const [reportingId, setReportingId] = useState<string | null>(null);
   const [viewingInterestedId, setViewingInterestedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SaleSort>('Newest');
+  const [query, setQuery] = useState('');
 
-  const myItems = items.filter((i) => i.ownerId === ME.id);
-  const unsortedBoardItems = items.filter((i) => i.ownerId !== ME.id);
+  const q = query.trim().toLowerCase();
+  const matchesQuery = (i: (typeof items)[number]) =>
+    q.length === 0 || i.title.toLowerCase().includes(q) || i.note.toLowerCase().includes(q);
+
+  const myItems = items.filter((i) => i.ownerId === ME.id && matchesQuery(i));
+  const unsortedBoardItems = items.filter((i) => i.ownerId !== ME.id && matchesQuery(i));
   const boardItems =
     sortBy === 'Most interest'
       ? [...unsortedBoardItems].sort(
@@ -74,6 +79,24 @@ export default function ForSaleBoard() {
         >
           <Ionicons name="add" size={20} className="text-paper" />
         </Pressable>
+      </View>
+
+      <View className="px-5 pb-3">
+        <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">
+          <Ionicons name="search" size={18} className="text-charcoal/50" />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search listings..."
+            placeholderTextColor="#3D3D3D80"
+            className="ml-2 flex-1 text-charcoal"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={() => setQuery('')}>
+              <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">
@@ -287,8 +310,12 @@ export default function ForSaleBoard() {
             <EmptyState
               icon="pricetags-outline"
               iconColorClassName="text-charcoal/50"
-              title="Nothing for sale yet"
-              subtitle="Be the first to list something you're ready to part with."
+              title={q.length > 0 ? `No results for "${query.trim()}"` : 'Nothing for sale yet'}
+              subtitle={
+                q.length > 0
+                  ? 'Try a different search term.'
+                  : "Be the first to list something you're ready to part with."
+              }
             />
           )}
         </View>

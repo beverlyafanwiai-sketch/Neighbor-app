@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -42,12 +42,18 @@ export default function LendBoard() {
   const [viewingHelpersId, setViewingHelpersId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<LendSort>('Newest');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
+  const [query, setQuery] = useState('');
 
   const matchesKind = (i: (typeof items)[number]) =>
     kindFilter === 'All' || (kindFilter === 'Have' ? i.kind === 'have' : i.kind === 'want');
+  const q = query.trim().toLowerCase();
+  const matchesQuery = (i: (typeof items)[number]) =>
+    q.length === 0 || i.title.toLowerCase().includes(q) || i.note.toLowerCase().includes(q);
 
-  const myItems = items.filter((i) => i.ownerId === ME.id && matchesKind(i));
-  const unsortedBoardItems = items.filter((i) => i.ownerId !== ME.id && matchesKind(i));
+  const myItems = items.filter((i) => i.ownerId === ME.id && matchesKind(i) && matchesQuery(i));
+  const unsortedBoardItems = items.filter(
+    (i) => i.ownerId !== ME.id && matchesKind(i) && matchesQuery(i)
+  );
   const boardItems =
     sortBy === 'A-Z'
       ? [...unsortedBoardItems].sort((a, b) => a.title.localeCompare(b.title))
@@ -77,6 +83,24 @@ export default function LendBoard() {
         >
           <Ionicons name="add" size={20} className="text-paper" />
         </Pressable>
+      </View>
+
+      <View className="px-5 pb-3">
+        <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">
+          <Ionicons name="search" size={18} className="text-charcoal/50" />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search items..."
+            placeholderTextColor="#3D3D3D80"
+            className="ml-2 flex-1 text-charcoal"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={() => setQuery('')}>
+              <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       <View className="flex-row gap-2 px-5 pb-3">
@@ -403,11 +427,19 @@ export default function LendBoard() {
             <EmptyState
               icon="basket-outline"
               iconColorClassName="text-charcoal/50"
-              title={kindFilter === 'All' ? 'Nothing on the board yet' : `No ${kindFilter.toLowerCase()} items`}
+              title={
+                q.length > 0
+                  ? `No results for "${query.trim()}"`
+                  : kindFilter === 'All'
+                    ? 'Nothing on the board yet'
+                    : `No ${kindFilter.toLowerCase()} items`
+              }
               subtitle={
-                kindFilter === 'All'
-                  ? 'Be the first to post something you can lend, or something you need.'
-                  : 'Try a different filter, or clear it.'
+                q.length > 0
+                  ? 'Try a different search term.'
+                  : kindFilter === 'All'
+                    ? 'Be the first to post something you can lend, or something you need.'
+                    : 'Try a different filter, or clear it.'
               }
             />
           )}
