@@ -262,6 +262,21 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
           }),
         },
       }));
+
+      const voter = getUser(voterId);
+      if (
+        voter &&
+        useSettingsStore.getState().notificationPrefs.groupActivity &&
+        !useMutedGroupsStore.getState().mutedGroupIds[groupId]
+      ) {
+        useNotificationsStore.getState().addNotification({
+          type: 'group',
+          actorId: voter.id,
+          text: `${voter.name} voted on your poll in ${group?.name ?? 'your group'}`,
+          time: 'Just now',
+          target: { kind: 'group-chat', id: groupId },
+        });
+      }
     }, REPLY_DELAY_MS);
   },
 
