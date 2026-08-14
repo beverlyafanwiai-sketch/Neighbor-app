@@ -8,6 +8,7 @@ import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
 import { PARK_FRIENDS_SVG } from '../../assets/illustrations/park-friends';
 import EmptyState from '../../components/EmptyState';
 import { ME, getUser } from '../../data/mock';
+import { useArchivedChatsStore } from '../../store/useArchivedChatsStore';
 import { useBlockedStore } from '../../store/useBlockedStore';
 import { useConversationsStore } from '../../store/useConversationsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
@@ -23,6 +24,8 @@ export default function ChatList() {
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const pinnedIds = usePinnedChatsStore((s) => s.pinnedIds);
   const togglePin = usePinnedChatsStore((s) => s.togglePin);
+  const archivedIds = useArchivedChatsStore((s) => s.archivedIds);
+  const toggleArchive = useArchivedChatsStore((s) => s.toggleArchive);
   const q = query.trim().toLowerCase();
   const allList = Object.values(conversations)
     .filter((c) => !blockedIds[c.userId])
@@ -31,7 +34,9 @@ export default function ChatList() {
       return pinDiff !== 0 ? pinDiff : (dmLastActivity[b.id] ?? 0) - (dmLastActivity[a.id] ?? 0);
     });
   const list = allList.filter(
-    (c) => q.length === 0 || (getUser(c.userId)?.name ?? '').toLowerCase().includes(q)
+    (c) =>
+      !archivedIds[c.id] &&
+      (q.length === 0 || (getUser(c.userId)?.name ?? '').toLowerCase().includes(q))
   );
 
   const groups = useGroupsStore((s) => s.groups);
@@ -45,7 +50,12 @@ export default function ChatList() {
       const pinDiff = Number(pinnedIds[b.id] ?? false) - Number(pinnedIds[a.id] ?? false);
       return pinDiff !== 0 ? pinDiff : (groupLastActivity[b.id] ?? 0) - (groupLastActivity[a.id] ?? 0);
     });
-  const myGroups = allMyGroups.filter((g) => q.length === 0 || g.name.toLowerCase().includes(q));
+  const myGroups = allMyGroups.filter(
+    (g) => !archivedIds[g.id] && (q.length === 0 || g.name.toLowerCase().includes(q))
+  );
+  const archivedCount =
+    allMyGroups.filter((g) => archivedIds[g.id]).length +
+    allList.filter((c) => archivedIds[c.id]).length;
 
   const hasUnread =
     allMyGroups.some((g) => g.unread > 0) || allList.some((c) => (dmUnread[c.id] ?? 0) > 0);
@@ -63,11 +73,18 @@ export default function ChatList() {
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center justify-between px-5 pb-3 pt-2">
         <Text className="text-2xl font-bold text-charcoal">Chats</Text>
-        {hasUnread && (
-          <Pressable onPress={markAllRead}>
-            <Text className="text-sm font-medium text-terracotta">Mark all read</Text>
-          </Pressable>
-        )}
+        <View className="flex-row items-center gap-4">
+          {archivedCount > 0 && (
+            <Pressable onPress={() => router.push('/archived-chats')}>
+              <Text className="text-sm font-medium text-charcoal/50">Archived ({archivedCount})</Text>
+            </Pressable>
+          )}
+          {hasUnread && (
+            <Pressable onPress={markAllRead}>
+              <Text className="text-sm font-medium text-terracotta">Mark all read</Text>
+            </Pressable>
+          )}
+        </View>
       </View>
 
       <View className="px-5 pb-3">
@@ -121,13 +138,22 @@ export default function ChatList() {
                     e.stopPropagation();
                     togglePin(g.id);
                   }}
-                  className="h-8 w-8 items-center justify-center"
+                  className="h-7 w-7 items-center justify-center"
                 >
                   <Ionicons
                     name={pinnedIds[g.id] ? 'pin' : 'pin-outline'}
-                    size={16}
+                    size={15}
                     className={pinnedIds[g.id] ? 'text-gold' : 'text-charcoal/30'}
                   />
+                </Pressable>
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    toggleArchive(g.id);
+                  }}
+                  className="h-7 w-7 items-center justify-center"
+                >
+                  <Ionicons name="archive-outline" size={15} className="text-charcoal/30" />
                 </Pressable>
                 <View className="items-end gap-1.5">
                   {last && <Text className="text-xs text-charcoal/40">{last.time}</Text>}
@@ -187,13 +213,22 @@ export default function ChatList() {
                     e.stopPropagation();
                     togglePin(c.id);
                   }}
-                  className="h-8 w-8 items-center justify-center"
+                  className="h-7 w-7 items-center justify-center"
                 >
                   <Ionicons
                     name={pinnedIds[c.id] ? 'pin' : 'pin-outline'}
-                    size={16}
+                    size={15}
                     className={pinnedIds[c.id] ? 'text-gold' : 'text-charcoal/30'}
                   />
+                </Pressable>
+                <Pressable
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    toggleArchive(c.id);
+                  }}
+                  className="h-7 w-7 items-center justify-center"
+                >
+                  <Ionicons name="archive-outline" size={15} className="text-charcoal/30" />
                 </Pressable>
                 <View className="items-end gap-1.5">
                   {last && <Text className="text-xs text-charcoal/40">{last.time}</Text>}
