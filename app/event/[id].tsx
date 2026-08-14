@@ -15,7 +15,7 @@ import { useCarpoolStore } from '../../store/useCarpoolStore';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckInStore';
 import { getEffectiveRatingSummary, useEventRatingsStore } from '../../store/useEventRatingsStore';
 import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumStore';
-import { useEventsStore } from '../../store/useEventsStore';
+import { canManageEvent, useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
@@ -27,6 +27,8 @@ export default function EventDetail() {
   const deleteEvent = useEventsStore((s) => s.deleteEvent);
   const cancelEvent = useEventsStore((s) => s.cancelEvent);
   const reinstateEvent = useEventsStore((s) => s.reinstateEvent);
+  const promoteCoHost = useEventsStore((s) => s.promoteCoHost);
+  const demoteCoHost = useEventsStore((s) => s.demoteCoHost);
   const skipNextOccurrence = useEventsStore((s) => s.skipNextOccurrence);
   const profile = useProfileStore((s) => s.profile);
   const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
@@ -83,17 +85,19 @@ export default function EventDetail() {
   const isCancelled = Boolean(event.cancelled);
   const countdownLabel = isPast || isCancelled ? null : getCountdownLabel(event);
   const isHost = event.hostId === ME.id;
+  const canManage = canManageEvent(event, ME.id);
+  const isCoHost = canManage && !isHost;
   const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(event.id, going);
   const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
-  const attendees = going || isHost ? [profile, ...otherAttendees] : otherAttendees;
+  const attendees = going || canManage ? [profile, ...otherAttendees] : otherAttendees;
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
   const checkedIn = getEffectiveCheckedInIds(event, myCheckedIn)
     .map(resolveUser)
     .filter(Boolean);
   const eventPhotos = getEventPhotos(event.id, albumPhotos);
-  const canAddPhotos = going || isHost;
-  const canCheckIn = (going || isHost) && !isCancelled;
-  const canCarpool = (going || isHost) && !isPast && !isCancelled;
+  const canAddPhotos = going || canManage;
+  const canCheckIn = (going || canManage) && !isCancelled;
+  const canCarpool = (going || canManage) && !isPast && !isCancelled;
   const occurrences = event.recurrence ? getUpcomingOccurrences(event, new Date()) : [];
   const carpoolOffers = allCarpoolOffers.filter((o) => o.eventId === event.id);
   const carpoolRequests = allCarpoolRequests.filter((r) => r.eventId === event.id);
@@ -182,7 +186,7 @@ export default function EventDetail() {
               className={saved ? 'text-gold' : 'text-charcoal'}
             />
           </Pressable>
-          {isHost && (
+          {canManage && (
             <>
               {!isPast && (
                 <Pressable
@@ -214,13 +218,15 @@ export default function EventDetail() {
                     <Ionicons name="ban-outline" size={17} className="text-terracotta" />
                   </Pressable>
                 ))}
-              <Pressable
-                onPress={() => setConfirmingDelete(true)}
-                className="h-9 w-9 items-center justify-center rounded-full bg-cream"
-              >
-                <Ionicons name="trash-outline" size={17} className="text-terracotta" />
-              </Pressable>
             </>
+          )}
+          {isHost && (
+            <Pressable
+              onPress={() => setConfirmingDelete(true)}
+              className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+            >
+              <Ionicons name="trash-outline" size={17} className="text-terracotta" />
+            </Pressable>
           )}
         </View>
       </View>
@@ -335,14 +341,20 @@ export default function EventDetail() {
             <View className="mt-5 flex-row items-center justify-center gap-1.5 rounded-full bg-terracotta/15 py-3">
               <Ionicons name="ban-outline" size={15} className="text-terracotta" />
               <Text className="text-sm font-semibold text-terracotta">
-                {isHost ? 'You cancelled this event' : 'Cancelled by the host'}
+                {canManage ? 'You cancelled this event' : 'Cancelled by the host'}
               </Text>
             </View>
-          ) : isHost ? (
+          ) : canManage ? (
             <View className="mt-5 flex-row items-center justify-center gap-1.5 rounded-full bg-gold py-3">
               <Ionicons name="megaphone" size={15} className="text-charcoal" />
               <Text className="text-sm font-semibold text-charcoal">
-                {isPast ? 'You hosted this' : "You're hosting"}
+                {isPast
+                  ? isCoHost
+                    ? 'You co-hosted this'
+                    : 'You hosted this'
+                  : isCoHost
+                    ? "You're co-hosting"
+                    : "You're hosting"}
               </Text>
             </View>
           ) : (
@@ -432,6 +444,8 @@ export default function EventDetail() {
         <View className="gap-3">
           {attendees.map((a) => {
             const isMe = a!.id === ME.id;
+            const isAttendeeHost = a!.id === event.hostId;
+            const isAttendeeCoHost = (event.coHostIds ?? []).includes(a!.id);
             return (
               <Pressable
                 key={a!.id}
@@ -445,6 +459,35 @@ export default function EventDetail() {
                     {a!.tagline}
                   </Text>
                 </View>
+                {isAttendeeCoHost && (
+                  <View className="flex-row items-center gap-1.5">
+                    <View className="rounded-full bg-sage/20 px-2.5 py-1">
+                      <Text className="text-xs font-semibold text-sage">🛡️ Co-host</Text>
+                    </View>
+                    {isHost && (
+                      <Pressable
+                        onPress={(evt) => {
+                          evt.stopPropagation();
+                          demoteCoHost(event.id, a!.id);
+                        }}
+                        className="h-7 w-7 items-center justify-center rounded-full bg-sand"
+                      >
+                        <Ionicons name="close" size={14} className="text-charcoal/60" />
+                      </Pressable>
+                    )}
+                  </View>
+                )}
+                {isHost && !isAttendeeCoHost && !isAttendeeHost && (
+                  <Pressable
+                    onPress={(evt) => {
+                      evt.stopPropagation();
+                      promoteCoHost(event.id, a!.id);
+                    }}
+                    className="rounded-full bg-sand px-3 py-1.5"
+                  >
+                    <Text className="text-xs font-semibold text-charcoal">Make co-host</Text>
+                  </Pressable>
+                )}
               </Pressable>
             );
           })}

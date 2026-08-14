@@ -489,6 +489,7 @@ export type EventItem = {
   hostLabel: string;
   hostId?: string;
   hostGroupId?: string;
+  coHostIds?: string[];
   description: string;
   category: EventCategory;
   spotsTaken: number;

@@ -49,6 +49,8 @@ type EventsState = {
   deleteEvent: (id: string) => void;
   cancelEvent: (id: string) => void;
   reinstateEvent: (id: string) => void;
+  promoteCoHost: (eventId: string, userId: string) => void;
+  demoteCoHost: (eventId: string, userId: string) => void;
   decrementSpotsTaken: (id: string) => void;
   skipNextOccurrence: (id: string) => void;
   saveDraft: (input: EventDraftInput) => string;
@@ -155,6 +157,24 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       events: s.events.map((e) => (e.id === id ? { ...e, cancelled: false } : e)),
     })),
 
+  promoteCoHost: (eventId, userId) =>
+    set((s) => ({
+      events: s.events.map((e) =>
+        e.id === eventId && !(e.coHostIds ?? []).includes(userId)
+          ? { ...e, coHostIds: [...(e.coHostIds ?? []), userId] }
+          : e
+      ),
+    })),
+
+  demoteCoHost: (eventId, userId) =>
+    set((s) => ({
+      events: s.events.map((e) =>
+        e.id === eventId
+          ? { ...e, coHostIds: (e.coHostIds ?? []).filter((id) => id !== userId) }
+          : e
+      ),
+    })),
+
   decrementSpotsTaken: (id) =>
     set((s) => ({
       events: s.events.map((e) =>
@@ -186,3 +206,7 @@ export const useEventsStore = create<EventsState>((set, get) => ({
 
   deleteDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
 }));
+
+export function canManageEvent(event: EventItem, userId: string): boolean {
+  return event.hostId === userId || (event.coHostIds ?? []).includes(userId);
+}
