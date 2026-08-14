@@ -6,10 +6,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
 import MentionText from '../components/MentionText';
-import { DISCOVER_USERS, ME, USERS, type Tone } from '../data/mock';
+import { DISCOVER_USERS, ME, USERS, getUser, type Tone } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
+import { useConversationsStore } from '../store/useConversationsStore';
 import { useEventsStore } from '../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
+import { useGroupChatStore } from '../store/useGroupChatStore';
 import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 import {
   getEffectiveReactions,
@@ -56,6 +58,9 @@ export default function Search() {
 
   const events = useEventsStore((s) => s.events);
 
+  const conversations = useConversationsStore((s) => s.conversations);
+  const groupMessages = useGroupChatStore((s) => s.messages);
+
   const q = query.trim().toLowerCase();
 
   const matchedPosts =
@@ -95,8 +100,66 @@ export default function Search() {
             e.description.toLowerCase().includes(q)
         );
 
+  type MessageMatch = {
+    key: string;
+    kind: 'dm' | 'group';
+    threadId: string;
+    threadName: string;
+    threadAvatar?: string;
+    senderName: string;
+    text: string;
+    time: string;
+  };
+
+  const matchedDmMessages: MessageMatch[] =
+    q.length === 0
+      ? []
+      : Object.values(conversations).flatMap((c) => {
+          if (blockedIds[c.userId]) return [];
+          const other = getUser(c.userId);
+          if (!other) return [];
+          return c.messages
+            .filter((m) => !m.deleted && m.text.toLowerCase().includes(q))
+            .map((m) => ({
+              key: `dm-${c.id}-${m.id}`,
+              kind: 'dm' as const,
+              threadId: c.id,
+              threadName: other.name,
+              threadAvatar: other.avatar,
+              senderName: m.from === 'me' ? 'You' : other.name,
+              text: m.text,
+              time: m.time,
+            }));
+        });
+
+  const matchedGroupMessages: MessageMatch[] =
+    q.length === 0
+      ? []
+      : groups
+          .filter((g) => joinedMap[g.id])
+          .flatMap((g) =>
+            (groupMessages[g.id] ?? [])
+              .filter((m) => !m.deleted && m.text.toLowerCase().includes(q))
+              .map((m) => ({
+                key: `group-${g.id}-${m.id}`,
+                kind: 'group' as const,
+                threadId: g.id,
+                threadName: g.name,
+                senderName: m.senderId === ME.id ? 'You' : (getUser(m.senderId)?.name ?? 'Someone'),
+                text: m.text,
+                time: m.time,
+              }))
+          );
+
+  const matchedMessages = [...matchedDmMessages, ...matchedGroupMessages];
+
   const hasAnyResults =
-    matchedPosts.length + matchedPeople.length + matchedGroups.length + matchedEvents.length > 0;
+    matchedPosts.length +
+      matchedPeople.length +
+      matchedGroups.length +
+      matchedEvents.length +
+      matchedMessages.length >
+    0;
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -112,7 +175,7 @@ export default function Search() {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Search posts, people, groups, events..."
+            placeholder="Search posts, people, groups, events, messages..."
             placeholderTextColor="#3D3D3D80"
             autoFocus
             className="ml-2 flex-1 text-charcoal"
@@ -131,7 +194,7 @@ export default function Search() {
             icon="search-outline"
             iconColorClassName="text-charcoal/50"
             title="Search your neighborhood"
-            subtitle="Find posts, people, groups, and events all at once."
+            subtitle="Find posts, people, groups, events, and messages all at once."
           />
         )}
 
@@ -252,6 +315,41 @@ export default function Search() {
                   {e.status === 'past' && (
                     <Text className="self-center text-xs text-charcoal/40">Past</Text>
                   )}
+                </Pressable>
+              ))}
+            </View>
+          </>
+        )}
+
+        {matchedMessages.length > 0 && (
+          <>
+            <SectionLabel>Messages</SectionLabel>
+            <View className="gap-3">
+              {matchedMessages.map((m) => (
+                <Pressable
+                  key={m.key}
+                  onPress={() =>
+                    router.push(m.kind === 'dm' ? `/chat/${m.threadId}` : `/group-chat/${m.threadId}`)
+                  }
+                  className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+                >
+                  {m.kind === 'dm' && m.threadAvatar ? (
+                    <Image source={{ uri: m.threadAvatar }} className="h-11 w-11 rounded-full" />
+                  ) : (
+                    <View className="h-11 w-11 items-center justify-center rounded-full bg-terracotta">
+                      <Text className="text-base font-bold text-paper">{m.threadName.charAt(0)}</Text>
+                    </View>
+                  )}
+                  <View className="flex-1">
+                    <View className="flex-row items-center gap-1.5">
+                      <Text className="text-sm font-semibold text-charcoal">{m.threadName}</Text>
+                      <Text className="text-xs text-charcoal/40">· {m.senderName}</Text>
+                    </View>
+                    <Text className="mt-0.5 text-sm text-charcoal/70" numberOfLines={1}>
+                      {m.text}
+                    </Text>
+                  </View>
+                  <Text className="text-xs text-charcoal/40">{m.time}</Text>
                 </Pressable>
               ))}
             </View>
