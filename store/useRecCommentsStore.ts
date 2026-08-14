@@ -7,6 +7,7 @@ export type RecComment = {
   authorId: string;
   text: string;
   time: string;
+  edited?: boolean;
   reactions?: Record<string, ReactionType>;
 };
 
@@ -18,6 +19,7 @@ type RecCommentsState = {
   comments: Record<string, RecComment[]>;
   myReactions: Record<string, ReactionType | undefined>;
   addComment: (entryId: string, text: string) => void;
+  updateComment: (entryId: string, commentId: string, text: string) => void;
   deleteComment: (entryId: string, commentId: string) => void;
   tapReaction: (entryId: string, commentId: string) => void;
   setReaction: (entryId: string, commentId: string, type: ReactionType) => void;
@@ -50,6 +52,19 @@ export const useRecCommentsStore = create<RecCommentsState>((set) => ({
     };
     set((s) => ({
       comments: { ...s.comments, [entryId]: [...(s.comments[entryId] ?? []), comment] },
+    }));
+  },
+
+  updateComment: (entryId, commentId, text) => {
+    const clean = text.trim();
+    if (!clean) return;
+    set((s) => ({
+      comments: {
+        ...s.comments,
+        [entryId]: (s.comments[entryId] ?? []).map((c) =>
+          c.id === commentId ? { ...c, text: clean, edited: true } : c
+        ),
+      },
     }));
   },
 
