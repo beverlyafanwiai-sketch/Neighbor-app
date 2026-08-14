@@ -53,6 +53,7 @@ export default function GroupChatThread() {
   const setReaction = useGroupChatStore((s) => s.setReaction);
   const sendPoll = useGroupChatStore((s) => s.sendPoll);
   const votePoll = useGroupChatStore((s) => s.votePoll);
+  const closePoll = useGroupChatStore((s) => s.closePoll);
   const markRead = useGroupsStore((s) => s.markRead);
   const toggleJoin = useGroupsStore((s) => s.toggle);
 
@@ -485,9 +486,18 @@ export default function GroupChatThread() {
                     </Text>
                   ) : item.poll ? (
                     <View className="w-56 gap-2">
-                      <Text className={`text-sm font-semibold ${isMe ? 'text-paper' : 'text-charcoal'}`}>
-                        {item.poll.question}
-                      </Text>
+                      <View className="flex-row items-center gap-1.5">
+                        <Text className={`flex-1 text-sm font-semibold ${isMe ? 'text-paper' : 'text-charcoal'}`}>
+                          {item.poll.question}
+                        </Text>
+                        {item.poll.closed && (
+                          <View className={`rounded-full px-2 py-0.5 ${isMe ? 'bg-paper/20' : 'bg-charcoal/10'}`}>
+                            <Text className={`text-[10px] font-bold ${isMe ? 'text-paper/80' : 'text-charcoal/60'}`}>
+                              CLOSED
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                       {(() => {
                         const poll = item.poll;
                         const totalVotes = Object.keys(poll.votes).length;
@@ -501,10 +511,11 @@ export default function GroupChatThread() {
                           return (
                             <Pressable
                               key={opt.id}
+                              disabled={poll.closed}
                               onPress={() => votePoll(group.id, item.id, opt.id)}
                               className={`overflow-hidden rounded-xl border ${
                                 isMyVote ? 'border-sage' : isMe ? 'border-paper/30' : 'border-charcoal/15'
-                              }`}
+                              } ${poll.closed ? 'opacity-70' : ''}`}
                             >
                               <View
                                 className={`absolute inset-y-0 left-0 ${
@@ -532,10 +543,17 @@ export default function GroupChatThread() {
                           );
                         });
                       })()}
-                      <Text className={`text-[11px] ${isMe ? 'text-paper/60' : 'text-charcoal/40'}`}>
-                        {Object.keys(item.poll.votes).length} vote
-                        {Object.keys(item.poll.votes).length === 1 ? '' : 's'}
-                      </Text>
+                      <View className="flex-row items-center justify-between">
+                        <Text className={`text-[11px] ${isMe ? 'text-paper/60' : 'text-charcoal/40'}`}>
+                          {Object.keys(item.poll.votes).length} vote
+                          {Object.keys(item.poll.votes).length === 1 ? '' : 's'}
+                        </Text>
+                        {isMe && !item.poll.closed && (
+                          <Pressable onPress={() => closePoll(group.id, item.id)}>
+                            <Text className="text-[11px] font-semibold text-paper/80">Close poll</Text>
+                          </Pressable>
+                        )}
+                      </View>
                     </View>
                   ) : (
                     <>
