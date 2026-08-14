@@ -90,6 +90,7 @@ export default function ProfileView({
   const endorsementGroups = getEndorsementGroups(user.id, endorsements);
   const [composingEndorsement, setComposingEndorsement] = useState(false);
   const [endorsementDraft, setEndorsementDraft] = useState('');
+  const [confirmingUnfriend, setConfirmingUnfriend] = useState(false);
 
   const myFriendIds = Object.keys(friendStatuses).filter((id) => friendStatuses[id] === 'friends');
   const myJoinedGroupIds = Object.keys(joinedGroups).filter((id) => joinedGroups[id]);
@@ -205,40 +206,61 @@ export default function ProfileView({
           </View>
         )}
 
-        <View className="mt-5 flex-row gap-3">
-          {isMe ? (
-            <Pressable onPress={onEdit} className="rounded-full bg-gold px-6 py-2.5">
-              <Text className="font-semibold text-charcoal">Edit profile</Text>
+        {confirmingUnfriend ? (
+          <View className="mt-5 flex-row items-center gap-4 rounded-full bg-cream/20 px-5 py-2.5">
+            <Text className="text-sm text-paper">Unfriend {user.name}?</Text>
+            <Pressable onPress={() => setConfirmingUnfriend(false)}>
+              <Text className="text-sm font-medium text-paper/70">Cancel</Text>
             </Pressable>
-          ) : (
-            <>
-              <Pressable
-                onPress={() => respondFriend(user.id)}
-                className={`flex-row items-center gap-1.5 rounded-full px-6 py-2.5 ${
-                  friendStatus === 'none' ? 'bg-gold' : 'bg-cream/20'
-                }`}
-              >
-                {friendStatus === 'friends' && (
-                  <Ionicons name="checkmark" size={16} className="text-paper" />
-                )}
-                {friendStatus === 'pending_in' && (
-                  <Ionicons name="person-add" size={16} className="text-paper" />
-                )}
-                <Text
-                  className={`font-semibold ${friendStatus === 'none' ? 'text-charcoal' : 'text-paper'}`}
+            <Pressable
+              onPress={() => {
+                respondFriend(user.id);
+                setConfirmingUnfriend(false);
+              }}
+            >
+              <Text className="text-sm font-semibold text-paper">Unfriend</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View className="mt-5 flex-row gap-3">
+            {isMe ? (
+              <Pressable onPress={onEdit} className="rounded-full bg-gold px-6 py-2.5">
+                <Text className="font-semibold text-charcoal">Edit profile</Text>
+              </Pressable>
+            ) : (
+              <>
+                <Pressable
+                  onPress={() =>
+                    friendStatus === 'friends'
+                      ? setConfirmingUnfriend(true)
+                      : respondFriend(user.id)
+                  }
+                  className={`flex-row items-center gap-1.5 rounded-full px-6 py-2.5 ${
+                    friendStatus === 'none' ? 'bg-gold' : 'bg-cream/20'
+                  }`}
                 >
-                  {FRIEND_LABEL[friendStatus]}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={onMessage}
-                className="items-center justify-center rounded-full bg-cream/20 px-4 py-2.5"
-              >
-                <Ionicons name="chatbubble-outline" size={18} className="text-paper" />
-              </Pressable>
-            </>
-          )}
-        </View>
+                  {friendStatus === 'friends' && (
+                    <Ionicons name="checkmark" size={16} className="text-paper" />
+                  )}
+                  {friendStatus === 'pending_in' && (
+                    <Ionicons name="person-add" size={16} className="text-paper" />
+                  )}
+                  <Text
+                    className={`font-semibold ${friendStatus === 'none' ? 'text-charcoal' : 'text-paper'}`}
+                  >
+                    {FRIEND_LABEL[friendStatus]}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={onMessage}
+                  className="items-center justify-center rounded-full bg-cream/20 px-4 py-2.5"
+                >
+                  <Ionicons name="chatbubble-outline" size={18} className="text-paper" />
+                </Pressable>
+              </>
+            )}
+          </View>
+        )}
       </View>
 
       {user.isNew && (
