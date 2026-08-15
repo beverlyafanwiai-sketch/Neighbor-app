@@ -36,6 +36,8 @@ export default function ForSaleBoard() {
   const makeOffer = useSaleStore((s) => s.makeOffer);
   const acceptedOffers = useSaleStore((s) => s.acceptedOffers);
   const acceptOffer = useSaleStore((s) => s.acceptOffer);
+  const declinedOffers = useSaleStore((s) => s.declinedOffers);
+  const declineOffer = useSaleStore((s) => s.declineOffer);
   const dropPrice = useSaleStore((s) => s.dropPrice);
   const markSold = useSaleStore((s) => s.markSold);
   const relistItem = useSaleStore((s) => s.relistItem);
@@ -522,10 +524,12 @@ export default function ForSaleBoard() {
                   const person = isMe ? profile : getUser(userId);
                   if (!person) return null;
                   const offer = getOfferFor(viewingInterestedItem.id, userId);
-                  const canAccept =
+                  const declined = declinedOffers[viewingInterestedItem.id]?.[userId] ?? false;
+                  const canRespond =
                     viewingInterestedItem.ownerId === ME.id &&
                     !(sold[viewingInterestedItem.id] ?? false) &&
-                    !!offer;
+                    !!offer &&
+                    !declined;
                   return (
                     <View
                       key={userId}
@@ -545,22 +549,35 @@ export default function ForSaleBoard() {
                             {isMe ? 'You' : person.name}
                           </Text>
                           {offer && (
-                            <Text className="text-xs font-semibold text-terracotta">
+                            <Text
+                              className={`text-xs font-semibold ${
+                                declined ? 'text-charcoal/40 line-through' : 'text-terracotta'
+                              }`}
+                            >
                               Offered {offer}
                             </Text>
                           )}
+                          {declined && <Text className="text-xs text-charcoal/40">Declined</Text>}
                         </View>
                       </Pressable>
-                      {canAccept && (
-                        <Pressable
-                          onPress={() => {
-                            acceptOffer(viewingInterestedItem.id, userId);
-                            setViewingInterestedId(null);
-                          }}
-                          className="rounded-full bg-sage/20 px-3 py-1.5"
-                        >
-                          <Text className="text-xs font-semibold text-sage">Accept</Text>
-                        </Pressable>
+                      {canRespond && (
+                        <View className="flex-row gap-1.5">
+                          <Pressable
+                            onPress={() => declineOffer(viewingInterestedItem.id, userId)}
+                            className="rounded-full bg-sand px-3 py-1.5"
+                          >
+                            <Text className="text-xs font-semibold text-charcoal/60">Decline</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => {
+                              acceptOffer(viewingInterestedItem.id, userId);
+                              setViewingInterestedId(null);
+                            }}
+                            className="rounded-full bg-sage/20 px-3 py-1.5"
+                          >
+                            <Text className="text-xs font-semibold text-sage">Accept</Text>
+                          </Pressable>
+                        </View>
                       )}
                     </View>
                   );

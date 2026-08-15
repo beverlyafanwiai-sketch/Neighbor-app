@@ -29,11 +29,13 @@ type SaleState = {
   myInterest: Record<string, boolean>;
   myOffers: Record<string, string>;
   acceptedOffers: Record<string, AcceptedOffer>;
+  declinedOffers: Record<string, Record<string, boolean>>;
   createItem: (input: NewSaleItemInput) => string;
   updateItem: (itemId: string, updates: Partial<NewSaleItemInput>) => void;
   toggleInterest: (itemId: string) => void;
   makeOffer: (itemId: string, price: string) => void;
   acceptOffer: (itemId: string, userId: string) => void;
+  declineOffer: (itemId: string, userId: string) => void;
   dropPrice: (itemId: string, newPrice: string) => void;
   markSold: (itemId: string) => void;
   relistItem: (itemId: string) => void;
@@ -62,6 +64,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   myInterest: {},
   myOffers: {},
   acceptedOffers: {},
+  declinedOffers: {},
 
   createItem: (input) => {
     const id = `sale-${Math.random().toString(36).slice(2, 9)}`;
@@ -141,6 +144,14 @@ export const useSaleStore = create<SaleState>((set, get) => ({
     }));
   },
 
+  declineOffer: (itemId, userId) =>
+    set((s) => ({
+      declinedOffers: {
+        ...s.declinedOffers,
+        [itemId]: { ...s.declinedOffers[itemId], [userId]: true },
+      },
+    })),
+
   dropPrice: (itemId, newPrice) => {
     const clean = newPrice.trim();
     if (!clean) return;
@@ -177,7 +188,8 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   relistItem: (itemId) =>
     set((s) => {
       const { [itemId]: _removed, ...rest } = s.acceptedOffers;
-      return { sold: { ...s.sold, [itemId]: false }, acceptedOffers: rest };
+      const { [itemId]: _removedDeclines, ...restDeclines } = s.declinedOffers;
+      return { sold: { ...s.sold, [itemId]: false }, acceptedOffers: rest, declinedOffers: restDeclines };
     }),
 
   updateItem: (itemId, updates) =>
