@@ -941,6 +941,10 @@ export type SaleItem = {
   // Baseline offers from other neighbors, keyed by userId, *not including*
   // ME — only set for interested neighbors who proposed a specific price.
   offerBaseline?: Record<string, string>;
+  // Set the first time the owner drops the price — the pre-drop price, kept
+  // for a strikethrough "price drop" display. Never overwritten by later
+  // drops, so it always reflects the original listing price.
+  originalPrice?: string;
 };
 
 export const SALE_ITEMS: SaleItem[] = [

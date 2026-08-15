@@ -6,6 +6,12 @@ import { useSettingsStore } from './useSettingsStore';
 
 const INBOUND_INTEREST_DELAY_MS = 4000;
 const INTEREST_THANKS_DELAY_MS = 2000;
+const PRICE_DROP_NOTICE_DELAY_MS = 3000;
+
+function parsePriceValue(price: string) {
+  const n = parseFloat(price.replace(/[^0-9.]/g, ''));
+  return Number.isNaN(n) ? Infinity : n;
+}
 
 export type NewSaleItemInput = {
   emoji: string;
@@ -28,6 +34,7 @@ type SaleState = {
   toggleInterest: (itemId: string) => void;
   makeOffer: (itemId: string, price: string) => void;
   acceptOffer: (itemId: string, userId: string) => void;
+  dropPrice: (itemId: string, newPrice: string) => void;
   markSold: (itemId: string) => void;
   relistItem: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
@@ -132,6 +139,37 @@ export const useSaleStore = create<SaleState>((set, get) => ({
       sold: { ...s.sold, [itemId]: true },
       acceptedOffers: { ...s.acceptedOffers, [itemId]: { userId, price } },
     }));
+  },
+
+  dropPrice: (itemId, newPrice) => {
+    const clean = newPrice.trim();
+    if (!clean) return;
+    const item = get().items.find((i) => i.id === itemId);
+    if (!item) return;
+    if (parsePriceValue(clean) >= parsePriceValue(item.price)) return;
+
+    set((s) => ({
+      items: s.items.map((i) =>
+        i.id === itemId ? { ...i, price: clean, originalPrice: i.originalPrice ?? i.price } : i
+      ),
+    }));
+
+    const noticerId = item.interestedByIds?.[0];
+    const noticer = noticerId ? getUser(noticerId) : undefined;
+    if (!noticer) return;
+    setTimeout(() => {
+      const current = get().items.find((i) => i.id === itemId);
+      if (!current || get().sold[itemId]) return;
+      if (useSettingsStore.getState().notificationPrefs.saleUpdates) {
+        useNotificationsStore.getState().addNotification({
+          type: 'sale',
+          actorId: noticer.id,
+          text: `${noticer.name} noticed the price drop on your ${current.title.toLowerCase()}`,
+          time: 'Just now',
+          target: { kind: 'sale', id: itemId },
+        });
+      }
+    }, PRICE_DROP_NOTICE_DELAY_MS);
   },
 
   markSold: (itemId) => set((s) => ({ sold: { ...s.sold, [itemId]: true } })),

@@ -36,6 +36,7 @@ export default function ForSaleBoard() {
   const makeOffer = useSaleStore((s) => s.makeOffer);
   const acceptedOffers = useSaleStore((s) => s.acceptedOffers);
   const acceptOffer = useSaleStore((s) => s.acceptOffer);
+  const dropPrice = useSaleStore((s) => s.dropPrice);
   const markSold = useSaleStore((s) => s.markSold);
   const relistItem = useSaleStore((s) => s.relistItem);
   const deleteItem = useSaleStore((s) => s.deleteItem);
@@ -52,6 +53,8 @@ export default function ForSaleBoard() {
   const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
   const [offeringId, setOfferingId] = useState<string | null>(null);
   const [offerDraft, setOfferDraft] = useState('');
+  const [droppingPriceId, setDroppingPriceId] = useState<string | null>(null);
+  const [priceDropDraft, setPriceDropDraft] = useState('');
 
   const q = query.trim().toLowerCase();
   const matchesQuery = (i: (typeof items)[number]) =>
@@ -183,7 +186,21 @@ export default function ForSaleBoard() {
                       </View>
                       <View className="flex-1">
                         <Text className="font-semibold text-charcoal">{item.title}</Text>
-                        <Text className="text-xs text-charcoal/50">{item.price}</Text>
+                        <View className="flex-row items-center gap-1.5">
+                          {item.originalPrice && (
+                            <Text className="text-xs text-charcoal/40 line-through">
+                              {item.originalPrice}
+                            </Text>
+                          )}
+                          <Text className="text-xs text-charcoal/50">{item.price}</Text>
+                          {item.originalPrice && (
+                            <View className="rounded-full bg-terracotta/10 px-2 py-0.5">
+                              <Text className="text-[10px] font-semibold text-terracotta">
+                                Price drop
+                              </Text>
+                            </View>
+                          )}
+                        </View>
                       </View>
                       <Pressable
                         onPress={() => setSharingId(item.id)}
@@ -249,6 +266,50 @@ export default function ForSaleBoard() {
                         </Pressable>
                       )}
                     </View>
+
+                    {!isSold &&
+                      (droppingPriceId === item.id ? (
+                        <View className="mt-3 flex-row items-center gap-2 border-t border-charcoal/10 pt-3">
+                          <TextInput
+                            value={priceDropDraft}
+                            onChangeText={setPriceDropDraft}
+                            placeholder={`Lower than ${item.price}`}
+                            placeholderTextColor="#8A8378"
+                            autoFocus
+                            className="flex-1 rounded-full bg-sand px-4 py-2 text-sm text-charcoal"
+                          />
+                          <Pressable
+                            onPress={() => {
+                              setDroppingPriceId(null);
+                              setPriceDropDraft('');
+                            }}
+                            className="px-2 py-2"
+                          >
+                            <Text className="text-xs font-semibold text-charcoal/50">Cancel</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => {
+                              if (!priceDropDraft.trim()) return;
+                              dropPrice(item.id, priceDropDraft);
+                              setDroppingPriceId(null);
+                              setPriceDropDraft('');
+                            }}
+                            className="rounded-full bg-ink px-4 py-2"
+                          >
+                            <Text className="text-xs font-semibold text-paper">Save</Text>
+                          </Pressable>
+                        </View>
+                      ) : (
+                        <Pressable
+                          onPress={() => {
+                            setDroppingPriceId(item.id);
+                            setPriceDropDraft('');
+                          }}
+                          className="mt-2"
+                        >
+                          <Text className="text-xs font-semibold text-terracotta">Drop price</Text>
+                        </Pressable>
+                      ))}
                   </View>
                 );
               })}
@@ -276,9 +337,23 @@ export default function ForSaleBoard() {
                   </View>
                   <View className="flex-1">
                     <Text className="font-semibold text-charcoal">{item.title}</Text>
-                    <Text className="text-xs text-charcoal/50">
-                      {owner.name} · {item.price}
-                    </Text>
+                    <View className="flex-row items-center gap-1.5">
+                      <Text className="text-xs text-charcoal/50">
+                        {owner.name} · {item.price}
+                      </Text>
+                      {item.originalPrice && (
+                        <>
+                          <Text className="text-xs text-charcoal/40 line-through">
+                            {item.originalPrice}
+                          </Text>
+                          <View className="rounded-full bg-terracotta/10 px-2 py-0.5">
+                            <Text className="text-[10px] font-semibold text-terracotta">
+                              Price drop
+                            </Text>
+                          </View>
+                        </>
+                      )}
+                    </View>
                   </View>
                   <Pressable
                     onPress={() => setSharingId(item.id)}
