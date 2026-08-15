@@ -6,7 +6,7 @@ import { SvgXml } from 'react-native-svg';
 import { GROUP_SELFIE_SVG } from '../assets/illustrations/group-selfie';
 import { getUser, ME, type User, type VerificationBadge } from '../data/mock';
 import { formatMutualTrustLine, formatOwnTrustLine, getSharedGroups } from '../lib/trust';
-import { isAvailable, useAvailabilityStore } from '../store/useAvailabilityStore';
+import { getAvailableNote, isAvailable, useAvailabilityStore } from '../store/useAvailabilityStore';
 import { getEndorsementGroups, useEndorsementsStore } from '../store/useEndorsementsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { useGroupsStore } from '../store/useGroupsStore';
@@ -72,7 +72,12 @@ export default function ProfileView({
   const [tab, setTab] = useState<Tab>('About');
   const myAvailable = useAvailabilityStore((s) => s.myAvailable);
   const setAvailable = useAvailabilityStore((s) => s.setAvailable);
+  const myAvailableNote = useAvailabilityStore((s) => s.myAvailableNote);
+  const setAvailableNote = useAvailabilityStore((s) => s.setAvailableNote);
   const available = isAvailable(user, myAvailable);
+  const availableNote = getAvailableNote(user, myAvailableNote);
+  const [editingAvailableNote, setEditingAvailableNote] = useState(false);
+  const [availableNoteDraft, setAvailableNoteDraft] = useState('');
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const friendStatus = friendStatuses[user.id] ?? 'none';
   const respondFriend = useFriendsStore((s) => s.respond);
@@ -169,29 +174,73 @@ export default function ProfileView({
         )}
 
         {isMe ? (
-          <Pressable
-            onPress={() => setAvailable(!myAvailable)}
-            className={`mt-3 flex-row items-center gap-1.5 rounded-full px-4 py-2 ${
-              myAvailable ? 'bg-sage' : 'bg-cream/20'
-            }`}
-          >
-            <Ionicons
-              name={myAvailable ? 'sunny' : 'sunny-outline'}
-              size={13}
-              className={myAvailable ? 'text-charcoal' : 'text-paper'}
-            />
-            <Text className={`text-xs font-semibold ${myAvailable ? 'text-charcoal' : 'text-paper'}`}>
-              {myAvailable ? 'Free for a coffee or walk today' : "Tap if you're free today"}
-            </Text>
-          </Pressable>
+          <>
+            <Pressable
+              onPress={() => setAvailable(!myAvailable)}
+              className={`mt-3 flex-row items-center gap-1.5 rounded-full px-4 py-2 ${
+                myAvailable ? 'bg-sage' : 'bg-cream/20'
+              }`}
+            >
+              <Ionicons
+                name={myAvailable ? 'sunny' : 'sunny-outline'}
+                size={13}
+                className={myAvailable ? 'text-charcoal' : 'text-paper'}
+              />
+              <Text className={`text-xs font-semibold ${myAvailable ? 'text-charcoal' : 'text-paper'}`}>
+                {myAvailable ? 'Free for a coffee or walk today' : "Tap if you're free today"}
+              </Text>
+            </Pressable>
+            {myAvailable &&
+              (editingAvailableNote ? (
+                <View className="mt-2 w-full flex-row items-center gap-2 px-6">
+                  <TextInput
+                    value={availableNoteDraft}
+                    onChangeText={setAvailableNoteDraft}
+                    placeholder="e.g. free after 3pm"
+                    placeholderTextColor="#FAF3E680"
+                    autoFocus
+                    className="flex-1 rounded-full bg-cream/20 px-4 py-2 text-sm text-paper"
+                  />
+                  <Pressable onPress={() => setEditingAvailableNote(false)} className="px-1 py-2">
+                    <Text className="text-xs font-semibold text-sand">Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      setAvailableNote(availableNoteDraft);
+                      setEditingAvailableNote(false);
+                    }}
+                    className="rounded-full bg-sage px-3 py-2"
+                  >
+                    <Text className="text-xs font-semibold text-charcoal">Save</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable
+                  onPress={() => {
+                    setAvailableNoteDraft(myAvailableNote);
+                    setEditingAvailableNote(true);
+                  }}
+                  className="mt-2"
+                >
+                  <Text className="text-xs text-sand">
+                    {myAvailableNote ? myAvailableNote : 'Add a note'}
+                  </Text>
+                </Pressable>
+              ))}
+          </>
         ) : (
           available && (
-            <View className="mt-3 flex-row items-center gap-1.5 rounded-full bg-sage px-4 py-2">
-              <Ionicons name="sunny" size={13} className="text-charcoal" />
-              <Text className="text-xs font-semibold text-charcoal">
-                Free for a coffee or walk today
-              </Text>
-            </View>
+            <>
+              <View className="mt-3 flex-row items-center gap-1.5 rounded-full bg-sage px-4 py-2">
+                <Ionicons name="sunny" size={13} className="text-charcoal" />
+                <Text className="text-xs font-semibold text-charcoal">
+                  Free for a coffee or walk today
+                </Text>
+              </View>
+              {availableNote.length > 0 && (
+                <Text className="mt-2 text-xs text-sand">{availableNote}</Text>
+              )}
+            </>
           )
         )}
 

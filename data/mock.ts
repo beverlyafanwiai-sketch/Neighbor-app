@@ -28,6 +28,9 @@ export type User = {
   // ME's own status lives in useAvailabilityStore instead, since it's
   // something ME actually toggles.
   available?: boolean;
+  // Optional note attached to that availability signal (e.g. "free after
+  // 3pm") — ME's own note lives in useAvailabilityStore.
+  availableNote?: string;
   isNew?: boolean;
 };
 
@@ -93,6 +96,7 @@ export const USERS: User[] = [
     values: 'Directness, reliability, a good sense of humor',
     friendIds: ['amara', 'maya', 'priya', 'sam'],
     available: true,
+    availableNote: 'Free after 3pm',
     prompts: [
       { q: 'How I recharge', a: 'A long trail run with no music, just thinking.' },
       { q: 'A belief I hold that not everyone agrees with', a: 'Board games are better than most parties.' },
