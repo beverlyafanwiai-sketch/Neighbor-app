@@ -40,6 +40,7 @@ type ConversationsState = {
   lastActivity: Record<string, number>;
   typing: Record<string, boolean>;
   myReactions: Record<string, ReactionType | undefined>;
+  pinnedMessageId: Record<string, string | undefined>;
   getOrCreate: (userId: string) => string;
   sendMessage: (
     conversationId: string,
@@ -54,6 +55,8 @@ type ConversationsState = {
   updateMessage: (conversationId: string, messageId: string, text: string) => void;
   tapReaction: (conversationId: string, messageId: string) => void;
   setReaction: (conversationId: string, messageId: string, type: ReactionType) => void;
+  pinMessage: (conversationId: string, messageId: string) => void;
+  unpinMessage: (conversationId: string) => void;
 };
 
 const initial: Record<string, Conversation> = Object.fromEntries(
@@ -82,6 +85,7 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
   lastActivity: initialLastActivity,
   typing: {},
   myReactions: {},
+  pinnedMessageId: {},
 
   getOrCreate: (userId) => {
     const id = `convo-${userId}`;
@@ -164,7 +168,8 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
       const { [conversationId]: _c, ...conversations } = s.conversations;
       const { [conversationId]: _u, ...unread } = s.unread;
       const { [conversationId]: _l, ...lastActivity } = s.lastActivity;
-      return { conversations, unread, lastActivity };
+      const { [conversationId]: _p, ...pinnedMessageId } = s.pinnedMessageId;
+      return { conversations, unread, lastActivity, pinnedMessageId };
     }),
 
   deleteMessage: (conversationId, messageId) =>
@@ -181,6 +186,10 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
             ),
           },
         },
+        pinnedMessageId:
+          s.pinnedMessageId[conversationId] === messageId
+            ? { ...s.pinnedMessageId, [conversationId]: undefined }
+            : s.pinnedMessageId,
       };
     }),
 
@@ -214,4 +223,10 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
       myReactions: { ...s.myReactions, [key]: s.myReactions[key] === type ? undefined : type },
     }));
   },
+
+  pinMessage: (conversationId, messageId) =>
+    set((s) => ({ pinnedMessageId: { ...s.pinnedMessageId, [conversationId]: messageId } })),
+
+  unpinMessage: (conversationId) =>
+    set((s) => ({ pinnedMessageId: { ...s.pinnedMessageId, [conversationId]: undefined } })),
 }));

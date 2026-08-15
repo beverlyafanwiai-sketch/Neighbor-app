@@ -42,6 +42,9 @@ export default function ChatThread() {
   const tapReaction = useConversationsStore((s) => s.tapReaction);
   const setReaction = useConversationsStore((s) => s.setReaction);
   const isTyping = useConversationsStore((s) => s.typing[id] ?? false);
+  const pinnedMessageId = useConversationsStore((s) => s.pinnedMessageId[id]);
+  const pinMessage = useConversationsStore((s) => s.pinMessage);
+  const unpinMessage = useConversationsStore((s) => s.unpinMessage);
   const user = conversation ? getUser(conversation.userId) : undefined;
   const isBlocked = useBlockedStore((s) => (user ? (s.blockedIds[user.id] ?? false) : false));
   const toggleBlocked = useBlockedStore((s) => s.toggle);
@@ -131,6 +134,9 @@ export default function ChatThread() {
     (acc, m, i) => (m.from === 'me' ? i : acc),
     -1
   );
+
+  const pinnedMessage = messages.find((m) => m.id === pinnedMessageId);
+  const pinnedSenderName = pinnedMessage ? (pinnedMessage.from === 'me' ? 'You' : user.name) : undefined;
 
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -287,6 +293,29 @@ export default function ChatThread() {
             <Ionicons name="ellipsis-horizontal" size={20} className="text-charcoal" />
           </Pressable>
         </View>
+      )}
+
+      {pinnedMessage && pinnedSenderName && (
+        <Pressable
+          onPress={() => jumpToMessage(pinnedMessage.id)}
+          className="flex-row items-center gap-2.5 border-b border-charcoal/10 bg-gold/10 px-4 py-2.5"
+        >
+          <Ionicons name="pin" size={14} className="text-gold" />
+          <View className="flex-1">
+            <Text className="text-xs font-semibold text-charcoal/60">
+              Pinned · {pinnedSenderName}
+            </Text>
+            <Text className="text-sm text-charcoal" numberOfLines={1}>
+              {pinnedMessage.text || 'Photo'}
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => unpinMessage(id)}
+            className="h-7 w-7 items-center justify-center rounded-full"
+          >
+            <Ionicons name="close" size={15} className="text-charcoal/50" />
+          </Pressable>
+        </Pressable>
       )}
 
       <KeyboardAvoidingView
@@ -489,10 +518,26 @@ export default function ChatThread() {
                     )}
                   </View>
                 )}
-                <Text className="mt-0.5 text-[11px] text-charcoal/40">
-                  {item.time}
-                  {item.edited && ' · edited'}
-                </Text>
+                <View className="mt-0.5 flex-row items-center gap-1.5">
+                  <Text className="text-[11px] text-charcoal/40">
+                    {item.time}
+                    {item.edited && ' · edited'}
+                  </Text>
+                  {!item.deleted && (
+                    <Pressable
+                      onPress={() =>
+                        item.id === pinnedMessageId ? unpinMessage(id) : pinMessage(id, item.id)
+                      }
+                      className="h-4 w-4 items-center justify-center"
+                    >
+                      <Ionicons
+                        name={item.id === pinnedMessageId ? 'pin' : 'pin-outline'}
+                        size={12}
+                        className={item.id === pinnedMessageId ? 'text-gold' : 'text-charcoal/25'}
+                      />
+                    </Pressable>
+                  )}
+                </View>
                 {index === lastMeIndex && item.seen && !item.deleted && (
                   <Text className="mt-0.5 text-[11px] text-sage">Seen</Text>
                 )}
