@@ -30,16 +30,16 @@ type LendState = {
   updateItem: (itemId: string, updates: Partial<NewLendItemInput>) => void;
   requestToBorrow: (itemId: string) => void;
   cancelRequest: (itemId: string) => void;
-  approveRequest: (itemId: string) => void;
+  approveRequest: (itemId: string, days?: number) => void;
   declineRequest: (itemId: string) => void;
   markReturned: (itemId: string) => void;
   offerToHelp: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
 };
 
-function dueLabelFromNow() {
+function dueLabelFromNow(days: number = DUE_IN_DAYS) {
   const date = new Date();
-  date.setDate(date.getDate() + DUE_IN_DAYS);
+  date.setDate(date.getDate() + days);
   return date.toLocaleDateString(undefined, { weekday: 'short' });
 }
 
@@ -121,13 +121,13 @@ export const useLendStore = create<LendState>((set, get) => ({
   cancelRequest: (itemId) =>
     set((s) => ({ status: { ...s.status, [itemId]: 'available' } })),
 
-  approveRequest: (itemId) => {
+  approveRequest: (itemId, days) => {
     const requesterId = get().pendingRequesterId[itemId];
     if (!requesterId) return;
     set((s) => ({
       status: { ...s.status, [itemId]: 'lent' },
       borrowerId: { ...s.borrowerId, [itemId]: requesterId },
-      dueLabel: { ...s.dueLabel, [itemId]: dueLabelFromNow() },
+      dueLabel: { ...s.dueLabel, [itemId]: dueLabelFromNow(days) },
       pendingRequesterId: { ...s.pendingRequesterId, [itemId]: '' },
     }));
   },

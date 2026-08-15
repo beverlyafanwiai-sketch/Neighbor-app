@@ -46,6 +46,8 @@ export default function LendBoard() {
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [query, setQuery] = useState('');
   const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
+  const [approvingItemId, setApprovingItemId] = useState<string | null>(null);
+  const [dueDays, setDueDays] = useState(5);
 
   const matchesKind = (i: (typeof items)[number]) =>
     kindFilter === 'All' || (kindFilter === 'Have' ? i.kind === 'have' : i.kind === 'want');
@@ -232,20 +234,67 @@ export default function LendBoard() {
                           <Text className="text-sm text-charcoal">
                             {requester.name} wants to borrow this
                           </Text>
-                          <View className="mt-2 flex-row gap-2">
-                            <Pressable
-                              onPress={() => approveRequest(item.id)}
-                              className="rounded-full bg-terracotta px-4 py-1.5"
-                            >
-                              <Text className="text-xs font-semibold text-paper">Approve</Text>
-                            </Pressable>
-                            <Pressable
-                              onPress={() => declineRequest(item.id)}
-                              className="rounded-full bg-sand px-4 py-1.5"
-                            >
-                              <Text className="text-xs font-semibold text-charcoal">Decline</Text>
-                            </Pressable>
-                          </View>
+                          {approvingItemId === item.id ? (
+                            <View className="mt-2 gap-2">
+                              <Text className="text-xs text-charcoal/50">Back by, in days:</Text>
+                              <View className="flex-row gap-2">
+                                {[3, 5, 7, 14].map((d) => (
+                                  <Pressable
+                                    key={d}
+                                    onPress={() => setDueDays(d)}
+                                    className={`rounded-full px-3 py-1.5 ${
+                                      dueDays === d ? 'bg-terracotta' : 'bg-sand'
+                                    }`}
+                                  >
+                                    <Text
+                                      className={`text-xs font-semibold ${
+                                        dueDays === d ? 'text-paper' : 'text-charcoal'
+                                      }`}
+                                    >
+                                      {d}
+                                    </Text>
+                                  </Pressable>
+                                ))}
+                              </View>
+                              <View className="flex-row gap-2">
+                                <Pressable
+                                  onPress={() => {
+                                    approveRequest(item.id, dueDays);
+                                    setApprovingItemId(null);
+                                  }}
+                                  className="rounded-full bg-terracotta px-4 py-1.5"
+                                >
+                                  <Text className="text-xs font-semibold text-paper">
+                                    Confirm approve
+                                  </Text>
+                                </Pressable>
+                                <Pressable
+                                  onPress={() => setApprovingItemId(null)}
+                                  className="rounded-full bg-sand px-4 py-1.5"
+                                >
+                                  <Text className="text-xs font-semibold text-charcoal">Cancel</Text>
+                                </Pressable>
+                              </View>
+                            </View>
+                          ) : (
+                            <View className="mt-2 flex-row gap-2">
+                              <Pressable
+                                onPress={() => {
+                                  setApprovingItemId(item.id);
+                                  setDueDays(5);
+                                }}
+                                className="rounded-full bg-terracotta px-4 py-1.5"
+                              >
+                                <Text className="text-xs font-semibold text-paper">Approve</Text>
+                              </Pressable>
+                              <Pressable
+                                onPress={() => declineRequest(item.id)}
+                                className="rounded-full bg-sand px-4 py-1.5"
+                              >
+                                <Text className="text-xs font-semibold text-charcoal">Decline</Text>
+                              </Pressable>
+                            </View>
+                          )}
                         </View>
                       ) : itemStatus === 'lent' && borrower ? (
                         <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
