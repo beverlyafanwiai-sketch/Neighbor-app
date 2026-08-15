@@ -19,18 +19,37 @@ type SaleState = {
   items: SaleItem[];
   sold: Record<string, boolean>;
   myInterest: Record<string, boolean>;
+  myOffers: Record<string, string>;
   createItem: (input: NewSaleItemInput) => string;
   updateItem: (itemId: string, updates: Partial<NewSaleItemInput>) => void;
   toggleInterest: (itemId: string) => void;
+  makeOffer: (itemId: string, price: string) => void;
   markSold: (itemId: string) => void;
   relistItem: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
 };
 
+function scheduleThanks(get: () => SaleState, itemId: string, item: SaleItem) {
+  setTimeout(() => {
+    if (!get().myInterest[itemId]) return;
+    const owner = getUser(item.ownerId);
+    if (useSettingsStore.getState().notificationPrefs.saleUpdates) {
+      useNotificationsStore.getState().addNotification({
+        type: 'sale',
+        actorId: owner?.id,
+        text: `${owner?.name ?? 'They'} said thanks — they'll reach out about the ${item.title.toLowerCase()}`,
+        time: 'Just now',
+        target: { kind: 'sale', id: itemId },
+      });
+    }
+  }, INTEREST_THANKS_DELAY_MS);
+}
+
 export const useSaleStore = create<SaleState>((set, get) => ({
   items: SALE_ITEMS,
   sold: {},
   myInterest: {},
+  myOffers: {},
 
   createItem: (input) => {
     const id = `sale-${Math.random().toString(36).slice(2, 9)}`;
@@ -78,22 +97,27 @@ export const useSaleStore = create<SaleState>((set, get) => ({
     const item = get().items.find((i) => i.id === itemId);
     if (!item) return;
     const alreadyInterested = get().myInterest[itemId] ?? false;
-    set((s) => ({ myInterest: { ...s.myInterest, [itemId]: !alreadyInterested } }));
+    set((s) => ({
+      myInterest: { ...s.myInterest, [itemId]: !alreadyInterested },
+      // Withdrawing interest withdraws any offer too.
+      myOffers: alreadyInterested ? { ...s.myOffers, [itemId]: '' } : s.myOffers,
+    }));
     if (alreadyInterested) return;
+    scheduleThanks(get, itemId, item);
+  },
 
-    setTimeout(() => {
-      if (!get().myInterest[itemId]) return;
-      const owner = getUser(item.ownerId);
-      if (useSettingsStore.getState().notificationPrefs.saleUpdates) {
-        useNotificationsStore.getState().addNotification({
-          type: 'sale',
-          actorId: owner?.id,
-          text: `${owner?.name ?? 'They'} said thanks — they'll reach out about the ${item.title.toLowerCase()}`,
-          time: 'Just now',
-          target: { kind: 'sale', id: itemId },
-        });
-      }
-    }, INTEREST_THANKS_DELAY_MS);
+  makeOffer: (itemId, price) => {
+    const clean = price.trim();
+    if (!clean) return;
+    const item = get().items.find((i) => i.id === itemId);
+    if (!item) return;
+    const alreadyInterested = get().myInterest[itemId] ?? false;
+    set((s) => ({
+      myInterest: { ...s.myInterest, [itemId]: true },
+      myOffers: { ...s.myOffers, [itemId]: clean },
+    }));
+    if (alreadyInterested) return;
+    scheduleThanks(get, itemId, item);
   },
 
   markSold: (itemId) => set((s) => ({ sold: { ...s.sold, [itemId]: true } })),
@@ -118,4 +142,13 @@ export function getEffectiveInterestedIds(itemId: string, interested: boolean): 
 
 export function getEffectiveInterestCount(itemId: string, interested: boolean) {
   return getEffectiveInterestedIds(itemId, interested).length;
+}
+
+// Resolves the offer a given neighbor made on an item, if any — checks
+// item.offerBaseline for others, or myOffers for ME.
+export function getOfferFor(itemId: string, userId: string): string | undefined {
+  const item = useSaleStore.getState().items.find((i) => i.id === itemId);
+  if (!item) return undefined;
+  if (userId === ME.id) return useSaleStore.getState().myOffers[itemId] || undefined;
+  return item.offerBaseline?.[userId];
 }

@@ -931,6 +931,9 @@ export type SaleItem = {
   // Baseline ids of other neighbors already interested — mirrors
   // LendItem.helperIds as a "before ME" list.
   interestedByIds?: string[];
+  // Baseline offers from other neighbors, keyed by userId, *not including*
+  // ME — only set for interested neighbors who proposed a specific price.
+  offerBaseline?: Record<string, string>;
 };
 
 export const SALE_ITEMS: SaleItem[] = [
@@ -959,6 +962,7 @@ export const SALE_ITEMS: SaleItem[] = [
     price: '$40',
     note: 'Portable, built-in speakers. Selling since I upgraded to a proper turntable.',
     interestedByIds: ['theo', 'priya'],
+    offerBaseline: { theo: '$35' },
   },
   {
     id: 'patio-chairs',

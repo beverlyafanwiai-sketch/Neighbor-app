@@ -10,7 +10,12 @@ import PhotoViewer from '../components/PhotoViewer';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
-import { getEffectiveInterestCount, getEffectiveInterestedIds, useSaleStore } from '../store/useSaleStore';
+import {
+  getEffectiveInterestCount,
+  getEffectiveInterestedIds,
+  getOfferFor,
+  useSaleStore,
+} from '../store/useSaleStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { useSavedSaleStore } from '../store/useSavedSaleStore';
 
@@ -27,6 +32,8 @@ export default function ForSaleBoard() {
   const sold = useSaleStore((s) => s.sold);
   const myInterest = useSaleStore((s) => s.myInterest);
   const toggleInterest = useSaleStore((s) => s.toggleInterest);
+  const myOffers = useSaleStore((s) => s.myOffers);
+  const makeOffer = useSaleStore((s) => s.makeOffer);
   const markSold = useSaleStore((s) => s.markSold);
   const relistItem = useSaleStore((s) => s.relistItem);
   const deleteItem = useSaleStore((s) => s.deleteItem);
@@ -41,6 +48,8 @@ export default function ForSaleBoard() {
   const [sortBy, setSortBy] = useState<SaleSort>('Newest');
   const [query, setQuery] = useState('');
   const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
+  const [offeringId, setOfferingId] = useState<string | null>(null);
+  const [offerDraft, setOfferDraft] = useState('');
 
   const q = query.trim().toLowerCase();
   const matchesQuery = (i: (typeof items)[number]) =>
@@ -319,12 +328,63 @@ export default function ForSaleBoard() {
                         <Text
                           className={`text-xs font-semibold ${interested ? 'text-sage' : 'text-paper'}`}
                         >
-                          {interested ? "You're interested ✓" : "I'm interested"}
+                          {myOffers[item.id]
+                            ? `Offered ${myOffers[item.id]}`
+                            : interested
+                              ? "You're interested ✓"
+                              : "I'm interested"}
                         </Text>
                       </Pressable>
                     </>
                   )}
                 </View>
+
+                {!isSold && offeringId === item.id ? (
+                  <View className="mt-3 flex-row items-center gap-2 border-t border-charcoal/10 pt-3">
+                    <TextInput
+                      value={offerDraft}
+                      onChangeText={setOfferDraft}
+                      placeholder="e.g. $30"
+                      placeholderTextColor="#8A8378"
+                      autoFocus
+                      className="flex-1 rounded-full bg-sand px-4 py-2 text-sm text-charcoal"
+                    />
+                    <Pressable
+                      onPress={() => {
+                        setOfferingId(null);
+                        setOfferDraft('');
+                      }}
+                      className="px-2 py-2"
+                    >
+                      <Text className="text-xs font-semibold text-charcoal/50">Cancel</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        if (!offerDraft.trim()) return;
+                        makeOffer(item.id, offerDraft);
+                        setOfferingId(null);
+                        setOfferDraft('');
+                      }}
+                      className="rounded-full bg-ink px-4 py-2"
+                    >
+                      <Text className="text-xs font-semibold text-paper">Send</Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  !isSold && (
+                    <Pressable
+                      onPress={() => {
+                        setOfferingId(item.id);
+                        setOfferDraft(myOffers[item.id] ?? '');
+                      }}
+                      className="mt-2"
+                    >
+                      <Text className="text-xs font-semibold text-terracotta">
+                        {myOffers[item.id] ? 'Change your offer' : 'Make an offer'}
+                      </Text>
+                    </Pressable>
+                  )
+                )}
               </View>
             );
           })}
@@ -380,6 +440,7 @@ export default function ForSaleBoard() {
                   const isMe = userId === ME.id;
                   const person = isMe ? profile : getUser(userId);
                   if (!person) return null;
+                  const offer = getOfferFor(viewingInterestedItem.id, userId);
                   return (
                     <Pressable
                       key={userId}
@@ -391,7 +452,14 @@ export default function ForSaleBoard() {
                       className="flex-row items-center gap-3 rounded-2xl p-2 active:opacity-70"
                     >
                       <Image source={{ uri: person.avatar }} className="h-9 w-9 rounded-full" />
-                      <Text className="font-medium text-charcoal">{isMe ? 'You' : person.name}</Text>
+                      <Text className="flex-1 font-medium text-charcoal">
+                        {isMe ? 'You' : person.name}
+                      </Text>
+                      {offer && (
+                        <Text className="text-xs font-semibold text-terracotta">
+                          Offered {offer}
+                        </Text>
+                      )}
                     </Pressable>
                   );
                 })}
