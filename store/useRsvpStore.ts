@@ -10,7 +10,9 @@ const WAITLIST_PROMOTION_DELAY_MS = 4000;
 type RsvpState = {
   going: Record<string, boolean>;
   waitlisted: Record<string, boolean>;
+  plusOne: Record<string, boolean>;
   toggle: (eventId: string) => void;
+  togglePlusOne: (eventId: string) => void;
   joinWaitlist: (eventId: string) => void;
   leaveWaitlist: (eventId: string) => void;
 };
@@ -22,6 +24,7 @@ const initialGoing: Record<string, boolean> = Object.fromEntries(
 export const useRsvpStore = create<RsvpState>((set, get) => ({
   going: initialGoing,
   waitlisted: {},
+  plusOne: {},
 
   toggle: (eventId) => {
     const event = useEventsStore.getState().getEvent(eventId);
@@ -32,7 +35,24 @@ export const useRsvpStore = create<RsvpState>((set, get) => ({
       return;
     }
 
-    set((s) => ({ going: { ...s.going, [eventId]: !currentlyGoing } }));
+    set((s) => ({
+      going: { ...s.going, [eventId]: !currentlyGoing },
+      // Bringing a guest only makes sense while you're going.
+      plusOne: currentlyGoing ? { ...s.plusOne, [eventId]: false } : s.plusOne,
+    }));
+  },
+
+  togglePlusOne: (eventId) => {
+    const event = useEventsStore.getState().getEvent(eventId);
+    if (!event) return;
+    if (!(get().going[eventId] ?? false)) return;
+
+    const currentlyBringing = get().plusOne[eventId] ?? false;
+    if (!currentlyBringing && event.spotsTaken + 1 >= event.spotsTotal) {
+      return;
+    }
+
+    set((s) => ({ plusOne: { ...s.plusOne, [eventId]: !currentlyBringing } }));
   },
 
   joinWaitlist: (eventId) => {
@@ -67,12 +87,14 @@ export const useRsvpStore = create<RsvpState>((set, get) => ({
 }));
 
 // event.spotsTaken is the baseline count of attendees *not including* the
-// current user (ME). Effective totals fold in ME's own RSVP on top of that.
-export function getEffectiveSpots(eventId: string, going: boolean) {
+// current user (ME). Effective totals fold in ME's own RSVP (and optional
+// +1 guest) on top of that.
+export function getEffectiveSpots(eventId: string, going: boolean, plusOne = false) {
   const event = useEventsStore.getState().getEvent(eventId);
   if (!event) return { spotsTaken: 0, spotsTotal: 0, isFull: false };
+  const mine = going ? 1 + (plusOne ? 1 : 0) : 0;
   return {
-    spotsTaken: event.spotsTaken + (going ? 1 : 0),
+    spotsTaken: event.spotsTaken + mine,
     spotsTotal: event.spotsTotal,
     isFull: !going && event.spotsTaken >= event.spotsTotal,
   };

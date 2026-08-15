@@ -37,7 +37,9 @@ export default function EventDetail() {
   const profile = useProfileStore((s) => s.profile);
   const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
   const waitlisted = useRsvpStore((s) => (event ? (s.waitlisted[event.id] ?? false) : false));
+  const bringingGuest = useRsvpStore((s) => (event ? (s.plusOne[event.id] ?? false) : false));
   const toggleRsvp = useRsvpStore((s) => s.toggle);
+  const togglePlusOne = useRsvpStore((s) => s.togglePlusOne);
   const joinWaitlist = useRsvpStore((s) => s.joinWaitlist);
   const leaveWaitlist = useRsvpStore((s) => s.leaveWaitlist);
   const friendStatuses = useFriendsStore((s) => s.statuses);
@@ -95,7 +97,7 @@ export default function EventDetail() {
   const isHost = event.hostId === ME.id;
   const canManage = canManageEvent(event, ME.id);
   const isCoHost = canManage && !isHost;
-  const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(event.id, going);
+  const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(event.id, going, bringingGuest);
   const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
   const attendees = going || canManage ? [profile, ...otherAttendees] : otherAttendees;
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
@@ -421,6 +423,30 @@ export default function EventDetail() {
             )
           )}
 
+          {going && !isPast && (
+            <Pressable
+              onPress={() => togglePlusOne(event.id)}
+              disabled={!bringingGuest && event.spotsTaken + 1 >= event.spotsTotal}
+              className="mt-3 flex-row items-center justify-center gap-1.5 rounded-full border border-charcoal/15 py-3 active:opacity-70"
+              style={
+                !bringingGuest && event.spotsTaken + 1 >= event.spotsTotal
+                  ? { opacity: 0.4 }
+                  : undefined
+              }
+            >
+              <Ionicons
+                name={bringingGuest ? 'checkmark-circle' : 'person-add-outline'}
+                size={16}
+                className={bringingGuest ? 'text-sage' : 'text-charcoal'}
+              />
+              <Text
+                className={`text-sm font-semibold ${bringingGuest ? 'text-sage' : 'text-charcoal'}`}
+              >
+                {bringingGuest ? "Bringing a guest (+1)" : 'Bring a guest (+1)'}
+              </Text>
+            </Pressable>
+          )}
+
           <Pressable
             onPress={() => setSharing(true)}
             className="mt-3 flex-row items-center justify-center gap-1.5 rounded-full border border-charcoal/15 py-3 active:opacity-70"
@@ -484,7 +510,14 @@ export default function EventDetail() {
               >
                 <Image source={{ uri: a!.avatar }} className="h-11 w-11 rounded-full" />
                 <View className="flex-1">
-                  <Text className="font-medium text-charcoal">{isMe ? 'You' : a!.name}</Text>
+                  <View className="flex-row items-center gap-1.5">
+                    <Text className="font-medium text-charcoal">{isMe ? 'You' : a!.name}</Text>
+                    {isMe && bringingGuest && (
+                      <View className="rounded-full bg-sage/20 px-2 py-0.5">
+                        <Text className="text-[10px] font-bold text-sage">+1 GUEST</Text>
+                      </View>
+                    )}
+                  </View>
                   <Text className="text-xs text-charcoal/50" numberOfLines={1}>
                     {a!.tagline}
                   </Text>
