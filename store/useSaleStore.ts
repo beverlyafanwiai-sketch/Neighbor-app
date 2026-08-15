@@ -15,15 +15,19 @@ export type NewSaleItemInput = {
   imageUris?: string[];
 };
 
+type AcceptedOffer = { userId: string; price: string };
+
 type SaleState = {
   items: SaleItem[];
   sold: Record<string, boolean>;
   myInterest: Record<string, boolean>;
   myOffers: Record<string, string>;
+  acceptedOffers: Record<string, AcceptedOffer>;
   createItem: (input: NewSaleItemInput) => string;
   updateItem: (itemId: string, updates: Partial<NewSaleItemInput>) => void;
   toggleInterest: (itemId: string) => void;
   makeOffer: (itemId: string, price: string) => void;
+  acceptOffer: (itemId: string, userId: string) => void;
   markSold: (itemId: string) => void;
   relistItem: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
@@ -50,6 +54,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   sold: {},
   myInterest: {},
   myOffers: {},
+  acceptedOffers: {},
 
   createItem: (input) => {
     const id = `sale-${Math.random().toString(36).slice(2, 9)}`;
@@ -120,9 +125,22 @@ export const useSaleStore = create<SaleState>((set, get) => ({
     scheduleThanks(get, itemId, item);
   },
 
+  acceptOffer: (itemId, userId) => {
+    const price = getOfferFor(itemId, userId);
+    if (!price) return;
+    set((s) => ({
+      sold: { ...s.sold, [itemId]: true },
+      acceptedOffers: { ...s.acceptedOffers, [itemId]: { userId, price } },
+    }));
+  },
+
   markSold: (itemId) => set((s) => ({ sold: { ...s.sold, [itemId]: true } })),
 
-  relistItem: (itemId) => set((s) => ({ sold: { ...s.sold, [itemId]: false } })),
+  relistItem: (itemId) =>
+    set((s) => {
+      const { [itemId]: _removed, ...rest } = s.acceptedOffers;
+      return { sold: { ...s.sold, [itemId]: false }, acceptedOffers: rest };
+    }),
 
   updateItem: (itemId, updates) =>
     set((s) => ({

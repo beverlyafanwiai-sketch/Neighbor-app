@@ -34,6 +34,8 @@ export default function ForSaleBoard() {
   const toggleInterest = useSaleStore((s) => s.toggleInterest);
   const myOffers = useSaleStore((s) => s.myOffers);
   const makeOffer = useSaleStore((s) => s.makeOffer);
+  const acceptedOffers = useSaleStore((s) => s.acceptedOffers);
+  const acceptOffer = useSaleStore((s) => s.acceptOffer);
   const markSold = useSaleStore((s) => s.markSold);
   const relistItem = useSaleStore((s) => s.relistItem);
   const deleteItem = useSaleStore((s) => s.deleteItem);
@@ -147,6 +149,8 @@ export default function ForSaleBoard() {
               {myItems.map((item) => {
                 const isSold = sold[item.id] ?? false;
                 const interestCount = getEffectiveInterestCount(item.id, false);
+                const accepted = acceptedOffers[item.id];
+                const acceptedBuyer = accepted ? getUser(accepted.userId) : undefined;
 
                 if (deletingItemId === item.id) {
                   return (
@@ -221,7 +225,9 @@ export default function ForSaleBoard() {
                       >
                         <Text className={`text-sm ${isSold ? 'text-sage' : 'text-charcoal/50'}`}>
                           {isSold
-                            ? 'Marked as sold'
+                            ? acceptedBuyer
+                              ? `Sold to ${acceptedBuyer.name} for ${accepted!.price}`
+                              : 'Marked as sold'
                             : interestCount === 0
                               ? 'No interest yet'
                               : `${interestCount} neighbor${interestCount === 1 ? '' : 's'} interested`}
@@ -441,26 +447,47 @@ export default function ForSaleBoard() {
                   const person = isMe ? profile : getUser(userId);
                   if (!person) return null;
                   const offer = getOfferFor(viewingInterestedItem.id, userId);
+                  const canAccept =
+                    viewingInterestedItem.ownerId === ME.id &&
+                    !(sold[viewingInterestedItem.id] ?? false) &&
+                    !!offer;
                   return (
-                    <Pressable
+                    <View
                       key={userId}
-                      onPress={() => {
-                        if (isMe) return;
-                        setViewingInterestedId(null);
-                        router.push(`/profile/${userId}`);
-                      }}
-                      className="flex-row items-center gap-3 rounded-2xl p-2 active:opacity-70"
+                      className="flex-row items-center gap-3 rounded-2xl p-2"
                     >
-                      <Image source={{ uri: person.avatar }} className="h-9 w-9 rounded-full" />
-                      <Text className="flex-1 font-medium text-charcoal">
-                        {isMe ? 'You' : person.name}
-                      </Text>
-                      {offer && (
-                        <Text className="text-xs font-semibold text-terracotta">
-                          Offered {offer}
-                        </Text>
+                      <Pressable
+                        onPress={() => {
+                          if (isMe) return;
+                          setViewingInterestedId(null);
+                          router.push(`/profile/${userId}`);
+                        }}
+                        className="flex-1 flex-row items-center gap-3 active:opacity-70"
+                      >
+                        <Image source={{ uri: person.avatar }} className="h-9 w-9 rounded-full" />
+                        <View className="flex-1">
+                          <Text className="font-medium text-charcoal">
+                            {isMe ? 'You' : person.name}
+                          </Text>
+                          {offer && (
+                            <Text className="text-xs font-semibold text-terracotta">
+                              Offered {offer}
+                            </Text>
+                          )}
+                        </View>
+                      </Pressable>
+                      {canAccept && (
+                        <Pressable
+                          onPress={() => {
+                            acceptOffer(viewingInterestedItem.id, userId);
+                            setViewingInterestedId(null);
+                          }}
+                          className="rounded-full bg-sage/20 px-3 py-1.5"
+                        >
+                          <Text className="text-xs font-semibold text-sage">Accept</Text>
+                        </Pressable>
                       )}
-                    </Pressable>
+                    </View>
                   );
                 })}
               </View>
