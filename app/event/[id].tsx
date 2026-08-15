@@ -22,7 +22,7 @@ import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumSto
 import { canManageEvent, useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
-import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
+import { getEffectiveSpots, getWaitlistPosition, useRsvpStore } from '../../store/useRsvpStore';
 import { useSavedEventsStore } from '../../store/useSavedEventsStore';
 
 export default function EventDetail() {
@@ -98,6 +98,7 @@ export default function EventDetail() {
   const canManage = canManageEvent(event, ME.id);
   const isCoHost = canManage && !isHost;
   const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(event.id, going, bringingGuest);
+  const waitlistPosition = getWaitlistPosition(event.id, waitlisted);
   const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
   const attendees = going || canManage ? [profile, ...otherAttendees] : otherAttendees;
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
@@ -414,7 +415,7 @@ export default function EventDetail() {
                   {going
                     ? "You're going"
                     : waitlisted
-                      ? 'On waitlist · tap to leave'
+                      ? `On waitlist · you're #${waitlistPosition} · tap to leave`
                       : isFull
                         ? 'Join waitlist'
                         : 'RSVP'}

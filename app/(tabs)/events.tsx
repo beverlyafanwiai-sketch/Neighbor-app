@@ -12,7 +12,7 @@ import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckI
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
-import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
+import { getEffectiveSpots, getWaitlistPosition, useRsvpStore } from '../../store/useRsvpStore';
 import { useSavedEventsStore } from '../../store/useSavedEventsStore';
 
 const EVENT_TABS = ['Upcoming', 'Hosting', 'Past'] as const;
@@ -345,7 +345,13 @@ export default function Events() {
                               going ? 'text-charcoal' : waitlisted ? 'text-sage' : 'text-charcoal/70'
                             }`}
                           >
-                            {going ? 'Going' : waitlisted ? 'Waitlisted' : isFull ? 'Join waitlist' : 'RSVP'}
+                            {going
+                              ? 'Going'
+                              : waitlisted
+                                ? `Waitlisted · #${getWaitlistPosition(e.id, true)}`
+                                : isFull
+                                  ? 'Join waitlist'
+                                  : 'RSVP'}
                           </Text>
                         </Pressable>
                       )}

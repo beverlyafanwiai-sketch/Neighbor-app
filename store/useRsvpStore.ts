@@ -86,6 +86,16 @@ export const useRsvpStore = create<RsvpState>((set, get) => ({
     set((s) => ({ waitlisted: { ...s.waitlisted, [eventId]: false } })),
 }));
 
+// event.waitlistBaseline is the baseline list of other neighbors already
+// waitlisted ahead of ME — ME's position is simply their count plus one,
+// since ME joins at the back of the line.
+export function getWaitlistPosition(eventId: string, waitlisted: boolean): number | null {
+  if (!waitlisted) return null;
+  const event = useEventsStore.getState().getEvent(eventId);
+  const ahead = event?.waitlistBaseline?.length ?? 0;
+  return ahead + 1;
+}
+
 // event.spotsTaken is the baseline count of attendees *not including* the
 // current user (ME). Effective totals fold in ME's own RSVP (and optional
 // +1 guest) on top of that.

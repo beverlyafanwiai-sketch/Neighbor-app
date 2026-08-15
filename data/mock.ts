@@ -514,6 +514,9 @@ export type EventItem = {
   // Baseline ratings from other neighbors, *not including* ME — same
   // "baseline + mine" pattern as attendeeIds/agreedByIds.
   ratingBaseline?: { userId: string; stars: number; comment: string }[];
+  // Baseline ids of other neighbors already on the waitlist ahead of ME —
+  // same "baseline + mine" pattern as attendeeIds/checkedInIds.
+  waitlistBaseline?: string[];
 };
 
 export const EVENTS: EventItem[] = [
