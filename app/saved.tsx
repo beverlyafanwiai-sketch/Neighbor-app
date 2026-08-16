@@ -32,7 +32,7 @@ const MODES = ['Posts', 'Events', 'Recs', 'Lend', 'For Sale'] as const;
 type Mode = (typeof MODES)[number];
 
 const SAVED_SORTS = ['Newest', 'A-Z'] as const;
-const SALE_SAVED_SORTS = ['Newest', 'A-Z', 'Price: low to high'] as const;
+const SALE_SAVED_SORTS = ['Newest', 'A-Z', 'Price: low to high', 'Most interest'] as const;
 const REC_SAVED_SORTS = ['Newest', 'A-Z', 'Most agreed'] as const;
 const LEND_SAVED_SORTS = ['Newest', 'A-Z', 'Most helpers'] as const;
 type SavedSort =
@@ -59,7 +59,10 @@ function sortItems<T>(
   if (sortBy === 'Price: low to high' && priceOf) {
     return [...items].sort((a, b) => parsePrice(priceOf(a)) - parsePrice(priceOf(b)));
   }
-  if ((sortBy === 'Most agreed' || sortBy === 'Most helpers') && countOf) {
+  if (
+    (sortBy === 'Most agreed' || sortBy === 'Most helpers' || sortBy === 'Most interest') &&
+    countOf
+  ) {
     return [...items].sort((a, b) => countOf(b) - countOf(a));
   }
   return items;
@@ -133,7 +136,8 @@ export default function Saved() {
     saleItems.filter((i) => (savedSaleIds[i.id] ?? false) && matches(i.title, i.note)),
     sortBy,
     (i) => i.title,
-    (i) => i.price
+    (i) => i.price,
+    (i) => getEffectiveInterestCount(i.id, myInterest[i.id] ?? false)
   );
 
   return (
@@ -154,7 +158,11 @@ export default function Saved() {
             key={m}
             onPress={() => {
               setMode(m);
-              if (m !== 'For Sale' && sortBy === 'Price: low to high') setSortBy('Newest');
+              if (
+                m !== 'For Sale' &&
+                (sortBy === 'Price: low to high' || sortBy === 'Most interest')
+              )
+                setSortBy('Newest');
               if (m !== 'Recs' && sortBy === 'Most agreed') setSortBy('Newest');
               if (m !== 'Lend' && sortBy === 'Most helpers') setSortBy('Newest');
             }}
