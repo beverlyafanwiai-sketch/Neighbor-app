@@ -75,6 +75,7 @@ export default function Saved() {
   const [recKindFilter, setRecKindFilter] = useState<RecKindFilter>('All');
   const [hideSold, setHideSold] = useState(false);
   const [hideUnavailable, setHideUnavailable] = useState(false);
+  const [hidePast, setHidePast] = useState(false);
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
@@ -111,7 +112,12 @@ export default function Saved() {
 
   const savedPosts = posts.filter((p) => (savedIds[p.id] ?? false) && matches(p.body));
   const savedEvents = sortItems(
-    events.filter((e) => (savedEventIds[e.id] ?? false) && matches(e.title, e.location)),
+    events.filter(
+      (e) =>
+        (savedEventIds[e.id] ?? false) &&
+        matches(e.title, e.location) &&
+        (!hidePast || e.status !== 'past')
+    ),
     sortBy,
     (e) => e.title
   );
@@ -254,6 +260,20 @@ export default function Saved() {
         </Pressable>
       )}
 
+      {mode === 'Events' && (
+        <Pressable
+          onPress={() => setHidePast((h) => !h)}
+          className="flex-row items-center gap-2 px-5 pb-3"
+        >
+          <Ionicons
+            name={hidePast ? 'checkbox' : 'square-outline'}
+            size={16}
+            className={hidePast ? 'text-terracotta' : 'text-charcoal/40'}
+          />
+          <Text className="text-xs font-medium text-charcoal/60">Hide past events</Text>
+        </Pressable>
+      )}
+
       {mode !== 'Posts' &&
         (mode === 'Events'
           ? savedEvents.length
@@ -307,11 +327,19 @@ export default function Saved() {
           <EmptyState
             icon={q.length > 0 ? 'search-outline' : 'bookmark-outline'}
             iconColorClassName="text-charcoal/50"
-            title={q.length > 0 ? `No results for "${query.trim()}"` : 'No saved events'}
+            title={
+              q.length > 0
+                ? `No results for "${query.trim()}"`
+                : hidePast
+                  ? 'No upcoming saved events'
+                  : 'No saved events'
+            }
             subtitle={
               q.length > 0
                 ? 'Try a different search term.'
-                : 'Tap the bookmark on any event to save it for later.'
+                : hidePast
+                  ? 'Turn off "Hide past events" to see everything you saved.'
+                  : 'Tap the bookmark on any event to save it for later.'
             }
           />
         )}
