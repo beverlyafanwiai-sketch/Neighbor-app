@@ -27,11 +27,23 @@ type Tab = (typeof TABS)[number];
 
 const VERIFICATION_META: Record<
   VerificationBadge,
-  { label: string; icon: keyof typeof Ionicons.glyphMap }
+  { label: string; icon: keyof typeof Ionicons.glyphMap; description: string }
 > = {
-  id: { label: 'ID Verified', icon: 'card-outline' },
-  phone: { label: 'Phone Verified', icon: 'call-outline' },
-  social: { label: 'Social Linked', icon: 'link-outline' },
+  id: {
+    label: 'ID Verified',
+    icon: 'card-outline',
+    description: 'This neighbor confirmed their identity with a government-issued ID.',
+  },
+  phone: {
+    label: 'Phone Verified',
+    icon: 'call-outline',
+    description: 'This neighbor confirmed a working phone number tied to their account.',
+  },
+  social: {
+    label: 'Social Linked',
+    icon: 'link-outline',
+    description: 'This neighbor linked an outside social profile to help build trust.',
+  },
 };
 
 const CONVERSATION_STARTER_META: {
@@ -116,6 +128,7 @@ export default function ProfileView({
   const [confirmingUnfriend, setConfirmingUnfriend] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [viewingConnections, setViewingConnections] = useState(false);
+  const [viewingBadge, setViewingBadge] = useState<VerificationBadge | null>(null);
   const [confirmingRemoveEndorsementSkill, setConfirmingRemoveEndorsementSkill] = useState<
     string | null
   >(null);
@@ -286,15 +299,16 @@ export default function ProfileView({
         {user.verifications.length > 0 && (
           <View className="mt-3 flex-row flex-wrap justify-center gap-1.5 px-6">
             {user.verifications.map((v) => (
-              <View
+              <Pressable
                 key={v}
-                className="flex-row items-center gap-1 rounded-full bg-cream/20 px-2.5 py-1"
+                onPress={() => setViewingBadge(v)}
+                className="flex-row items-center gap-1 rounded-full bg-cream/20 px-2.5 py-1 active:opacity-70"
               >
                 <Ionicons name={VERIFICATION_META[v].icon} size={11} className="text-paper" />
                 <Text className="text-[10px] font-semibold text-paper">
                   {VERIFICATION_META[v].label}
                 </Text>
-              </View>
+              </Pressable>
             ))}
           </View>
         )}
@@ -865,6 +879,34 @@ export default function ProfileView({
               )}
             </View>
           </ScrollView>
+        </View>
+      </View>
+    )}
+    {viewingBadge && (
+      <View className="absolute inset-0 items-center justify-end bg-ink/40">
+        <Pressable className="absolute inset-0" onPress={() => setViewingBadge(null)} />
+        <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+          <View className="flex-row items-center gap-3">
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-terracotta/15">
+              <Ionicons
+                name={VERIFICATION_META[viewingBadge].icon}
+                size={20}
+                className="text-terracotta"
+              />
+            </View>
+            <Text className="flex-1 text-base font-bold text-charcoal">
+              {VERIFICATION_META[viewingBadge].label}
+            </Text>
+            <Pressable
+              onPress={() => setViewingBadge(null)}
+              className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+            >
+              <Ionicons name="close" size={16} className="text-charcoal" />
+            </Pressable>
+          </View>
+          <Text className="text-sm leading-5 text-charcoal/70">
+            {VERIFICATION_META[viewingBadge].description}
+          </Text>
         </View>
       </View>
     )}
