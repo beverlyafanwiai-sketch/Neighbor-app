@@ -76,6 +76,7 @@ export default function Saved() {
   const [hideSold, setHideSold] = useState(false);
   const [hideUnavailable, setHideUnavailable] = useState(false);
   const [hidePast, setHidePast] = useState(false);
+  const [hideResolved, setHideResolved] = useState(false);
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
@@ -126,7 +127,8 @@ export default function Saved() {
       (e) =>
         (savedRecIds[e.id] ?? false) &&
         matches(e.name, e.category, e.note) &&
-        (recKindFilter === 'All' || (recKindFilter === 'Recs' ? e.kind === 'rec' : e.kind === 'ask'))
+        (recKindFilter === 'All' || (recKindFilter === 'Recs' ? e.kind === 'rec' : e.kind === 'ask')) &&
+        (!hideResolved || !(e.kind === 'ask' && e.resolved))
     ),
     sortBy,
     (e) => e.name ?? e.category,
@@ -230,6 +232,20 @@ export default function Saved() {
             </Pressable>
           ))}
         </View>
+      )}
+
+      {mode === 'Recs' && recKindFilter !== 'Recs' && (
+        <Pressable
+          onPress={() => setHideResolved((h) => !h)}
+          className="flex-row items-center gap-2 px-5 pb-3"
+        >
+          <Ionicons
+            name={hideResolved ? 'checkbox' : 'square-outline'}
+            size={16}
+            className={hideResolved ? 'text-terracotta' : 'text-charcoal/40'}
+          />
+          <Text className="text-xs font-medium text-charcoal/60">Hide resolved asks</Text>
+        </Pressable>
       )}
 
       {mode === 'For Sale' && (
@@ -358,7 +374,9 @@ export default function Saved() {
             subtitle={
               q.length > 0
                 ? 'Try a different search term.'
-                : 'Tap the bookmark on any board entry to save it for later.'
+                : hideResolved
+                  ? 'Turn off "Hide resolved asks" to see everything you saved.'
+                  : 'Tap the bookmark on any board entry to save it for later.'
             }
           />
         )}
