@@ -129,6 +129,7 @@ export default function ProfileView({
   const [sharing, setSharing] = useState(false);
   const [viewingConnections, setViewingConnections] = useState(false);
   const [viewingBadge, setViewingBadge] = useState<VerificationBadge | null>(null);
+  const [friendQuery, setFriendQuery] = useState('');
   const [confirmingRemoveEndorsementSkill, setConfirmingRemoveEndorsementSkill] = useState<
     string | null
   >(null);
@@ -143,6 +144,9 @@ export default function ProfileView({
   const eventsTogether = isMe ? [] : getEventsAttendedTogether(user.id);
   const hasConnections =
     mutualFriends.length > 0 || sharedGroups.length > 0 || eventsTogether.length > 0;
+  const friendQ = friendQuery.trim().toLowerCase();
+  const visibleFriends =
+    friendQ.length === 0 ? friends : friends.filter((f) => f.name.toLowerCase().includes(friendQ));
 
   return (
     <>
@@ -780,7 +784,29 @@ export default function ProfileView({
                 <SvgXml xml={GROUP_SELFIE_SVG} width="100%" height="100%" />
               </View>
             )}
-            {friends.map((f) => (
+            {friends.length > 3 && (
+              <View className="flex-row items-center rounded-full bg-sand px-4 py-2.5">
+                <Ionicons name="search" size={16} className="text-charcoal/50" />
+                <TextInput
+                  value={friendQuery}
+                  onChangeText={setFriendQuery}
+                  placeholder="Search friends..."
+                  placeholderTextColor="#3D3D3D80"
+                  className="ml-2 flex-1 text-sm text-charcoal"
+                />
+                {friendQuery.length > 0 && (
+                  <Pressable onPress={() => setFriendQuery('')}>
+                    <Ionicons name="close-circle" size={16} className="text-charcoal/50" />
+                  </Pressable>
+                )}
+              </View>
+            )}
+            {visibleFriends.length === 0 && (
+              <Text className="text-sm text-charcoal/50">
+                No friends match "{friendQuery.trim()}".
+              </Text>
+            )}
+            {visibleFriends.map((f) => (
               <Pressable
                 key={f.id}
                 onPress={() => onFriendPress?.(f)}
