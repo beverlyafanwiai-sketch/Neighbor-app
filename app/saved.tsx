@@ -77,6 +77,7 @@ export default function Saved() {
   const [hideSold, setHideSold] = useState(false);
   const [hideUnavailable, setHideUnavailable] = useState(false);
   const [hidePast, setHidePast] = useState(false);
+  const [eventCategoryFilter, setEventCategoryFilter] = useState('All');
   const [hideResolved, setHideResolved] = useState(false);
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
@@ -113,12 +114,17 @@ export default function Saved() {
     q.length === 0 || fields.some((f) => (f ?? '').toLowerCase().includes(q));
 
   const savedPosts = posts.filter((p) => (savedIds[p.id] ?? false) && matches(p.body));
+  const savedEventEntries = events.filter((e) => savedEventIds[e.id] ?? false);
+  const eventCategories = [
+    'All',
+    ...Array.from(new Set(savedEventEntries.map((e) => e.category))).sort(),
+  ];
   const savedEvents = sortItems(
-    events.filter(
+    savedEventEntries.filter(
       (e) =>
-        (savedEventIds[e.id] ?? false) &&
         matches(e.title, e.location) &&
-        (!hidePast || e.status !== 'past')
+        (!hidePast || e.status !== 'past') &&
+        (eventCategoryFilter === 'All' || e.category === eventCategoryFilter)
     ),
     sortBy,
     (e) => e.title
@@ -307,6 +313,31 @@ export default function Saved() {
         </Pressable>
       )}
 
+      {mode === 'Events' && eventCategories.length > 2 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="items-center gap-2 px-5 pb-3"
+        >
+          <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+            Category
+          </Text>
+          {eventCategories.map((c) => (
+            <Pressable
+              key={c}
+              onPress={() => setEventCategoryFilter(c)}
+              className={`rounded-full px-3 py-1 ${eventCategoryFilter === c ? 'bg-ink' : 'bg-cream'}`}
+            >
+              <Text
+                className={`text-xs font-medium ${eventCategoryFilter === c ? 'text-paper' : 'text-charcoal/60'}`}
+              >
+                {c}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      )}
+
       {mode === 'Events' && (
         <Pressable
           onPress={() => setHidePast((h) => !h)}
@@ -377,9 +408,11 @@ export default function Saved() {
             title={
               q.length > 0
                 ? `No results for "${query.trim()}"`
-                : hidePast
-                  ? 'No upcoming saved events'
-                  : 'No saved events'
+                : eventCategoryFilter !== 'All'
+                  ? `No saved ${eventCategoryFilter} events`
+                  : hidePast
+                    ? 'No upcoming saved events'
+                    : 'No saved events'
             }
             subtitle={
               q.length > 0
