@@ -1069,13 +1069,19 @@ export default function EventDetail() {
                         key={req.id}
                         className="flex-row items-center gap-3 rounded-2xl bg-cream p-3"
                       >
-                        <Image source={{ uri: rider.avatar }} className="h-9 w-9 rounded-full" />
-                        <View className="flex-1">
-                          <Text className="text-sm text-charcoal">{isMe ? 'You' : rider.name}</Text>
-                          {req.note.length > 0 && (
-                            <Text className="text-xs text-charcoal/50">{req.note}</Text>
-                          )}
-                        </View>
+                        <Pressable
+                          disabled={isMe}
+                          onPress={() => router.push(`/profile/${req.riderId}`)}
+                          className="flex-1 flex-row items-center gap-3 active:opacity-70"
+                        >
+                          <Image source={{ uri: rider.avatar }} className="h-9 w-9 rounded-full" />
+                          <View className="flex-1">
+                            <Text className="text-sm text-charcoal">{isMe ? 'You' : rider.name}</Text>
+                            {req.note.length > 0 && (
+                              <Text className="text-xs text-charcoal/50">{req.note}</Text>
+                            )}
+                          </View>
+                        </Pressable>
                         {isMe && !requestingRide && (
                           <>
                             <Pressable
