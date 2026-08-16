@@ -82,6 +82,8 @@ export default function EventDetail() {
   const [offerNote, setOfferNote] = useState('');
   const [requestingRide, setRequestingRide] = useState(false);
   const [requestNote, setRequestNote] = useState('');
+  const [requestingSeatOfferId, setRequestingSeatOfferId] = useState<string | null>(null);
+  const [seatRequestNote, setSeatRequestNote] = useState('');
   const [sharing, setSharing] = useState(false);
   const [ratingDraftStars, setRatingDraftStars] = useState(0);
   const [ratingDraftComment, setRatingDraftComment] = useState('');
@@ -786,10 +788,16 @@ export default function EventDetail() {
                               </View>
                             );
                           }
+                          const riderNote = offer.riderNotes?.[riderId];
                           return (
                             <View key={riderId} className="flex-row items-center gap-2.5">
                               <Image source={{ uri: rider.avatar }} className="h-7 w-7 rounded-full" />
-                              <Text className="flex-1 text-sm text-charcoal">{rider.name}</Text>
+                              <View className="flex-1">
+                                <Text className="text-sm text-charcoal">{rider.name}</Text>
+                                {riderNote && (
+                                  <Text className="text-xs text-charcoal/50">{riderNote}</Text>
+                                )}
+                              </View>
                               <Pressable
                                 onPress={() => setConfirmingRemoveRiderId(riderId)}
                                 className="h-7 w-7 items-center justify-center"
@@ -861,7 +869,10 @@ export default function EventDetail() {
                           <Text className="text-xs text-charcoal/50">Full</Text>
                         ) : (
                           <Pressable
-                            onPress={() => requestSeat(offer.id)}
+                            onPress={() => {
+                              setRequestingSeatOfferId(offer.id);
+                              setSeatRequestNote('');
+                            }}
                             className="rounded-full bg-ink px-4 py-1.5"
                           >
                             <Text className="text-xs font-semibold text-paper">
@@ -869,6 +880,38 @@ export default function EventDetail() {
                             </Text>
                           </Pressable>
                         )}
+                      </View>
+                    )}
+                    {requestingSeatOfferId === offer.id && (
+                      <View className="mt-3 gap-2 border-t border-charcoal/10 pt-3">
+                        <TextInput
+                          value={seatRequestNote}
+                          onChangeText={setSeatRequestNote}
+                          placeholder="Optional note, e.g. I'll bring snacks!"
+                          placeholderTextColor="#3D3D3D80"
+                          className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+                        />
+                        <View className="flex-row justify-end gap-4">
+                          <Pressable
+                            onPress={() => {
+                              setRequestingSeatOfferId(null);
+                              setSeatRequestNote('');
+                            }}
+                          >
+                            <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => {
+                              requestSeat(offer.id, seatRequestNote);
+                              setRequestingSeatOfferId(null);
+                              setSeatRequestNote('');
+                            }}
+                          >
+                            <Text className="text-sm font-semibold text-terracotta">
+                              Request seat
+                            </Text>
+                          </Pressable>
+                        </View>
                       </View>
                     )}
                   </View>

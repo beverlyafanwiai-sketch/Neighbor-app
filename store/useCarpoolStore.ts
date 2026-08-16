@@ -14,6 +14,7 @@ export type CarpoolOffer = {
   seats: number;
   note: string;
   riderIds: string[];
+  riderNotes?: Record<string, string>;
 };
 
 export type CarpoolRequest = {
@@ -29,7 +30,7 @@ type CarpoolState = {
   offerRide: (eventId: string, seats: number, note: string) => void;
   updateOffer: (eventId: string, seats: number, note: string) => void;
   cancelOffer: (eventId: string) => void;
-  requestSeat: (offerId: string) => void;
+  requestSeat: (offerId: string, note?: string) => void;
   leaveSeat: (offerId: string) => void;
   removeRider: (offerId: string, riderId: string) => void;
   offerSeatTo: (eventId: string, riderId: string) => void;
@@ -111,29 +112,37 @@ export const useCarpoolStore = create<CarpoolState>((set, get) => ({
       offers: s.offers.filter((o) => !(o.eventId === eventId && o.driverId === ME.id)),
     })),
 
-  requestSeat: (offerId) =>
+  requestSeat: (offerId, note) =>
     set((s) => ({
       offers: s.offers.map((o) =>
         o.id === offerId && !o.riderIds.includes(ME.id) && o.riderIds.length < o.seats
-          ? { ...o, riderIds: [...o.riderIds, ME.id] }
+          ? {
+              ...o,
+              riderIds: [...o.riderIds, ME.id],
+              riderNotes: note?.trim()
+                ? { ...o.riderNotes, [ME.id]: note.trim() }
+                : o.riderNotes,
+            }
           : o
       ),
     })),
 
   leaveSeat: (offerId) =>
     set((s) => ({
-      offers: s.offers.map((o) =>
-        o.id === offerId ? { ...o, riderIds: o.riderIds.filter((id) => id !== ME.id) } : o
-      ),
+      offers: s.offers.map((o) => {
+        if (o.id !== offerId) return o;
+        const { [ME.id]: _removed, ...riderNotes } = o.riderNotes ?? {};
+        return { ...o, riderIds: o.riderIds.filter((id) => id !== ME.id), riderNotes };
+      }),
     })),
 
   removeRider: (offerId, riderId) =>
     set((s) => ({
-      offers: s.offers.map((o) =>
-        o.id === offerId && o.driverId === ME.id
-          ? { ...o, riderIds: o.riderIds.filter((id) => id !== riderId) }
-          : o
-      ),
+      offers: s.offers.map((o) => {
+        if (o.id !== offerId || o.driverId !== ME.id) return o;
+        const { [riderId]: _removed, ...riderNotes } = o.riderNotes ?? {};
+        return { ...o, riderIds: o.riderIds.filter((id) => id !== riderId), riderNotes };
+      }),
     })),
 
   offerSeatTo: (eventId, riderId) => {
