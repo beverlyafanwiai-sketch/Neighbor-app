@@ -33,7 +33,8 @@ type Mode = (typeof MODES)[number];
 
 const SAVED_SORTS = ['Newest', 'A-Z'] as const;
 const SALE_SAVED_SORTS = ['Newest', 'A-Z', 'Price: low to high'] as const;
-type SavedSort = (typeof SALE_SAVED_SORTS)[number];
+const REC_SAVED_SORTS = ['Newest', 'A-Z', 'Most agreed'] as const;
+type SavedSort = (typeof SALE_SAVED_SORTS)[number] | (typeof REC_SAVED_SORTS)[number];
 
 const REC_KIND_FILTERS = ['All', 'Recs', 'Asks'] as const;
 type RecKindFilter = (typeof REC_KIND_FILTERS)[number];
@@ -47,11 +48,15 @@ function sortItems<T>(
   items: T[],
   sortBy: SavedSort,
   titleOf: (item: T) => string,
-  priceOf?: (item: T) => string
+  priceOf?: (item: T) => string,
+  countOf?: (item: T) => number
 ) {
   if (sortBy === 'A-Z') return [...items].sort((a, b) => titleOf(a).localeCompare(titleOf(b)));
   if (sortBy === 'Price: low to high' && priceOf) {
     return [...items].sort((a, b) => parsePrice(priceOf(a)) - parsePrice(priceOf(b)));
+  }
+  if (sortBy === 'Most agreed' && countOf) {
+    return [...items].sort((a, b) => countOf(b) - countOf(a));
   }
   return items;
 }
@@ -109,7 +114,9 @@ export default function Saved() {
         (recKindFilter === 'All' || (recKindFilter === 'Recs' ? e.kind === 'rec' : e.kind === 'ask'))
     ),
     sortBy,
-    (e) => e.name ?? e.category
+    (e) => e.name ?? e.category,
+    undefined,
+    (e) => getEffectiveAgreeCount(e.id, myAgreed[e.id] ?? false)
   );
   const savedLendItems = sortItems(
     lendItems.filter((i) => (savedLendIds[i.id] ?? false) && matches(i.title, i.note)),
@@ -142,6 +149,7 @@ export default function Saved() {
             onPress={() => {
               setMode(m);
               if (m !== 'For Sale' && sortBy === 'Price: low to high') setSortBy('Newest');
+              if (m !== 'Recs' && sortBy === 'Most agreed') setSortBy('Newest');
             }}
             className={`rounded-full px-4 py-2 ${mode === m ? 'bg-ink' : 'bg-cream'}`}
           >
@@ -203,7 +211,12 @@ export default function Saved() {
             <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
               Sort
             </Text>
-            {(mode === 'For Sale' ? SALE_SAVED_SORTS : SAVED_SORTS).map((s) => (
+            {(mode === 'For Sale'
+              ? SALE_SAVED_SORTS
+              : mode === 'Recs'
+                ? REC_SAVED_SORTS
+                : SAVED_SORTS
+            ).map((s) => (
               <Pressable
                 key={s}
                 onPress={() => setSortBy(s)}
