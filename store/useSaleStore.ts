@@ -37,6 +37,7 @@ type SaleState = {
   acceptOffer: (itemId: string, userId: string) => void;
   declineOffer: (itemId: string, userId: string) => void;
   dropPrice: (itemId: string, newPrice: string) => void;
+  markFree: (itemId: string) => void;
   markSold: (itemId: string) => void;
   relistItem: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
@@ -183,6 +184,15 @@ export const useSaleStore = create<SaleState>((set, get) => ({
     }, PRICE_DROP_NOTICE_DELAY_MS);
   },
 
+  markFree: (itemId) =>
+    set((s) => ({
+      items: s.items.map((i) =>
+        i.id === itemId && i.price.toLowerCase() !== 'free'
+          ? { ...i, price: 'Free', originalPrice: i.originalPrice ?? i.price }
+          : i
+      ),
+    })),
+
   markSold: (itemId) => set((s) => ({ sold: { ...s.sold, [itemId]: true } })),
 
   relistItem: (itemId) =>
@@ -199,6 +209,10 @@ export const useSaleStore = create<SaleState>((set, get) => ({
 
   deleteItem: (itemId) => set((s) => ({ items: s.items.filter((i) => i.id !== itemId) })),
 }));
+
+export function isFreeItem(price: string) {
+  return price.trim().toLowerCase() === 'free';
+}
 
 // item.interestedByIds is the baseline list of other neighbors already
 // interested *not including* ME — mirrors LendItem.helperIds.
