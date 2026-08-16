@@ -76,6 +76,7 @@ export default function EventDetail() {
   const [confirmingCancelOfferId, setConfirmingCancelOfferId] = useState<string | null>(null);
   const [postingUpdate, setPostingUpdate] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
+  const [attendeeQuery, setAttendeeQuery] = useState('');
   const [checkInNoteDraft, setCheckInNoteDraft] = useState('');
   const [updateDraft, setUpdateDraft] = useState('');
   const [confirmingRemoveRiderId, setConfirmingRemoveRiderId] = useState<string | null>(null);
@@ -117,6 +118,11 @@ export default function EventDetail() {
   const waitlistPosition = getWaitlistPosition(event.id, waitlisted);
   const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
   const attendees = going || canManage ? [profile, ...otherAttendees] : otherAttendees;
+  const attendeeQ = attendeeQuery.trim().toLowerCase();
+  const visibleAttendees =
+    attendeeQ.length === 0
+      ? attendees
+      : attendees.filter((a) => a!.name.toLowerCase().includes(attendeeQ));
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
   const checkedIn = getEffectiveCheckedInIds(event, myCheckedIn)
     .map(resolveUser)
@@ -602,8 +608,30 @@ export default function EventDetail() {
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
           {isPast ? 'Who was there' : `Attending · ${spotsTaken}/${spotsTotal} spots`}
         </Text>
+        {attendees.length > 3 && (
+          <View className="mb-3 flex-row items-center rounded-full bg-cream px-4 py-2.5">
+            <Ionicons name="search" size={16} className="text-charcoal/50" />
+            <TextInput
+              value={attendeeQuery}
+              onChangeText={setAttendeeQuery}
+              placeholder="Search attendees..."
+              placeholderTextColor="#3D3D3D80"
+              className="ml-2 flex-1 text-sm text-charcoal"
+            />
+            {attendeeQuery.length > 0 && (
+              <Pressable onPress={() => setAttendeeQuery('')}>
+                <Ionicons name="close-circle" size={16} className="text-charcoal/50" />
+              </Pressable>
+            )}
+          </View>
+        )}
+        {visibleAttendees.length === 0 && (
+          <Text className="text-sm text-charcoal/50">
+            No attendees match "{attendeeQuery.trim()}".
+          </Text>
+        )}
         <View className="gap-3">
-          {attendees.map((a) => {
+          {visibleAttendees.map((a) => {
             const isMe = a!.id === ME.id;
             const isAttendeeHost = a!.id === event.hostId;
             const isAttendeeCoHost = (event.coHostIds ?? []).includes(a!.id);
