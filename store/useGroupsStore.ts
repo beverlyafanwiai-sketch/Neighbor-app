@@ -29,6 +29,7 @@ type GroupsState = {
   removeMember: (groupId: string, userId: string) => void;
   joinByInviteCode: (code: string) => string | null;
   regenerateInviteCode: (groupId: string) => void;
+  transferOwnership: (groupId: string, newOwnerId: string) => void;
 };
 
 function slugify(name: string) {
@@ -172,6 +173,19 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
 
   regenerateInviteCode: (groupId) =>
     set((s) => ({ inviteCodes: { ...s.inviteCodes, [groupId]: generateInviteCode() } })),
+
+  transferOwnership: (groupId, newOwnerId) =>
+    set((s) => ({
+      groups: s.groups.map((g) => {
+        if (g.id !== groupId) return g;
+        const withoutNewOwner = (g.coAdminIds ?? []).filter((id) => id !== newOwnerId);
+        const coAdminIds =
+          g.createdBy && !withoutNewOwner.includes(g.createdBy)
+            ? [...withoutNewOwner, g.createdBy]
+            : withoutNewOwner;
+        return { ...g, createdBy: newOwnerId, coAdminIds };
+      }),
+    })),
 }));
 
 export function getGroup(groupId: string): Group | undefined {

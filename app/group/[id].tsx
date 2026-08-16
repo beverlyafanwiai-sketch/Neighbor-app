@@ -32,6 +32,7 @@ export default function GroupDetail() {
   const deleteGroup = useGroupsStore((s) => s.deleteGroup);
   const promoteCoAdmin = useGroupsStore((s) => s.promoteCoAdmin);
   const demoteCoAdmin = useGroupsStore((s) => s.demoteCoAdmin);
+  const transferOwnership = useGroupsStore((s) => s.transferOwnership);
   const removeMember = useGroupsStore((s) => s.removeMember);
   const pinnedMessageId = useGroupChatStore((s) => (group ? s.pinnedMessageId[group.id] : undefined));
   const pinnedMessage = useGroupChatStore((s) =>
@@ -53,6 +54,7 @@ export default function GroupDetail() {
   const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
   const [confirmingRemovePhotoId, setConfirmingRemovePhotoId] = useState<string | null>(null);
   const [confirmingRemoveMemberId, setConfirmingRemoveMemberId] = useState<string | null>(null);
+  const [confirmingTransferId, setConfirmingTransferId] = useState<string | null>(null);
 
   if (!group) {
     return (
@@ -345,6 +347,29 @@ export default function GroupDetail() {
               );
             }
 
+            if (confirmingTransferId === m!.id) {
+              return (
+                <View key={m!.id} className="gap-2 rounded-2xl bg-terracotta/10 p-4">
+                  <Text className="text-sm text-charcoal">
+                    Make {m!.name} the owner of {group.name}? You'll stay on as a co-admin.
+                  </Text>
+                  <View className="flex-row justify-end gap-4">
+                    <Pressable onPress={() => setConfirmingTransferId(null)}>
+                      <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        transferOwnership(group.id, m!.id);
+                        setConfirmingTransferId(null);
+                      }}
+                    >
+                      <Text className="text-sm font-semibold text-terracotta">Make owner</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            }
+
             return (
               <Pressable
                 key={m!.id}
@@ -359,19 +384,33 @@ export default function GroupDetail() {
                   </Text>
                 </View>
                 {isMemberCoAdmin && (
-                  <View className="flex-row items-center gap-1.5">
-                    <View className="rounded-full bg-sage/20 px-2.5 py-1">
-                      <Text className="text-xs font-semibold text-sage">🛡️ Co-admin</Text>
+                  <View className="items-end gap-1.5">
+                    <View className="flex-row items-center gap-1.5">
+                      <View className="rounded-full bg-sage/20 px-2.5 py-1">
+                        <Text className="text-xs font-semibold text-sage">🛡️ Co-admin</Text>
+                      </View>
+                      {isCreator && !isMemberCreator && (
+                        <Pressable
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            demoteCoAdmin(group.id, m!.id);
+                          }}
+                          className="h-7 w-7 items-center justify-center rounded-full bg-sand"
+                        >
+                          <Ionicons name="close" size={14} className="text-charcoal/60" />
+                        </Pressable>
+                      )}
                     </View>
                     {isCreator && !isMemberCreator && (
                       <Pressable
                         onPress={(e) => {
                           e.stopPropagation();
-                          demoteCoAdmin(group.id, m!.id);
+                          setConfirmingTransferId(m!.id);
                         }}
-                        className="h-7 w-7 items-center justify-center rounded-full bg-sand"
                       >
-                        <Ionicons name="close" size={14} className="text-charcoal/60" />
+                        <Text className="text-[11px] font-semibold text-terracotta">
+                          Make owner
+                        </Text>
                       </Pressable>
                     )}
                   </View>
