@@ -852,13 +852,21 @@ export default function EventDetail() {
                           const riderNote = offer.riderNotes?.[riderId];
                           return (
                             <View key={riderId} className="flex-row items-center gap-2.5">
-                              <Image source={{ uri: rider.avatar }} className="h-7 w-7 rounded-full" />
-                              <View className="flex-1">
-                                <Text className="text-sm text-charcoal">{rider.name}</Text>
-                                {riderNote && (
-                                  <Text className="text-xs text-charcoal/50">{riderNote}</Text>
-                                )}
-                              </View>
+                              <Pressable
+                                onPress={() => router.push(`/profile/${riderId}`)}
+                                className="flex-1 flex-row items-center gap-2.5 active:opacity-70"
+                              >
+                                <Image
+                                  source={{ uri: rider.avatar }}
+                                  className="h-7 w-7 rounded-full"
+                                />
+                                <View className="flex-1">
+                                  <Text className="text-sm text-charcoal">{rider.name}</Text>
+                                  {riderNote && (
+                                    <Text className="text-xs text-charcoal/50">{riderNote}</Text>
+                                  )}
+                                </View>
+                              </Pressable>
                               <Pressable
                                 onPress={() => setConfirmingRemoveRiderId(riderId)}
                                 className="h-7 w-7 items-center justify-center"
