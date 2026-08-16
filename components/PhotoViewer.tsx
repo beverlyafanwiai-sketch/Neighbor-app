@@ -8,6 +8,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,13 +17,28 @@ type Props = {
   uris: string[];
   initialIndex?: number;
   onClose: () => void;
+  captions?: string[];
+  editableIndices?: boolean[];
+  onCaptionChange?: (index: number, text: string) => void;
 };
 
-export default function PhotoViewer({ uris, initialIndex = 0, onClose }: Props) {
+export default function PhotoViewer({
+  uris,
+  initialIndex = 0,
+  onClose,
+  captions,
+  editableIndices,
+  onCaptionChange,
+}: Props) {
   const [containerWidth, setContainerWidth] = useState(0);
   const [index, setIndex] = useState(initialIndex);
   const [zoomed, setZoomed] = useState(false);
+  const [editingCaption, setEditingCaption] = useState(false);
+  const [captionDraft, setCaptionDraft] = useState('');
   const scrollRef = useRef<ScrollView>(null);
+
+  const currentCaption = captions?.[index] ?? '';
+  const canEditCaption = editableIndices?.[index] ?? false;
 
   useEffect(() => {
     if (containerWidth > 0 && initialIndex > 0) {
@@ -37,6 +53,7 @@ export default function PhotoViewer({ uris, initialIndex = 0, onClose }: Props) 
     if (containerWidth === 0) return;
     setIndex(Math.round(e.nativeEvent.contentOffset.x / containerWidth));
     setZoomed(false);
+    setEditingCaption(false);
   };
 
   return (
@@ -97,9 +114,47 @@ export default function PhotoViewer({ uris, initialIndex = 0, onClose }: Props) 
           </ScrollView>
         )}
 
-        <Text className="px-4 pb-8 pt-3 text-center text-xs text-paper/50">
-          Tap the photo to zoom
-        </Text>
+        {editingCaption ? (
+          <View className="gap-2 px-4 pb-8 pt-3">
+            <TextInput
+              value={captionDraft}
+              onChangeText={setCaptionDraft}
+              placeholder="Add a caption..."
+              placeholderTextColor="#FAF3E680"
+              autoFocus
+              className="rounded-xl bg-cream/15 px-3 py-2 text-center text-sm text-paper"
+            />
+            <View className="flex-row justify-center gap-6">
+              <Pressable onPress={() => setEditingCaption(false)}>
+                <Text className="text-sm font-medium text-paper/60">Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  onCaptionChange?.(index, captionDraft);
+                  setEditingCaption(false);
+                }}
+              >
+                <Text className="text-sm font-semibold text-paper">Save</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <Pressable
+            disabled={!canEditCaption}
+            onPress={() => {
+              setCaptionDraft(currentCaption);
+              setEditingCaption(true);
+            }}
+            className="flex-row items-center justify-center gap-1.5 px-4 pb-8 pt-3"
+          >
+            <Text className="text-center text-xs text-paper/70">
+              {currentCaption || (canEditCaption ? 'Add a caption' : 'Tap the photo to zoom')}
+            </Text>
+            {canEditCaption && (
+              <Ionicons name="pencil" size={11} className="text-paper/50" />
+            )}
+          </Pressable>
+        )}
       </View>
     </Modal>
   );

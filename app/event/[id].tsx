@@ -50,6 +50,8 @@ export default function EventDetail() {
   const albumPhotos = useEventAlbumStore((s) => s.photos);
   const addPhotos = useEventAlbumStore((s) => s.addPhotos);
   const removePhoto = useEventAlbumStore((s) => s.removePhoto);
+  const photoCaptions = useEventAlbumStore((s) => s.captions);
+  const setPhotoCaption = useEventAlbumStore((s) => s.setCaption);
   const allCarpoolOffers = useCarpoolStore((s) => s.offers);
   const allCarpoolRequests = useCarpoolStore((s) => s.requests);
   const offerRide = useCarpoolStore((s) => s.offerRide);
@@ -1126,6 +1128,9 @@ export default function EventDetail() {
           uris={eventPhotos.map((p) => p.uri)}
           initialIndex={viewingPhotoIndex}
           onClose={() => setViewingPhotoIndex(null)}
+          captions={eventPhotos.map((p) => photoCaptions[p.id] ?? '')}
+          editableIndices={eventPhotos.map((p) => p.uploaderId === ME.id)}
+          onCaptionChange={(i, text) => setPhotoCaption(eventPhotos[i].id, text)}
         />
       )}
 
