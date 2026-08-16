@@ -73,6 +73,7 @@ export default function Saved() {
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState<SavedSort>('Newest');
   const [recKindFilter, setRecKindFilter] = useState<RecKindFilter>('All');
+  const [recCategoryFilter, setRecCategoryFilter] = useState('All');
   const [hideSold, setHideSold] = useState(false);
   const [hideUnavailable, setHideUnavailable] = useState(false);
   const [hidePast, setHidePast] = useState(false);
@@ -122,13 +123,18 @@ export default function Saved() {
     sortBy,
     (e) => e.title
   );
+  const savedRecEntries = recEntries.filter((e) => savedRecIds[e.id] ?? false);
+  const recCategories = [
+    'All',
+    ...Array.from(new Set(savedRecEntries.map((e) => e.category))).sort(),
+  ];
   const savedRecs = sortItems(
-    recEntries.filter(
+    savedRecEntries.filter(
       (e) =>
-        (savedRecIds[e.id] ?? false) &&
         matches(e.name, e.category, e.note) &&
         (recKindFilter === 'All' || (recKindFilter === 'Recs' ? e.kind === 'rec' : e.kind === 'ask')) &&
-        (!hideResolved || !(e.kind === 'ask' && e.resolved))
+        (!hideResolved || !(e.kind === 'ask' && e.resolved)) &&
+        (recCategoryFilter === 'All' || e.category === recCategoryFilter)
     ),
     sortBy,
     (e) => e.name ?? e.category,
@@ -232,6 +238,31 @@ export default function Saved() {
             </Pressable>
           ))}
         </View>
+      )}
+
+      {mode === 'Recs' && recCategories.length > 2 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="items-center gap-2 px-5 pb-3"
+        >
+          <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+            Category
+          </Text>
+          {recCategories.map((c) => (
+            <Pressable
+              key={c}
+              onPress={() => setRecCategoryFilter(c)}
+              className={`rounded-full px-3 py-1 ${recCategoryFilter === c ? 'bg-ink' : 'bg-cream'}`}
+            >
+              <Text
+                className={`text-xs font-medium ${recCategoryFilter === c ? 'text-paper' : 'text-charcoal/60'}`}
+              >
+                {c}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
       )}
 
       {mode === 'Recs' && recKindFilter !== 'Recs' && (
@@ -367,9 +398,11 @@ export default function Saved() {
             title={
               q.length > 0
                 ? `No results for "${query.trim()}"`
-                : recKindFilter === 'All'
-                  ? 'No saved recs'
-                  : `No saved ${recKindFilter.toLowerCase()}`
+                : recCategoryFilter !== 'All'
+                  ? `No saved ${recCategoryFilter} items`
+                  : recKindFilter === 'All'
+                    ? 'No saved recs'
+                    : `No saved ${recKindFilter.toLowerCase()}`
             }
             subtitle={
               q.length > 0
