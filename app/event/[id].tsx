@@ -56,6 +56,7 @@ export default function EventDetail() {
   const cancelOffer = useCarpoolStore((s) => s.cancelOffer);
   const requestSeat = useCarpoolStore((s) => s.requestSeat);
   const leaveSeat = useCarpoolStore((s) => s.leaveSeat);
+  const removeRider = useCarpoolStore((s) => s.removeRider);
   const requestRide = useCarpoolStore((s) => s.requestRide);
   const updateRequest = useCarpoolStore((s) => s.updateRequest);
   const cancelRideRequest = useCarpoolStore((s) => s.cancelRideRequest);
@@ -66,6 +67,7 @@ export default function EventDetail() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [confirmingCancelOfferId, setConfirmingCancelOfferId] = useState<string | null>(null);
+  const [confirmingRemoveRiderId, setConfirmingRemoveRiderId] = useState<string | null>(null);
   const [calendarAdded, setCalendarAdded] = useState(false);
   const [offeringRide, setOfferingRide] = useState(false);
   const [offerSeats, setOfferSeats] = useState(2);
@@ -685,6 +687,57 @@ export default function EventDetail() {
                         )}
                       </View>
                     </View>
+
+                    {isMyOffer && offer.riderIds.length > 0 && (
+                      <View className="mt-3 gap-2 border-t border-charcoal/10 pt-3">
+                        {offer.riderIds.map((riderId) => {
+                          const rider = resolveUser(riderId);
+                          if (!rider) return null;
+                          if (confirmingRemoveRiderId === riderId) {
+                            return (
+                              <View key={riderId} className="gap-2 rounded-xl bg-terracotta/10 p-3">
+                                <Text className="text-sm text-charcoal">
+                                  Remove {rider.name} from your carpool?
+                                </Text>
+                                <View className="flex-row justify-end gap-4">
+                                  <Pressable onPress={() => setConfirmingRemoveRiderId(null)}>
+                                    <Text className="text-sm font-medium text-charcoal/60">
+                                      Keep them
+                                    </Text>
+                                  </Pressable>
+                                  <Pressable
+                                    onPress={() => {
+                                      removeRider(offer.id, riderId);
+                                      setConfirmingRemoveRiderId(null);
+                                    }}
+                                  >
+                                    <Text className="text-sm font-semibold text-terracotta">
+                                      Remove
+                                    </Text>
+                                  </Pressable>
+                                </View>
+                              </View>
+                            );
+                          }
+                          return (
+                            <View key={riderId} className="flex-row items-center gap-2.5">
+                              <Image source={{ uri: rider.avatar }} className="h-7 w-7 rounded-full" />
+                              <Text className="flex-1 text-sm text-charcoal">{rider.name}</Text>
+                              <Pressable
+                                onPress={() => setConfirmingRemoveRiderId(riderId)}
+                                className="h-7 w-7 items-center justify-center"
+                              >
+                                <Ionicons
+                                  name="close-circle-outline"
+                                  size={17}
+                                  className="text-charcoal/40"
+                                />
+                              </Pressable>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    )}
                     {canCarpool && confirmingCancelOfferId === offer.id && (
                       <View className="mt-3 gap-2 border-t border-charcoal/10 pt-3">
                         <Text className="text-sm text-charcoal">
