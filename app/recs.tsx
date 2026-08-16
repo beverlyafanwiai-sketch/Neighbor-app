@@ -48,6 +48,9 @@ export default function RecsBoard() {
   const myCommentReactions = useRecCommentsStore((s) => s.myReactions);
   const tapCommentReaction = useRecCommentsStore((s) => s.tapReaction);
   const setCommentReaction = useRecCommentsStore((s) => s.setReaction);
+  const bestAnswerIds = useRecCommentsStore((s) => s.bestAnswerId);
+  const markBestAnswer = useRecCommentsStore((s) => s.markBestAnswer);
+  const unmarkBestAnswer = useRecCommentsStore((s) => s.unmarkBestAnswer);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [sortBy, setSortBy] = useState<RecsSort>('Newest');
@@ -70,7 +73,15 @@ export default function RecsBoard() {
     ? getEffectiveAgreedIds(viewingAgreedEntry.id, myAgreed[viewingAgreedEntry.id] ?? false)
     : [];
   const viewingCommentsEntry = entries.find((e) => e.id === viewingCommentsId);
+  const viewingBestAnswerId = viewingCommentsEntry ? bestAnswerIds[viewingCommentsEntry.id] : undefined;
+  const canMarkBestAnswer =
+    viewingCommentsEntry?.kind === 'ask' && viewingCommentsEntry.authorId === ME.id;
   const viewingComments = viewingCommentsEntry ? (comments[viewingCommentsEntry.id] ?? []) : [];
+  const sortedViewingComments = viewingBestAnswerId
+    ? [...viewingComments].sort((a, b) =>
+        a.id === viewingBestAnswerId ? -1 : b.id === viewingBestAnswerId ? 1 : 0
+      )
+    : viewingComments;
 
   const categories = ['All', ...Array.from(new Set(entries.map((e) => e.category))).sort()];
   const matchesCategory = (e: (typeof entries)[number]) =>
@@ -556,7 +567,7 @@ export default function RecsBoard() {
                       No comments yet — ask a question or add a note.
                     </Text>
                   )}
-                  {viewingComments.map((c) => {
+                  {sortedViewingComments.map((c) => {
                     const isMine = c.authorId === ME.id;
                     const author = isMine ? profile : getUser(c.authorId);
                     if (!author) return null;
@@ -609,10 +620,24 @@ export default function RecsBoard() {
                       );
                     }
 
+                    const isBest = c.id === viewingBestAnswerId;
                     return (
-                      <View key={c.id} className="flex-row items-start gap-2.5 rounded-2xl bg-sand p-3">
+                      <View
+                        key={c.id}
+                        className={`flex-row items-start gap-2.5 rounded-2xl p-3 ${
+                          isBest ? 'bg-sage/15' : 'bg-sand'
+                        }`}
+                      >
                         <Image source={{ uri: author.avatar }} className="h-8 w-8 rounded-full" />
                         <View className="flex-1">
+                          {isBest && (
+                            <View className="mb-1 flex-row items-center gap-1 self-start rounded-full bg-sage/25 px-2 py-0.5">
+                              <Ionicons name="checkmark-circle" size={11} className="text-sage" />
+                              <Text className="text-[10px] font-semibold uppercase tracking-wide text-sage">
+                                Best answer
+                              </Text>
+                            </View>
+                          )}
                           <View className="flex-row items-center gap-1.5">
                             <Text className="text-sm font-semibold text-charcoal">
                               {isMine ? 'You' : author.name}
@@ -631,6 +656,22 @@ export default function RecsBoard() {
                             onSelect={(type) => setCommentReaction(viewingCommentsEntry.id, c.id, type)}
                           />
                         </View>
+                        {canMarkBestAnswer && (
+                          <Pressable
+                            onPress={() =>
+                              isBest
+                                ? unmarkBestAnswer(viewingCommentsEntry.id)
+                                : markBestAnswer(viewingCommentsEntry.id, c.id)
+                            }
+                            className="h-7 w-7 items-center justify-center"
+                          >
+                            <Ionicons
+                              name={isBest ? 'checkmark-circle' : 'checkmark-circle-outline'}
+                              size={16}
+                              className={isBest ? 'text-sage' : 'text-charcoal/30'}
+                            />
+                          </Pressable>
+                        )}
                         {isMine ? (
                           <>
                             <Pressable

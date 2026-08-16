@@ -18,11 +18,14 @@ export function recCommentKey(entryId: string, commentId: string) {
 type RecCommentsState = {
   comments: Record<string, RecComment[]>;
   myReactions: Record<string, ReactionType | undefined>;
+  bestAnswerId: Record<string, string | undefined>;
   addComment: (entryId: string, text: string) => void;
   updateComment: (entryId: string, commentId: string, text: string) => void;
   deleteComment: (entryId: string, commentId: string) => void;
   tapReaction: (entryId: string, commentId: string) => void;
   setReaction: (entryId: string, commentId: string, type: ReactionType) => void;
+  markBestAnswer: (entryId: string, commentId: string) => void;
+  unmarkBestAnswer: (entryId: string) => void;
 };
 
 const SEED: Record<string, RecComment[]> = {
@@ -40,6 +43,7 @@ const SEED: Record<string, RecComment[]> = {
 export const useRecCommentsStore = create<RecCommentsState>((set) => ({
   comments: SEED,
   myReactions: {},
+  bestAnswerId: {},
 
   addComment: (entryId, text) => {
     const clean = text.trim();
@@ -74,6 +78,10 @@ export const useRecCommentsStore = create<RecCommentsState>((set) => ({
         ...s.comments,
         [entryId]: (s.comments[entryId] ?? []).filter((c) => c.id !== commentId),
       },
+      bestAnswerId:
+        s.bestAnswerId[entryId] === commentId
+          ? { ...s.bestAnswerId, [entryId]: undefined }
+          : s.bestAnswerId,
     })),
 
   tapReaction: (entryId, commentId) => {
@@ -89,4 +97,10 @@ export const useRecCommentsStore = create<RecCommentsState>((set) => ({
       myReactions: { ...s.myReactions, [key]: s.myReactions[key] === type ? undefined : type },
     }));
   },
+
+  markBestAnswer: (entryId, commentId) =>
+    set((s) => ({ bestAnswerId: { ...s.bestAnswerId, [entryId]: commentId } })),
+
+  unmarkBestAnswer: (entryId) =>
+    set((s) => ({ bestAnswerId: { ...s.bestAnswerId, [entryId]: undefined } })),
 }));
