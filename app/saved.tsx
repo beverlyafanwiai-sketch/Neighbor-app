@@ -32,10 +32,25 @@ const MODES = ['Posts', 'Events', 'Recs', 'Lend', 'For Sale'] as const;
 type Mode = (typeof MODES)[number];
 
 const SAVED_SORTS = ['Newest', 'A-Z'] as const;
-type SavedSort = (typeof SAVED_SORTS)[number];
+const SALE_SAVED_SORTS = ['Newest', 'A-Z', 'Price: low to high'] as const;
+type SavedSort = (typeof SALE_SAVED_SORTS)[number];
 
-function sortByTitle<T>(items: T[], sortBy: SavedSort, titleOf: (item: T) => string) {
-  return sortBy === 'A-Z' ? [...items].sort((a, b) => titleOf(a).localeCompare(titleOf(b))) : items;
+function parsePrice(price: string) {
+  const n = parseFloat(price.replace(/[^0-9.]/g, ''));
+  return Number.isNaN(n) ? Infinity : n;
+}
+
+function sortItems<T>(
+  items: T[],
+  sortBy: SavedSort,
+  titleOf: (item: T) => string,
+  priceOf?: (item: T) => string
+) {
+  if (sortBy === 'A-Z') return [...items].sort((a, b) => titleOf(a).localeCompare(titleOf(b)));
+  if (sortBy === 'Price: low to high' && priceOf) {
+    return [...items].sort((a, b) => parsePrice(priceOf(a)) - parsePrice(priceOf(b)));
+  }
+  return items;
 }
 
 export default function Saved() {
@@ -77,25 +92,26 @@ export default function Saved() {
     q.length === 0 || fields.some((f) => (f ?? '').toLowerCase().includes(q));
 
   const savedPosts = posts.filter((p) => (savedIds[p.id] ?? false) && matches(p.body));
-  const savedEvents = sortByTitle(
+  const savedEvents = sortItems(
     events.filter((e) => (savedEventIds[e.id] ?? false) && matches(e.title, e.location)),
     sortBy,
     (e) => e.title
   );
-  const savedRecs = sortByTitle(
+  const savedRecs = sortItems(
     recEntries.filter((e) => (savedRecIds[e.id] ?? false) && matches(e.name, e.category, e.note)),
     sortBy,
     (e) => e.name ?? e.category
   );
-  const savedLendItems = sortByTitle(
+  const savedLendItems = sortItems(
     lendItems.filter((i) => (savedLendIds[i.id] ?? false) && matches(i.title, i.note)),
     sortBy,
     (i) => i.title
   );
-  const savedSaleItems = sortByTitle(
+  const savedSaleItems = sortItems(
     saleItems.filter((i) => (savedSaleIds[i.id] ?? false) && matches(i.title, i.note)),
     sortBy,
-    (i) => i.title
+    (i) => i.title,
+    (i) => i.price
   );
 
   return (
@@ -114,7 +130,10 @@ export default function Saved() {
         {MODES.map((m) => (
           <Pressable
             key={m}
-            onPress={() => setMode(m)}
+            onPress={() => {
+              setMode(m);
+              if (m !== 'For Sale' && sortBy === 'Price: low to high') setSortBy('Newest');
+            }}
             className={`rounded-full px-4 py-2 ${mode === m ? 'bg-ink' : 'bg-cream'}`}
           >
             <Text className={`text-sm font-medium ${mode === m ? 'text-paper' : 'text-charcoal/60'}`}>
@@ -154,7 +173,7 @@ export default function Saved() {
             <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
               Sort
             </Text>
-            {SAVED_SORTS.map((s) => (
+            {(mode === 'For Sale' ? SALE_SAVED_SORTS : SAVED_SORTS).map((s) => (
               <Pressable
                 key={s}
                 onPress={() => setSortBy(s)}
