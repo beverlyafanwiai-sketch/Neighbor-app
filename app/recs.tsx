@@ -20,6 +20,7 @@ import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
+import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { recCommentKey, useRecCommentsStore } from '../store/useRecCommentsStore';
 import { getEffectiveAgreeCount, getEffectiveAgreedIds, useRecsStore } from '../store/useRecsStore';
 import { useSavedRecsStore } from '../store/useSavedRecsStore';
@@ -51,6 +52,8 @@ export default function RecsBoard() {
   const bestAnswerIds = useRecCommentsStore((s) => s.bestAnswerId);
   const markBestAnswer = useRecCommentsStore((s) => s.markBestAnswer);
   const unmarkBestAnswer = useRecCommentsStore((s) => s.unmarkBestAnswer);
+  const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
+  const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [sortBy, setSortBy] = useState<RecsSort>('Newest');
@@ -65,7 +68,12 @@ export default function RecsBoard() {
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentDraft, setEditCommentDraft] = useState('');
-  const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
+  const [viewingPhotos, setViewingPhotos] = useState<{
+    uris: string[];
+    index: number;
+    entryId: string;
+    isMine: boolean;
+  } | null>(null);
 
   const sharingEntry = entries.find((e) => e.id === sharingId);
   const viewingAgreedEntry = entries.find((e) => e.id === viewingAgreedId);
@@ -302,7 +310,14 @@ export default function RecsBoard() {
                     {entry.imageUris && entry.imageUris.length > 0 && (
                       <PhotoCarousel
                         uris={entry.imageUris}
-                        onPhotoPress={(i) => setViewingPhotos({ uris: entry.imageUris!, index: i })}
+                        onPhotoPress={(i) =>
+                          setViewingPhotos({
+                            uris: entry.imageUris!,
+                            index: i,
+                            entryId: entry.id,
+                            isMine: true,
+                          })
+                        }
                       />
                     )}
                     <Pressable
@@ -394,7 +409,14 @@ export default function RecsBoard() {
                 {entry.imageUris && entry.imageUris.length > 0 && (
                   <PhotoCarousel
                     uris={entry.imageUris}
-                    onPhotoPress={(i) => setViewingPhotos({ uris: entry.imageUris!, index: i })}
+                    onPhotoPress={(i) =>
+                      setViewingPhotos({
+                        uris: entry.imageUris!,
+                        index: i,
+                        entryId: entry.id,
+                        isMine: false,
+                      })
+                    }
                   />
                 )}
 
@@ -742,6 +764,13 @@ export default function RecsBoard() {
           uris={viewingPhotos.uris}
           initialIndex={viewingPhotos.index}
           onClose={() => setViewingPhotos(null)}
+          captions={viewingPhotos.uris.map(
+            (_, i) => photoCaptions[photoCaptionKey(viewingPhotos.entryId, i)] ?? ''
+          )}
+          editableIndices={viewingPhotos.uris.map(() => viewingPhotos.isMine)}
+          onCaptionChange={(i, text) =>
+            setPhotoCaption(photoCaptionKey(viewingPhotos.entryId, i), text)
+          }
         />
       )}
     </SafeAreaView>

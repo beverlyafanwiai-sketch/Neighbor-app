@@ -17,6 +17,7 @@ import {
   isFreeItem,
   useSaleStore,
 } from '../store/useSaleStore';
+import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { useSavedSaleStore } from '../store/useSavedSaleStore';
 
@@ -41,6 +42,8 @@ export default function ForSaleBoard() {
   const declineOffer = useSaleStore((s) => s.declineOffer);
   const dropPrice = useSaleStore((s) => s.dropPrice);
   const markFree = useSaleStore((s) => s.markFree);
+  const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
+  const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
   const markSold = useSaleStore((s) => s.markSold);
   const relistItem = useSaleStore((s) => s.relistItem);
   const deleteItem = useSaleStore((s) => s.deleteItem);
@@ -54,7 +57,12 @@ export default function ForSaleBoard() {
   const [viewingInterestedId, setViewingInterestedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SaleSort>('Newest');
   const [query, setQuery] = useState('');
-  const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
+  const [viewingPhotos, setViewingPhotos] = useState<{
+    uris: string[];
+    index: number;
+    itemId: string;
+    isMine: boolean;
+  } | null>(null);
   const [offeringId, setOfferingId] = useState<string | null>(null);
   const [offerDraft, setOfferDraft] = useState('');
   const [droppingPriceId, setDroppingPriceId] = useState<string | null>(null);
@@ -241,7 +249,14 @@ export default function ForSaleBoard() {
                     {item.imageUris && item.imageUris.length > 0 && (
                       <PhotoCarousel
                         uris={item.imageUris}
-                        onPhotoPress={(i) => setViewingPhotos({ uris: item.imageUris!, index: i })}
+                        onPhotoPress={(i) =>
+                          setViewingPhotos({
+                            uris: item.imageUris!,
+                            index: i,
+                            itemId: item.id,
+                            isMine: true,
+                          })
+                        }
                       />
                     )}
 
@@ -429,7 +444,14 @@ export default function ForSaleBoard() {
                 {item.imageUris && item.imageUris.length > 0 && (
                   <PhotoCarousel
                     uris={item.imageUris}
-                    onPhotoPress={(i) => setViewingPhotos({ uris: item.imageUris!, index: i })}
+                    onPhotoPress={(i) =>
+                      setViewingPhotos({
+                        uris: item.imageUris!,
+                        index: i,
+                        itemId: item.id,
+                        isMine: false,
+                      })
+                    }
                   />
                 )}
 
@@ -638,6 +660,13 @@ export default function ForSaleBoard() {
           uris={viewingPhotos.uris}
           initialIndex={viewingPhotos.index}
           onClose={() => setViewingPhotos(null)}
+          captions={viewingPhotos.uris.map(
+            (_, i) => photoCaptions[photoCaptionKey(viewingPhotos.itemId, i)] ?? ''
+          )}
+          editableIndices={viewingPhotos.uris.map(() => viewingPhotos.isMine)}
+          onCaptionChange={(i, text) =>
+            setPhotoCaption(photoCaptionKey(viewingPhotos.itemId, i), text)
+          }
         />
       )}
     </SafeAreaView>

@@ -11,6 +11,7 @@ import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
 import { getEffectiveHelperCount, getEffectiveHelperIds, useLendStore } from '../store/useLendStore';
+import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { useSavedLendStore } from '../store/useSavedLendStore';
 
@@ -37,6 +38,8 @@ export default function LendBoard() {
   const profile = useProfileStore((s) => s.profile);
   const savedIds = useSavedLendStore((s) => s.savedIds);
   const toggleSave = useSavedLendStore((s) => s.toggleSave);
+  const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
+  const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
 
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -45,7 +48,12 @@ export default function LendBoard() {
   const [sortBy, setSortBy] = useState<LendSort>('Newest');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [query, setQuery] = useState('');
-  const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
+  const [viewingPhotos, setViewingPhotos] = useState<{
+    uris: string[];
+    index: number;
+    itemId: string;
+    isMine: boolean;
+  } | null>(null);
   const [approvingItemId, setApprovingItemId] = useState<string | null>(null);
   const [dueDays, setDueDays] = useState(5);
 
@@ -224,7 +232,14 @@ export default function LendBoard() {
                     {item.imageUris && item.imageUris.length > 0 && (
                       <PhotoCarousel
                         uris={item.imageUris}
-                        onPhotoPress={(i) => setViewingPhotos({ uris: item.imageUris!, index: i })}
+                        onPhotoPress={(i) =>
+                          setViewingPhotos({
+                            uris: item.imageUris!,
+                            index: i,
+                            itemId: item.id,
+                            isMine: true,
+                          })
+                        }
                       />
                     )}
 
@@ -382,7 +397,14 @@ export default function LendBoard() {
                   {item.imageUris && item.imageUris.length > 0 && (
                     <PhotoCarousel
                       uris={item.imageUris}
-                      onPhotoPress={(i) => setViewingPhotos({ uris: item.imageUris!, index: i })}
+                      onPhotoPress={(i) =>
+                        setViewingPhotos({
+                          uris: item.imageUris!,
+                          index: i,
+                          itemId: item.id,
+                          isMine: false,
+                        })
+                      }
                     />
                   )}
 
@@ -464,7 +486,14 @@ export default function LendBoard() {
                 {item.imageUris && item.imageUris.length > 0 && (
                   <PhotoCarousel
                     uris={item.imageUris}
-                    onPhotoPress={(i) => setViewingPhotos({ uris: item.imageUris!, index: i })}
+                    onPhotoPress={(i) =>
+                      setViewingPhotos({
+                        uris: item.imageUris!,
+                        index: i,
+                        itemId: item.id,
+                        isMine: false,
+                      })
+                    }
                   />
                 )}
 
@@ -578,6 +607,13 @@ export default function LendBoard() {
           uris={viewingPhotos.uris}
           initialIndex={viewingPhotos.index}
           onClose={() => setViewingPhotos(null)}
+          captions={viewingPhotos.uris.map(
+            (_, i) => photoCaptions[photoCaptionKey(viewingPhotos.itemId, i)] ?? ''
+          )}
+          editableIndices={viewingPhotos.uris.map(() => viewingPhotos.isMine)}
+          onCaptionChange={(i, text) =>
+            setPhotoCaption(photoCaptionKey(viewingPhotos.itemId, i), text)
+          }
         />
       )}
     </SafeAreaView>
