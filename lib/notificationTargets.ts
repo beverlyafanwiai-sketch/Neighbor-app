@@ -17,6 +17,20 @@ export const TYPE_ICON: Record<NotificationItem['type'], keyof typeof Ionicons.g
   carpool: 'car',
 };
 
+export const TYPE_LABEL: Record<NotificationItem['type'], string> = {
+  friend: 'Friends',
+  friend_request: 'Friend requests',
+  event: 'Events',
+  group: 'Groups',
+  message: 'Messages',
+  mention: 'Mentions',
+  lend: 'Lend',
+  rec: 'Recs',
+  welcome: 'Welcome',
+  sale: 'For sale',
+  carpool: 'Carpool',
+};
+
 export function goToTarget(target?: NotificationTarget) {
   if (!target) return;
   switch (target.kind) {

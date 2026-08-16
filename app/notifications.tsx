@@ -1,11 +1,12 @@
+import { useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
-import { getUser } from '../data/mock';
-import { goToTarget, TYPE_ICON } from '../lib/notificationTargets';
+import { getUser, type NotificationItem } from '../data/mock';
+import { goToTarget, TYPE_ICON, TYPE_LABEL } from '../lib/notificationTargets';
 import { useFriendsStore } from '../store/useFriendsStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { useNotificationsStore } from '../store/useNotificationsStore';
@@ -16,7 +17,10 @@ export default function Notifications() {
   const markAllRead = useNotificationsStore((s) => s.markAllRead);
   const deleteNotification = useNotificationsStore((s) => s.deleteNotification);
   const mutedIds = useMutedStore((s) => s.mutedIds);
-  const notifications = allNotifications.filter((n) => !n.actorId || !mutedIds[n.actorId]);
+  const unmuted = allNotifications.filter((n) => !n.actorId || !mutedIds[n.actorId]);
+  const [typeFilter, setTypeFilter] = useState<NotificationItem['type'] | 'All'>('All');
+  const presentTypes = Array.from(new Set(unmuted.map((n) => n.type)));
+  const notifications = unmuted.filter((n) => typeFilter === 'All' || n.type === typeFilter);
   const hasUnread = notifications.some((n) => !n.read);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const acceptRequest = useFriendsStore((s) => s.acceptRequest);
@@ -40,6 +44,38 @@ export default function Notifications() {
           <View className="w-9" />
         )}
       </View>
+
+      {presentTypes.length > 1 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="gap-2 px-5 pb-3"
+        >
+          <Pressable
+            onPress={() => setTypeFilter('All')}
+            className={`rounded-full px-3 py-1.5 ${typeFilter === 'All' ? 'bg-ink' : 'bg-cream'}`}
+          >
+            <Text
+              className={`text-xs font-medium ${typeFilter === 'All' ? 'text-paper' : 'text-charcoal/60'}`}
+            >
+              All
+            </Text>
+          </Pressable>
+          {presentTypes.map((t) => (
+            <Pressable
+              key={t}
+              onPress={() => setTypeFilter(t)}
+              className={`rounded-full px-3 py-1.5 ${typeFilter === t ? 'bg-ink' : 'bg-cream'}`}
+            >
+              <Text
+                className={`text-xs font-medium ${typeFilter === t ? 'text-paper' : 'text-charcoal/60'}`}
+              >
+                {TYPE_LABEL[t]}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      )}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
         <View className="gap-3">
@@ -116,8 +152,12 @@ export default function Notifications() {
             <EmptyState
               icon="notifications-outline"
               iconColorClassName="text-charcoal/50"
-              title="You're all caught up"
-              subtitle="New activity from your neighbors will show up here."
+              title={typeFilter === 'All' ? "You're all caught up" : `No ${TYPE_LABEL[typeFilter].toLowerCase()} notifications`}
+              subtitle={
+                typeFilter === 'All'
+                  ? 'New activity from your neighbors will show up here.'
+                  : 'Try a different filter, or check back later.'
+              }
             />
           )}
         </View>
