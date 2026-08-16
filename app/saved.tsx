@@ -35,6 +35,9 @@ const SAVED_SORTS = ['Newest', 'A-Z'] as const;
 const SALE_SAVED_SORTS = ['Newest', 'A-Z', 'Price: low to high'] as const;
 type SavedSort = (typeof SALE_SAVED_SORTS)[number];
 
+const REC_KIND_FILTERS = ['All', 'Recs', 'Asks'] as const;
+type RecKindFilter = (typeof REC_KIND_FILTERS)[number];
+
 function parsePrice(price: string) {
   const n = parseFloat(price.replace(/[^0-9.]/g, ''));
   return Number.isNaN(n) ? Infinity : n;
@@ -57,6 +60,7 @@ export default function Saved() {
   const [mode, setMode] = useState<Mode>('Posts');
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState<SavedSort>('Newest');
+  const [recKindFilter, setRecKindFilter] = useState<RecKindFilter>('All');
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
@@ -98,7 +102,12 @@ export default function Saved() {
     (e) => e.title
   );
   const savedRecs = sortItems(
-    recEntries.filter((e) => (savedRecIds[e.id] ?? false) && matches(e.name, e.category, e.note)),
+    recEntries.filter(
+      (e) =>
+        (savedRecIds[e.id] ?? false) &&
+        matches(e.name, e.category, e.note) &&
+        (recKindFilter === 'All' || (recKindFilter === 'Recs' ? e.kind === 'rec' : e.kind === 'ask'))
+    ),
     sortBy,
     (e) => e.name ?? e.category
   );
@@ -161,6 +170,27 @@ export default function Saved() {
         </View>
       </View>
 
+      {mode === 'Recs' && (
+        <View className="flex-row items-center gap-2 px-5 pb-3">
+          <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+            Kind
+          </Text>
+          {REC_KIND_FILTERS.map((k) => (
+            <Pressable
+              key={k}
+              onPress={() => setRecKindFilter(k)}
+              className={`rounded-full px-3 py-1 ${recKindFilter === k ? 'bg-ink' : 'bg-cream'}`}
+            >
+              <Text
+                className={`text-xs font-medium ${recKindFilter === k ? 'text-paper' : 'text-charcoal/60'}`}
+              >
+                {k}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+
       {mode !== 'Posts' &&
         (mode === 'Events'
           ? savedEvents.length
@@ -220,7 +250,13 @@ export default function Saved() {
           <EmptyState
             icon={q.length > 0 ? 'search-outline' : 'bookmark-outline'}
             iconColorClassName="text-charcoal/50"
-            title={q.length > 0 ? `No results for "${query.trim()}"` : 'No saved recs'}
+            title={
+              q.length > 0
+                ? `No results for "${query.trim()}"`
+                : recKindFilter === 'All'
+                  ? 'No saved recs'
+                  : `No saved ${recKindFilter.toLowerCase()}`
+            }
             subtitle={
               q.length > 0
                 ? 'Try a different search term.'
