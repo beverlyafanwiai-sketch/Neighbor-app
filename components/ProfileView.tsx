@@ -13,6 +13,7 @@ import { useGroupsStore } from '../store/useGroupsStore';
 import { usePostsStore } from '../store/usePostsStore';
 import { getWelcomeNotes, useWelcomeNotesStore } from '../store/useWelcomeNotesStore';
 import EmptyState from './EmptyState';
+import ShareSheet from './ShareSheet';
 
 const TABS = ['About', 'Prompts', 'Photos', 'Friends'] as const;
 type Tab = (typeof TABS)[number];
@@ -101,6 +102,7 @@ export default function ProfileView({
   const [composingEndorsement, setComposingEndorsement] = useState(false);
   const [endorsementDraft, setEndorsementDraft] = useState('');
   const [confirmingUnfriend, setConfirmingUnfriend] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   const myFriendIds = Object.keys(friendStatuses).filter((id) => friendStatuses[id] === 'friends');
   const myJoinedGroupIds = Object.keys(joinedGroups).filter((id) => joinedGroups[id]);
@@ -110,7 +112,8 @@ export default function ProfileView({
   const sharedGroups = isMe ? [] : getSharedGroups(user.id, myJoinedGroupIds);
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} className="flex-1 bg-cream">
+    <>
+      <ScrollView showsVerticalScrollIndicator={false} className="flex-1 bg-cream">
       <View className="items-center rounded-b-[36px] bg-terracotta pb-8 pt-10">
         {onBack && (
           <Pressable
@@ -120,7 +123,7 @@ export default function ProfileView({
             <Ionicons name="chevron-back" size={22} className="text-paper" />
           </Pressable>
         )}
-        {isMe && (onSettings || onSavedPosts || onRecs) && (
+        {isMe && (
           <View className="absolute right-4 top-10 flex-row items-center gap-1.5">
             {onRecs && (
               <Pressable
@@ -138,6 +141,12 @@ export default function ProfileView({
                 <Ionicons name="bookmark-outline" size={19} className="text-paper" />
               </Pressable>
             )}
+            <Pressable
+              onPress={() => setSharing(true)}
+              className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
+            >
+              <Ionicons name="arrow-redo-outline" size={18} className="text-paper" />
+            </Pressable>
             {onSettings && (
               <Pressable
                 onPress={onSettings}
@@ -148,13 +157,23 @@ export default function ProfileView({
             )}
           </View>
         )}
-        {!isMe && onMoreOptions && (
-          <Pressable
-            onPress={onMoreOptions}
-            className="absolute right-4 top-10 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
-          >
-            <Ionicons name="ellipsis-horizontal" size={20} className="text-paper" />
-          </Pressable>
+        {!isMe && (
+          <View className="absolute right-4 top-10 flex-row items-center gap-1.5">
+            <Pressable
+              onPress={() => setSharing(true)}
+              className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
+            >
+              <Ionicons name="arrow-redo-outline" size={18} className="text-paper" />
+            </Pressable>
+            {onMoreOptions && (
+              <Pressable
+                onPress={onMoreOptions}
+                className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
+              >
+                <Ionicons name="ellipsis-horizontal" size={20} className="text-paper" />
+              </Pressable>
+            )}
+          </View>
         )}
         <Image
           source={{ uri: user.avatar }}
@@ -706,5 +725,14 @@ export default function ProfileView({
         )}
       </View>
     </ScrollView>
+    {sharing && (
+      <ShareSheet
+        title="Share profile"
+        link={`https://neighbor.app/profile/${user.id}`}
+        previewText={`${isMe ? 'My' : `${user.name}'s`} profile on Neighbor — ${user.tagline}`}
+        onClose={() => setSharing(false)}
+      />
+    )}
+    </>
   );
 }
