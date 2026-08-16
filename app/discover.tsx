@@ -46,6 +46,8 @@ export default function Discover() {
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const toggleBlocked = useBlockedStore((s) => s.toggle);
+  const [confirmingBlockId, setConfirmingBlockId] = useState<string | null>(null);
   const myTags = useProfileStore((s) => s.profile.tags);
 
   const discoverGroups = allGroups.filter((g) => !joinedMap[g.id]);
@@ -162,6 +164,30 @@ export default function Discover() {
             {people.map((p) => {
               const shared = sharedTags(p.tags, myTags);
               const status = friendStatuses[p.id] ?? 'none';
+
+              if (confirmingBlockId === p.id) {
+                return (
+                  <View key={p.id} className="gap-2 rounded-2xl bg-terracotta/10 p-4">
+                    <Text className="text-sm text-charcoal">
+                      Block {p.name}? You won't see each other on the app anymore.
+                    </Text>
+                    <View className="flex-row justify-end gap-4">
+                      <Pressable onPress={() => setConfirmingBlockId(null)}>
+                        <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          toggleBlocked(p.id);
+                          setConfirmingBlockId(null);
+                        }}
+                      >
+                        <Text className="text-sm font-semibold text-terracotta">Block</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                );
+              }
+
               return (
                 <Pressable
                   key={p.id}
@@ -193,6 +219,15 @@ export default function Discover() {
                       <Text className="text-xs font-semibold text-charcoal">
                         {FRIEND_LABEL[status]}
                       </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        setConfirmingBlockId(p.id);
+                      }}
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons name="ellipsis-horizontal" size={16} className="text-charcoal/40" />
                     </Pressable>
                   </View>
 
