@@ -26,9 +26,10 @@ type LendState = {
   dueLabel: Record<string, string>;
   pendingRequesterId: Record<string, string>;
   myOffers: Record<string, boolean>;
+  requestNotes: Record<string, string>;
   createItem: (input: NewLendItemInput) => string;
   updateItem: (itemId: string, updates: Partial<NewLendItemInput>) => void;
-  requestToBorrow: (itemId: string) => void;
+  requestToBorrow: (itemId: string, note?: string) => void;
   cancelRequest: (itemId: string) => void;
   approveRequest: (itemId: string, days?: number) => void;
   declineRequest: (itemId: string) => void;
@@ -50,6 +51,7 @@ export const useLendStore = create<LendState>((set, get) => ({
   dueLabel: {},
   pendingRequesterId: {},
   myOffers: {},
+  requestNotes: {},
 
   createItem: (input) => {
     const id = `${input.kind}-${Math.random().toString(36).slice(2, 9)}`;
@@ -90,11 +92,16 @@ export const useLendStore = create<LendState>((set, get) => ({
     return id;
   },
 
-  requestToBorrow: (itemId) => {
+  requestToBorrow: (itemId, note) => {
     const item = get().items.find((i) => i.id === itemId);
     if (!item) return;
 
-    set((s) => ({ status: { ...s.status, [itemId]: 'requested' } }));
+    set((s) => ({
+      status: { ...s.status, [itemId]: 'requested' },
+      requestNotes: note?.trim()
+        ? { ...s.requestNotes, [itemId]: note.trim() }
+        : s.requestNotes,
+    }));
 
     setTimeout(() => {
       if (get().status[itemId] !== 'requested') return;
@@ -119,7 +126,10 @@ export const useLendStore = create<LendState>((set, get) => ({
   },
 
   cancelRequest: (itemId) =>
-    set((s) => ({ status: { ...s.status, [itemId]: 'available' } })),
+    set((s) => {
+      const { [itemId]: _removed, ...requestNotes } = s.requestNotes;
+      return { status: { ...s.status, [itemId]: 'available' }, requestNotes };
+    }),
 
   approveRequest: (itemId, days) => {
     const requesterId = get().pendingRequesterId[itemId];
@@ -136,11 +146,15 @@ export const useLendStore = create<LendState>((set, get) => ({
     set((s) => ({ pendingRequesterId: { ...s.pendingRequesterId, [itemId]: '' } })),
 
   markReturned: (itemId) =>
-    set((s) => ({
-      status: { ...s.status, [itemId]: 'available' },
-      borrowerId: { ...s.borrowerId, [itemId]: '' },
-      dueLabel: { ...s.dueLabel, [itemId]: '' },
-    })),
+    set((s) => {
+      const { [itemId]: _removed, ...requestNotes } = s.requestNotes;
+      return {
+        status: { ...s.status, [itemId]: 'available' },
+        borrowerId: { ...s.borrowerId, [itemId]: '' },
+        dueLabel: { ...s.dueLabel, [itemId]: '' },
+        requestNotes,
+      };
+    }),
 
   offerToHelp: (itemId) => {
     const item = get().items.find((i) => i.id === itemId);

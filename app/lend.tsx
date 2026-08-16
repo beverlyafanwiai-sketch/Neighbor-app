@@ -30,6 +30,7 @@ export default function LendBoard() {
   const myOffers = useLendStore((s) => s.myOffers);
   const requestToBorrow = useLendStore((s) => s.requestToBorrow);
   const cancelRequest = useLendStore((s) => s.cancelRequest);
+  const requestNotes = useLendStore((s) => s.requestNotes);
   const approveRequest = useLendStore((s) => s.approveRequest);
   const declineRequest = useLendStore((s) => s.declineRequest);
   const markReturned = useLendStore((s) => s.markReturned);
@@ -55,6 +56,8 @@ export default function LendBoard() {
     isMine: boolean;
   } | null>(null);
   const [approvingItemId, setApprovingItemId] = useState<string | null>(null);
+  const [requestingBorrowId, setRequestingBorrowId] = useState<string | null>(null);
+  const [borrowRequestNote, setBorrowRequestNote] = useState('');
   const [dueDays, setDueDays] = useState(5);
 
   const matchesKind = (i: (typeof items)[number]) =>
@@ -411,9 +414,17 @@ export default function LendBoard() {
                   <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
                     {itemStatus === 'lent' ? (
                       <>
-                        <Text className="flex-1 text-sm text-sage">
-                          On loan to you{dueLabel[item.id] ? ` · back by ${dueLabel[item.id]}` : ''}
-                        </Text>
+                        <View className="flex-1">
+                          <Text className="text-sm text-sage">
+                            On loan to you
+                            {dueLabel[item.id] ? ` · back by ${dueLabel[item.id]}` : ''}
+                          </Text>
+                          {requestNotes[item.id] && (
+                            <Text className="mt-0.5 text-xs text-charcoal/50">
+                              {requestNotes[item.id]}
+                            </Text>
+                          )}
+                        </View>
                         <Pressable
                           onPress={() => markReturned(item.id)}
                           className="rounded-full bg-sage/20 px-4 py-1.5"
@@ -423,7 +434,14 @@ export default function LendBoard() {
                       </>
                     ) : itemStatus === 'requested' ? (
                       <>
-                        <Text className="flex-1 text-sm text-gold">Request sent</Text>
+                        <View className="flex-1">
+                          <Text className="text-sm text-gold">Request sent</Text>
+                          {requestNotes[item.id] && (
+                            <Text className="mt-0.5 text-xs text-charcoal/50">
+                              {requestNotes[item.id]}
+                            </Text>
+                          )}
+                        </View>
                         <Pressable
                           onPress={() => cancelRequest(item.id)}
                           className="rounded-full bg-sand px-4 py-1.5"
@@ -431,11 +449,43 @@ export default function LendBoard() {
                           <Text className="text-xs font-semibold text-charcoal">Cancel</Text>
                         </Pressable>
                       </>
+                    ) : requestingBorrowId === item.id ? (
+                      <View className="flex-1 gap-2">
+                        <TextInput
+                          value={borrowRequestNote}
+                          onChangeText={setBorrowRequestNote}
+                          placeholder="Optional note, e.g. need it back by Friday"
+                          placeholderTextColor="#3D3D3D80"
+                          className="rounded-xl bg-sand px-3 py-2 text-sm text-charcoal"
+                        />
+                        <View className="flex-row justify-end gap-4">
+                          <Pressable
+                            onPress={() => {
+                              setRequestingBorrowId(null);
+                              setBorrowRequestNote('');
+                            }}
+                          >
+                            <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => {
+                              requestToBorrow(item.id, borrowRequestNote);
+                              setRequestingBorrowId(null);
+                              setBorrowRequestNote('');
+                            }}
+                          >
+                            <Text className="text-sm font-semibold text-terracotta">Send</Text>
+                          </Pressable>
+                        </View>
+                      </View>
                     ) : (
                       <>
                         <Text className="flex-1 text-sm text-charcoal/50">Available</Text>
                         <Pressable
-                          onPress={() => requestToBorrow(item.id)}
+                          onPress={() => {
+                            setRequestingBorrowId(item.id);
+                            setBorrowRequestNote('');
+                          }}
                           className="rounded-full bg-ink px-4 py-1.5"
                         >
                           <Text className="text-xs font-semibold text-paper">Request to borrow</Text>
