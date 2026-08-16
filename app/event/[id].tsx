@@ -57,6 +57,7 @@ export default function EventDetail() {
   const requestSeat = useCarpoolStore((s) => s.requestSeat);
   const leaveSeat = useCarpoolStore((s) => s.leaveSeat);
   const removeRider = useCarpoolStore((s) => s.removeRider);
+  const offerSeatTo = useCarpoolStore((s) => s.offerSeatTo);
   const requestRide = useCarpoolStore((s) => s.requestRide);
   const updateRequest = useCarpoolStore((s) => s.updateRequest);
   const cancelRideRequest = useCarpoolStore((s) => s.cancelRideRequest);
@@ -883,6 +884,8 @@ export default function EventDetail() {
                     const rider = resolveUser(req.riderId);
                     if (!rider) return null;
                     const isMe = req.riderId === ME.id;
+                    const canOfferSeat =
+                      !isMe && !!myOffer && myOffer.riderIds.length < myOffer.seats;
                     return (
                       <View
                         key={req.id}
@@ -910,6 +913,14 @@ export default function EventDetail() {
                               <Ionicons name="close" size={14} className="text-charcoal/50" />
                             </Pressable>
                           </>
+                        )}
+                        {canOfferSeat && (
+                          <Pressable
+                            onPress={() => offerSeatTo(event.id, req.riderId)}
+                            className="rounded-full bg-terracotta px-3 py-1.5"
+                          >
+                            <Text className="text-xs font-semibold text-paper">Offer a seat</Text>
+                          </Pressable>
                         )}
                       </View>
                     );
