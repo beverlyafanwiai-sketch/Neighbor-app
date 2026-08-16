@@ -114,6 +114,9 @@ export default function ProfileView({
   const [confirmingUnfriend, setConfirmingUnfriend] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [viewingConnections, setViewingConnections] = useState(false);
+  const [confirmingRemoveEndorsementSkill, setConfirmingRemoveEndorsementSkill] = useState<
+    string | null
+  >(null);
 
   const myFriendIds = Object.keys(friendStatuses).filter((id) => friendStatuses[id] === 'friends');
   const myJoinedGroupIds = Object.keys(joinedGroups).filter((id) => joinedGroups[id]);
@@ -606,11 +609,35 @@ export default function ProfileView({
                       .map((e) => (e.endorserId === ME.id ? 'You' : getUser(e.endorserId)?.name))
                       .filter((n): n is string => Boolean(n))
                       .join(', ');
+
+                    if (confirmingRemoveEndorsementSkill === skill) {
+                      return (
+                        <View key={skill} className="gap-2 rounded-xl bg-terracotta/10 p-3">
+                          <Text className="text-sm text-charcoal">
+                            Remove your endorsement for {skill}?
+                          </Text>
+                          <View className="flex-row justify-end gap-4">
+                            <Pressable onPress={() => setConfirmingRemoveEndorsementSkill(null)}>
+                              <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => {
+                                removeEndorsement(user.id, skill);
+                                setConfirmingRemoveEndorsementSkill(null);
+                              }}
+                            >
+                              <Text className="text-sm font-semibold text-terracotta">Remove</Text>
+                            </Pressable>
+                          </View>
+                        </View>
+                      );
+                    }
+
                     return (
                       <Pressable
                         key={skill}
                         disabled={!mine}
-                        onPress={() => removeEndorsement(user.id, skill)}
+                        onPress={() => setConfirmingRemoveEndorsementSkill(skill)}
                         className="rounded-xl bg-cream px-3 py-2.5"
                       >
                         <Text className="text-sm font-medium text-charcoal">
