@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,8 +19,15 @@ export default function Notifications() {
   const mutedIds = useMutedStore((s) => s.mutedIds);
   const unmuted = allNotifications.filter((n) => !n.actorId || !mutedIds[n.actorId]);
   const [typeFilter, setTypeFilter] = useState<NotificationItem['type'] | 'All'>('All');
+  const [query, setQuery] = useState('');
   const presentTypes = Array.from(new Set(unmuted.map((n) => n.type)));
-  const notifications = unmuted.filter((n) => typeFilter === 'All' || n.type === typeFilter);
+  const q = query.trim().toLowerCase();
+  const notifications = unmuted.filter((n) => {
+    if (typeFilter !== 'All' && n.type !== typeFilter) return false;
+    if (q.length === 0) return true;
+    const actorName = n.actorId ? (getUser(n.actorId)?.name ?? '') : '';
+    return n.text.toLowerCase().includes(q) || actorName.toLowerCase().includes(q);
+  });
   const hasUnread = notifications.some((n) => !n.read);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const acceptRequest = useFriendsStore((s) => s.acceptRequest);
@@ -43,6 +50,24 @@ export default function Notifications() {
         ) : (
           <View className="w-9" />
         )}
+      </View>
+
+      <View className="px-5 pb-3">
+        <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">
+          <Ionicons name="search" size={18} className="text-charcoal/50" />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search notifications..."
+            placeholderTextColor="#3D3D3D80"
+            className="ml-2 flex-1 text-charcoal"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={() => setQuery('')}>
+              <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       {presentTypes.length > 1 && (
@@ -152,11 +177,19 @@ export default function Notifications() {
             <EmptyState
               icon="notifications-outline"
               iconColorClassName="text-charcoal/50"
-              title={typeFilter === 'All' ? "You're all caught up" : `No ${TYPE_LABEL[typeFilter].toLowerCase()} notifications`}
+              title={
+                q.length > 0
+                  ? `No results for "${query.trim()}"`
+                  : typeFilter === 'All'
+                    ? "You're all caught up"
+                    : `No ${TYPE_LABEL[typeFilter].toLowerCase()} notifications`
+              }
               subtitle={
-                typeFilter === 'All'
-                  ? 'New activity from your neighbors will show up here.'
-                  : 'Try a different filter, or check back later.'
+                q.length > 0
+                  ? 'Try a different search term.'
+                  : typeFilter === 'All'
+                    ? 'New activity from your neighbors will show up here.'
+                    : 'Try a different filter, or check back later.'
               }
             />
           )}
