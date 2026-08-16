@@ -387,7 +387,9 @@ export default function GroupChatThread() {
             if (deletingMessageId === item.id) {
               return (
                 <View className="max-w-[85%] self-end gap-2 rounded-2xl bg-terracotta/10 p-3">
-                  <Text className="text-sm text-charcoal">Delete this message?</Text>
+                  <Text className="text-sm text-charcoal">
+                    {item.poll ? 'Delete this poll?' : 'Delete this message?'}
+                  </Text>
                   <View className="flex-row justify-end gap-4">
                     <Pressable onPress={() => setDeletingMessageId(null)}>
                       <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
@@ -549,20 +551,28 @@ export default function GroupChatThread() {
                           {Object.keys(item.poll.votes).length} vote
                           {Object.keys(item.poll.votes).length === 1 ? '' : 's'}
                         </Text>
-                        {isMe &&
-                          (item.poll.closed ? (
-                            <Pressable onPress={() => reopenPoll(group.id, item.id)}>
+                        {isMe && (
+                          <View className="flex-row items-center gap-3">
+                            {item.poll.closed ? (
+                              <Pressable onPress={() => reopenPoll(group.id, item.id)}>
+                                <Text className="text-[11px] font-semibold text-paper/80">
+                                  Reopen poll
+                                </Text>
+                              </Pressable>
+                            ) : (
+                              <Pressable onPress={() => closePoll(group.id, item.id)}>
+                                <Text className="text-[11px] font-semibold text-paper/80">
+                                  Close poll
+                                </Text>
+                              </Pressable>
+                            )}
+                            <Pressable onPress={() => setDeletingMessageId(item.id)}>
                               <Text className="text-[11px] font-semibold text-paper/80">
-                                Reopen poll
+                                Delete poll
                               </Text>
                             </Pressable>
-                          ) : (
-                            <Pressable onPress={() => closePoll(group.id, item.id)}>
-                              <Text className="text-[11px] font-semibold text-paper/80">
-                                Close poll
-                              </Text>
-                            </Pressable>
-                          ))}
+                          </View>
+                        )}
                       </View>
                     </View>
                   ) : (
