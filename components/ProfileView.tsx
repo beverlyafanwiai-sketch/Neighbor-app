@@ -5,7 +5,13 @@ import { SvgXml } from 'react-native-svg';
 
 import { GROUP_SELFIE_SVG } from '../assets/illustrations/group-selfie';
 import { getUser, ME, type User, type VerificationBadge } from '../data/mock';
-import { formatMutualTrustLine, formatOwnTrustLine, getSharedGroups } from '../lib/trust';
+import {
+  formatMutualTrustLine,
+  formatOwnTrustLine,
+  getEventsAttendedTogether,
+  getMutualFriends,
+  getSharedGroups,
+} from '../lib/trust';
 import { getAvailableNote, isAvailable, useAvailabilityStore } from '../store/useAvailabilityStore';
 import { getEndorsementGroups, useEndorsementsStore } from '../store/useEndorsementsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
@@ -103,6 +109,7 @@ export default function ProfileView({
   const [endorsementDraft, setEndorsementDraft] = useState('');
   const [confirmingUnfriend, setConfirmingUnfriend] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [viewingConnections, setViewingConnections] = useState(false);
 
   const myFriendIds = Object.keys(friendStatuses).filter((id) => friendStatuses[id] === 'friends');
   const myJoinedGroupIds = Object.keys(joinedGroups).filter((id) => joinedGroups[id]);
@@ -110,6 +117,10 @@ export default function ProfileView({
     ? formatOwnTrustLine(myFriendIds.length, myJoinedGroupIds.length)
     : formatMutualTrustLine(user, myFriendIds, ME.id, myJoinedGroupIds);
   const sharedGroups = isMe ? [] : getSharedGroups(user.id, myJoinedGroupIds);
+  const mutualFriends = isMe ? [] : getMutualFriends(user, myFriendIds, ME.id);
+  const eventsTogether = isMe ? [] : getEventsAttendedTogether(user.id);
+  const hasConnections =
+    mutualFriends.length > 0 || sharedGroups.length > 0 || eventsTogether.length > 0;
 
   return (
     <>
@@ -533,12 +544,16 @@ export default function ProfileView({
               </Text>
               <Text className="mt-1 text-charcoal">{user.values}</Text>
             </View>
-            <View className="rounded-2xl bg-sand p-4">
+            <Pressable
+              disabled={isMe || !hasConnections}
+              onPress={() => setViewingConnections(true)}
+              className="rounded-2xl bg-sand p-4"
+            >
               <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
                 Trust
               </Text>
               <Text className="mt-1 text-charcoal">{trustLine}</Text>
-            </View>
+            </Pressable>
             {sharedGroups.length > 0 && (
               <View className="rounded-2xl bg-sand p-4">
                 <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
@@ -732,6 +747,79 @@ export default function ProfileView({
         previewText={`${isMe ? 'My' : `${user.name}'s`} profile on Neighbor — ${user.tagline}`}
         onClose={() => setSharing(false)}
       />
+    )}
+    {viewingConnections && (
+      <View className="absolute inset-0 items-center justify-end bg-ink/40">
+        <Pressable className="absolute inset-0" onPress={() => setViewingConnections(false)} />
+        <View className="max-h-[75%] w-full gap-4 rounded-t-3xl bg-cream p-5 pb-8">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-base font-bold text-charcoal">Mutual connections</Text>
+            <Pressable
+              onPress={() => setViewingConnections(false)}
+              className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+            >
+              <Ionicons name="close" size={16} className="text-charcoal" />
+            </Pressable>
+          </View>
+          <ScrollView showsVerticalScrollIndicator={false}>
+            <View className="gap-4">
+              {mutualFriends.length > 0 && (
+                <View className="gap-2">
+                  <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                    Mutual friends
+                  </Text>
+                  {mutualFriends.map((f) => (
+                    <Pressable
+                      key={f.id}
+                      onPress={() => {
+                        setViewingConnections(false);
+                        onFriendPress?.(f);
+                      }}
+                      className="flex-row items-center gap-3 rounded-2xl bg-sand p-3 active:opacity-70"
+                    >
+                      <Image source={{ uri: f.avatar }} className="h-9 w-9 rounded-full" />
+                      <Text className="font-medium text-charcoal">{f.name}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+              {sharedGroups.length > 0 && (
+                <View className="gap-2">
+                  <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                    Shared groups
+                  </Text>
+                  {sharedGroups.map((g) => (
+                    <Pressable
+                      key={g.id}
+                      onPress={() => {
+                        setViewingConnections(false);
+                        onGroupPress?.(g.id);
+                      }}
+                      className="flex-row items-center gap-3 rounded-2xl bg-sand p-3 active:opacity-70"
+                    >
+                      <Text className="flex-1 font-medium text-charcoal">{g.name}</Text>
+                      <Ionicons name="chevron-forward" size={16} className="text-charcoal/40" />
+                    </Pressable>
+                  ))}
+                </View>
+              )}
+              {eventsTogether.length > 0 && (
+                <View className="gap-2">
+                  <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                    Events attended together
+                  </Text>
+                  {eventsTogether.map((e) => (
+                    <View key={e.id} className="rounded-2xl bg-sand p-3">
+                      <Text className="font-medium text-charcoal">{e.title}</Text>
+                      <Text className="text-xs text-charcoal/50">{e.date}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        </View>
+      </View>
     )}
     </>
   );
