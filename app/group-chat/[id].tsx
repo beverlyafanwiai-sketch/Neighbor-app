@@ -320,7 +320,10 @@ export default function GroupChatThread() {
       )}
 
       {pinnedMessage && pinnedSender && (
-        <View className="flex-row items-center gap-2.5 border-b border-charcoal/10 bg-gold/10 px-4 py-2.5">
+        <Pressable
+          onPress={() => jumpToMessage(pinnedMessage.id)}
+          className="flex-row items-center gap-2.5 border-b border-charcoal/10 bg-gold/10 px-4 py-2.5"
+        >
           <Ionicons name="pin" size={14} className="text-gold" />
           <View className="flex-1">
             <Text className="text-xs font-semibold text-charcoal/60">
@@ -338,7 +341,7 @@ export default function GroupChatThread() {
               <Ionicons name="close" size={15} className="text-charcoal/50" />
             </Pressable>
           )}
-        </View>
+        </Pressable>
       )}
 
       {confirmingLeave && (
