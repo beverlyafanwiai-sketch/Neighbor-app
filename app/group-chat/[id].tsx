@@ -55,6 +55,7 @@ export default function GroupChatThread() {
   const votePoll = useGroupChatStore((s) => s.votePoll);
   const closePoll = useGroupChatStore((s) => s.closePoll);
   const reopenPoll = useGroupChatStore((s) => s.reopenPoll);
+  const addPollOption = useGroupChatStore((s) => s.addPollOption);
   const markRead = useGroupsStore((s) => s.markRead);
   const toggleJoin = useGroupsStore((s) => s.toggle);
 
@@ -62,6 +63,8 @@ export default function GroupChatThread() {
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
+  const [addingOptionForId, setAddingOptionForId] = useState<string | null>(null);
+  const [newOptionDraft, setNewOptionDraft] = useState('');
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
   const [reactorsFor, setReactorsFor] = useState<string | null>(null);
@@ -549,6 +552,61 @@ export default function GroupChatThread() {
                           );
                         });
                       })()}
+                      {isMe && !item.poll.closed && (
+                        addingOptionForId === item.id ? (
+                          <View className="flex-row items-center gap-1.5">
+                            <TextInput
+                              value={newOptionDraft}
+                              onChangeText={setNewOptionDraft}
+                              placeholder="New option..."
+                              placeholderTextColor={isMe ? '#FAF3E680' : '#3D3D3D80'}
+                              autoFocus
+                              className={`flex-1 rounded-lg px-2.5 py-1.5 text-xs ${
+                                isMe ? 'bg-paper/15 text-paper' : 'bg-charcoal/5 text-charcoal'
+                              }`}
+                            />
+                            <Pressable
+                              onPress={() => {
+                                setAddingOptionForId(null);
+                                setNewOptionDraft('');
+                              }}
+                            >
+                              <Text
+                                className={`text-[11px] font-medium ${isMe ? 'text-paper/70' : 'text-charcoal/50'}`}
+                              >
+                                Cancel
+                              </Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => {
+                                if (!newOptionDraft.trim()) return;
+                                addPollOption(group.id, item.id, newOptionDraft);
+                                setAddingOptionForId(null);
+                                setNewOptionDraft('');
+                              }}
+                            >
+                              <Text
+                                className={`text-[11px] font-semibold ${isMe ? 'text-paper' : 'text-terracotta'}`}
+                              >
+                                Add
+                              </Text>
+                            </Pressable>
+                          </View>
+                        ) : (
+                          <Pressable
+                            onPress={() => {
+                              setAddingOptionForId(item.id);
+                              setNewOptionDraft('');
+                            }}
+                          >
+                            <Text
+                              className={`text-[11px] font-semibold ${isMe ? 'text-paper/70' : 'text-charcoal/50'}`}
+                            >
+                              + Add an option
+                            </Text>
+                          </Pressable>
+                        )
+                      )}
                       <View className="flex-row items-center justify-between">
                         <Text className={`text-[11px] ${isMe ? 'text-paper/60' : 'text-charcoal/40'}`}>
                           {Object.keys(item.poll.votes).length} vote
