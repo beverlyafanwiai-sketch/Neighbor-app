@@ -59,6 +59,7 @@ type Props = {
   onPhotoPress?: (postId: string) => void;
   onCreatePost?: () => void;
   onGroupPress?: (groupId: string) => void;
+  onEventPress?: (eventId: string) => void;
 };
 
 export default function ProfileView({
@@ -76,6 +77,7 @@ export default function ProfileView({
   onPhotoPress,
   onCreatePost,
   onGroupPress,
+  onEventPress,
 }: Props) {
   const [tab, setTab] = useState<Tab>('About');
   const myAvailable = useAvailabilityStore((s) => s.myAvailable);
@@ -847,10 +849,17 @@ export default function ProfileView({
                     Events attended together
                   </Text>
                   {eventsTogether.map((e) => (
-                    <View key={e.id} className="rounded-2xl bg-sand p-3">
+                    <Pressable
+                      key={e.id}
+                      onPress={() => {
+                        setViewingConnections(false);
+                        onEventPress?.(e.id);
+                      }}
+                      className="rounded-2xl bg-sand p-3 active:opacity-70"
+                    >
                       <Text className="font-medium text-charcoal">{e.title}</Text>
                       <Text className="text-xs text-charcoal/50">{e.date}</Text>
-                    </View>
+                    </Pressable>
                   ))}
                 </View>
               )}
