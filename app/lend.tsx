@@ -15,7 +15,7 @@ import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaption
 import { useProfileStore } from '../store/useProfileStore';
 import { useSavedLendStore } from '../store/useSavedLendStore';
 
-const LEND_SORTS = ['Newest', 'A-Z'] as const;
+const LEND_SORTS = ['Newest', 'A-Z', 'Most helpers'] as const;
 type LendSort = (typeof LEND_SORTS)[number];
 
 const KIND_FILTERS = ['All', 'Have', 'Want'] as const;
@@ -73,7 +73,13 @@ export default function LendBoard() {
   const boardItems =
     sortBy === 'A-Z'
       ? [...unsortedBoardItems].sort((a, b) => a.title.localeCompare(b.title))
-      : unsortedBoardItems;
+      : sortBy === 'Most helpers'
+        ? [...unsortedBoardItems].sort(
+            (a, b) =>
+              getEffectiveHelperCount(b.id, myOffers[b.id] ?? false) -
+              getEffectiveHelperCount(a.id, myOffers[a.id] ?? false)
+          )
+        : unsortedBoardItems;
   const sharingItem = items.find((i) => i.id === sharingId);
   const viewingHelpersItem = items.find((i) => i.id === viewingHelpersId);
   const viewingHelpersIds = viewingHelpersItem
