@@ -19,6 +19,7 @@ import { useGroupsStore } from '../store/useGroupsStore';
 import { usePostsStore } from '../store/usePostsStore';
 import { getWelcomeNotes, useWelcomeNotesStore } from '../store/useWelcomeNotesStore';
 import EmptyState from './EmptyState';
+import ReactionButton from './ReactionButton';
 import ShareSheet from './ShareSheet';
 
 const TABS = ['About', 'Prompts', 'Photos', 'Friends'] as const;
@@ -95,6 +96,9 @@ export default function ProfileView({
   const addWelcomeNote = useWelcomeNotesStore((s) => s.addNote);
   const deleteWelcomeNote = useWelcomeNotesStore((s) => s.deleteNote);
   const editWelcomeNote = useWelcomeNotesStore((s) => s.editNote);
+  const myNoteReactions = useWelcomeNotesStore((s) => s.myReactions);
+  const tapNoteReaction = useWelcomeNotesStore((s) => s.tapReaction);
+  const setNoteReaction = useWelcomeNotesStore((s) => s.setReaction);
   const welcomeNotes = getWelcomeNotes(user.id, allWelcomeNotes);
   const [composingNote, setComposingNote] = useState(false);
   const [noteDraft, setNoteDraft] = useState('');
@@ -424,6 +428,13 @@ export default function ProfileView({
                         — {isMine ? 'You' : (author?.name ?? 'A neighbor')}
                         {note.edited && ' · edited'}
                       </Text>
+                      <ReactionButton
+                        compact
+                        reactions={note.reactions}
+                        myReaction={myNoteReactions[note.id]}
+                        onTap={() => tapNoteReaction(note.id)}
+                        onSelect={(type) => setNoteReaction(note.id, type)}
+                      />
                     </View>
                     {isMine && (
                       <>

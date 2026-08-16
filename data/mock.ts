@@ -768,6 +768,7 @@ export type WelcomeNote = {
   fromUserId: string;
   text: string;
   edited?: boolean;
+  reactions?: Record<string, ReactionType>;
 };
 
 export const WELCOME_NOTES: WelcomeNote[] = [
@@ -788,6 +789,7 @@ export const WELCOME_NOTES: WelcomeNote[] = [
     toUserId: 'priya',
     fromUserId: 'theo',
     text: 'Welcome to the block! The farmers market on Sundays is not to be missed.',
+    reactions: { maya: 'love' },
   },
 ];
 

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { getUser, ME, WELCOME_NOTES, type WelcomeNote } from '../data/mock';
+import { getUser, ME, WELCOME_NOTES, type ReactionType, type WelcomeNote } from '../data/mock';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
@@ -8,13 +8,17 @@ const THANKS_DELAY_MS = 2500;
 
 type WelcomeNotesState = {
   notes: WelcomeNote[];
+  myReactions: Record<string, ReactionType | undefined>;
   addNote: (toUserId: string, text: string) => void;
   editNote: (noteId: string, text: string) => void;
   deleteNote: (noteId: string) => void;
+  tapReaction: (noteId: string) => void;
+  setReaction: (noteId: string, type: ReactionType) => void;
 };
 
 export const useWelcomeNotesStore = create<WelcomeNotesState>((set) => ({
   notes: WELCOME_NOTES,
+  myReactions: {},
 
   addNote: (toUserId, text) => {
     const note: WelcomeNote = {
@@ -50,6 +54,16 @@ export const useWelcomeNotesStore = create<WelcomeNotesState>((set) => ({
 
   deleteNote: (noteId) =>
     set((s) => ({ notes: s.notes.filter((n) => n.id !== noteId) })),
+
+  tapReaction: (noteId) =>
+    set((s) => ({
+      myReactions: { ...s.myReactions, [noteId]: s.myReactions[noteId] ? undefined : 'love' },
+    })),
+
+  setReaction: (noteId, type) =>
+    set((s) => ({
+      myReactions: { ...s.myReactions, [noteId]: s.myReactions[noteId] === type ? undefined : type },
+    })),
 }));
 
 export function getWelcomeNotes(userId: string, notes: WelcomeNote[]) {
