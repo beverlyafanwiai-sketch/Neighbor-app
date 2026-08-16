@@ -4,14 +4,24 @@ import { ME, type EventItem } from '../data/mock';
 
 type CheckInState = {
   myCheckIns: Record<string, boolean>;
-  toggleCheckIn: (eventId: string) => void;
+  checkInNotes: Record<string, string>;
+  toggleCheckIn: (eventId: string, note?: string) => void;
 };
 
 export const useCheckInStore = create<CheckInState>((set) => ({
   myCheckIns: {},
+  checkInNotes: {},
 
-  toggleCheckIn: (eventId) =>
-    set((s) => ({ myCheckIns: { ...s.myCheckIns, [eventId]: !s.myCheckIns[eventId] } })),
+  toggleCheckIn: (eventId, note) =>
+    set((s) => {
+      const checkingIn = !s.myCheckIns[eventId];
+      const { [eventId]: _removed, ...restNotes } = s.checkInNotes;
+      return {
+        myCheckIns: { ...s.myCheckIns, [eventId]: checkingIn },
+        checkInNotes:
+          checkingIn && note?.trim() ? { ...restNotes, [eventId]: note.trim() } : restNotes,
+      };
+    }),
 }));
 
 // event.checkedInIds is the baseline list of other attendees who've checked

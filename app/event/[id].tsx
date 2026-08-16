@@ -47,6 +47,7 @@ export default function EventDetail() {
   const respondFriend = useFriendsStore((s) => s.respond);
   const myCheckedIn = useCheckInStore((s) => (event ? (s.myCheckIns[event.id] ?? false) : false));
   const toggleCheckIn = useCheckInStore((s) => s.toggleCheckIn);
+  const checkInNotes = useCheckInStore((s) => s.checkInNotes);
   const albumPhotos = useEventAlbumStore((s) => s.photos);
   const addPhotos = useEventAlbumStore((s) => s.addPhotos);
   const removePhoto = useEventAlbumStore((s) => s.removePhoto);
@@ -74,6 +75,8 @@ export default function EventDetail() {
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [confirmingCancelOfferId, setConfirmingCancelOfferId] = useState<string | null>(null);
   const [postingUpdate, setPostingUpdate] = useState(false);
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [checkInNoteDraft, setCheckInNoteDraft] = useState('');
   const [updateDraft, setUpdateDraft] = useState('');
   const [confirmingRemoveRiderId, setConfirmingRemoveRiderId] = useState<string | null>(null);
   const [calendarAdded, setCalendarAdded] = useState(false);
@@ -545,25 +548,55 @@ export default function EventDetail() {
             </Pressable>
           )}
 
-          {canCheckIn && (
-            <Pressable
-              onPress={() => toggleCheckIn(event.id)}
-              className={`mt-3 flex-row items-center justify-center gap-1.5 rounded-full py-3 ${
-                myCheckedIn ? 'bg-sage/20' : 'border border-charcoal/15'
-              }`}
-            >
-              <Ionicons
-                name={myCheckedIn ? 'checkmark-circle' : 'location-outline'}
-                size={16}
-                className={myCheckedIn ? 'text-sage' : 'text-charcoal'}
-              />
-              <Text
-                className={`text-sm font-semibold ${myCheckedIn ? 'text-sage' : 'text-charcoal'}`}
+          {canCheckIn &&
+            (checkingIn ? (
+              <View className="mt-3 gap-2 rounded-2xl bg-cream p-4">
+                <TextInput
+                  value={checkInNoteDraft}
+                  onChangeText={setCheckInNoteDraft}
+                  placeholder="Optional note, e.g. brought dessert!"
+                  placeholderTextColor="#3D3D3D80"
+                  className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+                />
+                <View className="flex-row justify-end gap-4">
+                  <Pressable
+                    onPress={() => {
+                      setCheckingIn(false);
+                      setCheckInNoteDraft('');
+                    }}
+                  >
+                    <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      toggleCheckIn(event.id, checkInNoteDraft);
+                      setCheckingIn(false);
+                      setCheckInNoteDraft('');
+                    }}
+                  >
+                    <Text className="text-sm font-semibold text-terracotta">I'm here</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => (myCheckedIn ? toggleCheckIn(event.id) : setCheckingIn(true))}
+                className={`mt-3 flex-row items-center justify-center gap-1.5 rounded-full py-3 ${
+                  myCheckedIn ? 'bg-sage/20' : 'border border-charcoal/15'
+                }`}
               >
-                {myCheckedIn ? "You're checked in" : "I'm here"}
-              </Text>
-            </Pressable>
-          )}
+                <Ionicons
+                  name={myCheckedIn ? 'checkmark-circle' : 'location-outline'}
+                  size={16}
+                  className={myCheckedIn ? 'text-sage' : 'text-charcoal'}
+                />
+                <Text
+                  className={`text-sm font-semibold ${myCheckedIn ? 'text-sage' : 'text-charcoal'}`}
+                >
+                  {myCheckedIn ? "You're checked in" : "I'm here"}
+                </Text>
+              </Pressable>
+            ))}
         </View>
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
@@ -1131,7 +1164,12 @@ export default function EventDetail() {
                     className="flex-row items-center gap-2.5 rounded-2xl bg-cream p-3"
                   >
                     <Image source={{ uri: p!.avatar }} className="h-9 w-9 rounded-full" />
-                    <Text className="flex-1 text-sm text-charcoal">{isMe ? 'You' : p!.name}</Text>
+                    <View className="flex-1">
+                      <Text className="text-sm text-charcoal">{isMe ? 'You' : p!.name}</Text>
+                      {isMe && checkInNotes[event.id] && (
+                        <Text className="text-xs text-charcoal/50">{checkInNotes[event.id]}</Text>
+                      )}
+                    </View>
                     {!isMe && (
                       <Pressable
                         onPress={() => respondFriend(p!.id)}
