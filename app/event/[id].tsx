@@ -19,6 +19,7 @@ import {
   useEventRatingsStore,
 } from '../../store/useEventRatingsStore';
 import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumStore';
+import { useEventUpdatesStore } from '../../store/useEventUpdatesStore';
 import { canManageEvent, useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -58,6 +59,8 @@ export default function EventDetail() {
   const leaveSeat = useCarpoolStore((s) => s.leaveSeat);
   const removeRider = useCarpoolStore((s) => s.removeRider);
   const offerSeatTo = useCarpoolStore((s) => s.offerSeatTo);
+  const allEventUpdates = useEventUpdatesStore((s) => s.updates);
+  const postEventUpdate = useEventUpdatesStore((s) => s.postUpdate);
   const requestRide = useCarpoolStore((s) => s.requestRide);
   const updateRequest = useCarpoolStore((s) => s.updateRequest);
   const cancelRideRequest = useCarpoolStore((s) => s.cancelRideRequest);
@@ -68,6 +71,8 @@ export default function EventDetail() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [confirmingCancelOfferId, setConfirmingCancelOfferId] = useState<string | null>(null);
+  const [postingUpdate, setPostingUpdate] = useState(false);
+  const [updateDraft, setUpdateDraft] = useState('');
   const [confirmingRemoveRiderId, setConfirmingRemoveRiderId] = useState<string | null>(null);
   const [calendarAdded, setCalendarAdded] = useState(false);
   const [offeringRide, setOfferingRide] = useState(false);
@@ -100,6 +105,7 @@ export default function EventDetail() {
   const isHost = event.hostId === ME.id;
   const canManage = canManageEvent(event, ME.id);
   const isCoHost = canManage && !isHost;
+  const eventUpdates = allEventUpdates[event.id] ?? [];
   const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(event.id, going, bringingGuest);
   const waitlistPosition = getWaitlistPosition(event.id, waitlisted);
   const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
@@ -345,6 +351,64 @@ export default function EventDetail() {
           )}
 
           <Text className="mt-4 text-[15px] leading-5 text-charcoal/80">{event.description}</Text>
+
+          {(eventUpdates.length > 0 || canManage) && (
+            <View className="mt-4 gap-2">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                Updates
+              </Text>
+              {eventUpdates.map((u) => (
+                <View key={u.id} className="rounded-2xl bg-sand p-3.5">
+                  <Text className="text-sm leading-5 text-charcoal">{u.text}</Text>
+                  <Text className="mt-1 text-xs text-charcoal/50">{u.time}</Text>
+                </View>
+              ))}
+              {canManage &&
+                (postingUpdate ? (
+                  <View className="gap-2 rounded-2xl bg-sand p-3.5">
+                    <TextInput
+                      value={updateDraft}
+                      onChangeText={setUpdateDraft}
+                      placeholder="e.g. Bring your own chairs!"
+                      placeholderTextColor="#3D3D3D80"
+                      multiline
+                      autoFocus
+                      className="rounded-xl bg-cream px-3 py-2 text-sm text-charcoal"
+                    />
+                    <View className="flex-row justify-end gap-4">
+                      <Pressable
+                        onPress={() => {
+                          setPostingUpdate(false);
+                          setUpdateDraft('');
+                        }}
+                      >
+                        <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          if (!updateDraft.trim()) return;
+                          postEventUpdate(event.id, updateDraft);
+                          setPostingUpdate(false);
+                          setUpdateDraft('');
+                        }}
+                      >
+                        <Text className="text-sm font-semibold text-terracotta">Send to attendees</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                ) : (
+                  <Pressable
+                    onPress={() => setPostingUpdate(true)}
+                    className="flex-row items-center gap-2 rounded-2xl bg-sand p-3.5 active:opacity-80"
+                  >
+                    <Ionicons name="megaphone-outline" size={16} className="text-terracotta" />
+                    <Text className="text-sm font-medium text-terracotta">
+                      Post an update to attendees
+                    </Text>
+                  </Pressable>
+                ))}
+            </View>
+          )}
 
           {event.recurrence && occurrences.length > 0 && (
             <View className="mt-4 rounded-2xl bg-sand p-3.5">
