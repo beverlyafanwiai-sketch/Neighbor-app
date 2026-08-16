@@ -73,6 +73,7 @@ export default function Saved() {
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState<SavedSort>('Newest');
   const [recKindFilter, setRecKindFilter] = useState<RecKindFilter>('All');
+  const [hideSold, setHideSold] = useState(false);
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
@@ -133,7 +134,12 @@ export default function Saved() {
     (i) => getEffectiveHelperCount(i.id, myOffers[i.id] ?? false)
   );
   const savedSaleItems = sortItems(
-    saleItems.filter((i) => (savedSaleIds[i.id] ?? false) && matches(i.title, i.note)),
+    saleItems.filter(
+      (i) =>
+        (savedSaleIds[i.id] ?? false) &&
+        matches(i.title, i.note) &&
+        (!hideSold || !(sold[i.id] ?? false))
+    ),
     sortBy,
     (i) => i.title,
     (i) => i.price,
@@ -212,6 +218,20 @@ export default function Saved() {
             </Pressable>
           ))}
         </View>
+      )}
+
+      {mode === 'For Sale' && (
+        <Pressable
+          onPress={() => setHideSold((h) => !h)}
+          className="flex-row items-center gap-2 px-5 pb-3"
+        >
+          <Ionicons
+            name={hideSold ? 'checkbox' : 'square-outline'}
+            size={16}
+            className={hideSold ? 'text-terracotta' : 'text-charcoal/40'}
+          />
+          <Text className="text-xs font-medium text-charcoal/60">Hide sold items</Text>
+        </Pressable>
       )}
 
       {mode !== 'Posts' &&
@@ -312,11 +332,19 @@ export default function Saved() {
           <EmptyState
             icon={q.length > 0 ? 'search-outline' : 'bookmark-outline'}
             iconColorClassName="text-charcoal/50"
-            title={q.length > 0 ? `No results for "${query.trim()}"` : 'No saved listings'}
+            title={
+              q.length > 0
+                ? `No results for "${query.trim()}"`
+                : hideSold
+                  ? 'No available saved listings'
+                  : 'No saved listings'
+            }
             subtitle={
               q.length > 0
                 ? 'Try a different search term.'
-                : 'Tap the bookmark on any For Sale listing to save it for later.'
+                : hideSold
+                  ? 'Turn off "Hide sold items" to see everything you saved.'
+                  : 'Tap the bookmark on any For Sale listing to save it for later.'
             }
           />
         )}
