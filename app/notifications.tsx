@@ -116,6 +116,15 @@ export default function Notifications() {
                 className={`rounded-2xl p-4 ${n.read ? 'bg-cream' : 'bg-cream border border-terracotta/30'}`}
               >
                 <View className="flex-row items-center gap-2">
+                  {actor ? (
+                    <Pressable onPress={() => router.push(`/profile/${actor.id}`)}>
+                      <Image source={{ uri: actor.avatar }} className="h-11 w-11 rounded-full" />
+                    </Pressable>
+                  ) : (
+                    <View className="h-11 w-11 items-center justify-center rounded-full bg-sage/20">
+                      <Ionicons name={TYPE_ICON[n.type]} size={18} className="text-sage" />
+                    </View>
+                  )}
                   <Pressable
                     onPress={() => {
                       markRead(n.id);
@@ -123,13 +132,6 @@ export default function Notifications() {
                     }}
                     className="flex-1 flex-row items-center gap-3 active:opacity-80"
                   >
-                    {actor ? (
-                      <Image source={{ uri: actor.avatar }} className="h-11 w-11 rounded-full" />
-                    ) : (
-                      <View className="h-11 w-11 items-center justify-center rounded-full bg-sage/20">
-                        <Ionicons name={TYPE_ICON[n.type]} size={18} className="text-sage" />
-                      </View>
-                    )}
                     <View className="flex-1">
                       <Text
                         className={`text-[15px] ${n.read ? 'text-charcoal/80' : 'font-semibold text-charcoal'}`}
