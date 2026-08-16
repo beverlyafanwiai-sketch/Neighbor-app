@@ -74,6 +74,7 @@ export default function Saved() {
   const [sortBy, setSortBy] = useState<SavedSort>('Newest');
   const [recKindFilter, setRecKindFilter] = useState<RecKindFilter>('All');
   const [hideSold, setHideSold] = useState(false);
+  const [hideUnavailable, setHideUnavailable] = useState(false);
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
@@ -127,7 +128,12 @@ export default function Saved() {
     (e) => getEffectiveAgreeCount(e.id, myAgreed[e.id] ?? false)
   );
   const savedLendItems = sortItems(
-    lendItems.filter((i) => (savedLendIds[i.id] ?? false) && matches(i.title, i.note)),
+    lendItems.filter(
+      (i) =>
+        (savedLendIds[i.id] ?? false) &&
+        matches(i.title, i.note) &&
+        (!hideUnavailable || (lendStatus[i.id] ?? 'available') === 'available')
+    ),
     sortBy,
     (i) => i.title,
     undefined,
@@ -234,6 +240,20 @@ export default function Saved() {
         </Pressable>
       )}
 
+      {mode === 'Lend' && (
+        <Pressable
+          onPress={() => setHideUnavailable((h) => !h)}
+          className="flex-row items-center gap-2 px-5 pb-3"
+        >
+          <Ionicons
+            name={hideUnavailable ? 'checkbox' : 'square-outline'}
+            size={16}
+            className={hideUnavailable ? 'text-terracotta' : 'text-charcoal/40'}
+          />
+          <Text className="text-xs font-medium text-charcoal/60">Hide unavailable items</Text>
+        </Pressable>
+      )}
+
       {mode !== 'Posts' &&
         (mode === 'Events'
           ? savedEvents.length
@@ -319,11 +339,19 @@ export default function Saved() {
           <EmptyState
             icon={q.length > 0 ? 'search-outline' : 'bookmark-outline'}
             iconColorClassName="text-charcoal/50"
-            title={q.length > 0 ? `No results for "${query.trim()}"` : 'No saved items'}
+            title={
+              q.length > 0
+                ? `No results for "${query.trim()}"`
+                : hideUnavailable
+                  ? 'No available saved items'
+                  : 'No saved items'
+            }
             subtitle={
               q.length > 0
                 ? 'Try a different search term.'
-                : 'Tap the bookmark on any Borrow & Lend listing to save it for later.'
+                : hideUnavailable
+                  ? 'Turn off "Hide unavailable items" to see everything you saved.'
+                  : 'Tap the bookmark on any Borrow & Lend listing to save it for later.'
             }
           />
         )}
