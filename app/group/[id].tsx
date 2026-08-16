@@ -43,6 +43,7 @@ export default function GroupDetail() {
   const events = useEventsStore((s) => s.events);
   const goingMap = useRsvpStore((s) => s.going);
   const inviteCode = useGroupsStore((s) => (group ? s.inviteCodes[group.id] : undefined));
+  const regenerateInviteCode = useGroupsStore((s) => s.regenerateInviteCode);
   const mutedGroupIds = useMutedGroupsStore((s) => s.mutedGroupIds);
   const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -445,6 +446,8 @@ export default function GroupDetail() {
           groupName={group.name}
           code={inviteCode ?? ''}
           onClose={() => setInviting(false)}
+          isAdmin={isAdmin}
+          onRegenerate={() => regenerateInviteCode(group.id)}
         />
       )}
 

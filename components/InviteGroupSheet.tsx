@@ -7,10 +7,13 @@ type Props = {
   groupName: string;
   code: string;
   onClose: () => void;
+  isAdmin?: boolean;
+  onRegenerate?: () => void;
 };
 
-export default function InviteGroupSheet({ groupName, code, onClose }: Props) {
+export default function InviteGroupSheet({ groupName, code, onClose, isAdmin, onRegenerate }: Props) {
   const [copied, setCopied] = useState(false);
+  const [confirmingRegenerate, setConfirmingRegenerate] = useState(false);
   const link = `https://neighbor.app/invite/${code}`;
 
   const copyLink = async () => {
@@ -75,6 +78,37 @@ export default function InviteGroupSheet({ groupName, code, onClose }: Props) {
           <Ionicons name="arrow-redo-outline" size={20} className="text-charcoal" />
           <Text className="text-sm font-medium text-charcoal">Share via...</Text>
         </Pressable>
+
+        {isAdmin && onRegenerate && (
+          confirmingRegenerate ? (
+            <View className="gap-2 rounded-2xl bg-terracotta/10 p-4">
+              <Text className="text-sm text-charcoal">
+                Get a new code? The old one will stop working.
+              </Text>
+              <View className="flex-row justify-end gap-4">
+                <Pressable onPress={() => setConfirmingRegenerate(false)}>
+                  <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    onRegenerate();
+                    setConfirmingRegenerate(false);
+                  }}
+                >
+                  <Text className="text-sm font-semibold text-terracotta">Regenerate</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => setConfirmingRegenerate(true)}
+              className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
+            >
+              <Ionicons name="refresh-outline" size={20} className="text-terracotta" />
+              <Text className="text-sm font-medium text-terracotta">Regenerate code</Text>
+            </Pressable>
+          )
+        )}
       </View>
     </View>
   );

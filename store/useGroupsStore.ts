@@ -28,6 +28,7 @@ type GroupsState = {
   demoteCoAdmin: (groupId: string, userId: string) => void;
   removeMember: (groupId: string, userId: string) => void;
   joinByInviteCode: (code: string) => string | null;
+  regenerateInviteCode: (groupId: string) => void;
 };
 
 function slugify(name: string) {
@@ -168,6 +169,9 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
     set((s) => ({ joined: { ...s.joined, [groupId]: true } }));
     return groupId;
   },
+
+  regenerateInviteCode: (groupId) =>
+    set((s) => ({ inviteCodes: { ...s.inviteCodes, [groupId]: generateInviteCode() } })),
 }));
 
 export function getGroup(groupId: string): Group | undefined {
