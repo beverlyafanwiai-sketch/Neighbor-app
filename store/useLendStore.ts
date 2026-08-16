@@ -34,6 +34,7 @@ type LendState = {
   approveRequest: (itemId: string, days?: number) => void;
   declineRequest: (itemId: string) => void;
   markReturned: (itemId: string) => void;
+  updateDueDate: (itemId: string, days: number) => void;
   offerToHelp: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
 };
@@ -155,6 +156,13 @@ export const useLendStore = create<LendState>((set, get) => ({
         requestNotes,
       };
     }),
+
+  updateDueDate: (itemId, days) =>
+    set((s) =>
+      s.status[itemId] === 'lent'
+        ? { dueLabel: { ...s.dueLabel, [itemId]: dueLabelFromNow(days) } }
+        : s
+    ),
 
   offerToHelp: (itemId) => {
     const item = get().items.find((i) => i.id === itemId);

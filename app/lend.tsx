@@ -34,6 +34,7 @@ export default function LendBoard() {
   const approveRequest = useLendStore((s) => s.approveRequest);
   const declineRequest = useLendStore((s) => s.declineRequest);
   const markReturned = useLendStore((s) => s.markReturned);
+  const updateDueDate = useLendStore((s) => s.updateDueDate);
   const offerToHelp = useLendStore((s) => s.offerToHelp);
   const deleteItem = useLendStore((s) => s.deleteItem);
   const profile = useProfileStore((s) => s.profile);
@@ -56,6 +57,7 @@ export default function LendBoard() {
     isMine: boolean;
   } | null>(null);
   const [approvingItemId, setApprovingItemId] = useState<string | null>(null);
+  const [editingDueDateItemId, setEditingDueDateItemId] = useState<string | null>(null);
   const [requestingBorrowId, setRequestingBorrowId] = useState<string | null>(null);
   const [borrowRequestNote, setBorrowRequestNote] = useState('');
   const [dueDays, setDueDays] = useState(5);
@@ -321,18 +323,65 @@ export default function LendBoard() {
                           )}
                         </View>
                       ) : itemStatus === 'lent' && borrower ? (
-                        <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
-                          <Text className="flex-1 text-sm text-charcoal">
-                            Lent to {borrower.name}
-                            {dueLabel[item.id] ? ` · back by ${dueLabel[item.id]}` : ''}
-                          </Text>
-                          <Pressable
-                            onPress={() => markReturned(item.id)}
-                            className="rounded-full bg-sage/20 px-4 py-1.5"
-                          >
-                            <Text className="text-xs font-semibold text-sage">Mark returned</Text>
-                          </Pressable>
-                        </View>
+                        editingDueDateItemId === item.id ? (
+                          <View className="mt-3 gap-2 border-t border-charcoal/10 pt-3">
+                            <Text className="text-xs text-charcoal/50">New due date, in days:</Text>
+                            <View className="flex-row gap-2">
+                              {[3, 5, 7, 14].map((d) => (
+                                <Pressable
+                                  key={d}
+                                  onPress={() => setDueDays(d)}
+                                  className={`rounded-full px-3 py-1.5 ${
+                                    dueDays === d ? 'bg-terracotta' : 'bg-sand'
+                                  }`}
+                                >
+                                  <Text
+                                    className={`text-xs font-semibold ${
+                                      dueDays === d ? 'text-paper' : 'text-charcoal'
+                                    }`}
+                                  >
+                                    {d}
+                                  </Text>
+                                </Pressable>
+                              ))}
+                            </View>
+                            <View className="flex-row justify-end gap-4">
+                              <Pressable onPress={() => setEditingDueDateItemId(null)}>
+                                <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                              </Pressable>
+                              <Pressable
+                                onPress={() => {
+                                  updateDueDate(item.id, dueDays);
+                                  setEditingDueDateItemId(null);
+                                }}
+                              >
+                                <Text className="text-sm font-semibold text-terracotta">Save</Text>
+                              </Pressable>
+                            </View>
+                          </View>
+                        ) : (
+                          <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
+                            <Text className="flex-1 text-sm text-charcoal">
+                              Lent to {borrower.name}
+                              {dueLabel[item.id] ? ` · back by ${dueLabel[item.id]}` : ''}
+                            </Text>
+                            <Pressable
+                              onPress={() => {
+                                setEditingDueDateItemId(item.id);
+                                setDueDays(5);
+                              }}
+                              className="h-8 w-8 items-center justify-center rounded-full"
+                            >
+                              <Ionicons name="pencil" size={14} className="text-charcoal/50" />
+                            </Pressable>
+                            <Pressable
+                              onPress={() => markReturned(item.id)}
+                              className="rounded-full bg-sage/20 px-4 py-1.5"
+                            >
+                              <Text className="text-xs font-semibold text-sage">Mark returned</Text>
+                            </Pressable>
+                          </View>
+                        )
                       ) : (
                         <Text className="mt-3 border-t border-charcoal/10 pt-3 text-sm text-charcoal/50">
                           Available to lend
