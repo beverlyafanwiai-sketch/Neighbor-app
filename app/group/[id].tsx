@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -54,6 +54,7 @@ export default function GroupDetail() {
   const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
   const [confirmingRemovePhotoId, setConfirmingRemovePhotoId] = useState<string | null>(null);
   const [confirmingRemoveMemberId, setConfirmingRemoveMemberId] = useState<string | null>(null);
+  const [memberQuery, setMemberQuery] = useState('');
   const [confirmingTransferId, setConfirmingTransferId] = useState<string | null>(null);
 
   if (!group) {
@@ -69,6 +70,9 @@ export default function GroupDetail() {
 
   const otherMembers = group.memberIds.map((id) => getUser(id)).filter(Boolean);
   const members = joined ? [profile, ...otherMembers] : otherMembers;
+  const memberQ = memberQuery.trim().toLowerCase();
+  const visibleMembers =
+    memberQ.length === 0 ? members : members.filter((m) => m!.name.toLowerCase().includes(memberQ));
   const toneStyle = TONE_STYLE[group.tone] ?? TONE_STYLE.Casual;
   const isCreator = group.createdBy === ME.id;
   const isAdmin = isGroupAdmin(group, ME.id);
@@ -317,8 +321,28 @@ export default function GroupDetail() {
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
           Members
         </Text>
+        {members.length > 4 && (
+          <View className="mb-3 flex-row items-center rounded-full bg-cream px-4 py-2.5">
+            <Ionicons name="search" size={16} className="text-charcoal/50" />
+            <TextInput
+              value={memberQuery}
+              onChangeText={setMemberQuery}
+              placeholder="Search members..."
+              placeholderTextColor="#3D3D3D80"
+              className="ml-2 flex-1 text-sm text-charcoal"
+            />
+            {memberQuery.length > 0 && (
+              <Pressable onPress={() => setMemberQuery('')}>
+                <Ionicons name="close-circle" size={16} className="text-charcoal/50" />
+              </Pressable>
+            )}
+          </View>
+        )}
+        {visibleMembers.length === 0 && (
+          <Text className="text-sm text-charcoal/50">No members match "{memberQuery.trim()}".</Text>
+        )}
         <View className="gap-3">
-          {members.map((m) => {
+          {visibleMembers.map((m) => {
             const isMe = m!.id === ME.id;
             const isMemberCreator = m!.id === group.createdBy;
             const isMemberCoAdmin = (group.coAdminIds ?? []).includes(m!.id);
