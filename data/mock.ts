@@ -259,6 +259,7 @@ export type PollOption = {
 
 export type Poll = {
   options: PollOption[];
+  closesAt?: number;
 };
 
 export type Post = {

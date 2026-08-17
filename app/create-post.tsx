@@ -22,6 +22,13 @@ import { useProfileStore } from '../store/useProfileStore';
 
 const MAX_PHOTOS = 4;
 
+const POLL_DURATION_PRESETS: { label: string; hours: number | null }[] = [
+  { label: 'No closing time', hours: null },
+  { label: '1 hour', hours: 1 },
+  { label: '1 day', hours: 24 },
+  { label: '3 days', hours: 72 },
+];
+
 export default function CreatePost() {
   const { id: editId, draftId, scheduledId } = useLocalSearchParams<{
     id?: string;
@@ -48,6 +55,7 @@ export default function CreatePost() {
   const [confirmingClose, setConfirmingClose] = useState(false);
   const [showPollBuilder, setShowPollBuilder] = useState(false);
   const [pollOptions, setPollOptions] = useState(['', '']);
+  const [pollDurationHours, setPollDurationHours] = useState<number | null>(null);
   const [scheduledFor, setScheduledFor] = useState<number | null>(existingScheduled?.scheduledFor ?? null);
   const [showSchedulePicker, setShowSchedulePicker] = useState(false);
 
@@ -86,7 +94,10 @@ export default function CreatePost() {
     }
     const poll: Poll | undefined =
       showPollBuilder && validPollOptions.length >= 2
-        ? { options: validPollOptions.map((label, i) => ({ id: `opt-${i}`, label, votes: 0 })) }
+        ? {
+            options: validPollOptions.map((label, i) => ({ id: `opt-${i}`, label, votes: 0 })),
+            closesAt: pollDurationHours ? Date.now() + pollDurationHours * 60 * 60 * 1000 : undefined,
+          }
         : undefined;
     if (scheduledFor) {
       schedulePost({ id: scheduledId, body: body.trim(), imageUris, poll, scheduledFor });
@@ -219,6 +230,7 @@ export default function CreatePost() {
                   onPress={() => {
                     setShowPollBuilder(false);
                     setPollOptions(['', '']);
+                    setPollDurationHours(null);
                   }}
                   className="h-6 w-6 items-center justify-center"
                 >
@@ -257,6 +269,27 @@ export default function CreatePost() {
                   <Text className="text-xs font-medium text-sage">Add option</Text>
                 </Pressable>
               )}
+              <Text className="mt-1 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                Closing time
+              </Text>
+              <View className="flex-row flex-wrap gap-1.5">
+                {POLL_DURATION_PRESETS.map((p) => {
+                  const active = pollDurationHours === p.hours;
+                  return (
+                    <Pressable
+                      key={p.label}
+                      onPress={() => setPollDurationHours(p.hours)}
+                      className={`rounded-full px-3 py-1 ${active ? 'bg-ink' : 'bg-sand'}`}
+                    >
+                      <Text
+                        className={`text-xs font-medium ${active ? 'text-paper' : 'text-charcoal/60'}`}
+                      >
+                        {p.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
             </View>
           )}
         </ScrollView>

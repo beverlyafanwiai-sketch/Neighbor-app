@@ -129,13 +129,17 @@ export const usePostsStore = create<PostsState>((set, get) => ({
 
   unpinPost: () => set({ pinnedPostId: null }),
 
-  votePoll: (postId, optionId) =>
+  votePoll: (postId, optionId) => {
+    const post = get().posts.find((p) => p.id === postId);
+    if (post?.poll && isPollClosed(post.poll)) return;
+
     set((s) => ({
       myPollVotes: {
         ...s.myPollVotes,
         [postId]: s.myPollVotes[postId] === optionId ? '' : optionId,
       },
-    })),
+    }));
+  },
 
   saveDraft: ({ id, body, imageUris }) => {
     const draftId = id ?? `draft-${++draftSeq}`;
@@ -323,6 +327,10 @@ export function getTopReactionTypes(
 
 export function getEffectiveReplies(post: Post, comments: CommentItem[]) {
   return post.replies + comments.length;
+}
+
+export function isPollClosed(poll: Poll, now = Date.now()) {
+  return Boolean(poll.closesAt && poll.closesAt <= now);
 }
 
 export function getEffectivePollResults(poll: Poll, myVote: string | undefined) {
