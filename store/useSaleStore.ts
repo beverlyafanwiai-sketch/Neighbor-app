@@ -21,6 +21,18 @@ export type NewSaleItemInput = {
   imageUris?: string[];
 };
 
+export type SaleDraft = {
+  id: string;
+  emoji: string;
+  title: string;
+  price: string;
+  note: string;
+  imageUris?: string[];
+  updatedAt: number;
+};
+
+type SaleDraftInput = Omit<SaleDraft, 'updatedAt' | 'id'> & { id?: string };
+
 type AcceptedOffer = { userId: string; price: string };
 
 type SaleState = {
@@ -31,6 +43,7 @@ type SaleState = {
   acceptedOffers: Record<string, AcceptedOffer>;
   declinedOffers: Record<string, Record<string, boolean>>;
   counterOffers: Record<string, Record<string, string>>;
+  drafts: SaleDraft[];
   createItem: (input: NewSaleItemInput) => string;
   updateItem: (itemId: string, updates: Partial<NewSaleItemInput>) => void;
   toggleInterest: (itemId: string) => void;
@@ -44,7 +57,11 @@ type SaleState = {
   markSold: (itemId: string) => void;
   relistItem: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
+  saveDraft: (input: SaleDraftInput) => string;
+  deleteDraft: (id: string) => void;
 };
+
+let saleDraftSeq = 0;
 
 function scheduleThanks(get: () => SaleState, itemId: string, item: SaleItem) {
   setTimeout(() => {
@@ -70,6 +87,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   acceptedOffers: {},
   declinedOffers: {},
   counterOffers: {},
+  drafts: [],
 
   createItem: (input) => {
     const id = `sale-${Math.random().toString(36).slice(2, 9)}`;
@@ -240,6 +258,23 @@ export const useSaleStore = create<SaleState>((set, get) => ({
     })),
 
   deleteItem: (itemId) => set((s) => ({ items: s.items.filter((i) => i.id !== itemId) })),
+
+  saveDraft: (input) => {
+    const draftId = input.id ?? `sale-draft-${++saleDraftSeq}`;
+    const updatedAt = Date.now();
+    set((s) => {
+      const draft: SaleDraft = { ...input, id: draftId, updatedAt };
+      const exists = s.drafts.some((d) => d.id === draftId);
+      return {
+        drafts: exists
+          ? s.drafts.map((d) => (d.id === draftId ? draft : d))
+          : [draft, ...s.drafts],
+      };
+    });
+    return draftId;
+  },
+
+  deleteDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
 }));
 
 export function isFreeItem(price: string) {

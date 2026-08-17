@@ -28,25 +28,43 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateSaleItem() {
-  const { id: editId, duplicateId } = useLocalSearchParams<{ id?: string; duplicateId?: string }>();
+  const { id: editId, duplicateId, draftId } = useLocalSearchParams<{
+    id?: string;
+    duplicateId?: string;
+    draftId?: string;
+  }>();
   const existing = useSaleStore((s) => (editId ? s.items.find((i) => i.id === editId) : undefined));
   const isEditing = Boolean(existing);
   const duplicateSource = useSaleStore((s) =>
     duplicateId ? s.items.find((i) => i.id === duplicateId) : undefined
   );
   const isDuplicating = Boolean(duplicateSource) && !isEditing;
+  const existingDraft = useSaleStore((s) =>
+    draftId ? s.drafts.find((d) => d.id === draftId) : undefined
+  );
   const createItem = useSaleStore((s) => s.createItem);
   const updateItem = useSaleStore((s) => s.updateItem);
+  const saveDraft = useSaleStore((s) => s.saveDraft);
+  const deleteDraft = useSaleStore((s) => s.deleteDraft);
 
-  const [emoji, setEmoji] = useState(existing?.emoji ?? duplicateSource?.emoji ?? '📦');
-  const [title, setTitle] = useState(existing?.title ?? duplicateSource?.title ?? '');
-  const [price, setPrice] = useState(existing?.price ?? duplicateSource?.price ?? '');
-  const [note, setNote] = useState(existing?.note ?? duplicateSource?.note ?? '');
-  const [imageUris, setImageUris] = useState<string[]>(
-    existing?.imageUris ?? duplicateSource?.imageUris ?? []
+  const [emoji, setEmoji] = useState(
+    existing?.emoji ?? duplicateSource?.emoji ?? existingDraft?.emoji ?? '📦'
   );
+  const [title, setTitle] = useState(
+    existing?.title ?? duplicateSource?.title ?? existingDraft?.title ?? ''
+  );
+  const [price, setPrice] = useState(
+    existing?.price ?? duplicateSource?.price ?? existingDraft?.price ?? ''
+  );
+  const [note, setNote] = useState(existing?.note ?? duplicateSource?.note ?? existingDraft?.note ?? '');
+  const [imageUris, setImageUris] = useState<string[]>(
+    existing?.imageUris ?? duplicateSource?.imageUris ?? existingDraft?.imageUris ?? []
+  );
+  const [confirmingClose, setConfirmingClose] = useState(false);
 
   const canSave = title.trim() && price.trim() && note.trim();
+  const hasUnsavedContent =
+    !isEditing && Boolean(title.trim() || price.trim() || note.trim() || imageUris.length > 0);
 
   const pickImages = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -80,14 +98,40 @@ export default function CreateSaleItem() {
       return;
     }
     createItem({ emoji, title: title.trim(), price: price.trim(), note: note.trim(), imageUris });
+    if (draftId) deleteDraft(draftId);
     router.replace('/for-sale');
+  };
+
+  const close = () => {
+    if (isEditing || !hasUnsavedContent) {
+      router.back();
+      return;
+    }
+    setConfirmingClose(true);
+  };
+
+  const discardAndClose = () => {
+    if (draftId) deleteDraft(draftId);
+    router.back();
+  };
+
+  const saveDraftAndClose = () => {
+    saveDraft({
+      id: draftId,
+      emoji,
+      title: title.trim(),
+      price: price.trim(),
+      note: note.trim(),
+      imageUris,
+    });
+    router.back();
   };
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={close}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
@@ -105,6 +149,23 @@ export default function CreateSaleItem() {
           </Text>
         </Pressable>
       </View>
+
+      {confirmingClose && (
+        <View className="gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="text-sm text-charcoal">Save this as a draft, or discard it?</Text>
+          <View className="flex-row justify-end gap-4">
+            <Pressable onPress={() => setConfirmingClose(false)}>
+              <Text className="text-sm font-medium text-charcoal/60">Keep editing</Text>
+            </Pressable>
+            <Pressable onPress={discardAndClose}>
+              <Text className="text-sm font-semibold text-terracotta">Discard</Text>
+            </Pressable>
+            <Pressable onPress={saveDraftAndClose}>
+              <Text className="text-sm font-semibold text-sage">Save draft</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">

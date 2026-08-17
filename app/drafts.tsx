@@ -10,8 +10,9 @@ import { useLendStore } from '../store/useLendStore';
 import { usePostsStore } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { useRecsStore } from '../store/useRecsStore';
+import { useSaleStore } from '../store/useSaleStore';
 
-const MODES = ['Posts', 'Events', 'Recs', 'Lend'] as const;
+const MODES = ['Posts', 'Events', 'Recs', 'Lend', 'For Sale'] as const;
 type Mode = (typeof MODES)[number];
 
 export default function Drafts() {
@@ -25,6 +26,8 @@ export default function Drafts() {
   const deleteRecDraft = useRecsStore((s) => s.deleteDraft);
   const lendDrafts = useLendStore((s) => s.drafts);
   const deleteLendDraft = useLendStore((s) => s.deleteDraft);
+  const saleDrafts = useSaleStore((s) => s.drafts);
+  const deleteSaleDraft = useSaleStore((s) => s.deleteDraft);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -86,6 +89,15 @@ export default function Drafts() {
             iconColorClassName="text-charcoal/50"
             title="No lend drafts yet"
             subtitle="Unfinished lend items you save for later will show up here."
+          />
+        )}
+
+        {mode === 'For Sale' && saleDrafts.length === 0 && (
+          <EmptyState
+            icon="document-text-outline"
+            iconColorClassName="text-charcoal/50"
+            title="No for sale drafts yet"
+            subtitle="Unfinished listings you save for later will show up here."
           />
         )}
 
@@ -246,6 +258,48 @@ export default function Drafts() {
                     onPress={(evt) => {
                       evt.stopPropagation();
                       deleteLendDraft(draft.id);
+                    }}
+                    className="flex-row items-center gap-1.5"
+                  >
+                    <Ionicons name="trash-outline" size={16} className="text-terracotta" />
+                    <Text className="text-sm font-medium text-terracotta">Discard</Text>
+                  </Pressable>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
+        {mode === 'For Sale' && (
+          <View className="gap-4">
+            {saleDrafts.map((draft) => (
+              <Pressable
+                key={draft.id}
+                onPress={() => router.push(`/create-sale-item?draftId=${draft.id}`)}
+                className="rounded-3xl bg-cream p-4 shadow-sm active:opacity-80"
+              >
+                <View className="flex-row items-center gap-3">
+                  <Text style={{ fontSize: 18 }}>{draft.emoji}</Text>
+                  <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                    Draft
+                  </Text>
+                </View>
+
+                <Text className="mt-3 text-[15px] font-semibold text-charcoal">
+                  {draft.title.length > 0 ? draft.title : 'Untitled listing'}
+                  {draft.price.length > 0 ? ` · ${draft.price}` : ''}
+                </Text>
+                {draft.note.length > 0 && (
+                  <Text className="mt-1 text-sm text-charcoal/60" numberOfLines={2}>
+                    {draft.note}
+                  </Text>
+                )}
+
+                <View className="mt-4 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
+                  <Pressable
+                    onPress={(evt) => {
+                      evt.stopPropagation();
+                      deleteSaleDraft(draft.id);
                     }}
                     className="flex-row items-center gap-1.5"
                   >
