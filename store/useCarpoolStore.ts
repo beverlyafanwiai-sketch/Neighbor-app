@@ -15,6 +15,7 @@ export type CarpoolOffer = {
   note: string;
   riderIds: string[];
   riderNotes?: Record<string, string>;
+  costSplit?: string;
 };
 
 export type CarpoolRequest = {
@@ -27,8 +28,8 @@ export type CarpoolRequest = {
 type CarpoolState = {
   offers: CarpoolOffer[];
   requests: CarpoolRequest[];
-  offerRide: (eventId: string, seats: number, note: string) => void;
-  updateOffer: (eventId: string, seats: number, note: string) => void;
+  offerRide: (eventId: string, seats: number, note: string, costSplit?: string) => void;
+  updateOffer: (eventId: string, seats: number, note: string, costSplit?: string) => void;
   cancelOffer: (eventId: string) => void;
   requestSeat: (offerId: string, note?: string) => void;
   updateRiderNote: (offerId: string, note: string) => void;
@@ -64,12 +65,12 @@ export const useCarpoolStore = create<CarpoolState>((set, get) => ({
   offers: SEED_OFFERS,
   requests: SEED_REQUESTS,
 
-  offerRide: (eventId, seats, note) => {
+  offerRide: (eventId, seats, note, costSplit) => {
     const offerId = `carpool-${Date.now()}`;
     set((s) => ({
       offers: [
         ...s.offers.filter((o) => !(o.eventId === eventId && o.driverId === ME.id)),
-        { id: offerId, eventId, driverId: ME.id, seats, note, riderIds: [] },
+        { id: offerId, eventId, driverId: ME.id, seats, note, riderIds: [], costSplit },
       ],
     }));
 
@@ -101,10 +102,10 @@ export const useCarpoolStore = create<CarpoolState>((set, get) => ({
     }, INBOUND_SEAT_REQUEST_DELAY_MS);
   },
 
-  updateOffer: (eventId, seats, note) =>
+  updateOffer: (eventId, seats, note, costSplit) =>
     set((s) => ({
       offers: s.offers.map((o) =>
-        o.eventId === eventId && o.driverId === ME.id ? { ...o, seats, note } : o
+        o.eventId === eventId && o.driverId === ME.id ? { ...o, seats, note, costSplit } : o
       ),
     })),
 

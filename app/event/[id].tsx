@@ -93,6 +93,7 @@ export default function EventDetail() {
   const [offeringRide, setOfferingRide] = useState(false);
   const [offerSeats, setOfferSeats] = useState(2);
   const [offerNote, setOfferNote] = useState('');
+  const [offerCostSplit, setOfferCostSplit] = useState('');
   const [requestingRide, setRequestingRide] = useState(false);
   const [requestNote, setRequestNote] = useState('');
   const [requestingSeatOfferId, setRequestingSeatOfferId] = useState<string | null>(null);
@@ -164,20 +165,23 @@ export default function EventDetail() {
   };
 
   const submitOffer = () => {
+    const costSplit = offerCostSplit.trim() || undefined;
     if (myOffer) {
-      updateOffer(event.id, offerSeats, offerNote.trim());
+      updateOffer(event.id, offerSeats, offerNote.trim(), costSplit);
     } else {
-      offerRide(event.id, offerSeats, offerNote.trim());
+      offerRide(event.id, offerSeats, offerNote.trim(), costSplit);
     }
     setOfferingRide(false);
     setOfferNote('');
     setOfferSeats(2);
+    setOfferCostSplit('');
   };
 
   const startEditingOffer = () => {
     if (!myOffer) return;
     setOfferSeats(myOffer.seats);
     setOfferNote(myOffer.note);
+    setOfferCostSplit(myOffer.costSplit ?? '');
     setOfferingRide(true);
   };
 
@@ -894,6 +898,14 @@ export default function EventDetail() {
                         {offer.note.length > 0 && (
                           <Text className="mt-0.5 text-xs text-charcoal/50">{offer.note}</Text>
                         )}
+                        {offer.costSplit && (
+                          <View className="mt-1 flex-row items-center gap-1 self-start rounded-full bg-gold/15 px-2 py-0.5">
+                            <Ionicons name="cash-outline" size={10} className="text-gold" />
+                            <Text className="text-[10px] font-semibold text-gold">
+                              {offer.costSplit}
+                            </Text>
+                          </View>
+                        )}
                       </View>
                     </View>
 
@@ -1118,12 +1130,20 @@ export default function EventDetail() {
                       placeholderTextColor="#3D3D3D80"
                       className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
                     />
+                    <TextInput
+                      value={offerCostSplit}
+                      onChangeText={setOfferCostSplit}
+                      placeholder="Gas money split, e.g. $5/rider (optional)"
+                      placeholderTextColor="#3D3D3D80"
+                      className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+                    />
                     <View className="flex-row justify-end gap-4">
                       <Pressable
                         onPress={() => {
                           setOfferingRide(false);
                           setOfferNote('');
                           setOfferSeats(2);
+                          setOfferCostSplit('');
                         }}
                       >
                         <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
