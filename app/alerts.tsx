@@ -25,6 +25,7 @@ import {
   getEffectiveConfirmedIds,
   useAlertsStore,
 } from '../store/useAlertsStore';
+import { useMutedAlertCategoriesStore } from '../store/useMutedAlertCategoriesStore';
 import { useProfileStore } from '../store/useProfileStore';
 
 export default function NeighborhoodAlerts() {
@@ -47,8 +48,13 @@ export default function NeighborhoodAlerts() {
   const [commentDraft, setCommentDraft] = useState('');
   const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
   const [viewingConfirmedId, setViewingConfirmedId] = useState<string | null>(null);
+  const [managingCategories, setManagingCategories] = useState(false);
+  const mutedCategories = useMutedAlertCategoriesStore((s) => s.muted);
+  const toggleMutedCategory = useMutedAlertCategoriesStore((s) => s.toggle);
 
-  const activeAlerts = getActiveAlerts(allAlerts, now, pinnedAlertId);
+  const allActiveAlerts = getActiveAlerts(allAlerts, now, pinnedAlertId);
+  const activeAlerts = allActiveAlerts.filter((a) => !mutedCategories[a.category]);
+  const mutedCount = allActiveAlerts.length - activeAlerts.length;
   const viewingCommentsAlert = activeAlerts.find((a) => a.id === viewingCommentsId);
   const viewingComments = viewingCommentsAlert ? (comments[viewingCommentsAlert.id] ?? []) : [];
   const viewingConfirmedAlert = activeAlerts.find((a) => a.id === viewingConfirmedId);
@@ -66,12 +72,20 @@ export default function NeighborhoodAlerts() {
           <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">Neighborhood Alerts</Text>
-        <Pressable
-          onPress={() => router.push('/create-alert')}
-          className="h-9 w-9 items-center justify-center rounded-full bg-terracotta"
-        >
-          <Ionicons name="add" size={20} className="text-paper" />
-        </Pressable>
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={() => setManagingCategories(true)}
+            className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+          >
+            <Ionicons name="options-outline" size={18} className="text-charcoal" />
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/create-alert')}
+            className="h-9 w-9 items-center justify-center rounded-full bg-terracotta"
+          >
+            <Ionicons name="add" size={20} className="text-paper" />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">
@@ -79,6 +93,11 @@ export default function NeighborhoodAlerts() {
           Time-sensitive stuff worth knowing — lost pets, road work, safety heads-up. Alerts expire
           on their own.
         </Text>
+        {mutedCount > 0 && (
+          <Text className="mt-2 text-xs text-charcoal/40">
+            {mutedCount} alert{mutedCount === 1 ? '' : 's'} hidden from muted categories
+          </Text>
+        )}
 
         <View className="mt-5 gap-3">
           {activeAlerts.map((alert) => {
@@ -186,12 +205,56 @@ export default function NeighborhoodAlerts() {
             <EmptyState
               icon="warning-outline"
               iconColorClassName="text-charcoal/50"
-              title="No active alerts"
-              subtitle="Post one if there's something time-sensitive your neighbors should know."
+              title={mutedCount > 0 ? 'All active alerts are muted' : 'No active alerts'}
+              subtitle={
+                mutedCount > 0
+                  ? 'Unmute a category to see it here, or post one yourself.'
+                  : "Post one if there's something time-sensitive your neighbors should know."
+              }
             />
           )}
         </View>
       </ScrollView>
+
+      {managingCategories && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={() => setManagingCategories(false)} />
+          <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Mute categories</Text>
+              <Pressable
+                onPress={() => setManagingCategories(false)}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+            <Text className="text-xs text-charcoal/50">
+              Muted categories are hidden from your alerts list.
+            </Text>
+            <View className="gap-2">
+              {ALERT_CATEGORIES.map((c) => {
+                const isMuted = mutedCategories[c.value] ?? false;
+                return (
+                  <Pressable
+                    key={c.value}
+                    onPress={() => toggleMutedCategory(c.value)}
+                    className="flex-row items-center gap-3 rounded-2xl bg-sand p-3.5"
+                  >
+                    <Text style={{ fontSize: 18 }}>{c.emoji}</Text>
+                    <Text className="flex-1 text-sm font-medium text-charcoal">{c.label}</Text>
+                    <Ionicons
+                      name={isMuted ? 'notifications-off' : 'notifications-outline'}
+                      size={16}
+                      className={isMuted ? 'text-terracotta' : 'text-charcoal/40'}
+                    />
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+      )}
 
       {viewingConfirmedAlert && (
         <View className="absolute inset-0 items-center justify-end bg-ink/40">

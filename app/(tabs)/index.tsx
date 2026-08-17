@@ -20,6 +20,7 @@ import ReportPostSheet from '../../components/ReportPostSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { DISCOVER_USERS, ME, USERS, type Post, type User } from '../../data/mock';
 import { getActiveAlerts, useAlertsStore } from '../../store/useAlertsStore';
+import { useMutedAlertCategoriesStore } from '../../store/useMutedAlertCategoriesStore';
 import { isAvailable, useAvailabilityStore } from '../../store/useAvailabilityStore';
 import { useBlockedStore } from '../../store/useBlockedStore';
 import { useMutedStore } from '../../store/useMutedStore';
@@ -213,7 +214,10 @@ export default function HomeFeed() {
   const scheduledCount = usePostsStore((s) => s.scheduledPosts.length);
   const allAlerts = useAlertsStore((s) => s.alerts);
   const pinnedAlertId = useAlertsStore((s) => s.pinnedAlertId);
-  const activeAlerts = getActiveAlerts(allAlerts, Date.now(), pinnedAlertId);
+  const mutedAlertCategories = useMutedAlertCategoriesStore((s) => s.muted);
+  const activeAlerts = getActiveAlerts(allAlerts, Date.now(), pinnedAlertId).filter(
+    (a) => !mutedAlertCategories[a.category]
+  );
   const myReactions = usePostsStore((s) => s.myReactions);
   const tapReaction = usePostsStore((s) => s.tapReaction);
   const setReaction = usePostsStore((s) => s.setReaction);
