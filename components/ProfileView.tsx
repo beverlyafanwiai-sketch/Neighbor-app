@@ -17,6 +17,7 @@ import { getEndorsementGroups, useEndorsementsStore } from '../store/useEndorsem
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { useGroupsStore } from '../store/useGroupsStore';
 import { usePostsStore } from '../store/usePostsStore';
+import { useProfileNotesStore } from '../store/useProfileNotesStore';
 import { getWelcomeNotes, useWelcomeNotesStore } from '../store/useWelcomeNotesStore';
 import EmptyState from './EmptyState';
 import ReactionButton from './ReactionButton';
@@ -106,6 +107,10 @@ export default function ProfileView({
   const sendFriendRequest = useFriendsStore((s) => s.sendRequest);
   const friendRequestNotes = useFriendsStore((s) => s.requestNotes);
   const [composingFriendRequest, setComposingFriendRequest] = useState(false);
+  const profileNotes = useProfileNotesStore((s) => s.notes);
+  const setProfileNote = useProfileNotesStore((s) => s.setNote);
+  const [editingProfileNote, setEditingProfileNote] = useState(false);
+  const [profileNoteDraft, setProfileNoteDraft] = useState('');
   const [friendRequestNoteDraft, setFriendRequestNoteDraft] = useState('');
   const joinedGroups = useGroupsStore((s) => s.joined);
   const posts = usePostsStore((s) => s.posts);
@@ -435,6 +440,59 @@ export default function ProfileView({
           </View>
         )}
       </View>
+
+      {!isMe && (
+        <View className="border-b border-charcoal/10 bg-cream px-5 py-4">
+          <View className="flex-row items-center gap-1.5">
+            <Ionicons name="lock-closed-outline" size={12} className="text-charcoal/40" />
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+              Private note · only you can see this
+            </Text>
+          </View>
+          {editingProfileNote ? (
+            <View className="mt-2 gap-2">
+              <TextInput
+                value={profileNoteDraft}
+                onChangeText={setProfileNoteDraft}
+                placeholder="e.g. met at the potluck, has a dog named Biscuit"
+                placeholderTextColor="#3D3D3D80"
+                multiline
+                autoFocus
+                className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+              />
+              <View className="flex-row justify-end gap-4">
+                <Pressable onPress={() => setEditingProfileNote(false)}>
+                  <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setProfileNote(user.id, profileNoteDraft);
+                    setEditingProfileNote(false);
+                  }}
+                >
+                  <Text className="text-sm font-semibold text-terracotta">Save</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => {
+                setProfileNoteDraft(profileNotes[user.id] ?? '');
+                setEditingProfileNote(true);
+              }}
+              className="mt-1.5"
+            >
+              <Text
+                className={`text-sm ${
+                  profileNotes[user.id] ? 'text-charcoal' : 'italic text-charcoal/40'
+                }`}
+              >
+                {profileNotes[user.id] || 'Add a note'}
+              </Text>
+            </Pressable>
+          )}
+        </View>
+      )}
 
       {user.isNew && (
         <View className="border-b border-charcoal/10 bg-cream px-5 py-5">
