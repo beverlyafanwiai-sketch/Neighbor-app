@@ -12,6 +12,7 @@ export type User = {
   id: string;
   name: string;
   pronouns?: string;
+  link?: string;
   avatar: string;
   tagline: string;
   bio: string;

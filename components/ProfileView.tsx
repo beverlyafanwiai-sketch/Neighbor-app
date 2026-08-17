@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SvgXml } from 'react-native-svg';
 
@@ -235,6 +235,21 @@ export default function ProfileView({
               {user.yearsInArea ? ` · ${user.yearsInArea}` : ''}
             </Text>
           </View>
+        )}
+
+        {user.link && (
+          <Pressable
+            onPress={() => {
+              const url = /^https?:\/\//i.test(user.link!) ? user.link! : `https://${user.link}`;
+              Linking.openURL(url).catch(() => {});
+            }}
+            className="mt-2 flex-row items-center gap-1"
+          >
+            <Ionicons name="link-outline" size={13} className="text-sand" />
+            <Text className="text-xs text-sand underline" numberOfLines={1}>
+              {user.link}
+            </Text>
+          </Pressable>
         )}
 
         {isMe ? (

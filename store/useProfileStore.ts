@@ -6,6 +6,7 @@ type EditableFields = Pick<
   User,
   | 'name'
   | 'pronouns'
+  | 'link'
   | 'avatar'
   | 'tagline'
   | 'bio'
