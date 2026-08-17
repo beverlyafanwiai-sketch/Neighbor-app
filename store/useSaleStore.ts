@@ -20,6 +20,7 @@ export type NewSaleItemInput = {
   note: string;
   imageUris?: string[];
   condition?: SaleCondition;
+  pickupLocation?: string;
 };
 
 export type SaleDraft = {
@@ -30,6 +31,7 @@ export type SaleDraft = {
   note: string;
   imageUris?: string[];
   condition?: SaleCondition;
+  pickupLocation?: string;
   updatedAt: number;
 };
 
@@ -102,6 +104,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
       note: input.note,
       imageUris: input.imageUris,
       condition: input.condition,
+      pickupLocation: input.pickupLocation,
     };
     set((s) => ({ items: [item, ...s.items] }));
 

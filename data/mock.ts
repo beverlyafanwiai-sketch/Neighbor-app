@@ -883,6 +883,7 @@ export type LendItem = {
   // independent of ME's own borrow status. Cleared when "available again" is
   // simulated after ME asks to be notified.
   unavailableNote?: string;
+  pickupLocation?: string;
 };
 
 export const LEND_ITEMS: LendItem[] = [
@@ -952,6 +953,7 @@ export type SaleItem = {
   note: string;
   imageUris?: string[];
   condition?: SaleCondition;
+  pickupLocation?: string;
   // Baseline ids of other neighbors already interested — mirrors
   // LendItem.helperIds as a "before ME" list.
   interestedByIds?: string[];

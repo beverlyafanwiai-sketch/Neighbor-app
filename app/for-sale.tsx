@@ -474,6 +474,12 @@ export default function ForSaleBoard() {
                   </Pressable>
                 </View>
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{item.note}</Text>
+                {item.pickupLocation && (
+                  <View className="mt-1.5 flex-row items-center gap-1">
+                    <Ionicons name="location-outline" size={12} className="text-charcoal/40" />
+                    <Text className="text-xs text-charcoal/50">{item.pickupLocation}</Text>
+                  </View>
+                )}
                 {item.imageUris && item.imageUris.length > 0 && (
                   <PhotoCarousel
                     uris={item.imageUris}

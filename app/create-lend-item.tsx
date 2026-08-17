@@ -66,11 +66,15 @@ export default function CreateLendItem() {
   const [imageUris, setImageUris] = useState<string[]>(
     existing?.imageUris ?? duplicateSource?.imageUris ?? existingDraft?.imageUris ?? []
   );
+  const [pickupLocation, setPickupLocation] = useState(
+    existing?.pickupLocation ?? duplicateSource?.pickupLocation ?? existingDraft?.pickupLocation ?? ''
+  );
   const [confirmingClose, setConfirmingClose] = useState(false);
 
   const canSave = title.trim() && note.trim();
   const hasUnsavedContent =
-    !isEditing && Boolean(title.trim() || note.trim() || imageUris.length > 0);
+    !isEditing &&
+    Boolean(title.trim() || note.trim() || imageUris.length > 0 || pickupLocation.trim());
 
   const pickImages = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -92,12 +96,20 @@ export default function CreateLendItem() {
 
   const save = () => {
     if (!canSave) return;
+    const pickup = kind === 'have' ? pickupLocation.trim() || undefined : undefined;
     if (existing) {
-      updateItem(existing.id, { kind, emoji, title: title.trim(), note: note.trim(), imageUris });
+      updateItem(existing.id, {
+        kind,
+        emoji,
+        title: title.trim(),
+        note: note.trim(),
+        imageUris,
+        pickupLocation: pickup,
+      });
       router.replace('/lend');
       return;
     }
-    createItem({ kind, emoji, title: title.trim(), note: note.trim(), imageUris });
+    createItem({ kind, emoji, title: title.trim(), note: note.trim(), imageUris, pickupLocation: pickup });
     if (draftId) deleteDraft(draftId);
     router.replace('/lend');
   };
@@ -116,7 +128,15 @@ export default function CreateLendItem() {
   };
 
   const saveDraftAndClose = () => {
-    saveDraft({ id: draftId, kind, emoji, title: title.trim(), note: note.trim(), imageUris });
+    saveDraft({
+      id: draftId,
+      kind,
+      emoji,
+      title: title.trim(),
+      note: note.trim(),
+      imageUris,
+      pickupLocation: kind === 'have' ? pickupLocation.trim() || undefined : undefined,
+    });
     router.back();
   };
 
@@ -287,6 +307,19 @@ export default function CreateLendItem() {
                 className="min-h-[80px] rounded-2xl bg-cream px-4 py-3 text-base text-charcoal"
               />
             </View>
+
+            {kind === 'have' && (
+              <View>
+                <FieldLabel>Pickup location (optional)</FieldLabel>
+                <TextInput
+                  value={pickupLocation}
+                  onChangeText={setPickupLocation}
+                  placeholder="e.g. Front porch, 5th & Elm"
+                  placeholderTextColor="#3D3D3D80"
+                  className="rounded-2xl bg-cream px-4 py-3 text-base text-charcoal"
+                />
+              </View>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -61,6 +61,9 @@ export default function CreateSaleItem() {
   const [condition, setCondition] = useState<SaleCondition | undefined>(
     existing?.condition ?? duplicateSource?.condition ?? existingDraft?.condition
   );
+  const [pickupLocation, setPickupLocation] = useState(
+    existing?.pickupLocation ?? duplicateSource?.pickupLocation ?? existingDraft?.pickupLocation ?? ''
+  );
   const [imageUris, setImageUris] = useState<string[]>(
     existing?.imageUris ?? duplicateSource?.imageUris ?? existingDraft?.imageUris ?? []
   );
@@ -69,7 +72,14 @@ export default function CreateSaleItem() {
   const canSave = title.trim() && price.trim() && note.trim();
   const hasUnsavedContent =
     !isEditing &&
-    Boolean(title.trim() || price.trim() || note.trim() || imageUris.length > 0 || condition);
+    Boolean(
+      title.trim() ||
+        price.trim() ||
+        note.trim() ||
+        imageUris.length > 0 ||
+        condition ||
+        pickupLocation.trim()
+    );
 
   const pickImages = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -99,6 +109,7 @@ export default function CreateSaleItem() {
         note: note.trim(),
         imageUris,
         condition,
+        pickupLocation: pickupLocation.trim() || undefined,
       });
       router.replace('/for-sale');
       return;
@@ -110,6 +121,7 @@ export default function CreateSaleItem() {
       note: note.trim(),
       imageUris,
       condition,
+      pickupLocation: pickupLocation.trim() || undefined,
     });
     if (draftId) deleteDraft(draftId);
     router.replace('/for-sale');
@@ -137,6 +149,7 @@ export default function CreateSaleItem() {
       note: note.trim(),
       imageUris,
       condition,
+      pickupLocation: pickupLocation.trim() || undefined,
     });
     router.back();
   };
@@ -304,6 +317,17 @@ export default function CreateSaleItem() {
                 placeholderTextColor="#3D3D3D80"
                 multiline
                 className="min-h-[80px] rounded-2xl bg-cream px-4 py-3 text-base text-charcoal"
+              />
+            </View>
+
+            <View>
+              <FieldLabel>Pickup location (optional)</FieldLabel>
+              <TextInput
+                value={pickupLocation}
+                onChangeText={setPickupLocation}
+                placeholder="e.g. Front porch, 5th & Elm"
+                placeholderTextColor="#3D3D3D80"
+                className="rounded-2xl bg-cream px-4 py-3 text-base text-charcoal"
               />
             </View>
           </View>

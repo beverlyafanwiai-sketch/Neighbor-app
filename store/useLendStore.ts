@@ -19,6 +19,7 @@ export type NewLendItemInput = {
   title: string;
   note: string;
   imageUris?: string[];
+  pickupLocation?: string;
 };
 
 export type LendDraft = {
@@ -28,6 +29,7 @@ export type LendDraft = {
   title: string;
   note: string;
   imageUris?: string[];
+  pickupLocation?: string;
   updatedAt: number;
 };
 
@@ -104,6 +106,7 @@ export const useLendStore = create<LendState>((set, get) => ({
       title: input.title,
       note: input.note,
       imageUris: input.imageUris,
+      pickupLocation: input.pickupLocation,
     };
     set((s) => ({ items: [item, ...s.items] }));
 
