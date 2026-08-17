@@ -13,7 +13,7 @@ import { getGroupPhotos, useGroupAlbumStore } from '../../store/useGroupAlbumSto
 import { useEventsStore } from '../../store/useEventsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { isGroupAdmin, memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
-import { useMutedGroupsStore } from '../../store/useMutedGroupsStore';
+import { formatMutedUntil, useMutedGroupsStore } from '../../store/useMutedGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
@@ -22,6 +22,12 @@ const TONE_STYLE: Record<string, { bg: string; text: string }> = {
   Structured: { bg: 'bg-terracotta/15', text: 'text-terracotta' },
   'Activity-focused': { bg: 'bg-gold/20', text: 'text-gold' },
 };
+
+const MUTE_DURATIONS = [
+  { label: '8 hours', ms: 8 * 60 * 60 * 1000 },
+  { label: '24 hours', ms: 24 * 60 * 60 * 1000 },
+  { label: '1 week', ms: 7 * 24 * 60 * 60 * 1000 },
+] as const;
 
 export default function GroupDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -48,9 +54,11 @@ export default function GroupDetail() {
   const welcomeMessage = useGroupsStore((s) => (group ? s.welcomeMessages[group.id] : undefined));
   const setWelcomeMessage = useGroupsStore((s) => s.setWelcomeMessage);
   const clearWelcomeMessage = useGroupsStore((s) => s.clearWelcomeMessage);
-  const mutedGroupIds = useMutedGroupsStore((s) => s.mutedGroupIds);
+  const mutedUntil = useMutedGroupsStore((s) => s.mutedUntil);
   const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
+  const muteGroupFor = useMutedGroupsStore((s) => s.muteFor);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [choosingMuteDuration, setChoosingMuteDuration] = useState(false);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [reportingGroup, setReportingGroup] = useState(false);
@@ -82,7 +90,7 @@ export default function GroupDetail() {
   const toneStyle = TONE_STYLE[group.tone] ?? TONE_STYLE.Casual;
   const isCreator = group.createdBy === ME.id;
   const isAdmin = isGroupAdmin(group, ME.id);
-  const isMuted = mutedGroupIds[group.id] ?? false;
+  const isMuted = (mutedUntil[group.id] ?? 0) > Date.now();
   const pinnedSender = pinnedMessage
     ? pinnedMessage.senderId === ME.id
       ? profile
@@ -132,7 +140,7 @@ export default function GroupDetail() {
         {joined && (
           <View className="flex-row items-center gap-1.5">
             <Pressable
-              onPress={() => toggleMutedGroup(group.id)}
+              onPress={() => (isMuted ? toggleMutedGroup(group.id) : setChoosingMuteDuration(true))}
               className="h-9 w-9 items-center justify-center rounded-full bg-cream"
             >
               <Ionicons
@@ -245,7 +253,9 @@ export default function GroupDetail() {
             {isMuted && (
               <View className="flex-row items-center gap-1 rounded-full bg-charcoal/10 px-2.5 py-1">
                 <Ionicons name="notifications-off" size={11} className="text-charcoal/60" />
-                <Text className="text-xs font-semibold text-charcoal/60">Muted</Text>
+                <Text className="text-xs font-semibold text-charcoal/60">
+                  {formatMutedUntil(mutedUntil[group.id])}
+                </Text>
               </View>
             )}
           </View>
@@ -542,6 +552,44 @@ export default function GroupDetail() {
           title="Group options"
           actionLabel="Report this group"
         />
+      )}
+
+      {choosingMuteDuration && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={() => setChoosingMuteDuration(false)} />
+          <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Mute this circle</Text>
+              <Pressable
+                onPress={() => setChoosingMuteDuration(false)}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+            {MUTE_DURATIONS.map((d) => (
+              <Pressable
+                key={d.label}
+                onPress={() => {
+                  muteGroupFor(group.id, d.ms);
+                  setChoosingMuteDuration(false);
+                }}
+                className="rounded-2xl bg-sand p-4 active:opacity-80"
+              >
+                <Text className="text-sm font-medium text-charcoal">{d.label}</Text>
+              </Pressable>
+            ))}
+            <Pressable
+              onPress={() => {
+                toggleMutedGroup(group.id);
+                setChoosingMuteDuration(false);
+              }}
+              className="rounded-2xl bg-sand p-4 active:opacity-80"
+            >
+              <Text className="text-sm font-medium text-charcoal">Until I unmute</Text>
+            </Pressable>
+          </View>
+        </View>
       )}
 
       {composingWelcome && (

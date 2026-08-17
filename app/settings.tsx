@@ -9,7 +9,7 @@ import { getUser } from '../data/mock';
 import { useAuthStore } from '../store/useAuthStore';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useGroupsStore } from '../store/useGroupsStore';
-import { useMutedGroupsStore } from '../store/useMutedGroupsStore';
+import { formatMutedUntil, useMutedGroupsStore } from '../store/useMutedGroupsStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { useSettingsStore, type NotificationPrefs } from '../store/useSettingsStore';
 import { useThemeStore, type ThemePreference } from '../store/useThemeStore';
@@ -82,9 +82,9 @@ export default function Settings() {
     .map((id) => getUser(id))
     .filter((u): u is NonNullable<typeof u> => Boolean(u));
   const groups = useGroupsStore((s) => s.groups);
-  const mutedGroupIds = useMutedGroupsStore((s) => s.mutedGroupIds);
+  const mutedUntil = useMutedGroupsStore((s) => s.mutedUntil);
   const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
-  const mutedGroups = groups.filter((g) => mutedGroupIds[g.id]);
+  const mutedGroups = groups.filter((g) => (mutedUntil[g.id] ?? 0) > Date.now());
   const themePreference = useThemeStore((s) => s.preference);
   const setThemePreference = useThemeStore((s) => s.setPreference);
   const { setColorScheme } = useColorScheme();
@@ -230,7 +230,10 @@ export default function Settings() {
                 <View className="h-9 w-9 items-center justify-center rounded-full bg-terracotta">
                   <Text className="text-xs font-bold text-paper">{g.name.charAt(0)}</Text>
                 </View>
-                <Text className="flex-1 text-sm font-medium text-charcoal">{g.name}</Text>
+                <View className="flex-1">
+                  <Text className="text-sm font-medium text-charcoal">{g.name}</Text>
+                  <Text className="text-xs text-charcoal/50">{formatMutedUntil(mutedUntil[g.id])}</Text>
+                </View>
                 <Pressable
                   onPress={() => toggleMutedGroup(g.id)}
                   className="rounded-full bg-sand px-4 py-2"

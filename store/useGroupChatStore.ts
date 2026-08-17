@@ -47,7 +47,7 @@ const CANNED_REPLIES = [
 
 function notifyMentions(text: string, groupId: string) {
   if (!useSettingsStore.getState().notificationPrefs.mentions) return;
-  if (useMutedGroupsStore.getState().mutedGroupIds[groupId]) return;
+  if (useMutedGroupsStore.getState().isMuted(groupId)) return;
   const authorName = useProfileStore.getState().profile.name;
   for (const user of findMentionedUsers(text)) {
     if (user.id === ME.id) continue;
@@ -200,7 +200,7 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
 
       if (
         useSettingsStore.getState().notificationPrefs.groupActivity &&
-        !useMutedGroupsStore.getState().mutedGroupIds[groupId]
+        !useMutedGroupsStore.getState().isMuted(groupId)
       ) {
         useNotificationsStore.getState().addNotification({
           type: 'group',
@@ -268,7 +268,7 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
       if (
         voter &&
         useSettingsStore.getState().notificationPrefs.groupActivity &&
-        !useMutedGroupsStore.getState().mutedGroupIds[groupId]
+        !useMutedGroupsStore.getState().isMuted(groupId)
       ) {
         useNotificationsStore.getState().addNotification({
           type: 'group',
