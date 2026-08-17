@@ -26,10 +26,17 @@ export type GroupDraft = {
 
 type GroupDraftInput = Omit<GroupDraft, 'updatedAt' | 'id'> & { id?: string };
 
+export type GroupAnnouncement = {
+  text: string;
+  authorId: string;
+  postedAt: number;
+};
+
 type GroupsState = {
   groups: Group[];
   joined: Record<string, boolean>;
   inviteCodes: Record<string, string>;
+  announcements: Record<string, GroupAnnouncement | undefined>;
   drafts: GroupDraft[];
   toggle: (groupId: string) => void;
   createGroup: (input: NewGroupInput) => string;
@@ -42,6 +49,8 @@ type GroupsState = {
   joinByInviteCode: (code: string) => string | null;
   regenerateInviteCode: (groupId: string) => void;
   transferOwnership: (groupId: string, newOwnerId: string) => void;
+  postAnnouncement: (groupId: string, text: string) => void;
+  clearAnnouncement: (groupId: string) => void;
   saveDraft: (input: GroupDraftInput) => string;
   deleteDraft: (id: string) => void;
 };
@@ -80,6 +89,7 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
   groups: GROUPS,
   joined: initialJoined,
   inviteCodes: initialInviteCodes,
+  announcements: {},
   drafts: [],
 
   toggle: (groupId) =>
@@ -218,6 +228,20 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
     });
     return draftId;
   },
+
+  postAnnouncement: (groupId, text) => {
+    const clean = text.trim();
+    if (!clean) return;
+    set((s) => ({
+      announcements: {
+        ...s.announcements,
+        [groupId]: { text: clean, authorId: ME.id, postedAt: Date.now() },
+      },
+    }));
+  },
+
+  clearAnnouncement: (groupId) =>
+    set((s) => ({ announcements: { ...s.announcements, [groupId]: undefined } })),
 
   deleteDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
 }));

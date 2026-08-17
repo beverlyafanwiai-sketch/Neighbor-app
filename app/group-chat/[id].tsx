@@ -26,7 +26,11 @@ import ReactorsSheet from '../../components/ReactorsSheet';
 import ReportPostSheet from '../../components/ReportPostSheet';
 import { ME, getUser } from '../../data/mock';
 import { useConversationsStore } from '../../store/useConversationsStore';
-import { isGroupAdmin, memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
+import {
+  isGroupAdmin,
+  memberCountLabel,
+  useGroupsStore,
+} from '../../store/useGroupsStore';
 import {
   groupMessageKey,
   useGroupChatStore,
@@ -58,6 +62,9 @@ export default function GroupChatThread() {
   const addPollOption = useGroupChatStore((s) => s.addPollOption);
   const markRead = useGroupsStore((s) => s.markRead);
   const toggleJoin = useGroupsStore((s) => s.toggle);
+  const announcement = useGroupsStore((s) => (group ? s.announcements[group.id] : undefined));
+  const postAnnouncement = useGroupsStore((s) => s.postAnnouncement);
+  const clearAnnouncement = useGroupsStore((s) => s.clearAnnouncement);
 
   const [draft, setDraft] = useState('');
   const [imageUri, setImageUri] = useState<string | undefined>(undefined);
@@ -80,6 +87,8 @@ export default function GroupChatThread() {
     null
   );
   const [creatingPoll, setCreatingPoll] = useState(false);
+  const [composingAnnouncement, setComposingAnnouncement] = useState(false);
+  const [announcementDraft, setAnnouncementDraft] = useState('');
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptions, setPollOptions] = useState(['', '']);
   const listRef = useRef<FlatList>(null);
@@ -313,12 +322,41 @@ export default function GroupChatThread() {
           >
             <Ionicons name="images-outline" size={20} className="text-charcoal" />
           </Pressable>
+          {isAdmin && (
+            <Pressable
+              onPress={() => {
+                setAnnouncementDraft(announcement?.text ?? '');
+                setComposingAnnouncement(true);
+              }}
+              className="h-9 w-9 items-center justify-center rounded-full"
+            >
+              <Ionicons name="megaphone-outline" size={20} className="text-charcoal" />
+            </Pressable>
+          )}
           <Pressable
             onPress={() => setConfirmingLeave(true)}
             className="h-9 w-9 items-center justify-center rounded-full"
           >
             <Ionicons name="information-circle-outline" size={22} className="text-charcoal" />
           </Pressable>
+        </View>
+      )}
+
+      {announcement && (
+        <View className="flex-row items-start gap-2.5 border-b border-charcoal/10 bg-terracotta/10 px-4 py-2.5">
+          <Ionicons name="megaphone" size={14} className="mt-0.5 text-terracotta" />
+          <View className="flex-1">
+            <Text className="text-xs font-semibold text-terracotta">Announcement</Text>
+            <Text className="text-sm text-charcoal">{announcement.text}</Text>
+          </View>
+          {isAdmin && (
+            <Pressable
+              onPress={() => clearAnnouncement(group.id)}
+              className="h-7 w-7 items-center justify-center rounded-full"
+            >
+              <Ionicons name="close" size={15} className="text-charcoal/50" />
+            </Pressable>
+          )}
         </View>
       )}
 
@@ -873,6 +911,72 @@ export default function GroupChatThread() {
           onSelectPhoto={jumpToMessage}
           onClose={() => setShowGallery(false)}
         />
+      )}
+
+      {composingAnnouncement && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => {
+              setComposingAnnouncement(false);
+              setAnnouncementDraft('');
+            }}
+          />
+          <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Group announcement</Text>
+              <Pressable
+                onPress={() => {
+                  setComposingAnnouncement(false);
+                  setAnnouncementDraft('');
+                }}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+
+            <TextInput
+              value={announcementDraft}
+              onChangeText={setAnnouncementDraft}
+              placeholder="Something everyone in the group should see..."
+              placeholderTextColor="#3D3D3D80"
+              multiline
+              autoFocus
+              className="min-h-[80px] rounded-2xl bg-sand px-4 py-3 text-base text-charcoal"
+            />
+
+            <View className="flex-row items-center justify-between">
+              {announcement ? (
+                <Pressable
+                  onPress={() => {
+                    clearAnnouncement(group.id);
+                    setComposingAnnouncement(false);
+                    setAnnouncementDraft('');
+                  }}
+                >
+                  <Text className="text-sm font-semibold text-terracotta">Remove announcement</Text>
+                </Pressable>
+              ) : (
+                <View />
+              )}
+              <Pressable
+                disabled={!announcementDraft.trim()}
+                onPress={() => {
+                  postAnnouncement(group.id, announcementDraft.trim());
+                  setComposingAnnouncement(false);
+                  setAnnouncementDraft('');
+                }}
+                className="rounded-full bg-terracotta px-4 py-2"
+                style={{ opacity: announcementDraft.trim() ? 1 : 0.4 }}
+              >
+                <Text className="text-sm font-semibold text-paper">
+                  {announcement ? 'Update' : 'Post'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
       )}
 
       {creatingPoll && (
