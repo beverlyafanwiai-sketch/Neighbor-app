@@ -59,6 +59,7 @@ export default function EventDetail() {
   const updateOffer = useCarpoolStore((s) => s.updateOffer);
   const cancelOffer = useCarpoolStore((s) => s.cancelOffer);
   const requestSeat = useCarpoolStore((s) => s.requestSeat);
+  const updateRiderNote = useCarpoolStore((s) => s.updateRiderNote);
   const leaveSeat = useCarpoolStore((s) => s.leaveSeat);
   const removeRider = useCarpoolStore((s) => s.removeRider);
   const offerSeatTo = useCarpoolStore((s) => s.offerSeatTo);
@@ -926,14 +927,25 @@ export default function EventDetail() {
                             </Pressable>
                           </>
                         ) : iAmRiding ? (
-                          <Pressable
-                            onPress={() => leaveSeat(offer.id)}
-                            className="rounded-full bg-sage/20 px-4 py-1.5"
-                          >
-                            <Text className="text-xs font-semibold text-sage">
-                              You're riding ✓
-                            </Text>
-                          </Pressable>
+                          <View className="flex-row items-center gap-1.5">
+                            <Pressable
+                              onPress={() => {
+                                setRequestingSeatOfferId(offer.id);
+                                setSeatRequestNote(offer.riderNotes?.[ME.id] ?? '');
+                              }}
+                              className="h-7 w-7 items-center justify-center"
+                            >
+                              <Ionicons name="pencil" size={14} className="text-charcoal/50" />
+                            </Pressable>
+                            <Pressable
+                              onPress={() => leaveSeat(offer.id)}
+                              className="rounded-full bg-sage/20 px-4 py-1.5"
+                            >
+                              <Text className="text-xs font-semibold text-sage">
+                                You're riding ✓
+                              </Text>
+                            </Pressable>
+                          </View>
                         ) : full ? (
                           <Text className="text-xs text-charcoal/50">Full</Text>
                         ) : (
@@ -971,13 +983,17 @@ export default function EventDetail() {
                           </Pressable>
                           <Pressable
                             onPress={() => {
-                              requestSeat(offer.id, seatRequestNote);
+                              if (offer.riderIds.includes(ME.id)) {
+                                updateRiderNote(offer.id, seatRequestNote);
+                              } else {
+                                requestSeat(offer.id, seatRequestNote);
+                              }
                               setRequestingSeatOfferId(null);
                               setSeatRequestNote('');
                             }}
                           >
                             <Text className="text-sm font-semibold text-terracotta">
-                              Request seat
+                              {offer.riderIds.includes(ME.id) ? 'Save' : 'Request seat'}
                             </Text>
                           </Pressable>
                         </View>
