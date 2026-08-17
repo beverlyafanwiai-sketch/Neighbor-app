@@ -11,6 +11,7 @@ import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
 import { getEffectiveHelperCount, getEffectiveHelperIds, useLendStore } from '../store/useLendStore';
+import { itemCommentKey, useItemCommentsStore } from '../store/useItemCommentsStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { useSavedLendStore } from '../store/useSavedLendStore';
@@ -42,11 +43,17 @@ export default function LendBoard() {
   const toggleSave = useSavedLendStore((s) => s.toggleSave);
   const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
   const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
+  const itemComments = useItemCommentsStore((s) => s.comments);
+  const addItemComment = useItemCommentsStore((s) => s.addComment);
+  const deleteItemComment = useItemCommentsStore((s) => s.deleteComment);
 
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [reportingId, setReportingId] = useState<string | null>(null);
   const [viewingHelpersId, setViewingHelpersId] = useState<string | null>(null);
+  const [viewingCommentsId, setViewingCommentsId] = useState<string | null>(null);
+  const [commentDraft, setCommentDraft] = useState('');
+  const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<LendSort>('Newest');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [query, setQuery] = useState('');
@@ -90,6 +97,9 @@ export default function LendBoard() {
         viewingHelpersItem.ownerId === ME.id ? false : myOffers[viewingHelpersItem.id] ?? false
       )
     : [];
+  const viewingCommentsItem = items.find((i) => i.id === viewingCommentsId);
+  const viewingCommentsKey = viewingCommentsItem ? itemCommentKey('lend', viewingCommentsItem.id) : null;
+  const viewingComments = viewingCommentsKey ? (itemComments[viewingCommentsKey] ?? []) : [];
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -220,6 +230,12 @@ export default function LendBoard() {
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons name="arrow-redo-outline" size={16} className="text-charcoal/50" />
+                      </Pressable>
+                      <Pressable
+                        onPress={() => setViewingCommentsId(item.id)}
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="chatbubble-outline" size={16} className="text-charcoal/50" />
                       </Pressable>
                       <Pressable
                         onPress={() => router.push(`/create-lend-item?id=${item.id}`)}
@@ -435,6 +451,12 @@ export default function LendBoard() {
                       <Ionicons name="arrow-redo-outline" size={18} className="text-charcoal/40" />
                     </Pressable>
                     <Pressable
+                      onPress={() => setViewingCommentsId(item.id)}
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons name="chatbubble-outline" size={18} className="text-charcoal/40" />
+                    </Pressable>
+                    <Pressable
                       onPress={() => toggleSave(item.id)}
                       className="h-8 w-8 items-center justify-center"
                     >
@@ -569,6 +591,12 @@ export default function LendBoard() {
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="arrow-redo-outline" size={18} className="text-charcoal/40" />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setViewingCommentsId(item.id)}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons name="chatbubble-outline" size={18} className="text-charcoal/40" />
                   </Pressable>
                   <Pressable
                     onPress={() => toggleSave(item.id)}
@@ -720,6 +748,113 @@ export default function LendBoard() {
             setPhotoCaption(photoCaptionKey(viewingPhotos.itemId, i), text)
           }
         />
+      )}
+
+      {viewingCommentsItem && viewingCommentsKey && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => {
+              setViewingCommentsId(null);
+              setConfirmingDeleteCommentId(null);
+              setCommentDraft('');
+            }}
+          />
+          <View className="max-h-[75%] w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Comments</Text>
+              <Pressable
+                onPress={() => {
+                  setViewingCommentsId(null);
+                  setConfirmingDeleteCommentId(null);
+                  setCommentDraft('');
+                }}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View className="gap-2">
+                {viewingComments.length === 0 && (
+                  <Text className="py-2 text-sm text-charcoal/50">
+                    No comments yet — ask a question or leave a note.
+                  </Text>
+                )}
+                {viewingComments.map((c) => {
+                  const isMine = c.authorId === ME.id;
+                  const author = isMine ? profile : getUser(c.authorId);
+                  if (!author) return null;
+
+                  if (confirmingDeleteCommentId === c.id) {
+                    return (
+                      <View key={c.id} className="gap-2 rounded-2xl bg-terracotta/10 p-3">
+                        <Text className="text-sm text-charcoal">Delete this comment?</Text>
+                        <View className="flex-row justify-end gap-4">
+                          <Pressable onPress={() => setConfirmingDeleteCommentId(null)}>
+                            <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => {
+                              deleteItemComment(viewingCommentsKey, c.id);
+                              setConfirmingDeleteCommentId(null);
+                            }}
+                          >
+                            <Text className="text-sm font-semibold text-terracotta">Delete</Text>
+                          </Pressable>
+                        </View>
+                      </View>
+                    );
+                  }
+
+                  return (
+                    <View key={c.id} className="flex-row items-start gap-2.5 rounded-2xl bg-sand p-3">
+                      <Image source={{ uri: author.avatar }} className="h-8 w-8 rounded-full" />
+                      <View className="flex-1">
+                        <View className="flex-row items-center gap-1.5">
+                          <Text className="text-sm font-semibold text-charcoal">
+                            {isMine ? 'You' : author.name}
+                          </Text>
+                          <Text className="text-xs text-charcoal/40">{c.time}</Text>
+                        </View>
+                        <Text className="mt-0.5 text-sm leading-5 text-charcoal">{c.text}</Text>
+                      </View>
+                      {isMine && (
+                        <Pressable
+                          onPress={() => setConfirmingDeleteCommentId(c.id)}
+                          className="h-7 w-7 items-center justify-center"
+                        >
+                          <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
+                        </Pressable>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            </ScrollView>
+            <View className="flex-row items-center gap-2 border-t border-charcoal/10 pt-3">
+              <TextInput
+                value={commentDraft}
+                onChangeText={setCommentDraft}
+                placeholder="Add a comment..."
+                placeholderTextColor="#3D3D3D80"
+                multiline
+                className="max-h-24 flex-1 rounded-2xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+              />
+              <Pressable
+                disabled={!commentDraft.trim()}
+                onPress={() => {
+                  addItemComment(viewingCommentsKey, commentDraft);
+                  setCommentDraft('');
+                }}
+                className="h-9 w-9 items-center justify-center rounded-full bg-terracotta"
+                style={{ opacity: commentDraft.trim() ? 1 : 0.4 }}
+              >
+                <Ionicons name="arrow-up" size={18} className="text-paper" />
+              </Pressable>
+            </View>
+          </View>
+        </View>
       )}
     </SafeAreaView>
   );
