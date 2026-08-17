@@ -55,6 +55,9 @@ export default function ForSaleBoard() {
   const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
   const markSold = useSaleStore((s) => s.markSold);
   const relistItem = useSaleStore((s) => s.relistItem);
+  const reservedForId = useSaleStore((s) => s.reservedForId);
+  const reserveFor = useSaleStore((s) => s.reserveFor);
+  const unreserve = useSaleStore((s) => s.unreserve);
   const deleteItem = useSaleStore((s) => s.deleteItem);
   const profile = useProfileStore((s) => s.profile);
   const savedIds = useSavedSaleStore((s) => s.savedIds);
@@ -190,6 +193,8 @@ export default function ForSaleBoard() {
                 const interestCount = getEffectiveInterestCount(item.id, false);
                 const accepted = acceptedOffers[item.id];
                 const acceptedBuyer = accepted ? getUser(accepted.userId) : undefined;
+                const reservedFor = !isSold ? reservedForId[item.id] : undefined;
+                const reservedBuyer = reservedFor ? getUser(reservedFor) : undefined;
 
                 if (deletingItemId === item.id) {
                   return (
@@ -313,14 +318,20 @@ export default function ForSaleBoard() {
                         onPress={() => setViewingInterestedId(item.id)}
                         className="flex-1"
                       >
-                        <Text className={`text-sm ${isSold ? 'text-sage' : 'text-charcoal/50'}`}>
+                        <Text
+                          className={`text-sm ${
+                            isSold ? 'text-sage' : reservedBuyer ? 'text-gold' : 'text-charcoal/50'
+                          }`}
+                        >
                           {isSold
                             ? acceptedBuyer
                               ? `Sold to ${acceptedBuyer.name} for ${accepted!.price}`
                               : 'Marked as sold'
-                            : interestCount === 0
-                              ? 'No interest yet'
-                              : `${interestCount} neighbor${interestCount === 1 ? '' : 's'} interested`}
+                            : reservedBuyer
+                              ? `Reserved for ${reservedBuyer.name}`
+                              : interestCount === 0
+                                ? 'No interest yet'
+                                : `${interestCount} neighbor${interestCount === 1 ? '' : 's'} interested`}
                         </Text>
                       </Pressable>
                       {isSold ? (
@@ -329,6 +340,13 @@ export default function ForSaleBoard() {
                           className="rounded-full bg-sand px-4 py-1.5"
                         >
                           <Text className="text-xs font-semibold text-charcoal">Relist</Text>
+                        </Pressable>
+                      ) : reservedBuyer ? (
+                        <Pressable
+                          onPress={() => unreserve(item.id)}
+                          className="rounded-full bg-sand px-4 py-1.5"
+                        >
+                          <Text className="text-xs font-semibold text-charcoal">Unreserve</Text>
                         </Pressable>
                       ) : (
                         <Pressable
@@ -478,6 +496,11 @@ export default function ForSaleBoard() {
                           >
                             {item.priceFlexibility}
                           </Text>
+                        </View>
+                      )}
+                      {!isSold && reservedForId[item.id] && (
+                        <View className="rounded-full bg-gold/20 px-2 py-0.5">
+                          <Text className="text-[10px] font-semibold text-gold">Reserved</Text>
                         </View>
                       )}
                     </View>
@@ -747,6 +770,34 @@ export default function ForSaleBoard() {
                             </Pressable>
                           </View>
                         )}
+                        {!isMe &&
+                          viewingInterestedItem.ownerId === ME.id &&
+                          !(sold[viewingInterestedItem.id] ?? false) && (
+                            <Pressable
+                              onPress={() =>
+                                reservedForId[viewingInterestedItem.id] === userId
+                                  ? unreserve(viewingInterestedItem.id)
+                                  : reserveFor(viewingInterestedItem.id, userId)
+                              }
+                              className={`rounded-full px-3 py-1.5 ${
+                                reservedForId[viewingInterestedItem.id] === userId
+                                  ? 'bg-gold/20'
+                                  : 'bg-sand'
+                              }`}
+                            >
+                              <Text
+                                className={`text-xs font-semibold ${
+                                  reservedForId[viewingInterestedItem.id] === userId
+                                    ? 'text-gold'
+                                    : 'text-charcoal/60'
+                                }`}
+                              >
+                                {reservedForId[viewingInterestedItem.id] === userId
+                                  ? 'Reserved ✓'
+                                  : 'Reserve'}
+                              </Text>
+                            </Pressable>
+                          )}
                       </View>
                       {counteringUserId === userId && (
                         <View className="flex-row items-center gap-2">

@@ -49,6 +49,7 @@ type SaleState = {
   acceptedOffers: Record<string, AcceptedOffer>;
   declinedOffers: Record<string, Record<string, boolean>>;
   counterOffers: Record<string, Record<string, string>>;
+  reservedForId: Record<string, string>;
   drafts: SaleDraft[];
   createItem: (input: NewSaleItemInput) => string;
   updateItem: (itemId: string, updates: Partial<NewSaleItemInput>) => void;
@@ -62,6 +63,8 @@ type SaleState = {
   markFree: (itemId: string) => void;
   markSold: (itemId: string) => void;
   relistItem: (itemId: string) => void;
+  reserveFor: (itemId: string, userId: string) => void;
+  unreserve: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
   saveDraft: (input: SaleDraftInput) => string;
   deleteDraft: (id: string) => void;
@@ -93,6 +96,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   acceptedOffers: {},
   declinedOffers: {},
   counterOffers: {},
+  reservedForId: {},
   drafts: [],
 
   createItem: (input) => {
@@ -173,10 +177,14 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   acceptOffer: (itemId, userId) => {
     const price = getOfferFor(itemId, userId);
     if (!price) return;
-    set((s) => ({
-      sold: { ...s.sold, [itemId]: true },
-      acceptedOffers: { ...s.acceptedOffers, [itemId]: { userId, price } },
-    }));
+    set((s) => {
+      const { [itemId]: _removedReservation, ...reservedForId } = s.reservedForId;
+      return {
+        sold: { ...s.sold, [itemId]: true },
+        acceptedOffers: { ...s.acceptedOffers, [itemId]: { userId, price } },
+        reservedForId,
+      };
+    });
   },
 
   declineOffer: (itemId, userId) =>
@@ -246,19 +254,34 @@ export const useSaleStore = create<SaleState>((set, get) => ({
       ),
     })),
 
-  markSold: (itemId) => set((s) => ({ sold: { ...s.sold, [itemId]: true } })),
+  markSold: (itemId) =>
+    set((s) => {
+      const { [itemId]: _removedReservation, ...reservedForId } = s.reservedForId;
+      return { sold: { ...s.sold, [itemId]: true }, reservedForId };
+    }),
 
   relistItem: (itemId) =>
     set((s) => {
       const { [itemId]: _removed, ...rest } = s.acceptedOffers;
       const { [itemId]: _removedDeclines, ...restDeclines } = s.declinedOffers;
       const { [itemId]: _removedCounters, ...restCounters } = s.counterOffers;
+      const { [itemId]: _removedReservation, ...reservedForId } = s.reservedForId;
       return {
         sold: { ...s.sold, [itemId]: false },
         acceptedOffers: rest,
         declinedOffers: restDeclines,
         counterOffers: restCounters,
+        reservedForId,
       };
+    }),
+
+  reserveFor: (itemId, userId) =>
+    set((s) => ({ reservedForId: { ...s.reservedForId, [itemId]: userId } })),
+
+  unreserve: (itemId) =>
+    set((s) => {
+      const { [itemId]: _removed, ...reservedForId } = s.reservedForId;
+      return { reservedForId };
     }),
 
   updateItem: (itemId, updates) =>
