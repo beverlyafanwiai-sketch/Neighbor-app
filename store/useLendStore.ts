@@ -19,6 +19,18 @@ export type NewLendItemInput = {
   imageUris?: string[];
 };
 
+export type LendDraft = {
+  id: string;
+  kind: LendItemKind;
+  emoji: string;
+  title: string;
+  note: string;
+  imageUris?: string[];
+  updatedAt: number;
+};
+
+type LendDraftInput = Omit<LendDraft, 'updatedAt' | 'id'> & { id?: string };
+
 type LendState = {
   items: LendItem[];
   status: Record<string, BorrowStatus>;
@@ -27,6 +39,7 @@ type LendState = {
   pendingRequesterId: Record<string, string>;
   myOffers: Record<string, boolean>;
   requestNotes: Record<string, string>;
+  drafts: LendDraft[];
   createItem: (input: NewLendItemInput) => string;
   updateItem: (itemId: string, updates: Partial<NewLendItemInput>) => void;
   requestToBorrow: (itemId: string, note?: string) => void;
@@ -37,6 +50,8 @@ type LendState = {
   updateDueDate: (itemId: string, days: number) => void;
   offerToHelp: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
+  saveDraft: (input: LendDraftInput) => string;
+  deleteDraft: (id: string) => void;
 };
 
 function dueLabelFromNow(days: number = DUE_IN_DAYS) {
@@ -44,6 +59,8 @@ function dueLabelFromNow(days: number = DUE_IN_DAYS) {
   date.setDate(date.getDate() + days);
   return date.toLocaleDateString(undefined, { weekday: 'short' });
 }
+
+let lendDraftSeq = 0;
 
 export const useLendStore = create<LendState>((set, get) => ({
   items: LEND_ITEMS,
@@ -53,6 +70,7 @@ export const useLendStore = create<LendState>((set, get) => ({
   pendingRequesterId: {},
   myOffers: {},
   requestNotes: {},
+  drafts: [],
 
   createItem: (input) => {
     const id = `${input.kind}-${Math.random().toString(36).slice(2, 9)}`;
@@ -192,6 +210,23 @@ export const useLendStore = create<LendState>((set, get) => ({
     })),
 
   deleteItem: (itemId) => set((s) => ({ items: s.items.filter((i) => i.id !== itemId) })),
+
+  saveDraft: (input) => {
+    const draftId = input.id ?? `lend-draft-${++lendDraftSeq}`;
+    const updatedAt = Date.now();
+    set((s) => {
+      const draft: LendDraft = { ...input, id: draftId, updatedAt };
+      const exists = s.drafts.some((d) => d.id === draftId);
+      return {
+        drafts: exists
+          ? s.drafts.map((d) => (d.id === draftId ? draft : d))
+          : [draft, ...s.drafts],
+      };
+    });
+    return draftId;
+  },
+
+  deleteDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
 }));
 
 // item.helperIds is the baseline list of other neighbors already offering
