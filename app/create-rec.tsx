@@ -53,6 +53,7 @@ export default function CreateRec() {
   const [imageUris, setImageUris] = useState<string[]>(
     existing?.imageUris ?? existingDraft?.imageUris ?? []
   );
+  const [urgent, setUrgent] = useState(existing?.urgent ?? existingDraft?.urgent ?? false);
   const [confirmingClose, setConfirmingClose] = useState(false);
 
   const canSave = category.trim() && note.trim() && (kind === 'ask' || name.trim());
@@ -87,6 +88,7 @@ export default function CreateRec() {
         name: kind === 'rec' ? name.trim() : undefined,
         note: note.trim(),
         imageUris,
+        urgent: kind === 'ask' ? urgent : undefined,
       });
       router.replace('/recs');
       return;
@@ -98,6 +100,7 @@ export default function CreateRec() {
       name: kind === 'rec' ? name.trim() : undefined,
       note: note.trim(),
       imageUris,
+      urgent: kind === 'ask' ? urgent : undefined,
     });
     if (draftId) deleteDraft(draftId);
     router.replace('/recs');
@@ -125,6 +128,7 @@ export default function CreateRec() {
       name: kind === 'rec' ? name.trim() : undefined,
       note: note.trim(),
       imageUris,
+      urgent: kind === 'ask' ? urgent : undefined,
     });
     router.back();
   };
@@ -300,6 +304,25 @@ export default function CreateRec() {
                 className="min-h-[80px] rounded-2xl bg-cream px-4 py-3 text-base text-charcoal"
               />
             </View>
+
+            {kind === 'ask' && (
+              <Pressable
+                onPress={() => setUrgent((u) => !u)}
+                className="flex-row items-center gap-2.5 rounded-2xl bg-cream px-4 py-3"
+              >
+                <Ionicons
+                  name={urgent ? 'checkbox' : 'square-outline'}
+                  size={18}
+                  className={urgent ? 'text-terracotta' : 'text-charcoal/40'}
+                />
+                <View className="flex-1">
+                  <Text className="text-sm font-medium text-charcoal">Mark as urgent</Text>
+                  <Text className="text-xs text-charcoal/50">
+                    Flags this ask as time-sensitive so it stands out.
+                  </Text>
+                </View>
+              </Pressable>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

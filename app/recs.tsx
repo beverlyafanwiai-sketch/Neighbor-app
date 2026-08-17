@@ -263,6 +263,11 @@ export default function RecsBoard() {
                               <Text className="text-[10px] font-bold text-sage">RESOLVED</Text>
                             </View>
                           )}
+                          {entry.kind === 'ask' && entry.urgent && !entry.resolved && (
+                            <View className="rounded-full bg-terracotta/15 px-2 py-0.5">
+                              <Text className="text-[10px] font-bold text-terracotta">URGENT</Text>
+                            </View>
+                          )}
                         </View>
                         <Text className="text-xs text-charcoal/50">
                           {entry.kind === 'rec' ? `Your ${entry.category} recommendation` : 'You asked the board'}
@@ -369,6 +374,11 @@ export default function RecsBoard() {
                       {!isRec && entry.resolved && (
                         <View className="rounded-full bg-sage/20 px-2 py-0.5">
                           <Text className="text-[10px] font-bold text-sage">RESOLVED</Text>
+                        </View>
+                      )}
+                      {!isRec && entry.urgent && !entry.resolved && (
+                        <View className="rounded-full bg-terracotta/15 px-2 py-0.5">
+                          <Text className="text-[10px] font-bold text-terracotta">URGENT</Text>
                         </View>
                       )}
                     </View>

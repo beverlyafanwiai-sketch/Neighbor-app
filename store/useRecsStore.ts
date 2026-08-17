@@ -13,6 +13,7 @@ export type NewRecEntryInput = {
   name?: string;
   note: string;
   imageUris?: string[];
+  urgent?: boolean;
 };
 
 export type RecDraft = {
@@ -23,6 +24,7 @@ export type RecDraft = {
   name?: string;
   note: string;
   imageUris?: string[];
+  urgent?: boolean;
   updatedAt: number;
 };
 
@@ -60,6 +62,7 @@ export const useRecsStore = create<RecsState>((set, get) => ({
       name: input.name,
       note: input.note,
       imageUris: input.imageUris,
+      urgent: input.kind === 'ask' ? input.urgent : undefined,
     };
     set((s) => ({ entries: [entry, ...s.entries] }));
 
