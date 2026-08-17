@@ -5,6 +5,8 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import { ALERT_CATEGORIES } from '../data/mock';
+import { useAlertsStore } from '../store/useAlertsStore';
 import { useEventsStore } from '../store/useEventsStore';
 import { useLendStore } from '../store/useLendStore';
 import { usePostsStore } from '../store/usePostsStore';
@@ -12,7 +14,7 @@ import { useProfileStore } from '../store/useProfileStore';
 import { useRecsStore } from '../store/useRecsStore';
 import { useSaleStore } from '../store/useSaleStore';
 
-const MODES = ['Posts', 'Events', 'Recs', 'Lend', 'For Sale'] as const;
+const MODES = ['Posts', 'Events', 'Recs', 'Lend', 'For Sale', 'Alerts'] as const;
 type Mode = (typeof MODES)[number];
 
 export default function Drafts() {
@@ -28,6 +30,8 @@ export default function Drafts() {
   const deleteLendDraft = useLendStore((s) => s.deleteDraft);
   const saleDrafts = useSaleStore((s) => s.drafts);
   const deleteSaleDraft = useSaleStore((s) => s.deleteDraft);
+  const alertDrafts = useAlertsStore((s) => s.drafts);
+  const deleteAlertDraft = useAlertsStore((s) => s.deleteDraft);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -98,6 +102,15 @@ export default function Drafts() {
             iconColorClassName="text-charcoal/50"
             title="No for sale drafts yet"
             subtitle="Unfinished listings you save for later will show up here."
+          />
+        )}
+
+        {mode === 'Alerts' && alertDrafts.length === 0 && (
+          <EmptyState
+            icon="document-text-outline"
+            iconColorClassName="text-charcoal/50"
+            title="No alert drafts yet"
+            subtitle="Unfinished alerts you save for later will show up here."
           />
         )}
 
@@ -309,6 +322,45 @@ export default function Drafts() {
                 </View>
               </Pressable>
             ))}
+          </View>
+        )}
+
+        {mode === 'Alerts' && (
+          <View className="gap-4">
+            {alertDrafts.map((draft) => {
+              const meta = ALERT_CATEGORIES.find((c) => c.value === draft.category);
+              return (
+                <Pressable
+                  key={draft.id}
+                  onPress={() => router.push(`/create-alert?draftId=${draft.id}`)}
+                  className="rounded-3xl bg-cream p-4 shadow-sm active:opacity-80"
+                >
+                  <View className="flex-row items-center gap-3">
+                    <Text style={{ fontSize: 18 }}>{meta?.emoji ?? '📢'}</Text>
+                    <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                      Draft · {meta?.label ?? 'Alert'}
+                    </Text>
+                  </View>
+
+                  <Text className="mt-3 text-[15px] leading-5 text-charcoal" numberOfLines={3}>
+                    {draft.text.length > 0 ? draft.text : 'Empty draft'}
+                  </Text>
+
+                  <View className="mt-4 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        deleteAlertDraft(draft.id);
+                      }}
+                      className="flex-row items-center gap-1.5"
+                    >
+                      <Ionicons name="trash-outline" size={16} className="text-terracotta" />
+                      <Text className="text-sm font-medium text-terracotta">Discard</Text>
+                    </Pressable>
+                  </View>
+                </Pressable>
+              );
+            })}
           </View>
         )}
       </ScrollView>

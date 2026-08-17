@@ -30,17 +30,26 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateAlert() {
-  const { editId } = useLocalSearchParams<{ editId?: string }>();
+  const { editId, draftId } = useLocalSearchParams<{ editId?: string; draftId?: string }>();
   const postAlert = useAlertsStore((s) => s.postAlert);
   const updateAlert = useAlertsStore((s) => s.updateAlert);
   const existing = useAlertsStore((s) => (editId ? s.alerts.find((a) => a.id === editId) : undefined));
+  const existingDraft = useAlertsStore((s) =>
+    draftId ? s.drafts.find((d) => d.id === draftId) : undefined
+  );
   const isEditing = Boolean(existing);
+  const saveDraft = useAlertsStore((s) => s.saveDraft);
+  const deleteDraft = useAlertsStore((s) => s.deleteDraft);
 
-  const [category, setCategory] = useState<AlertCategoryValue>(existing?.category ?? 'lost-pet');
-  const [text, setText] = useState(existing?.text ?? '');
-  const [durationHours, setDurationHours] = useState(24);
+  const [category, setCategory] = useState<AlertCategoryValue>(
+    existing?.category ?? existingDraft?.category ?? 'lost-pet'
+  );
+  const [text, setText] = useState(existing?.text ?? existingDraft?.text ?? '');
+  const [durationHours, setDurationHours] = useState(existingDraft?.durationHours ?? 24);
+  const [confirmingClose, setConfirmingClose] = useState(false);
 
   const canPost = text.trim().length > 0;
+  const hasUnsavedContent = !isEditing && text.trim().length > 0;
 
   const save = () => {
     if (!canPost) return;
@@ -49,14 +58,33 @@ export default function CreateAlert() {
     } else {
       postAlert({ category, text: text.trim(), durationHours });
     }
+    if (draftId) deleteDraft(draftId);
     router.replace('/alerts');
+  };
+
+  const close = () => {
+    if (isEditing || !hasUnsavedContent) {
+      router.back();
+      return;
+    }
+    setConfirmingClose(true);
+  };
+
+  const discardAndClose = () => {
+    if (draftId) deleteDraft(draftId);
+    router.back();
+  };
+
+  const saveDraftAndClose = () => {
+    saveDraft({ id: draftId, category, text: text.trim(), durationHours });
+    router.back();
   };
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={close}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
@@ -74,6 +102,23 @@ export default function CreateAlert() {
           </Text>
         </Pressable>
       </View>
+
+      {confirmingClose && (
+        <View className="gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="text-sm text-charcoal">Save this as a draft, or discard it?</Text>
+          <View className="flex-row justify-end gap-4">
+            <Pressable onPress={() => setConfirmingClose(false)}>
+              <Text className="text-sm font-medium text-charcoal/60">Keep editing</Text>
+            </Pressable>
+            <Pressable onPress={discardAndClose}>
+              <Text className="text-sm font-semibold text-terracotta">Discard</Text>
+            </Pressable>
+            <Pressable onPress={saveDraftAndClose}>
+              <Text className="text-sm font-semibold text-sage">Save draft</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">
