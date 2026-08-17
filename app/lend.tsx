@@ -37,6 +37,8 @@ export default function LendBoard() {
   const markReturned = useLendStore((s) => s.markReturned);
   const updateDueDate = useLendStore((s) => s.updateDueDate);
   const offerToHelp = useLendStore((s) => s.offerToHelp);
+  const notifyWhenAvailable = useLendStore((s) => s.notifyWhenAvailable);
+  const toggleNotifyWhenAvailable = useLendStore((s) => s.toggleNotifyWhenAvailable);
   const deleteItem = useLendStore((s) => s.deleteItem);
   const profile = useProfileStore((s) => s.profile);
   const savedIds = useSavedLendStore((s) => s.savedIds);
@@ -489,7 +491,25 @@ export default function LendBoard() {
                   )}
 
                   <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
-                    {itemStatus === 'lent' ? (
+                    {item.unavailableNote ? (
+                      <>
+                        <Text className="flex-1 text-sm text-charcoal/50">{item.unavailableNote}</Text>
+                        <Pressable
+                          onPress={() => toggleNotifyWhenAvailable(item.id)}
+                          className={`rounded-full px-4 py-1.5 ${
+                            notifyWhenAvailable[item.id] ? 'bg-sage/20' : 'bg-sand'
+                          }`}
+                        >
+                          <Text
+                            className={`text-xs font-semibold ${
+                              notifyWhenAvailable[item.id] ? 'text-sage' : 'text-charcoal'
+                            }`}
+                          >
+                            {notifyWhenAvailable[item.id] ? "We'll notify you ✓" : 'Notify me'}
+                          </Text>
+                        </Pressable>
+                      </>
+                    ) : itemStatus === 'lent' ? (
                       <>
                         <View className="flex-1">
                           <Text className="text-sm text-sage">

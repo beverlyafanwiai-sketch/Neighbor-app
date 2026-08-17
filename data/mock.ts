@@ -878,6 +878,10 @@ export type LendItem = {
   // Baseline ids of other neighbors already offering to help, for 'want'
   // items — mirrors event.attendeeIds as a "before ME" list.
   helperIds?: string[];
+  // Baseline signal that another neighbor currently has this 'have' item —
+  // independent of ME's own borrow status. Cleared when "available again" is
+  // simulated after ME asks to be notified.
+  unavailableNote?: string;
 };
 
 export const LEND_ITEMS: LendItem[] = [
@@ -905,6 +909,7 @@ export const LEND_ITEMS: LendItem[] = [
     emoji: '🔧',
     title: 'Power drill',
     note: 'Cordless, comes with a basic bit set. Just charge it up before you bring it back.',
+    unavailableNote: 'Out with a neighbor until later this week',
   },
   {
     id: 'folding-tables',

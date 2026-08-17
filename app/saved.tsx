@@ -157,7 +157,7 @@ export default function Saved() {
       (i) =>
         (savedLendIds[i.id] ?? false) &&
         matches(i.title, i.note) &&
-        (!hideUnavailable || (lendStatus[i.id] ?? 'available') === 'available')
+        (!hideUnavailable || ((lendStatus[i.id] ?? 'available') === 'available' && !i.unavailableNote))
     ),
     sortBy,
     (i) => i.title,
@@ -767,7 +767,7 @@ export default function Saved() {
                   <Text className="mt-2 text-sm leading-5 text-charcoal/80">{item.note}</Text>
                   <Text className="mt-3 border-t border-charcoal/10 pt-3 text-xs text-charcoal/50">
                     {item.kind === 'have'
-                      ? itemStatus === 'lent'
+                      ? itemStatus === 'lent' || item.unavailableNote
                         ? 'Already lent'
                         : itemStatus === 'requested'
                           ? 'Request sent'

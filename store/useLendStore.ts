@@ -8,6 +8,7 @@ const BORROW_APPROVAL_DELAY_MS = 2500;
 const INBOUND_REQUEST_DELAY_MS = 4000;
 const OFFER_THANKS_DELAY_MS = 2000;
 const DUE_REMINDER_DELAY_MS = 7000;
+const AVAILABLE_AGAIN_DELAY_MS = 8000;
 const DUE_IN_DAYS = 5;
 
 export type BorrowStatus = 'available' | 'requested' | 'lent';
@@ -40,6 +41,7 @@ type LendState = {
   pendingRequesterId: Record<string, string>;
   myOffers: Record<string, boolean>;
   requestNotes: Record<string, string>;
+  notifyWhenAvailable: Record<string, boolean>;
   drafts: LendDraft[];
   createItem: (input: NewLendItemInput) => string;
   updateItem: (itemId: string, updates: Partial<NewLendItemInput>) => void;
@@ -50,6 +52,7 @@ type LendState = {
   markReturned: (itemId: string) => void;
   updateDueDate: (itemId: string, days: number) => void;
   offerToHelp: (itemId: string) => void;
+  toggleNotifyWhenAvailable: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
   saveDraft: (input: LendDraftInput) => string;
   deleteDraft: (id: string) => void;
@@ -88,6 +91,7 @@ export const useLendStore = create<LendState>((set, get) => ({
   pendingRequesterId: {},
   myOffers: {},
   requestNotes: {},
+  notifyWhenAvailable: {},
   drafts: [],
 
   createItem: (input) => {
@@ -222,6 +226,36 @@ export const useLendStore = create<LendState>((set, get) => ({
         });
       }
     }, OFFER_THANKS_DELAY_MS);
+  },
+
+  toggleNotifyWhenAvailable: (itemId) => {
+    const item = get().items.find((i) => i.id === itemId);
+    if (!item) return;
+    const alreadyWaiting = get().notifyWhenAvailable[itemId] ?? false;
+    set((s) => ({
+      notifyWhenAvailable: { ...s.notifyWhenAvailable, [itemId]: !alreadyWaiting },
+    }));
+    if (alreadyWaiting) return;
+
+    setTimeout(() => {
+      if (!get().notifyWhenAvailable[itemId]) return;
+      const current = get().items.find((i) => i.id === itemId);
+      if (!current?.unavailableNote) return;
+
+      set((s) => ({
+        items: s.items.map((i) => (i.id === itemId ? { ...i, unavailableNote: undefined } : i)),
+        notifyWhenAvailable: { ...s.notifyWhenAvailable, [itemId]: false },
+      }));
+
+      if (useSettingsStore.getState().notificationPrefs.lendUpdates) {
+        useNotificationsStore.getState().addNotification({
+          type: 'lend',
+          text: `${current.title} is available again — you can request to borrow it now`,
+          time: 'Just now',
+          target: { kind: 'lend', id: itemId },
+        });
+      }
+    }, AVAILABLE_AGAIN_DELAY_MS);
   },
 
   updateItem: (itemId, updates) =>
