@@ -15,10 +15,22 @@ export type NewGroupInput = {
 
 export type GroupEdits = Pick<Group, 'name' | 'description' | 'tone' | 'coverImageUri'>;
 
+export type GroupDraft = {
+  id: string;
+  name: string;
+  description: string;
+  tone: Tone;
+  coverImageUri?: string;
+  updatedAt: number;
+};
+
+type GroupDraftInput = Omit<GroupDraft, 'updatedAt' | 'id'> & { id?: string };
+
 type GroupsState = {
   groups: Group[];
   joined: Record<string, boolean>;
   inviteCodes: Record<string, string>;
+  drafts: GroupDraft[];
   toggle: (groupId: string) => void;
   createGroup: (input: NewGroupInput) => string;
   updateGroup: (groupId: string, updates: Partial<GroupEdits>) => void;
@@ -30,7 +42,11 @@ type GroupsState = {
   joinByInviteCode: (code: string) => string | null;
   regenerateInviteCode: (groupId: string) => void;
   transferOwnership: (groupId: string, newOwnerId: string) => void;
+  saveDraft: (input: GroupDraftInput) => string;
+  deleteDraft: (id: string) => void;
 };
+
+let groupDraftSeq = 0;
 
 function slugify(name: string) {
   return (
@@ -64,6 +80,7 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
   groups: GROUPS,
   joined: initialJoined,
   inviteCodes: initialInviteCodes,
+  drafts: [],
 
   toggle: (groupId) =>
     set((s) => ({ joined: { ...s.joined, [groupId]: !s.joined[groupId] } })),
@@ -186,6 +203,23 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
         return { ...g, createdBy: newOwnerId, coAdminIds };
       }),
     })),
+
+  saveDraft: (input) => {
+    const draftId = input.id ?? `group-draft-${++groupDraftSeq}`;
+    const updatedAt = Date.now();
+    set((s) => {
+      const draft: GroupDraft = { ...input, id: draftId, updatedAt };
+      const exists = s.drafts.some((d) => d.id === draftId);
+      return {
+        drafts: exists
+          ? s.drafts.map((d) => (d.id === draftId ? draft : d))
+          : [draft, ...s.drafts],
+      };
+    });
+    return draftId;
+  },
+
+  deleteDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
 }));
 
 export function getGroup(groupId: string): Group | undefined {

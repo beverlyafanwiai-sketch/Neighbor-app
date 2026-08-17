@@ -31,26 +31,39 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateGroup() {
-  const { id: editId, duplicateId } = useLocalSearchParams<{ id?: string; duplicateId?: string }>();
+  const { id: editId, duplicateId, draftId } = useLocalSearchParams<{
+    id?: string;
+    duplicateId?: string;
+    draftId?: string;
+  }>();
   const existing = useGroupsStore((s) => (editId ? s.groups.find((g) => g.id === editId) : undefined));
   const isEditing = Boolean(existing);
   const duplicateSource = useGroupsStore((s) =>
     duplicateId ? s.groups.find((g) => g.id === duplicateId) : undefined
   );
   const isDuplicating = Boolean(duplicateSource) && !isEditing;
+  const existingDraft = useGroupsStore((s) =>
+    draftId ? s.drafts.find((d) => d.id === draftId) : undefined
+  );
   const createGroup = useGroupsStore((s) => s.createGroup);
   const updateGroup = useGroupsStore((s) => s.updateGroup);
+  const saveDraft = useGroupsStore((s) => s.saveDraft);
+  const deleteDraft = useGroupsStore((s) => s.deleteDraft);
 
-  const [name, setName] = useState(existing?.name ?? duplicateSource?.name ?? '');
+  const [name, setName] = useState(existing?.name ?? duplicateSource?.name ?? existingDraft?.name ?? '');
   const [description, setDescription] = useState(
-    existing?.description ?? duplicateSource?.description ?? ''
+    existing?.description ?? duplicateSource?.description ?? existingDraft?.description ?? ''
   );
-  const [tone, setTone] = useState<Tone>(existing?.tone ?? duplicateSource?.tone ?? 'Casual');
+  const [tone, setTone] = useState<Tone>(
+    existing?.tone ?? duplicateSource?.tone ?? existingDraft?.tone ?? 'Casual'
+  );
   const [coverImageUri, setCoverImageUri] = useState(
-    existing?.coverImageUri ?? duplicateSource?.coverImageUri
+    existing?.coverImageUri ?? duplicateSource?.coverImageUri ?? existingDraft?.coverImageUri
   );
+  const [confirmingClose, setConfirmingClose] = useState(false);
 
   const canSave = name.trim() && description.trim();
+  const hasUnsavedContent = !isEditing && Boolean(name.trim() || description.trim());
 
   const save = () => {
     if (!canSave) return;
@@ -70,14 +83,39 @@ export default function CreateGroup() {
       tone,
       coverImageUri,
     });
+    if (draftId) deleteDraft(draftId);
     router.replace(`/group/${id}`);
+  };
+
+  const close = () => {
+    if (isEditing || !hasUnsavedContent) {
+      router.back();
+      return;
+    }
+    setConfirmingClose(true);
+  };
+
+  const discardAndClose = () => {
+    if (draftId) deleteDraft(draftId);
+    router.back();
+  };
+
+  const saveDraftAndClose = () => {
+    saveDraft({
+      id: draftId,
+      name: name.trim(),
+      description: description.trim(),
+      tone,
+      coverImageUri,
+    });
+    router.back();
   };
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={close}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
@@ -95,6 +133,23 @@ export default function CreateGroup() {
           </Text>
         </Pressable>
       </View>
+
+      {confirmingClose && (
+        <View className="gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="text-sm text-charcoal">Save this as a draft, or discard it?</Text>
+          <View className="flex-row justify-end gap-4">
+            <Pressable onPress={() => setConfirmingClose(false)}>
+              <Text className="text-sm font-medium text-charcoal/60">Keep editing</Text>
+            </Pressable>
+            <Pressable onPress={discardAndClose}>
+              <Text className="text-sm font-semibold text-terracotta">Discard</Text>
+            </Pressable>
+            <Pressable onPress={saveDraftAndClose}>
+              <Text className="text-sm font-semibold text-sage">Save draft</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">
