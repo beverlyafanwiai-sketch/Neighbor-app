@@ -701,7 +701,10 @@ export type NotificationItem = {
   time: string;
   read: boolean;
   target?: NotificationTarget;
+  createdAt: number;
 };
+
+const notifSeedNow = Date.now();
 
 export const NOTIFICATIONS: NotificationItem[] = [
   {
@@ -712,6 +715,7 @@ export const NOTIFICATIONS: NotificationItem[] = [
     time: '20m ago',
     read: false,
     target: { kind: 'profile', id: 'nia' },
+    createdAt: notifSeedNow - 20 * 60 * 1000,
   },
   {
     id: '1',
@@ -721,6 +725,7 @@ export const NOTIFICATIONS: NotificationItem[] = [
     time: '10m ago',
     read: false,
     target: { kind: 'chat', id: 'convo-priya' },
+    createdAt: notifSeedNow - 10 * 60 * 1000,
   },
   {
     id: '2',
@@ -730,6 +735,7 @@ export const NOTIFICATIONS: NotificationItem[] = [
     time: '1h ago',
     read: false,
     target: { kind: 'event', id: 'porch-potluck' },
+    createdAt: notifSeedNow - 60 * 60 * 1000,
   },
   {
     id: '3',
@@ -738,6 +744,7 @@ export const NOTIFICATIONS: NotificationItem[] = [
     time: '3h ago',
     read: false,
     target: { kind: 'group-chat', id: 'weekend-hikers' },
+    createdAt: notifSeedNow - 3 * 60 * 60 * 1000,
   },
   {
     id: '4',
@@ -746,6 +753,7 @@ export const NOTIFICATIONS: NotificationItem[] = [
     time: '5h ago',
     read: true,
     target: { kind: 'event', id: 'sunset-ridge-hike' },
+    createdAt: notifSeedNow - 5 * 60 * 60 * 1000,
   },
   {
     id: '5',
@@ -755,6 +763,7 @@ export const NOTIFICATIONS: NotificationItem[] = [
     time: 'Yesterday',
     read: true,
     target: { kind: 'group', id: 'pottery-beginners' },
+    createdAt: notifSeedNow - 30 * 60 * 60 * 1000,
   },
   {
     id: '6',
@@ -764,6 +773,7 @@ export const NOTIFICATIONS: NotificationItem[] = [
     time: '2d ago',
     read: true,
     target: { kind: 'profile', id: 'theo' },
+    createdAt: notifSeedNow - 2 * 24 * 60 * 60 * 1000,
   },
 ];
 

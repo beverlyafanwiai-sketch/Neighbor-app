@@ -9,7 +9,7 @@ type NotificationsState = {
   snoozedUntil: Record<string, number>;
   markRead: (id: string) => void;
   markAllRead: () => void;
-  addNotification: (item: Omit<NotificationItem, 'id' | 'read'>) => void;
+  addNotification: (item: Omit<NotificationItem, 'id' | 'read' | 'createdAt'>) => void;
   dismissToast: () => void;
   deleteNotification: (id: string) => void;
   snoozeNotification: (id: string, delayMs: number) => void;
@@ -30,7 +30,12 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
     set((s) => ({ notifications: s.notifications.map((n) => ({ ...n, read: true })) })),
 
   addNotification: (item) => {
-    const notification: NotificationItem = { id: `${Date.now()}`, read: false, ...item };
+    const notification: NotificationItem = {
+      id: `${Date.now()}`,
+      read: false,
+      createdAt: Date.now(),
+      ...item,
+    };
     const quietNow = isQuietHoursActive(useSettingsStore.getState().quietHours, new Date());
     set((s) => ({
       notifications: [notification, ...s.notifications],

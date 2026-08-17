@@ -17,6 +17,25 @@ const SNOOZE_OPTIONS = [
   { label: 'Tomorrow', ms: 24 * 60 * 60 * 1000 },
 ] as const;
 
+function startOfDay(ts: number) {
+  const d = new Date(ts);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+function groupByDay(items: NotificationItem[]) {
+  const now = Date.now();
+  const groups: { label: string; items: NotificationItem[] }[] = [];
+  for (const item of items) {
+    const diffDays = Math.floor((startOfDay(now) - startOfDay(item.createdAt)) / (24 * 60 * 60 * 1000));
+    const label = diffDays <= 0 ? 'Today' : diffDays === 1 ? 'Yesterday' : 'Earlier';
+    const group = groups.find((g) => g.label === label);
+    if (group) group.items.push(item);
+    else groups.push({ label, items: [item] });
+  }
+  return groups;
+}
+
 export default function Notifications() {
   const allNotifications = useNotificationsStore((s) => s.notifications);
   const markRead = useNotificationsStore((s) => s.markRead);
@@ -41,6 +60,7 @@ export default function Notifications() {
   });
   const activeNotifications = notifications.filter((n) => !snoozedUntil[n.id]);
   const snoozedNotifications = notifications.filter((n) => snoozedUntil[n.id]);
+  const notificationGroups = groupByDay(activeNotifications);
   const hasUnread = notifications.some((n) => !n.read);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const acceptRequest = useFriendsStore((s) => s.acceptRequest);
@@ -128,7 +148,7 @@ export default function Notifications() {
       )}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
-        <View className="gap-3">
+        <View className="gap-5">
           {showSnoozed && snoozedNotifications.length > 0 && (
             <View className="gap-2 rounded-2xl bg-cream/60 p-3">
               <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
@@ -146,100 +166,107 @@ export default function Notifications() {
               ))}
             </View>
           )}
-          {activeNotifications.map((n) => {
-            const actor = n.actorId ? getUser(n.actorId) : undefined;
-            const isPendingRequest =
-              n.type === 'friend_request' &&
-              n.actorId !== undefined &&
-              friendStatuses[n.actorId] === 'pending_in';
-            return (
-              <View
-                key={n.id}
-                className={`rounded-2xl p-4 ${n.read ? 'bg-cream' : 'bg-cream border border-terracotta/30'}`}
-              >
-                <View className="flex-row items-center gap-2">
-                  {actor ? (
-                    <Pressable onPress={() => router.push(`/profile/${actor.id}`)}>
-                      <Image source={{ uri: actor.avatar }} className="h-11 w-11 rounded-full" />
-                    </Pressable>
-                  ) : (
-                    <View className="h-11 w-11 items-center justify-center rounded-full bg-sage/20">
-                      <Ionicons name={TYPE_ICON[n.type]} size={18} className="text-sage" />
-                    </View>
-                  )}
-                  <Pressable
-                    onPress={() => {
-                      markRead(n.id);
-                      goToTarget(n.target);
-                    }}
-                    className="flex-1 flex-row items-center gap-3 active:opacity-80"
+          {notificationGroups.map((group) => (
+            <View key={group.label} className="gap-3">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+                {group.label}
+              </Text>
+              {group.items.map((n) => {
+                const actor = n.actorId ? getUser(n.actorId) : undefined;
+                const isPendingRequest =
+                  n.type === 'friend_request' &&
+                  n.actorId !== undefined &&
+                  friendStatuses[n.actorId] === 'pending_in';
+                return (
+                  <View
+                    key={n.id}
+                    className={`rounded-2xl p-4 ${n.read ? 'bg-cream' : 'bg-cream border border-terracotta/30'}`}
                   >
-                    <View className="flex-1">
-                      <Text
-                        className={`text-[15px] ${n.read ? 'text-charcoal/80' : 'font-semibold text-charcoal'}`}
-                      >
-                        {n.text}
-                      </Text>
-                      <Text className="mt-0.5 text-xs text-charcoal/50">{n.time}</Text>
-                    </View>
-                    {!n.read && <View className="h-2.5 w-2.5 rounded-full bg-terracotta" />}
-                  </Pressable>
-                  <Pressable
-                    onPress={() => setSnoozingId(snoozingId === n.id ? null : n.id)}
-                    className="h-7 w-7 items-center justify-center rounded-full"
-                  >
-                    <Ionicons name="time-outline" size={16} className="text-charcoal/40" />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => deleteNotification(n.id)}
-                    className="h-7 w-7 items-center justify-center rounded-full"
-                  >
-                    <Ionicons name="close" size={16} className="text-charcoal/40" />
-                  </Pressable>
-                </View>
-
-                {snoozingId === n.id && (
-                  <View className="ml-14 mt-3 flex-row flex-wrap gap-2">
-                    {SNOOZE_OPTIONS.map((opt) => (
+                    <View className="flex-row items-center gap-2">
+                      {actor ? (
+                        <Pressable onPress={() => router.push(`/profile/${actor.id}`)}>
+                          <Image source={{ uri: actor.avatar }} className="h-11 w-11 rounded-full" />
+                        </Pressable>
+                      ) : (
+                        <View className="h-11 w-11 items-center justify-center rounded-full bg-sage/20">
+                          <Ionicons name={TYPE_ICON[n.type]} size={18} className="text-sage" />
+                        </View>
+                      )}
                       <Pressable
-                        key={opt.label}
                         onPress={() => {
-                          snoozeNotification(n.id, opt.ms);
-                          setSnoozingId(null);
+                          markRead(n.id);
+                          goToTarget(n.target);
                         }}
-                        className="rounded-full bg-sand px-3 py-1.5"
+                        className="flex-1 flex-row items-center gap-3 active:opacity-80"
                       >
-                        <Text className="text-xs font-medium text-charcoal/70">{opt.label}</Text>
+                        <View className="flex-1">
+                          <Text
+                            className={`text-[15px] ${n.read ? 'text-charcoal/80' : 'font-semibold text-charcoal'}`}
+                          >
+                            {n.text}
+                          </Text>
+                          <Text className="mt-0.5 text-xs text-charcoal/50">{n.time}</Text>
+                        </View>
+                        {!n.read && <View className="h-2.5 w-2.5 rounded-full bg-terracotta" />}
                       </Pressable>
-                    ))}
-                  </View>
-                )}
+                      <Pressable
+                        onPress={() => setSnoozingId(snoozingId === n.id ? null : n.id)}
+                        className="h-7 w-7 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="time-outline" size={16} className="text-charcoal/40" />
+                      </Pressable>
+                      <Pressable
+                        onPress={() => deleteNotification(n.id)}
+                        className="h-7 w-7 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="close" size={16} className="text-charcoal/40" />
+                      </Pressable>
+                    </View>
 
-                {isPendingRequest && (
-                  <View className="ml-14 mt-3 flex-row gap-2">
-                    <Pressable
-                      onPress={() => {
-                        markRead(n.id);
-                        acceptRequest(n.actorId!);
-                      }}
-                      className="rounded-full bg-terracotta px-4 py-1.5"
-                    >
-                      <Text className="text-xs font-semibold text-paper">Accept</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => {
-                        markRead(n.id);
-                        declineRequest(n.actorId!);
-                      }}
-                      className="rounded-full bg-sand px-4 py-1.5"
-                    >
-                      <Text className="text-xs font-semibold text-charcoal">Decline</Text>
-                    </Pressable>
+                    {snoozingId === n.id && (
+                      <View className="ml-14 mt-3 flex-row flex-wrap gap-2">
+                        {SNOOZE_OPTIONS.map((opt) => (
+                          <Pressable
+                            key={opt.label}
+                            onPress={() => {
+                              snoozeNotification(n.id, opt.ms);
+                              setSnoozingId(null);
+                            }}
+                            className="rounded-full bg-sand px-3 py-1.5"
+                          >
+                            <Text className="text-xs font-medium text-charcoal/70">{opt.label}</Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                    )}
+
+                    {isPendingRequest && (
+                      <View className="ml-14 mt-3 flex-row gap-2">
+                        <Pressable
+                          onPress={() => {
+                            markRead(n.id);
+                            acceptRequest(n.actorId!);
+                          }}
+                          className="rounded-full bg-terracotta px-4 py-1.5"
+                        >
+                          <Text className="text-xs font-semibold text-paper">Accept</Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => {
+                            markRead(n.id);
+                            declineRequest(n.actorId!);
+                          }}
+                          className="rounded-full bg-sand px-4 py-1.5"
+                        >
+                          <Text className="text-xs font-semibold text-charcoal">Decline</Text>
+                        </Pressable>
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
-            );
-          })}
+                );
+              })}
+            </View>
+          ))}
           {activeNotifications.length === 0 && snoozedNotifications.length === 0 && (
             <EmptyState
               icon="notifications-outline"
