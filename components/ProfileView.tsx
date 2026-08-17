@@ -221,7 +221,10 @@ export default function ProfileView({
           source={{ uri: user.avatar }}
           className="h-24 w-24 rounded-full border-4 border-cream"
         />
-        <Text className="mt-3 text-2xl font-bold text-paper">{user.name}</Text>
+        <View className="mt-3 flex-row items-baseline gap-2">
+          <Text className="text-2xl font-bold text-paper">{user.name}</Text>
+          {user.pronouns && <Text className="text-sm text-sand">{user.pronouns}</Text>}
+        </View>
         <Text className="mt-1 text-sm text-sand">{user.tagline}</Text>
 
         {user.neighborhood.length > 0 && (

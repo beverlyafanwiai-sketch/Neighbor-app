@@ -5,6 +5,7 @@ import { ME, type User } from '../data/mock';
 type EditableFields = Pick<
   User,
   | 'name'
+  | 'pronouns'
   | 'avatar'
   | 'tagline'
   | 'bio'

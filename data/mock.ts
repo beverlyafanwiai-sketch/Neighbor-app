@@ -11,6 +11,7 @@ export type ConversationStarters = {
 export type User = {
   id: string;
   name: string;
+  pronouns?: string;
   avatar: string;
   tagline: string;
   bio: string;
@@ -65,6 +66,7 @@ export const USERS: User[] = [
   {
     id: 'maya',
     name: 'Maya',
+    pronouns: 'she/her',
     avatar: 'https://i.pravatar.cc/150?img=5',
     tagline: 'Looking for a hiking buddy and better coffee spots',
     bio: 'Moved here for grad school and stayed for the trails. Still figuring out the best coffee shop in walking distance — send recommendations.',
@@ -89,6 +91,7 @@ export const USERS: User[] = [
   {
     id: 'theo',
     name: 'Theo Marsh',
+    pronouns: 'he/him',
     avatar: 'https://i.pravatar.cc/150?img=33',
     tagline: 'Trail loops, board games, and slow Sunday breakfasts',
     bio: 'Third-generation neighbor — my grandfather used to run the hardware store on Main. Slow mornings, long trails, and a standing chess invite.',

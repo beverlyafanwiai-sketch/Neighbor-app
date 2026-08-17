@@ -63,6 +63,7 @@ export default function EditProfile() {
 
   const [avatar, setAvatar] = useState(profile.avatar);
   const [name, setName] = useState(profile.name);
+  const [pronouns, setPronouns] = useState(profile.pronouns ?? '');
   const [tagline, setTagline] = useState(profile.tagline);
   const [bio, setBio] = useState(profile.bio);
   const [interests, setInterests] = useState(profile.interests);
@@ -81,6 +82,7 @@ export default function EditProfile() {
   const hasUnsavedChanges =
     avatar !== profile.avatar ||
     name !== profile.name ||
+    pronouns !== (profile.pronouns ?? '') ||
     tagline !== profile.tagline ||
     bio !== profile.bio ||
     interests !== profile.interests ||
@@ -107,6 +109,7 @@ export default function EditProfile() {
     updateProfile({
       avatar,
       name: name.trim(),
+      pronouns: pronouns.trim() || undefined,
       tagline: tagline.trim(),
       bio: bio.trim(),
       interests: interests.trim(),
@@ -191,6 +194,17 @@ export default function EditProfile() {
               <TextInput
                 value={name}
                 onChangeText={setName}
+                className="rounded-2xl bg-sand px-4 py-3 text-base text-charcoal"
+              />
+            </View>
+
+            <View>
+              <FieldLabel>Pronouns (optional)</FieldLabel>
+              <TextInput
+                value={pronouns}
+                onChangeText={setPronouns}
+                placeholder="e.g. she/her, he/him, they/them"
+                placeholderTextColor="#3D3D3D80"
                 className="rounded-2xl bg-sand px-4 py-3 text-base text-charcoal"
               />
             </View>
