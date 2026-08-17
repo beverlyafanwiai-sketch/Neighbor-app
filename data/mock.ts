@@ -1073,6 +1073,7 @@ export type NeighborhoodAlert = {
   text: string;
   postedAt: number;
   expiresAt: number;
+  confirmedByIds?: string[];
 };
 
 const alertSeedNow = Date.now();
@@ -1093,5 +1094,6 @@ export const NEIGHBORHOOD_ALERTS: NeighborhoodAlert[] = [
     text: 'Water main work on Birch St today — expect lane closures and some noise through the afternoon.',
     postedAt: alertSeedNow - 24 * 60 * 60 * 1000,
     expiresAt: alertSeedNow + 6 * 60 * 60 * 1000,
+    confirmedByIds: ['maya'],
   },
 ];

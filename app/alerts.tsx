@@ -20,6 +20,8 @@ import {
   formatExpiresIn,
   formatPostedAgo,
   getActiveAlerts,
+  getEffectiveConfirmCount,
+  getEffectiveConfirmedIds,
   useAlertsStore,
 } from '../store/useAlertsStore';
 import { useProfileStore } from '../store/useProfileStore';
@@ -30,6 +32,8 @@ export default function NeighborhoodAlerts() {
   const pinnedAlertId = useAlertsStore((s) => s.pinnedAlertId);
   const pinAlert = useAlertsStore((s) => s.pinAlert);
   const unpinAlert = useAlertsStore((s) => s.unpinAlert);
+  const myConfirmed = useAlertsStore((s) => s.myConfirmed);
+  const toggleConfirm = useAlertsStore((s) => s.toggleConfirm);
   const comments = useAlertCommentsStore((s) => s.comments);
   const addComment = useAlertCommentsStore((s) => s.addComment);
   const deleteComment = useAlertCommentsStore((s) => s.deleteComment);
@@ -38,10 +42,15 @@ export default function NeighborhoodAlerts() {
   const [viewingCommentsId, setViewingCommentsId] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
   const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
+  const [viewingConfirmedId, setViewingConfirmedId] = useState<string | null>(null);
 
   const activeAlerts = getActiveAlerts(allAlerts, now, pinnedAlertId);
   const viewingCommentsAlert = activeAlerts.find((a) => a.id === viewingCommentsId);
   const viewingComments = viewingCommentsAlert ? (comments[viewingCommentsAlert.id] ?? []) : [];
+  const viewingConfirmedAlert = activeAlerts.find((a) => a.id === viewingConfirmedId);
+  const viewingConfirmedIds = viewingConfirmedAlert
+    ? getEffectiveConfirmedIds(viewingConfirmedAlert, myConfirmed[viewingConfirmedAlert.id] ?? false)
+    : [];
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -74,6 +83,8 @@ export default function NeighborhoodAlerts() {
             const isMine = alert.authorId === ME.id;
             const commentCount = (comments[alert.id] ?? []).length;
             const isPinned = alert.id === pinnedAlertId;
+            const confirmed = myConfirmed[alert.id] ?? false;
+            const confirmCount = getEffectiveConfirmCount(alert, confirmed);
             return (
               <View key={alert.id} className="rounded-2xl bg-cream p-4">
                 <View className="flex-row items-start gap-3">
@@ -123,17 +134,38 @@ export default function NeighborhoodAlerts() {
                     </View>
                   )}
                 </View>
-                <Pressable
-                  onPress={() => setViewingCommentsId(alert.id)}
-                  className="mt-3 flex-row items-center gap-1.5 self-start border-t border-charcoal/10 pt-3"
-                >
-                  <Ionicons name="chatbubble-outline" size={14} className="text-charcoal/40" />
-                  <Text className="text-xs text-charcoal/50">
-                    {commentCount === 0
-                      ? 'Comment'
-                      : `${commentCount} comment${commentCount === 1 ? '' : 's'}`}
-                  </Text>
-                </Pressable>
+                <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
+                  <Pressable
+                    onPress={() => setViewingCommentsId(alert.id)}
+                    className="flex-row items-center gap-1.5"
+                  >
+                    <Ionicons name="chatbubble-outline" size={14} className="text-charcoal/40" />
+                    <Text className="text-xs text-charcoal/50">
+                      {commentCount === 0
+                        ? 'Comment'
+                        : `${commentCount} comment${commentCount === 1 ? '' : 's'}`}
+                    </Text>
+                  </Pressable>
+                  <View className="flex-row items-center gap-2">
+                    {confirmCount > 0 && (
+                      <Pressable onPress={() => setViewingConfirmedId(alert.id)}>
+                        <Text className="text-xs text-charcoal/50">
+                          {confirmCount} confirmed
+                        </Text>
+                      </Pressable>
+                    )}
+                    <Pressable
+                      onPress={() => toggleConfirm(alert.id)}
+                      className={`rounded-full px-3 py-1.5 ${confirmed ? 'bg-sage/20' : 'bg-sand'}`}
+                    >
+                      <Text
+                        className={`text-xs font-semibold ${confirmed ? 'text-sage' : 'text-charcoal/70'}`}
+                      >
+                        {confirmed ? 'Still happening ✓' : 'Still happening?'}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
               </View>
             );
           })}
@@ -148,6 +180,46 @@ export default function NeighborhoodAlerts() {
           )}
         </View>
       </ScrollView>
+
+      {viewingConfirmedAlert && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={() => setViewingConfirmedId(null)} />
+          <View className="max-h-[70%] w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Still happening</Text>
+              <Pressable
+                onPress={() => setViewingConfirmedId(null)}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View className="gap-1">
+                {viewingConfirmedIds.map((userId) => {
+                  const isMe = userId === ME.id;
+                  const person = isMe ? profile : getUser(userId);
+                  if (!person) return null;
+                  return (
+                    <Pressable
+                      key={userId}
+                      onPress={() => {
+                        if (isMe) return;
+                        setViewingConfirmedId(null);
+                        router.push(`/profile/${userId}`);
+                      }}
+                      className="flex-row items-center gap-3 rounded-2xl p-2 active:opacity-70"
+                    >
+                      <Image source={{ uri: person.avatar }} className="h-9 w-9 rounded-full" />
+                      <Text className="font-medium text-charcoal">{isMe ? 'You' : person.name}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      )}
 
       {viewingCommentsAlert && (
         <View className="absolute inset-0 items-center justify-end bg-ink/40">

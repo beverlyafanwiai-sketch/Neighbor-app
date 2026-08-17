@@ -16,6 +16,7 @@ type AlertsState = {
   alerts: NeighborhoodAlert[];
   drafts: AlertDraft[];
   pinnedAlertId: string | null;
+  myConfirmed: Record<string, boolean>;
   postAlert: (input: { category: AlertCategoryValue; text: string; durationHours: number }) => void;
   updateAlert: (
     id: string,
@@ -24,6 +25,7 @@ type AlertsState = {
   deleteAlert: (id: string) => void;
   pinAlert: (id: string) => void;
   unpinAlert: () => void;
+  toggleConfirm: (id: string) => void;
   saveDraft: (input: AlertDraftInput) => string;
   deleteDraft: (id: string) => void;
 };
@@ -34,6 +36,7 @@ export const useAlertsStore = create<AlertsState>((set) => ({
   alerts: NEIGHBORHOOD_ALERTS,
   drafts: [],
   pinnedAlertId: null,
+  myConfirmed: {},
 
   postAlert: ({ category, text, durationHours }) => {
     const now = Date.now();
@@ -67,6 +70,9 @@ export const useAlertsStore = create<AlertsState>((set) => ({
 
   unpinAlert: () => set({ pinnedAlertId: null }),
 
+  toggleConfirm: (id) =>
+    set((s) => ({ myConfirmed: { ...s.myConfirmed, [id]: !s.myConfirmed[id] } })),
+
   saveDraft: (input) => {
     const draftId = input.id ?? `alert-draft-${++alertDraftSeq}`;
     const updatedAt = Date.now();
@@ -84,6 +90,18 @@ export const useAlertsStore = create<AlertsState>((set) => ({
 
   deleteDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
 }));
+
+// alert.confirmedByIds is the baseline list of other neighbors *not including*
+// ME who've confirmed the alert is still happening. Effective totals fold in
+// ME's own confirmation on top of that.
+export function getEffectiveConfirmedIds(alert: NeighborhoodAlert, confirmed: boolean): string[] {
+  const base = alert.confirmedByIds ?? [];
+  return confirmed ? [...base, ME.id] : base;
+}
+
+export function getEffectiveConfirmCount(alert: NeighborhoodAlert, confirmed: boolean) {
+  return getEffectiveConfirmedIds(alert, confirmed).length;
+}
 
 export function getActiveAlerts(
   alerts: NeighborhoodAlert[],
