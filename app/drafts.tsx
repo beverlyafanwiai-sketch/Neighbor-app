@@ -8,8 +8,9 @@ import EmptyState from '../components/EmptyState';
 import { useEventsStore } from '../store/useEventsStore';
 import { usePostsStore } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
+import { useRecsStore } from '../store/useRecsStore';
 
-const MODES = ['Posts', 'Events'] as const;
+const MODES = ['Posts', 'Events', 'Recs'] as const;
 type Mode = (typeof MODES)[number];
 
 export default function Drafts() {
@@ -19,6 +20,8 @@ export default function Drafts() {
   const deleteDraft = usePostsStore((s) => s.deleteDraft);
   const eventDrafts = useEventsStore((s) => s.drafts);
   const deleteEventDraft = useEventsStore((s) => s.deleteDraft);
+  const recDrafts = useRecsStore((s) => s.drafts);
+  const deleteRecDraft = useRecsStore((s) => s.deleteDraft);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -62,6 +65,15 @@ export default function Drafts() {
             iconColorClassName="text-charcoal/50"
             title="No event drafts yet"
             subtitle="Unfinished events you save for later will show up here."
+          />
+        )}
+
+        {mode === 'Recs' && recDrafts.length === 0 && (
+          <EmptyState
+            icon="document-text-outline"
+            iconColorClassName="text-charcoal/50"
+            title="No rec drafts yet"
+            subtitle="Unfinished recs or asks you save for later will show up here."
           />
         )}
 
@@ -140,6 +152,47 @@ export default function Drafts() {
                     onPress={(evt) => {
                       evt.stopPropagation();
                       deleteEventDraft(draft.id);
+                    }}
+                    className="flex-row items-center gap-1.5"
+                  >
+                    <Ionicons name="trash-outline" size={16} className="text-terracotta" />
+                    <Text className="text-sm font-medium text-terracotta">Discard</Text>
+                  </Pressable>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
+        {mode === 'Recs' && (
+          <View className="gap-4">
+            {recDrafts.map((draft) => (
+              <Pressable
+                key={draft.id}
+                onPress={() => router.push(`/create-rec?draftId=${draft.id}`)}
+                className="rounded-3xl bg-cream p-4 shadow-sm active:opacity-80"
+              >
+                <View className="flex-row items-center gap-3">
+                  <Text style={{ fontSize: 18 }}>{draft.emoji}</Text>
+                  <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                    Draft · {draft.kind === 'rec' ? 'Rec' : 'Ask'}
+                  </Text>
+                </View>
+
+                <Text className="mt-3 text-[15px] font-semibold text-charcoal">
+                  {draft.name || draft.category || 'Untitled'}
+                </Text>
+                {draft.note.length > 0 && (
+                  <Text className="mt-1 text-sm text-charcoal/60" numberOfLines={2}>
+                    {draft.note}
+                  </Text>
+                )}
+
+                <View className="mt-4 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
+                  <Pressable
+                    onPress={(evt) => {
+                      evt.stopPropagation();
+                      deleteRecDraft(draft.id);
                     }}
                     className="flex-row items-center gap-1.5"
                   >

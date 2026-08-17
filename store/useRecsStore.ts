@@ -15,20 +15,39 @@ export type NewRecEntryInput = {
   imageUris?: string[];
 };
 
+export type RecDraft = {
+  id: string;
+  kind: RecEntryKind;
+  emoji: string;
+  category: string;
+  name?: string;
+  note: string;
+  imageUris?: string[];
+  updatedAt: number;
+};
+
+type RecDraftInput = Omit<RecDraft, 'updatedAt' | 'id'> & { id?: string };
+
 type RecsState = {
   entries: RecEntry[];
   myAgreed: Record<string, boolean>;
+  drafts: RecDraft[];
   createEntry: (input: NewRecEntryInput) => string;
   updateEntry: (entryId: string, updates: Partial<NewRecEntryInput>) => void;
   toggleAgree: (entryId: string) => void;
   deleteEntry: (entryId: string) => void;
   resolveEntry: (entryId: string) => void;
   reopenEntry: (entryId: string) => void;
+  saveDraft: (input: RecDraftInput) => string;
+  deleteDraft: (id: string) => void;
 };
+
+let recDraftSeq = 0;
 
 export const useRecsStore = create<RecsState>((set, get) => ({
   entries: REC_ENTRIES,
   myAgreed: {},
+  drafts: [],
 
   createEntry: (input) => {
     const id = `${input.kind}-${Math.random().toString(36).slice(2, 9)}`;
@@ -93,6 +112,23 @@ export const useRecsStore = create<RecsState>((set, get) => ({
     set((s) => ({
       entries: s.entries.map((e) => (e.id === entryId ? { ...e, resolved: false } : e)),
     })),
+
+  saveDraft: (input) => {
+    const draftId = input.id ?? `rec-draft-${++recDraftSeq}`;
+    const updatedAt = Date.now();
+    set((s) => {
+      const draft: RecDraft = { ...input, id: draftId, updatedAt };
+      const exists = s.drafts.some((d) => d.id === draftId);
+      return {
+        drafts: exists
+          ? s.drafts.map((d) => (d.id === draftId ? draft : d))
+          : [draft, ...s.drafts],
+      };
+    });
+    return draftId;
+  },
+
+  deleteDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
 }));
 
 // entry.agreedByIds is the baseline list of other neighbors *not including*

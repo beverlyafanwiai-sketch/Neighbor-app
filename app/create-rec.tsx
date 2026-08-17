@@ -34,20 +34,30 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateRec() {
-  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const { id: editId, draftId } = useLocalSearchParams<{ id?: string; draftId?: string }>();
   const existing = useRecsStore((s) => (editId ? s.entries.find((e) => e.id === editId) : undefined));
+  const existingDraft = useRecsStore((s) =>
+    draftId ? s.drafts.find((d) => d.id === draftId) : undefined
+  );
   const isEditing = Boolean(existing);
   const createEntry = useRecsStore((s) => s.createEntry);
   const updateEntry = useRecsStore((s) => s.updateEntry);
+  const saveDraft = useRecsStore((s) => s.saveDraft);
+  const deleteDraft = useRecsStore((s) => s.deleteDraft);
 
-  const [kind, setKind] = useState<RecEntryKind>(existing?.kind ?? 'rec');
-  const [emoji, setEmoji] = useState(existing?.emoji ?? '⭐');
-  const [category, setCategory] = useState(existing?.category ?? '');
-  const [name, setName] = useState(existing?.name ?? '');
-  const [note, setNote] = useState(existing?.note ?? '');
-  const [imageUris, setImageUris] = useState<string[]>(existing?.imageUris ?? []);
+  const [kind, setKind] = useState<RecEntryKind>(existing?.kind ?? existingDraft?.kind ?? 'rec');
+  const [emoji, setEmoji] = useState(existing?.emoji ?? existingDraft?.emoji ?? '⭐');
+  const [category, setCategory] = useState(existing?.category ?? existingDraft?.category ?? '');
+  const [name, setName] = useState(existing?.name ?? existingDraft?.name ?? '');
+  const [note, setNote] = useState(existing?.note ?? existingDraft?.note ?? '');
+  const [imageUris, setImageUris] = useState<string[]>(
+    existing?.imageUris ?? existingDraft?.imageUris ?? []
+  );
+  const [confirmingClose, setConfirmingClose] = useState(false);
 
   const canSave = category.trim() && note.trim() && (kind === 'ask' || name.trim());
+  const hasUnsavedContent =
+    !isEditing && Boolean(category.trim() || name.trim() || note.trim() || imageUris.length > 0);
 
   const pickImages = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -89,14 +99,41 @@ export default function CreateRec() {
       note: note.trim(),
       imageUris,
     });
+    if (draftId) deleteDraft(draftId);
     router.replace('/recs');
+  };
+
+  const close = () => {
+    if (isEditing || !hasUnsavedContent) {
+      router.back();
+      return;
+    }
+    setConfirmingClose(true);
+  };
+
+  const discardAndClose = () => {
+    if (draftId) deleteDraft(draftId);
+    router.back();
+  };
+
+  const saveDraftAndClose = () => {
+    saveDraft({
+      id: draftId,
+      kind,
+      emoji,
+      category: category.trim(),
+      name: kind === 'rec' ? name.trim() : undefined,
+      note: note.trim(),
+      imageUris,
+    });
+    router.back();
   };
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={close}
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
@@ -114,6 +151,23 @@ export default function CreateRec() {
           </Text>
         </Pressable>
       </View>
+
+      {confirmingClose && (
+        <View className="gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="text-sm text-charcoal">Save this as a draft, or discard it?</Text>
+          <View className="flex-row justify-end gap-4">
+            <Pressable onPress={() => setConfirmingClose(false)}>
+              <Text className="text-sm font-medium text-charcoal/60">Keep editing</Text>
+            </Pressable>
+            <Pressable onPress={discardAndClose}>
+              <Text className="text-sm font-semibold text-terracotta">Discard</Text>
+            </Pressable>
+            <Pressable onPress={saveDraftAndClose}>
+              <Text className="text-sm font-semibold text-sage">Save draft</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">
