@@ -27,6 +27,9 @@ import { useProfileStore } from '../store/useProfileStore';
 export default function NeighborhoodAlerts() {
   const allAlerts = useAlertsStore((s) => s.alerts);
   const deleteAlert = useAlertsStore((s) => s.deleteAlert);
+  const pinnedAlertId = useAlertsStore((s) => s.pinnedAlertId);
+  const pinAlert = useAlertsStore((s) => s.pinAlert);
+  const unpinAlert = useAlertsStore((s) => s.unpinAlert);
   const comments = useAlertCommentsStore((s) => s.comments);
   const addComment = useAlertCommentsStore((s) => s.addComment);
   const deleteComment = useAlertCommentsStore((s) => s.deleteComment);
@@ -36,7 +39,7 @@ export default function NeighborhoodAlerts() {
   const [commentDraft, setCommentDraft] = useState('');
   const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
 
-  const activeAlerts = getActiveAlerts(allAlerts, now);
+  const activeAlerts = getActiveAlerts(allAlerts, now, pinnedAlertId);
   const viewingCommentsAlert = activeAlerts.find((a) => a.id === viewingCommentsId);
   const viewingComments = viewingCommentsAlert ? (comments[viewingCommentsAlert.id] ?? []) : [];
 
@@ -70,14 +73,23 @@ export default function NeighborhoodAlerts() {
             const meta = ALERT_CATEGORIES.find((c) => c.value === alert.category);
             const isMine = alert.authorId === ME.id;
             const commentCount = (comments[alert.id] ?? []).length;
+            const isPinned = alert.id === pinnedAlertId;
             return (
               <View key={alert.id} className="rounded-2xl bg-cream p-4">
                 <View className="flex-row items-start gap-3">
                   <Text style={{ fontSize: 22 }}>{meta?.emoji ?? '📢'}</Text>
                   <View className="flex-1">
-                    <Text className="text-xs font-semibold uppercase tracking-wide text-terracotta">
-                      {meta?.label ?? 'Alert'}
-                    </Text>
+                    <View className="flex-row items-center gap-1.5">
+                      <Text className="text-xs font-semibold uppercase tracking-wide text-terracotta">
+                        {meta?.label ?? 'Alert'}
+                      </Text>
+                      {isPinned && (
+                        <View className="flex-row items-center gap-0.5 rounded-full bg-gold/20 px-1.5 py-0.5">
+                          <Ionicons name="pin" size={9} className="text-gold" />
+                          <Text className="text-[10px] font-semibold text-gold">Pinned</Text>
+                        </View>
+                      )}
+                    </View>
                     <Text className="mt-1 text-[15px] leading-5 text-charcoal">{alert.text}</Text>
                     <Text className="mt-2 text-xs text-charcoal/50">
                       {author?.name ?? 'A neighbor'} · {formatPostedAgo(alert.postedAt, now)} ·{' '}
@@ -86,6 +98,16 @@ export default function NeighborhoodAlerts() {
                   </View>
                   {isMine && (
                     <View className="flex-row gap-1">
+                      <Pressable
+                        onPress={() => (isPinned ? unpinAlert() : pinAlert(alert.id))}
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons
+                          name={isPinned ? 'pin' : 'pin-outline'}
+                          size={16}
+                          className={isPinned ? 'text-gold' : 'text-charcoal/50'}
+                        />
+                      </Pressable>
                       <Pressable
                         onPress={() => router.push(`/create-alert?editId=${alert.id}`)}
                         className="h-8 w-8 items-center justify-center rounded-full"

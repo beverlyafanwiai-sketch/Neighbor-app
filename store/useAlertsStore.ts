@@ -15,12 +15,15 @@ type AlertDraftInput = Omit<AlertDraft, 'updatedAt' | 'id'> & { id?: string };
 type AlertsState = {
   alerts: NeighborhoodAlert[];
   drafts: AlertDraft[];
+  pinnedAlertId: string | null;
   postAlert: (input: { category: AlertCategoryValue; text: string; durationHours: number }) => void;
   updateAlert: (
     id: string,
     input: { category: AlertCategoryValue; text: string; durationHours: number }
   ) => void;
   deleteAlert: (id: string) => void;
+  pinAlert: (id: string) => void;
+  unpinAlert: () => void;
   saveDraft: (input: AlertDraftInput) => string;
   deleteDraft: (id: string) => void;
 };
@@ -30,6 +33,7 @@ let alertDraftSeq = 0;
 export const useAlertsStore = create<AlertsState>((set) => ({
   alerts: NEIGHBORHOOD_ALERTS,
   drafts: [],
+  pinnedAlertId: null,
 
   postAlert: ({ category, text, durationHours }) => {
     const now = Date.now();
@@ -53,7 +57,15 @@ export const useAlertsStore = create<AlertsState>((set) => ({
       ),
     })),
 
-  deleteAlert: (id) => set((s) => ({ alerts: s.alerts.filter((a) => a.id !== id) })),
+  deleteAlert: (id) =>
+    set((s) => ({
+      alerts: s.alerts.filter((a) => a.id !== id),
+      pinnedAlertId: s.pinnedAlertId === id ? null : s.pinnedAlertId,
+    })),
+
+  pinAlert: (id) => set({ pinnedAlertId: id }),
+
+  unpinAlert: () => set({ pinnedAlertId: null }),
 
   saveDraft: (input) => {
     const draftId = input.id ?? `alert-draft-${++alertDraftSeq}`;
@@ -73,8 +85,20 @@ export const useAlertsStore = create<AlertsState>((set) => ({
   deleteDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
 }));
 
-export function getActiveAlerts(alerts: NeighborhoodAlert[], now: number) {
-  return alerts.filter((a) => a.expiresAt > now).sort((a, b) => a.expiresAt - b.expiresAt);
+export function getActiveAlerts(
+  alerts: NeighborhoodAlert[],
+  now: number,
+  pinnedId?: string | null
+) {
+  return alerts
+    .filter((a) => a.expiresAt > now)
+    .sort((a, b) => {
+      if (pinnedId) {
+        const diff = Number(b.id === pinnedId) - Number(a.id === pinnedId);
+        if (diff !== 0) return diff;
+      }
+      return a.expiresAt - b.expiresAt;
+    });
 }
 
 function formatDuration(ms: number): string {

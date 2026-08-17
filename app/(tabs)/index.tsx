@@ -212,7 +212,8 @@ export default function HomeFeed() {
   const draftCount = usePostsStore((s) => s.drafts.length);
   const scheduledCount = usePostsStore((s) => s.scheduledPosts.length);
   const allAlerts = useAlertsStore((s) => s.alerts);
-  const activeAlerts = getActiveAlerts(allAlerts, Date.now());
+  const pinnedAlertId = useAlertsStore((s) => s.pinnedAlertId);
+  const activeAlerts = getActiveAlerts(allAlerts, Date.now(), pinnedAlertId);
   const myReactions = usePostsStore((s) => s.myReactions);
   const tapReaction = usePostsStore((s) => s.tapReaction);
   const setReaction = usePostsStore((s) => s.setReaction);
