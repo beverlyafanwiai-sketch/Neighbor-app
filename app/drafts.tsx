@@ -18,6 +18,16 @@ import { useSaleStore } from '../store/useSaleStore';
 const MODES = ['Posts', 'Events', 'Recs', 'Lend', 'For Sale', 'Alerts', 'Groups'] as const;
 type Mode = (typeof MODES)[number];
 
+function formatSavedAgo(updatedAt: number) {
+  const diffMins = Math.floor((Date.now() - updatedAt) / (60 * 1000));
+  if (diffMins < 1) return 'Saved just now';
+  if (diffMins < 60) return `Saved ${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `Saved ${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `Saved ${diffDays}d ago`;
+}
+
 export default function Drafts() {
   const [mode, setMode] = useState<Mode>('Posts');
   const profile = useProfileStore((s) => s.profile);
@@ -153,7 +163,8 @@ export default function Drafts() {
                   </View>
                 )}
 
-                <View className="mt-4 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
+                <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
+                  <Text className="text-xs text-charcoal/40">{formatSavedAgo(draft.updatedAt)}</Text>
                   <Pressable
                     onPress={(evt) => {
                       evt.stopPropagation();
@@ -196,7 +207,8 @@ export default function Drafts() {
                   </Text>
                 )}
 
-                <View className="mt-4 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
+                <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
+                  <Text className="text-xs text-charcoal/40">{formatSavedAgo(draft.updatedAt)}</Text>
                   <Pressable
                     onPress={(evt) => {
                       evt.stopPropagation();
@@ -237,7 +249,8 @@ export default function Drafts() {
                   </Text>
                 )}
 
-                <View className="mt-4 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
+                <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
+                  <Text className="text-xs text-charcoal/40">{formatSavedAgo(draft.updatedAt)}</Text>
                   <Pressable
                     onPress={(evt) => {
                       evt.stopPropagation();
@@ -278,7 +291,8 @@ export default function Drafts() {
                   </Text>
                 )}
 
-                <View className="mt-4 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
+                <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
+                  <Text className="text-xs text-charcoal/40">{formatSavedAgo(draft.updatedAt)}</Text>
                   <Pressable
                     onPress={(evt) => {
                       evt.stopPropagation();
@@ -320,7 +334,8 @@ export default function Drafts() {
                   </Text>
                 )}
 
-                <View className="mt-4 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
+                <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
+                  <Text className="text-xs text-charcoal/40">{formatSavedAgo(draft.updatedAt)}</Text>
                   <Pressable
                     onPress={(evt) => {
                       evt.stopPropagation();
@@ -358,7 +373,8 @@ export default function Drafts() {
                     {draft.text.length > 0 ? draft.text : 'Empty draft'}
                   </Text>
 
-                  <View className="mt-4 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
+                  <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
+                    <Text className="text-xs text-charcoal/40">{formatSavedAgo(draft.updatedAt)}</Text>
                     <Pressable
                       onPress={(evt) => {
                         evt.stopPropagation();
@@ -400,7 +416,8 @@ export default function Drafts() {
                   </Text>
                 )}
 
-                <View className="mt-4 flex-row items-center justify-end border-t border-charcoal/10 pt-3">
+                <View className="mt-4 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
+                  <Text className="text-xs text-charcoal/40">{formatSavedAgo(draft.updatedAt)}</Text>
                   <Pressable
                     onPress={(evt) => {
                       evt.stopPropagation();
