@@ -37,6 +37,7 @@ type GroupsState = {
   joined: Record<string, boolean>;
   inviteCodes: Record<string, string>;
   announcements: Record<string, GroupAnnouncement | undefined>;
+  welcomeMessages: Record<string, string | undefined>;
   drafts: GroupDraft[];
   toggle: (groupId: string) => void;
   createGroup: (input: NewGroupInput) => string;
@@ -51,6 +52,8 @@ type GroupsState = {
   transferOwnership: (groupId: string, newOwnerId: string) => void;
   postAnnouncement: (groupId: string, text: string) => void;
   clearAnnouncement: (groupId: string) => void;
+  setWelcomeMessage: (groupId: string, text: string) => void;
+  clearWelcomeMessage: (groupId: string) => void;
   saveDraft: (input: GroupDraftInput) => string;
   deleteDraft: (id: string) => void;
 };
@@ -90,6 +93,7 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
   joined: initialJoined,
   inviteCodes: initialInviteCodes,
   announcements: {},
+  welcomeMessages: {},
   drafts: [],
 
   toggle: (groupId) =>
@@ -242,6 +246,15 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
 
   clearAnnouncement: (groupId) =>
     set((s) => ({ announcements: { ...s.announcements, [groupId]: undefined } })),
+
+  setWelcomeMessage: (groupId, text) => {
+    const clean = text.trim();
+    if (!clean) return;
+    set((s) => ({ welcomeMessages: { ...s.welcomeMessages, [groupId]: clean } }));
+  },
+
+  clearWelcomeMessage: (groupId) =>
+    set((s) => ({ welcomeMessages: { ...s.welcomeMessages, [groupId]: undefined } })),
 
   deleteDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
 }));

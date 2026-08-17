@@ -45,6 +45,9 @@ export default function GroupDetail() {
   const goingMap = useRsvpStore((s) => s.going);
   const inviteCode = useGroupsStore((s) => (group ? s.inviteCodes[group.id] : undefined));
   const regenerateInviteCode = useGroupsStore((s) => s.regenerateInviteCode);
+  const welcomeMessage = useGroupsStore((s) => (group ? s.welcomeMessages[group.id] : undefined));
+  const setWelcomeMessage = useGroupsStore((s) => s.setWelcomeMessage);
+  const clearWelcomeMessage = useGroupsStore((s) => s.clearWelcomeMessage);
   const mutedGroupIds = useMutedGroupsStore((s) => s.mutedGroupIds);
   const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -56,6 +59,9 @@ export default function GroupDetail() {
   const [confirmingRemoveMemberId, setConfirmingRemoveMemberId] = useState<string | null>(null);
   const [memberQuery, setMemberQuery] = useState('');
   const [confirmingTransferId, setConfirmingTransferId] = useState<string | null>(null);
+  const [showingWelcome, setShowingWelcome] = useState(false);
+  const [composingWelcome, setComposingWelcome] = useState(false);
+  const [welcomeDraft, setWelcomeDraft] = useState('');
 
   if (!group) {
     return (
@@ -93,6 +99,11 @@ export default function GroupDetail() {
   const leave = () => {
     toggleJoin(group.id);
     setConfirmingLeave(false);
+  };
+
+  const join = () => {
+    toggleJoin(group.id);
+    if (welcomeMessage) setShowingWelcome(true);
   };
 
   const pickPhotos = async () => {
@@ -150,6 +161,17 @@ export default function GroupDetail() {
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream"
               >
                 <Ionicons name="copy-outline" size={17} className="text-charcoal" />
+              </Pressable>
+            )}
+            {isAdmin && (
+              <Pressable
+                onPress={() => {
+                  setWelcomeDraft(welcomeMessage ?? '');
+                  setComposingWelcome(true);
+                }}
+                className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+              >
+                <Ionicons name="hand-left-outline" size={17} className="text-charcoal" />
               </Pressable>
             )}
             {isCreator && (
@@ -233,7 +255,7 @@ export default function GroupDetail() {
 
           <View className="mt-5 flex-row gap-3">
             <Pressable
-              onPress={() => (joined ? setConfirmingLeave(true) : toggleJoin(group.id))}
+              onPress={() => (joined ? setConfirmingLeave(true) : join())}
               className={`rounded-full px-6 py-3 ${joined ? 'bg-sand' : 'bg-ink'}`}
             >
               <Text className={`text-sm font-semibold ${joined ? 'text-charcoal' : 'text-paper'}`}>
@@ -520,6 +542,93 @@ export default function GroupDetail() {
           title="Group options"
           actionLabel="Report this group"
         />
+      )}
+
+      {composingWelcome && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => {
+              setComposingWelcome(false);
+              setWelcomeDraft('');
+            }}
+          />
+          <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Welcome message</Text>
+              <Pressable
+                onPress={() => {
+                  setComposingWelcome(false);
+                  setWelcomeDraft('');
+                }}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+            <Text className="text-xs text-charcoal/50">
+              Shown once to anyone who newly joins this circle.
+            </Text>
+
+            <TextInput
+              value={welcomeDraft}
+              onChangeText={setWelcomeDraft}
+              placeholder="Welcome! A few things to know before you dive in..."
+              placeholderTextColor="#3D3D3D80"
+              multiline
+              autoFocus
+              className="min-h-[80px] rounded-2xl bg-sand px-4 py-3 text-base text-charcoal"
+            />
+
+            <View className="flex-row items-center justify-between">
+              {welcomeMessage ? (
+                <Pressable
+                  onPress={() => {
+                    clearWelcomeMessage(group.id);
+                    setComposingWelcome(false);
+                    setWelcomeDraft('');
+                  }}
+                >
+                  <Text className="text-sm font-semibold text-terracotta">Remove message</Text>
+                </Pressable>
+              ) : (
+                <View />
+              )}
+              <Pressable
+                disabled={!welcomeDraft.trim()}
+                onPress={() => {
+                  setWelcomeMessage(group.id, welcomeDraft.trim());
+                  setComposingWelcome(false);
+                  setWelcomeDraft('');
+                }}
+                className="rounded-full bg-terracotta px-4 py-2"
+                style={{ opacity: welcomeDraft.trim() ? 1 : 0.4 }}
+              >
+                <Text className="text-sm font-semibold text-paper">
+                  {welcomeMessage ? 'Update' : 'Save'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {showingWelcome && welcomeMessage && (
+        <View className="absolute inset-0 items-center justify-center bg-ink/50 px-6">
+          <View className="w-full items-center gap-3 rounded-3xl bg-cream p-6">
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-terracotta/15">
+              <Ionicons name="hand-left" size={22} className="text-terracotta" />
+            </View>
+            <Text className="text-base font-bold text-charcoal">Welcome to {group.name}!</Text>
+            <Text className="text-center text-sm leading-5 text-charcoal/80">{welcomeMessage}</Text>
+            <Pressable
+              onPress={() => setShowingWelcome(false)}
+              className="mt-2 rounded-full bg-terracotta px-6 py-2.5"
+            >
+              <Text className="text-sm font-semibold text-paper">Got it</Text>
+            </Pressable>
+          </View>
+        </View>
       )}
 
       {viewingPhotoIndex !== null && (
