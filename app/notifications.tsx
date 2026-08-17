@@ -11,11 +11,22 @@ import { useFriendsStore } from '../store/useFriendsStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { useNotificationsStore } from '../store/useNotificationsStore';
 
+const SNOOZE_OPTIONS = [
+  { label: '1 hour', ms: 60 * 60 * 1000 },
+  { label: '3 hours', ms: 3 * 60 * 60 * 1000 },
+  { label: 'Tomorrow', ms: 24 * 60 * 60 * 1000 },
+] as const;
+
 export default function Notifications() {
   const allNotifications = useNotificationsStore((s) => s.notifications);
   const markRead = useNotificationsStore((s) => s.markRead);
   const markAllRead = useNotificationsStore((s) => s.markAllRead);
   const deleteNotification = useNotificationsStore((s) => s.deleteNotification);
+  const snoozedUntil = useNotificationsStore((s) => s.snoozedUntil);
+  const snoozeNotification = useNotificationsStore((s) => s.snoozeNotification);
+  const unsnoozeNotification = useNotificationsStore((s) => s.unsnoozeNotification);
+  const [snoozingId, setSnoozingId] = useState<string | null>(null);
+  const [showSnoozed, setShowSnoozed] = useState(false);
   const mutedIds = useMutedStore((s) => s.mutedIds);
   const unmuted = allNotifications.filter((n) => !n.actorId || !mutedIds[n.actorId]);
   const [typeFilter, setTypeFilter] = useState<NotificationItem['type'] | 'All'>('All');
@@ -28,6 +39,8 @@ export default function Notifications() {
     const actorName = n.actorId ? (getUser(n.actorId)?.name ?? '') : '';
     return n.text.toLowerCase().includes(q) || actorName.toLowerCase().includes(q);
   });
+  const activeNotifications = notifications.filter((n) => !snoozedUntil[n.id]);
+  const snoozedNotifications = notifications.filter((n) => snoozedUntil[n.id]);
   const hasUnread = notifications.some((n) => !n.read);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const acceptRequest = useFriendsStore((s) => s.acceptRequest);
@@ -102,9 +115,38 @@ export default function Notifications() {
         </ScrollView>
       )}
 
+      {snoozedNotifications.length > 0 && (
+        <Pressable
+          onPress={() => setShowSnoozed((v) => !v)}
+          className="mx-5 mb-3 flex-row items-center gap-1.5"
+        >
+          <Ionicons name="time-outline" size={13} className="text-charcoal/40" />
+          <Text className="text-xs font-medium text-charcoal/50">
+            {snoozedNotifications.length} snoozed · tap to {showSnoozed ? 'hide' : 'view'}
+          </Text>
+        </Pressable>
+      )}
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
         <View className="gap-3">
-          {notifications.map((n) => {
+          {showSnoozed && snoozedNotifications.length > 0 && (
+            <View className="gap-2 rounded-2xl bg-cream/60 p-3">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+                Snoozed
+              </Text>
+              {snoozedNotifications.map((n) => (
+                <View key={n.id} className="flex-row items-center gap-2">
+                  <Text className="flex-1 text-xs text-charcoal/60" numberOfLines={1}>
+                    {n.text}
+                  </Text>
+                  <Pressable onPress={() => unsnoozeNotification(n.id)}>
+                    <Text className="text-xs font-semibold text-terracotta">Unsnooze</Text>
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          )}
+          {activeNotifications.map((n) => {
             const actor = n.actorId ? getUser(n.actorId) : undefined;
             const isPendingRequest =
               n.type === 'friend_request' &&
@@ -143,12 +185,35 @@ export default function Notifications() {
                     {!n.read && <View className="h-2.5 w-2.5 rounded-full bg-terracotta" />}
                   </Pressable>
                   <Pressable
+                    onPress={() => setSnoozingId(snoozingId === n.id ? null : n.id)}
+                    className="h-7 w-7 items-center justify-center rounded-full"
+                  >
+                    <Ionicons name="time-outline" size={16} className="text-charcoal/40" />
+                  </Pressable>
+                  <Pressable
                     onPress={() => deleteNotification(n.id)}
                     className="h-7 w-7 items-center justify-center rounded-full"
                   >
                     <Ionicons name="close" size={16} className="text-charcoal/40" />
                   </Pressable>
                 </View>
+
+                {snoozingId === n.id && (
+                  <View className="ml-14 mt-3 flex-row flex-wrap gap-2">
+                    {SNOOZE_OPTIONS.map((opt) => (
+                      <Pressable
+                        key={opt.label}
+                        onPress={() => {
+                          snoozeNotification(n.id, opt.ms);
+                          setSnoozingId(null);
+                        }}
+                        className="rounded-full bg-sand px-3 py-1.5"
+                      >
+                        <Text className="text-xs font-medium text-charcoal/70">{opt.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
 
                 {isPendingRequest && (
                   <View className="ml-14 mt-3 flex-row gap-2">
@@ -175,7 +240,7 @@ export default function Notifications() {
               </View>
             );
           })}
-          {notifications.length === 0 && (
+          {activeNotifications.length === 0 && snoozedNotifications.length === 0 && (
             <EmptyState
               icon="notifications-outline"
               iconColorClassName="text-charcoal/50"
