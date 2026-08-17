@@ -30,12 +30,15 @@ type SaleState = {
   myOffers: Record<string, string>;
   acceptedOffers: Record<string, AcceptedOffer>;
   declinedOffers: Record<string, Record<string, boolean>>;
+  counterOffers: Record<string, Record<string, string>>;
   createItem: (input: NewSaleItemInput) => string;
   updateItem: (itemId: string, updates: Partial<NewSaleItemInput>) => void;
   toggleInterest: (itemId: string) => void;
   makeOffer: (itemId: string, price: string) => void;
+  withdrawOffer: (itemId: string) => void;
   acceptOffer: (itemId: string, userId: string) => void;
   declineOffer: (itemId: string, userId: string) => void;
+  counterOffer: (itemId: string, userId: string, price: string) => void;
   dropPrice: (itemId: string, newPrice: string) => void;
   markFree: (itemId: string) => void;
   markSold: (itemId: string) => void;
@@ -66,6 +69,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   myOffers: {},
   acceptedOffers: {},
   declinedOffers: {},
+  counterOffers: {},
 
   createItem: (input) => {
     const id = `sale-${Math.random().toString(36).slice(2, 9)}`;
@@ -136,6 +140,9 @@ export const useSaleStore = create<SaleState>((set, get) => ({
     scheduleThanks(get, itemId, item);
   },
 
+  withdrawOffer: (itemId) =>
+    set((s) => ({ myOffers: { ...s.myOffers, [itemId]: '' } })),
+
   acceptOffer: (itemId, userId) => {
     const price = getOfferFor(itemId, userId);
     if (!price) return;
@@ -151,7 +158,26 @@ export const useSaleStore = create<SaleState>((set, get) => ({
         ...s.declinedOffers,
         [itemId]: { ...s.declinedOffers[itemId], [userId]: true },
       },
+      counterOffers: {
+        ...s.counterOffers,
+        [itemId]: { ...s.counterOffers[itemId], [userId]: '' },
+      },
     })),
+
+  counterOffer: (itemId, userId, price) => {
+    const clean = price.trim();
+    if (!clean) return;
+    set((s) => ({
+      counterOffers: {
+        ...s.counterOffers,
+        [itemId]: { ...s.counterOffers[itemId], [userId]: clean },
+      },
+      declinedOffers: {
+        ...s.declinedOffers,
+        [itemId]: { ...s.declinedOffers[itemId], [userId]: false },
+      },
+    }));
+  },
 
   dropPrice: (itemId, newPrice) => {
     const clean = newPrice.trim();
@@ -199,7 +225,13 @@ export const useSaleStore = create<SaleState>((set, get) => ({
     set((s) => {
       const { [itemId]: _removed, ...rest } = s.acceptedOffers;
       const { [itemId]: _removedDeclines, ...restDeclines } = s.declinedOffers;
-      return { sold: { ...s.sold, [itemId]: false }, acceptedOffers: rest, declinedOffers: restDeclines };
+      const { [itemId]: _removedCounters, ...restCounters } = s.counterOffers;
+      return {
+        sold: { ...s.sold, [itemId]: false },
+        acceptedOffers: rest,
+        declinedOffers: restDeclines,
+        counterOffers: restCounters,
+      };
     }),
 
   updateItem: (itemId, updates) =>

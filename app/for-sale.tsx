@@ -36,10 +36,13 @@ export default function ForSaleBoard() {
   const toggleInterest = useSaleStore((s) => s.toggleInterest);
   const myOffers = useSaleStore((s) => s.myOffers);
   const makeOffer = useSaleStore((s) => s.makeOffer);
+  const withdrawOffer = useSaleStore((s) => s.withdrawOffer);
   const acceptedOffers = useSaleStore((s) => s.acceptedOffers);
   const acceptOffer = useSaleStore((s) => s.acceptOffer);
   const declinedOffers = useSaleStore((s) => s.declinedOffers);
   const declineOffer = useSaleStore((s) => s.declineOffer);
+  const counterOffers = useSaleStore((s) => s.counterOffers);
+  const counterOffer = useSaleStore((s) => s.counterOffer);
   const dropPrice = useSaleStore((s) => s.dropPrice);
   const markFree = useSaleStore((s) => s.markFree);
   const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
@@ -68,6 +71,8 @@ export default function ForSaleBoard() {
   const [droppingPriceId, setDroppingPriceId] = useState<string | null>(null);
   const [priceDropDraft, setPriceDropDraft] = useState('');
   const [confirmingFreeId, setConfirmingFreeId] = useState<string | null>(null);
+  const [counteringUserId, setCounteringUserId] = useState<string | null>(null);
+  const [counterDraft, setCounterDraft] = useState('');
 
   const q = query.trim().toLowerCase();
   const matchesQuery = (i: (typeof items)[number]) =>
@@ -522,17 +527,25 @@ export default function ForSaleBoard() {
                   </View>
                 ) : (
                   !isSold && (
-                    <Pressable
-                      onPress={() => {
-                        setOfferingId(item.id);
-                        setOfferDraft(myOffers[item.id] ?? '');
-                      }}
-                      className="mt-2"
-                    >
-                      <Text className="text-xs font-semibold text-terracotta">
-                        {myOffers[item.id] ? 'Change your offer' : 'Make an offer'}
-                      </Text>
-                    </Pressable>
+                    <View className="mt-2 flex-row gap-4">
+                      <Pressable
+                        onPress={() => {
+                          setOfferingId(item.id);
+                          setOfferDraft(myOffers[item.id] ?? '');
+                        }}
+                      >
+                        <Text className="text-xs font-semibold text-terracotta">
+                          {myOffers[item.id] ? 'Change your offer' : 'Make an offer'}
+                        </Text>
+                      </Pressable>
+                      {myOffers[item.id] && (
+                        <Pressable onPress={() => withdrawOffer(item.id)}>
+                          <Text className="text-xs font-semibold text-charcoal/50">
+                            Withdraw offer
+                          </Text>
+                        </Pressable>
+                      )}
+                    </View>
                   )
                 )}
               </View>
@@ -592,6 +605,7 @@ export default function ForSaleBoard() {
                   if (!person) return null;
                   const offer = getOfferFor(viewingInterestedItem.id, userId);
                   const declined = declinedOffers[viewingInterestedItem.id]?.[userId] ?? false;
+                  const countered = counterOffers[viewingInterestedItem.id]?.[userId] || undefined;
                   const canRespond =
                     viewingInterestedItem.ownerId === ME.id &&
                     !(sold[viewingInterestedItem.id] ?? false) &&
@@ -600,49 +614,97 @@ export default function ForSaleBoard() {
                   return (
                     <View
                       key={userId}
-                      className="flex-row items-center gap-3 rounded-2xl p-2"
+                      className="gap-2 rounded-2xl p-2"
                     >
-                      <Pressable
-                        onPress={() => {
-                          if (isMe) return;
-                          setViewingInterestedId(null);
-                          router.push(`/profile/${userId}`);
-                        }}
-                        className="flex-1 flex-row items-center gap-3 active:opacity-70"
-                      >
-                        <Image source={{ uri: person.avatar }} className="h-9 w-9 rounded-full" />
-                        <View className="flex-1">
-                          <Text className="font-medium text-charcoal">
-                            {isMe ? 'You' : person.name}
-                          </Text>
-                          {offer && (
-                            <Text
-                              className={`text-xs font-semibold ${
-                                declined ? 'text-charcoal/40 line-through' : 'text-terracotta'
-                              }`}
-                            >
-                              Offered {offer}
+                      <View className="flex-row items-center gap-3">
+                        <Pressable
+                          onPress={() => {
+                            if (isMe) return;
+                            setViewingInterestedId(null);
+                            router.push(`/profile/${userId}`);
+                          }}
+                          className="flex-1 flex-row items-center gap-3 active:opacity-70"
+                        >
+                          <Image source={{ uri: person.avatar }} className="h-9 w-9 rounded-full" />
+                          <View className="flex-1">
+                            <Text className="font-medium text-charcoal">
+                              {isMe ? 'You' : person.name}
                             </Text>
-                          )}
-                          {declined && <Text className="text-xs text-charcoal/40">Declined</Text>}
-                        </View>
-                      </Pressable>
-                      {canRespond && (
-                        <View className="flex-row gap-1.5">
+                            {offer && (
+                              <Text
+                                className={`text-xs font-semibold ${
+                                  declined ? 'text-charcoal/40 line-through' : 'text-terracotta'
+                                }`}
+                              >
+                                Offered {offer}
+                              </Text>
+                            )}
+                            {declined && <Text className="text-xs text-charcoal/40">Declined</Text>}
+                            {countered && (
+                              <Text className="text-xs font-semibold text-gold">
+                                You countered: {countered}
+                              </Text>
+                            )}
+                          </View>
+                        </Pressable>
+                        {canRespond && (
+                          <View className="flex-row gap-1.5">
+                            <Pressable
+                              onPress={() => declineOffer(viewingInterestedItem.id, userId)}
+                              className="rounded-full bg-sand px-3 py-1.5"
+                            >
+                              <Text className="text-xs font-semibold text-charcoal/60">Decline</Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => {
+                                setCounteringUserId(userId);
+                                setCounterDraft(countered ?? '');
+                              }}
+                              className="rounded-full bg-gold/20 px-3 py-1.5"
+                            >
+                              <Text className="text-xs font-semibold text-gold">Counter</Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => {
+                                acceptOffer(viewingInterestedItem.id, userId);
+                                setViewingInterestedId(null);
+                              }}
+                              className="rounded-full bg-sage/20 px-3 py-1.5"
+                            >
+                              <Text className="text-xs font-semibold text-sage">Accept</Text>
+                            </Pressable>
+                          </View>
+                        )}
+                      </View>
+                      {counteringUserId === userId && (
+                        <View className="flex-row items-center gap-2">
+                          <TextInput
+                            value={counterDraft}
+                            onChangeText={setCounterDraft}
+                            placeholder="Your counter price..."
+                            placeholderTextColor="#8A8378"
+                            autoFocus
+                            className="flex-1 rounded-full bg-sand px-4 py-2 text-sm text-charcoal"
+                          />
                           <Pressable
-                            onPress={() => declineOffer(viewingInterestedItem.id, userId)}
-                            className="rounded-full bg-sand px-3 py-1.5"
+                            onPress={() => {
+                              setCounteringUserId(null);
+                              setCounterDraft('');
+                            }}
+                            className="px-2 py-2"
                           >
-                            <Text className="text-xs font-semibold text-charcoal/60">Decline</Text>
+                            <Text className="text-xs font-semibold text-charcoal/50">Cancel</Text>
                           </Pressable>
                           <Pressable
                             onPress={() => {
-                              acceptOffer(viewingInterestedItem.id, userId);
-                              setViewingInterestedId(null);
+                              if (!counterDraft.trim()) return;
+                              counterOffer(viewingInterestedItem.id, userId, counterDraft);
+                              setCounteringUserId(null);
+                              setCounterDraft('');
                             }}
-                            className="rounded-full bg-sage/20 px-3 py-1.5"
+                            className="rounded-full bg-gold px-4 py-2"
                           >
-                            <Text className="text-xs font-semibold text-sage">Accept</Text>
+                            <Text className="text-xs font-semibold text-charcoal">Send</Text>
                           </Pressable>
                         </View>
                       )}
