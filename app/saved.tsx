@@ -24,6 +24,7 @@ import { getEffectiveSpots, useRsvpStore } from '../store/useRsvpStore';
 import { getEffectiveInterestCount, useSaleStore } from '../store/useSaleStore';
 import { useSavedEventsStore } from '../store/useSavedEventsStore';
 import { useSavedLendStore } from '../store/useSavedLendStore';
+import { savedNoteKey, useSavedNotesStore } from '../store/useSavedNotesStore';
 import { useSavedRecsStore } from '../store/useSavedRecsStore';
 import { useSavedSaleStore } from '../store/useSavedSaleStore';
 
@@ -79,6 +80,10 @@ export default function Saved() {
   const [hidePast, setHidePast] = useState(false);
   const [eventCategoryFilter, setEventCategoryFilter] = useState('All');
   const [hideResolved, setHideResolved] = useState(false);
+  const [editingNoteKey, setEditingNoteKey] = useState<string | null>(null);
+  const [noteDraft, setNoteDraft] = useState('');
+  const savedNotes = useSavedNotesStore((s) => s.notes);
+  const setSavedNote = useSavedNotesStore((s) => s.setNote);
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
@@ -171,6 +176,63 @@ export default function Saved() {
     (i) => i.price,
     (i) => getEffectiveInterestCount(i.id, myInterest[i.id] ?? false)
   );
+
+  const renderNoteRow = (key: string, borderTop: boolean) => {
+    if (editingNoteKey === key) {
+      return (
+        <View className={`mt-2 ${borderTop ? 'border-t border-charcoal/10 pt-3' : ''}`}>
+          <TextInput
+            value={noteDraft}
+            onChangeText={setNoteDraft}
+            placeholder="Add a personal note..."
+            placeholderTextColor="#3D3D3D80"
+            multiline
+            autoFocus
+            className="min-h-[52px] rounded-xl bg-sand px-3 py-2 text-xs text-charcoal"
+          />
+          <View className="mt-2 flex-row justify-end gap-4">
+            <Pressable
+              onPress={(evt) => {
+                evt.stopPropagation();
+                setEditingNoteKey(null);
+              }}
+            >
+              <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+            </Pressable>
+            <Pressable
+              onPress={(evt) => {
+                evt.stopPropagation();
+                setSavedNote(key, noteDraft);
+                setEditingNoteKey(null);
+              }}
+            >
+              <Text className="text-xs font-semibold text-terracotta">Save note</Text>
+            </Pressable>
+          </View>
+        </View>
+      );
+    }
+    const note = savedNotes[key];
+    return (
+      <Pressable
+        onPress={(evt) => {
+          evt.stopPropagation();
+          setNoteDraft(note ?? '');
+          setEditingNoteKey(key);
+        }}
+        className={`mt-2 flex-row items-start gap-1 ${borderTop ? 'border-t border-charcoal/10 pt-2' : ''}`}
+      >
+        <Ionicons
+          name={note ? 'create-outline' : 'add-circle-outline'}
+          size={13}
+          className="mt-0.5 text-charcoal/40"
+        />
+        <Text className="flex-1 text-xs italic text-charcoal/50" numberOfLines={2}>
+          {note || 'Add a personal note'}
+        </Text>
+      </Pressable>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -607,6 +669,7 @@ export default function Saved() {
                         ? `${checkedInCount} were there`
                         : `${spotsTaken}/${spotsTotal} spots${going ? ' · Going' : isHost ? ' · Hosting' : ''}`}
                     </Text>
+                    {renderNoteRow(savedNoteKey('event', e.id), false)}
                   </View>
                 </Pressable>
               );
@@ -660,6 +723,7 @@ export default function Saved() {
                         ? `+${count} other${count === 1 ? '' : 's'} agree`
                         : `${count} neighbor${count === 1 ? '' : 's'} can help`}
                   </Text>
+                  {renderNoteRow(savedNoteKey('rec', entry.id), false)}
                 </Pressable>
               );
             })}
@@ -712,6 +776,7 @@ export default function Saved() {
                         ? 'No neighbors yet'
                         : `${helperCount} neighbor${helperCount === 1 ? '' : 's'} can help`}
                   </Text>
+                  {renderNoteRow(savedNoteKey('lend', item.id), false)}
                 </Pressable>
               );
             })}
@@ -760,6 +825,7 @@ export default function Saved() {
                         ? 'No interest yet'
                         : `${interestCount} neighbor${interestCount === 1 ? '' : 's'} interested`}
                   </Text>
+                  {renderNoteRow(savedNoteKey('sale', item.id), false)}
                 </Pressable>
               );
             })}

@@ -17,9 +17,10 @@ export const FRIEND_LABEL: Record<FriendStatus, string> = {
 
 type FriendsState = {
   statuses: Record<string, FriendStatus>;
+  requestNotes: Record<string, string>;
   getStatus: (userId: string) => FriendStatus;
   isFriend: (userId: string) => boolean;
-  sendRequest: (userId: string) => void;
+  sendRequest: (userId: string, note?: string) => void;
   cancelRequest: (userId: string) => void;
   acceptRequest: (userId: string) => void;
   declineRequest: (userId: string) => void;
@@ -34,15 +35,21 @@ const initialStatuses: Record<string, FriendStatus> = {
 
 export const useFriendsStore = create<FriendsState>((set, get) => ({
   statuses: initialStatuses,
+  requestNotes: {},
 
   getStatus: (userId) => get().statuses[userId] ?? 'none',
 
   isFriend: (userId) => get().statuses[userId] === 'friends',
 
-  sendRequest: (userId) => {
+  sendRequest: (userId, note) => {
     const current = get().statuses[userId] ?? 'none';
     if (current !== 'none') return;
-    set((s) => ({ statuses: { ...s.statuses, [userId]: 'pending_out' } }));
+    set((s) => ({
+      statuses: { ...s.statuses, [userId]: 'pending_out' },
+      requestNotes: note?.trim()
+        ? { ...s.requestNotes, [userId]: note.trim() }
+        : s.requestNotes,
+    }));
 
     setTimeout(() => {
       if (get().statuses[userId] !== 'pending_out') return;
@@ -64,7 +71,10 @@ export const useFriendsStore = create<FriendsState>((set, get) => ({
   },
 
   cancelRequest: (userId) =>
-    set((s) => ({ statuses: { ...s.statuses, [userId]: 'none' } })),
+    set((s) => {
+      const { [userId]: _removed, ...requestNotes } = s.requestNotes;
+      return { statuses: { ...s.statuses, [userId]: 'none' }, requestNotes };
+    }),
 
   acceptRequest: (userId) => {
     set((s) => ({ statuses: { ...s.statuses, [userId]: 'friends' } }));

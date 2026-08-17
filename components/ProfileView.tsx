@@ -103,6 +103,10 @@ export default function ProfileView({
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const friendStatus = friendStatuses[user.id] ?? 'none';
   const respondFriend = useFriendsStore((s) => s.respond);
+  const sendFriendRequest = useFriendsStore((s) => s.sendRequest);
+  const friendRequestNotes = useFriendsStore((s) => s.requestNotes);
+  const [composingFriendRequest, setComposingFriendRequest] = useState(false);
+  const [friendRequestNoteDraft, setFriendRequestNoteDraft] = useState('');
   const joinedGroups = useGroupsStore((s) => s.joined);
   const posts = usePostsStore((s) => s.posts);
   const photoPosts = posts.filter((p) => p.authorId === user.id && (p.imageUris?.length ?? 0) > 0);
@@ -333,42 +337,81 @@ export default function ProfileView({
             </Pressable>
           </View>
         ) : (
-          <View className="mt-5 flex-row gap-3">
-            {isMe ? (
-              <Pressable onPress={onEdit} className="rounded-full bg-gold px-6 py-2.5">
-                <Text className="font-semibold text-charcoal">Edit profile</Text>
-              </Pressable>
-            ) : (
-              <>
-                <Pressable
-                  onPress={() =>
-                    friendStatus === 'friends'
-                      ? setConfirmingUnfriend(true)
-                      : respondFriend(user.id)
-                  }
-                  className={`flex-row items-center gap-1.5 rounded-full px-6 py-2.5 ${
-                    friendStatus === 'none' ? 'bg-gold' : 'bg-cream/20'
-                  }`}
-                >
-                  {friendStatus === 'friends' && (
-                    <Ionicons name="checkmark" size={16} className="text-paper" />
-                  )}
-                  {friendStatus === 'pending_in' && (
-                    <Ionicons name="person-add" size={16} className="text-paper" />
-                  )}
-                  <Text
-                    className={`font-semibold ${friendStatus === 'none' ? 'text-charcoal' : 'text-paper'}`}
+          <View className="mt-5">
+            <View className="flex-row gap-3">
+              {isMe ? (
+                <Pressable onPress={onEdit} className="rounded-full bg-gold px-6 py-2.5">
+                  <Text className="font-semibold text-charcoal">Edit profile</Text>
+                </Pressable>
+              ) : (
+                <>
+                  <Pressable
+                    onPress={() => {
+                      if (friendStatus === 'friends') {
+                        setConfirmingUnfriend(true);
+                        return;
+                      }
+                      if (friendStatus === 'none') {
+                        setComposingFriendRequest(true);
+                        setFriendRequestNoteDraft('');
+                        return;
+                      }
+                      respondFriend(user.id);
+                    }}
+                    className={`flex-row items-center gap-1.5 rounded-full px-6 py-2.5 ${
+                      friendStatus === 'none' ? 'bg-gold' : 'bg-cream/20'
+                    }`}
                   >
-                    {FRIEND_LABEL[friendStatus]}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={onMessage}
-                  className="items-center justify-center rounded-full bg-cream/20 px-4 py-2.5"
-                >
-                  <Ionicons name="chatbubble-outline" size={18} className="text-paper" />
-                </Pressable>
-              </>
+                    {friendStatus === 'friends' && (
+                      <Ionicons name="checkmark" size={16} className="text-paper" />
+                    )}
+                    {friendStatus === 'pending_in' && (
+                      <Ionicons name="person-add" size={16} className="text-paper" />
+                    )}
+                    <Text
+                      className={`font-semibold ${friendStatus === 'none' ? 'text-charcoal' : 'text-paper'}`}
+                    >
+                      {FRIEND_LABEL[friendStatus]}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={onMessage}
+                    className="items-center justify-center rounded-full bg-cream/20 px-4 py-2.5"
+                  >
+                    <Ionicons name="chatbubble-outline" size={18} className="text-paper" />
+                  </Pressable>
+                </>
+              )}
+            </View>
+            {!isMe && composingFriendRequest && (
+              <View className="mt-3 gap-2 rounded-2xl bg-cream/20 p-4">
+                <TextInput
+                  value={friendRequestNoteDraft}
+                  onChangeText={setFriendRequestNoteDraft}
+                  placeholder="Optional note, e.g. we met at the potluck!"
+                  placeholderTextColor="#FAF3E680"
+                  autoFocus
+                  className="rounded-xl bg-cream/20 px-3 py-2.5 text-sm text-paper"
+                />
+                <View className="flex-row justify-end gap-4">
+                  <Pressable onPress={() => setComposingFriendRequest(false)}>
+                    <Text className="text-sm font-medium text-sand">Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      sendFriendRequest(user.id, friendRequestNoteDraft);
+                      setComposingFriendRequest(false);
+                    }}
+                  >
+                    <Text className="text-sm font-semibold text-paper">Send request</Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
+            {!isMe && friendStatus === 'pending_out' && friendRequestNotes[user.id] && (
+              <Text className="mt-2 text-xs text-sand">
+                You said: "{friendRequestNotes[user.id]}"
+              </Text>
             )}
           </View>
         )}
