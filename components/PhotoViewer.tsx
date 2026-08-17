@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+type TaggableUser = { id: string; name: string; avatar: string };
+
 type Props = {
   uris: string[];
   initialIndex?: number;
@@ -20,6 +22,9 @@ type Props = {
   captions?: string[];
   editableIndices?: boolean[];
   onCaptionChange?: (index: number, text: string) => void;
+  tags?: string[][];
+  taggableUsers?: TaggableUser[];
+  onTagsChange?: (index: number, userIds: string[]) => void;
 };
 
 export default function PhotoViewer({
@@ -29,16 +34,23 @@ export default function PhotoViewer({
   captions,
   editableIndices,
   onCaptionChange,
+  tags,
+  taggableUsers,
+  onTagsChange,
 }: Props) {
   const [containerWidth, setContainerWidth] = useState(0);
   const [index, setIndex] = useState(initialIndex);
   const [zoomed, setZoomed] = useState(false);
   const [editingCaption, setEditingCaption] = useState(false);
   const [captionDraft, setCaptionDraft] = useState('');
+  const [editingTags, setEditingTags] = useState(false);
+  const [tagDraft, setTagDraft] = useState<string[]>([]);
   const scrollRef = useRef<ScrollView>(null);
 
   const currentCaption = captions?.[index] ?? '';
   const canEditCaption = editableIndices?.[index] ?? false;
+  const currentTags = tags?.[index] ?? [];
+  const canEditTags = editableIndices?.[index] ?? false;
 
   useEffect(() => {
     if (containerWidth > 0 && initialIndex > 0) {
@@ -54,6 +66,7 @@ export default function PhotoViewer({
     setIndex(Math.round(e.nativeEvent.contentOffset.x / containerWidth));
     setZoomed(false);
     setEditingCaption(false);
+    setEditingTags(false);
   };
 
   return (
@@ -138,22 +151,84 @@ export default function PhotoViewer({
               </Pressable>
             </View>
           </View>
+        ) : editingTags ? (
+          <View className="gap-2 px-4 pb-8 pt-3">
+            <Text className="text-center text-xs text-paper/70">Tag people in this photo</Text>
+            <ScrollView style={{ maxHeight: 160 }}>
+              <View className="gap-1">
+                {taggableUsers?.map((u) => {
+                  const selected = tagDraft.includes(u.id);
+                  return (
+                    <Pressable
+                      key={u.id}
+                      onPress={() =>
+                        setTagDraft((prev) =>
+                          prev.includes(u.id) ? prev.filter((id) => id !== u.id) : [...prev, u.id]
+                        )
+                      }
+                      className="flex-row items-center gap-2.5 rounded-xl px-2 py-2"
+                      style={{ backgroundColor: selected ? 'rgba(250,243,230,0.15)' : 'transparent' }}
+                    >
+                      <Image source={{ uri: u.avatar }} className="h-8 w-8 rounded-full" />
+                      <Text className="flex-1 text-sm text-paper">{u.name}</Text>
+                      {selected && <Ionicons name="checkmark-circle" size={18} className="text-paper" />}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </ScrollView>
+            <View className="flex-row justify-center gap-6">
+              <Pressable onPress={() => setEditingTags(false)}>
+                <Text className="text-sm font-medium text-paper/60">Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  onTagsChange?.(index, tagDraft);
+                  setEditingTags(false);
+                }}
+              >
+                <Text className="text-sm font-semibold text-paper">Save</Text>
+              </Pressable>
+            </View>
+          </View>
         ) : (
-          <Pressable
-            disabled={!canEditCaption}
-            onPress={() => {
-              setCaptionDraft(currentCaption);
-              setEditingCaption(true);
-            }}
-            className="flex-row items-center justify-center gap-1.5 px-4 pb-8 pt-3"
-          >
-            <Text className="text-center text-xs text-paper/70">
-              {currentCaption || (canEditCaption ? 'Add a caption' : 'Tap the photo to zoom')}
-            </Text>
-            {canEditCaption && (
-              <Ionicons name="pencil" size={11} className="text-paper/50" />
+          <View className="gap-1 px-4 pb-8 pt-3">
+            <Pressable
+              disabled={!canEditCaption}
+              onPress={() => {
+                setCaptionDraft(currentCaption);
+                setEditingCaption(true);
+              }}
+              className="flex-row items-center justify-center gap-1.5"
+            >
+              <Text className="text-center text-xs text-paper/70">
+                {currentCaption || (canEditCaption ? 'Add a caption' : 'Tap the photo to zoom')}
+              </Text>
+              {canEditCaption && (
+                <Ionicons name="pencil" size={11} className="text-paper/50" />
+              )}
+            </Pressable>
+            {taggableUsers && taggableUsers.length > 0 && (canEditTags || currentTags.length > 0) && (
+              <Pressable
+                disabled={!canEditTags}
+                onPress={() => {
+                  setTagDraft(currentTags);
+                  setEditingTags(true);
+                }}
+                className="flex-row items-center justify-center gap-1.5"
+              >
+                <Text className="text-center text-xs text-paper/70">
+                  {currentTags.length > 0
+                    ? `With ${currentTags
+                        .map((id) => taggableUsers.find((u) => u.id === id)?.name.split(' ')[0])
+                        .filter(Boolean)
+                        .join(', ')}`
+                    : 'Tag people'}
+                </Text>
+                {canEditTags && <Ionicons name="person-add-outline" size={11} className="text-paper/50" />}
+              </Pressable>
             )}
-          </Pressable>
+          </View>
         )}
       </View>
     </Modal>

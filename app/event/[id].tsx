@@ -57,6 +57,8 @@ export default function EventDetail() {
   const removePhoto = useEventAlbumStore((s) => s.removePhoto);
   const photoCaptions = useEventAlbumStore((s) => s.captions);
   const setPhotoCaption = useEventAlbumStore((s) => s.setCaption);
+  const photoTags = useEventAlbumStore((s) => s.tags);
+  const setPhotoTags = useEventAlbumStore((s) => s.setTags);
   const allCarpoolOffers = useCarpoolStore((s) => s.offers);
   const allCarpoolRequests = useCarpoolStore((s) => s.requests);
   const offerRide = useCarpoolStore((s) => s.offerRide);
@@ -125,6 +127,9 @@ export default function EventDetail() {
   const waitlistPosition = getWaitlistPosition(event.id, waitlisted);
   const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
   const attendees = going || canManage ? [profile, ...otherAttendees] : otherAttendees;
+  const taggableUsers = attendees
+    .filter((a): a is NonNullable<typeof a> => Boolean(a))
+    .map((a) => ({ id: a.id, name: a.name, avatar: a.avatar }));
   const attendeeQ = attendeeQuery.trim().toLowerCase();
   const visibleAttendees =
     attendeeQ.length === 0
@@ -1343,6 +1348,9 @@ export default function EventDetail() {
           captions={eventPhotos.map((p) => photoCaptions[p.id] ?? '')}
           editableIndices={eventPhotos.map((p) => p.uploaderId === ME.id)}
           onCaptionChange={(i, text) => setPhotoCaption(eventPhotos[i].id, text)}
+          tags={eventPhotos.map((p) => photoTags[p.id] ?? [])}
+          taggableUsers={taggableUsers}
+          onTagsChange={(i, userIds) => setPhotoTags(eventPhotos[i].id, userIds)}
         />
       )}
 
