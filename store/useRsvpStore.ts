@@ -11,9 +11,11 @@ type RsvpState = {
   going: Record<string, boolean>;
   waitlisted: Record<string, boolean>;
   plusOne: Record<string, boolean>;
+  maybe: Record<string, boolean>;
   rsvpNotes: Record<string, string>;
   toggle: (eventId: string) => void;
   togglePlusOne: (eventId: string) => void;
+  toggleMaybe: (eventId: string) => void;
   setRsvpNote: (eventId: string, note: string) => void;
   joinWaitlist: (eventId: string) => void;
   leaveWaitlist: (eventId: string) => void;
@@ -27,6 +29,7 @@ export const useRsvpStore = create<RsvpState>((set, get) => ({
   going: initialGoing,
   waitlisted: {},
   plusOne: {},
+  maybe: {},
   rsvpNotes: {},
 
   toggle: (eventId) => {
@@ -43,8 +46,18 @@ export const useRsvpStore = create<RsvpState>((set, get) => ({
       // Bringing a guest (and any note) only makes sense while you're going.
       plusOne: currentlyGoing ? { ...s.plusOne, [eventId]: false } : s.plusOne,
       rsvpNotes: currentlyGoing ? { ...s.rsvpNotes, [eventId]: '' } : s.rsvpNotes,
+      // Going and Maybe are mutually exclusive.
+      maybe: currentlyGoing ? s.maybe : { ...s.maybe, [eventId]: false },
     }));
   },
+
+  toggleMaybe: (eventId) =>
+    set((s) => ({
+      maybe: { ...s.maybe, [eventId]: !s.maybe[eventId] },
+      // Marking maybe only makes sense while you're not already committed to going.
+      going: { ...s.going, [eventId]: false },
+      waitlisted: { ...s.waitlisted, [eventId]: false },
+    })),
 
   setRsvpNote: (eventId, note) =>
     set((s) => ({ rsvpNotes: { ...s.rsvpNotes, [eventId]: note.trim() } })),
@@ -63,7 +76,10 @@ export const useRsvpStore = create<RsvpState>((set, get) => ({
   },
 
   joinWaitlist: (eventId) => {
-    set((s) => ({ waitlisted: { ...s.waitlisted, [eventId]: true } }));
+    set((s) => ({
+      waitlisted: { ...s.waitlisted, [eventId]: true },
+      maybe: { ...s.maybe, [eventId]: false },
+    }));
 
     setTimeout(() => {
       const event = useEventsStore.getState().getEvent(eventId);

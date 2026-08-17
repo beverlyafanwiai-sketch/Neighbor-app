@@ -39,8 +39,10 @@ export default function EventDetail() {
   const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
   const waitlisted = useRsvpStore((s) => (event ? (s.waitlisted[event.id] ?? false) : false));
   const bringingGuest = useRsvpStore((s) => (event ? (s.plusOne[event.id] ?? false) : false));
+  const maybe = useRsvpStore((s) => (event ? (s.maybe[event.id] ?? false) : false));
   const toggleRsvp = useRsvpStore((s) => s.toggle);
   const togglePlusOne = useRsvpStore((s) => s.togglePlusOne);
+  const toggleMaybe = useRsvpStore((s) => s.toggleMaybe);
   const rsvpNote = useRsvpStore((s) => (event ? (s.rsvpNotes[event.id] ?? '') : ''));
   const setRsvpNote = useRsvpStore((s) => s.setRsvpNote);
   const joinWaitlist = useRsvpStore((s) => s.joinWaitlist);
@@ -477,35 +479,55 @@ export default function EventDetail() {
             </View>
           ) : (
             !isPast && (
-              <Pressable
-                onPress={() => {
-                  if (going) {
-                    toggleRsvp(event.id);
-                  } else if (isFull) {
-                    waitlisted ? leaveWaitlist(event.id) : joinWaitlist(event.id);
-                  } else {
-                    toggleRsvp(event.id);
-                  }
-                }}
-                className={`mt-5 flex-row items-center justify-center gap-1.5 rounded-full py-3 ${
-                  going ? 'bg-gold' : waitlisted ? 'bg-sage/20' : 'bg-ink'
-                }`}
-              >
-                {waitlisted && <Ionicons name="time-outline" size={16} className="text-sage" />}
-                <Text
-                  className={`text-sm font-semibold ${
-                    going ? 'text-charcoal' : waitlisted ? 'text-sage' : 'text-paper'
+              <>
+                <Pressable
+                  onPress={() => {
+                    if (going) {
+                      toggleRsvp(event.id);
+                    } else if (isFull) {
+                      waitlisted ? leaveWaitlist(event.id) : joinWaitlist(event.id);
+                    } else {
+                      toggleRsvp(event.id);
+                    }
+                  }}
+                  className={`mt-5 flex-row items-center justify-center gap-1.5 rounded-full py-3 ${
+                    going ? 'bg-gold' : waitlisted ? 'bg-sage/20' : 'bg-ink'
                   }`}
                 >
-                  {going
-                    ? "You're going"
-                    : waitlisted
-                      ? `On waitlist · you're #${waitlistPosition} · tap to leave`
-                      : isFull
-                        ? 'Join waitlist'
-                        : 'RSVP'}
-                </Text>
-              </Pressable>
+                  {waitlisted && <Ionicons name="time-outline" size={16} className="text-sage" />}
+                  <Text
+                    className={`text-sm font-semibold ${
+                      going ? 'text-charcoal' : waitlisted ? 'text-sage' : 'text-paper'
+                    }`}
+                  >
+                    {going
+                      ? "You're going"
+                      : waitlisted
+                        ? `On waitlist · you're #${waitlistPosition} · tap to leave`
+                        : isFull
+                          ? 'Join waitlist'
+                          : 'RSVP'}
+                  </Text>
+                </Pressable>
+
+                {!going && !waitlisted && (
+                  <Pressable
+                    onPress={() => toggleMaybe(event.id)}
+                    className="mt-2 flex-row items-center justify-center gap-1.5 rounded-full border border-charcoal/15 py-2.5 active:opacity-70"
+                  >
+                    <Ionicons
+                      name={maybe ? 'checkmark-circle' : 'help-circle-outline'}
+                      size={15}
+                      className={maybe ? 'text-sage' : 'text-charcoal/50'}
+                    />
+                    <Text
+                      className={`text-sm font-medium ${maybe ? 'text-sage' : 'text-charcoal/60'}`}
+                    >
+                      {maybe ? 'Marked as maybe · tap to remove' : 'Not sure yet? Mark as maybe'}
+                    </Text>
+                  </Pressable>
+                )}
+              </>
             )
           )}
 
