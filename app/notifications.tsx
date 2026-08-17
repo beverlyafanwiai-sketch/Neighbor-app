@@ -45,6 +45,8 @@ export default function Notifications() {
   const snoozeNotification = useNotificationsStore((s) => s.snoozeNotification);
   const unsnoozeNotification = useNotificationsStore((s) => s.unsnoozeNotification);
   const [snoozingId, setSnoozingId] = useState<string | null>(null);
+  const [decliningRequestId, setDecliningRequestId] = useState<string | null>(null);
+  const [declineNoteDraft, setDeclineNoteDraft] = useState('');
   const [showSnoozed, setShowSnoozed] = useState(false);
   const mutedIds = useMutedStore((s) => s.mutedIds);
   const unmuted = allNotifications.filter((n) => !n.actorId || !mutedIds[n.actorId]);
@@ -240,28 +242,57 @@ export default function Notifications() {
                       </View>
                     )}
 
-                    {isPendingRequest && (
-                      <View className="ml-14 mt-3 flex-row gap-2">
-                        <Pressable
-                          onPress={() => {
-                            markRead(n.id);
-                            acceptRequest(n.actorId!);
-                          }}
-                          className="rounded-full bg-terracotta px-4 py-1.5"
-                        >
-                          <Text className="text-xs font-semibold text-paper">Accept</Text>
-                        </Pressable>
-                        <Pressable
-                          onPress={() => {
-                            markRead(n.id);
-                            declineRequest(n.actorId!);
-                          }}
-                          className="rounded-full bg-sand px-4 py-1.5"
-                        >
-                          <Text className="text-xs font-semibold text-charcoal">Decline</Text>
-                        </Pressable>
-                      </View>
-                    )}
+                    {isPendingRequest &&
+                      (decliningRequestId === n.id ? (
+                        <View className="ml-14 mt-3 gap-2">
+                          <TextInput
+                            value={declineNoteDraft}
+                            onChangeText={setDeclineNoteDraft}
+                            placeholder="Optional note, e.g. maybe another time"
+                            placeholderTextColor="#3D3D3D80"
+                            autoFocus
+                            className="rounded-xl bg-sand px-3 py-2 text-sm text-charcoal"
+                          />
+                          <View className="flex-row justify-end gap-4">
+                            <Pressable
+                              onPress={() => {
+                                setDecliningRequestId(null);
+                                setDeclineNoteDraft('');
+                              }}
+                            >
+                              <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => {
+                                markRead(n.id);
+                                declineRequest(n.actorId!, declineNoteDraft);
+                                setDecliningRequestId(null);
+                                setDeclineNoteDraft('');
+                              }}
+                            >
+                              <Text className="text-sm font-semibold text-terracotta">Decline</Text>
+                            </Pressable>
+                          </View>
+                        </View>
+                      ) : (
+                        <View className="ml-14 mt-3 flex-row gap-2">
+                          <Pressable
+                            onPress={() => {
+                              markRead(n.id);
+                              acceptRequest(n.actorId!);
+                            }}
+                            className="rounded-full bg-terracotta px-4 py-1.5"
+                          >
+                            <Text className="text-xs font-semibold text-paper">Accept</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => setDecliningRequestId(n.id)}
+                            className="rounded-full bg-sand px-4 py-1.5"
+                          >
+                            <Text className="text-xs font-semibold text-charcoal">Decline</Text>
+                          </Pressable>
+                        </View>
+                      ))}
                   </View>
                 );
               })}

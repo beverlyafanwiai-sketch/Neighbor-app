@@ -18,12 +18,13 @@ export const FRIEND_LABEL: Record<FriendStatus, string> = {
 type FriendsState = {
   statuses: Record<string, FriendStatus>;
   requestNotes: Record<string, string>;
+  declineNotes: Record<string, string>;
   getStatus: (userId: string) => FriendStatus;
   isFriend: (userId: string) => boolean;
   sendRequest: (userId: string, note?: string) => void;
   cancelRequest: (userId: string) => void;
   acceptRequest: (userId: string) => void;
-  declineRequest: (userId: string) => void;
+  declineRequest: (userId: string, note?: string) => void;
   unfriend: (userId: string) => void;
   respond: (userId: string) => void;
 };
@@ -36,6 +37,7 @@ const initialStatuses: Record<string, FriendStatus> = {
 export const useFriendsStore = create<FriendsState>((set, get) => ({
   statuses: initialStatuses,
   requestNotes: {},
+  declineNotes: {},
 
   getStatus: (userId) => get().statuses[userId] ?? 'none',
 
@@ -93,8 +95,13 @@ export const useFriendsStore = create<FriendsState>((set, get) => ({
     }
   },
 
-  declineRequest: (userId) =>
-    set((s) => ({ statuses: { ...s.statuses, [userId]: 'none' } })),
+  declineRequest: (userId, note) =>
+    set((s) => ({
+      statuses: { ...s.statuses, [userId]: 'none' },
+      declineNotes: note?.trim()
+        ? { ...s.declineNotes, [userId]: note.trim() }
+        : s.declineNotes,
+    })),
 
   unfriend: (userId) => set((s) => ({ statuses: { ...s.statuses, [userId]: 'none' } })),
 
