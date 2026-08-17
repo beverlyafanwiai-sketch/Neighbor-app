@@ -20,6 +20,19 @@ const APPEARANCE_OPTIONS: { value: ThemePreference; label: string; icon: keyof t
   { value: 'system', label: 'Match system', icon: 'phone-portrait-outline' },
 ];
 
+const QUIET_HOURS_PRESETS = [
+  { label: '9 PM – 7 AM', startHour: 21, endHour: 7 },
+  { label: '10 PM – 7 AM', startHour: 22, endHour: 7 },
+  { label: '11 PM – 8 AM', startHour: 23, endHour: 8 },
+] as const;
+
+function formatHour(hour: number) {
+  const h = hour % 24;
+  const period = h < 12 ? 'AM' : 'PM';
+  const displayHour = h % 12 === 0 ? 12 : h % 12;
+  return `${displayHour} ${period}`;
+}
+
 const NOTIFICATION_ROWS: { key: keyof NotificationPrefs; label: string; description: string }[] = [
   { key: 'messages', label: 'Messages', description: 'New direct messages and group chat activity' },
   { key: 'eventReminders', label: 'Event reminders', description: 'Upcoming events you’re going to or hosting' },
@@ -52,6 +65,9 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
 export default function Settings() {
   const prefs = useSettingsStore((s) => s.notificationPrefs);
   const togglePref = useSettingsStore((s) => s.toggleNotificationPref);
+  const quietHours = useSettingsStore((s) => s.quietHours);
+  const toggleQuietHours = useSettingsStore((s) => s.toggleQuietHours);
+  const setQuietHoursRange = useSettingsStore((s) => s.setQuietHoursRange);
   const signOut = useAuthStore((s) => s.signOut);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const toggleBlocked = useBlockedStore((s) => s.toggle);
@@ -140,6 +156,44 @@ export default function Settings() {
               <Toggle on={prefs[row.key]} onToggle={() => togglePref(row.key)} />
             </View>
           ))}
+        </View>
+
+        <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+          Quiet hours
+        </Text>
+        <View className="gap-2">
+          <View className="flex-row items-center gap-3 rounded-2xl bg-cream p-4">
+            <View className="flex-1">
+              <Text className="text-sm font-medium text-charcoal">Quiet hours</Text>
+              <Text className="mt-0.5 text-xs text-charcoal/50">
+                {quietHours.enabled
+                  ? `Notification pop-ups stay quiet from ${formatHour(quietHours.startHour)} to ${formatHour(quietHours.endHour)}`
+                  : 'Silence notification pop-ups during set hours'}
+              </Text>
+            </View>
+            <Toggle on={quietHours.enabled} onToggle={toggleQuietHours} />
+          </View>
+          {quietHours.enabled && (
+            <View className="flex-row flex-wrap gap-2 px-1">
+              {QUIET_HOURS_PRESETS.map((p) => {
+                const active =
+                  quietHours.startHour === p.startHour && quietHours.endHour === p.endHour;
+                return (
+                  <Pressable
+                    key={p.label}
+                    onPress={() => setQuietHoursRange(p.startHour, p.endHour)}
+                    className={`rounded-full px-3 py-1.5 ${active ? 'bg-ink' : 'bg-cream'}`}
+                  >
+                    <Text
+                      className={`text-xs font-medium ${active ? 'text-paper' : 'text-charcoal/60'}`}
+                    >
+                      {p.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
         </View>
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
