@@ -3,6 +3,10 @@ import { Pressable, Share, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 
+import { useConversationsStore } from '../store/useConversationsStore';
+import { useGroupChatStore } from '../store/useGroupChatStore';
+import ForwardSheet, { type ForwardTarget } from './ForwardSheet';
+
 type Props = {
   title?: string;
   link: string;
@@ -12,6 +16,10 @@ type Props = {
 
 export default function ShareSheet({ title = 'Share post', link, previewText, onClose }: Props) {
   const [copied, setCopied] = useState(false);
+  const [sharingToChat, setSharingToChat] = useState(false);
+  const [chatShareSent, setChatShareSent] = useState(false);
+  const sendDm = useConversationsStore((s) => s.sendMessage);
+  const sendGroupMessage = useGroupChatStore((s) => s.sendMessage);
 
   const copyLink = async () => {
     try {
@@ -32,6 +40,29 @@ export default function ShareSheet({ title = 'Share post', link, previewText, on
       // desktop browsers) -- Copy link above is the reliable fallback.
     }
   };
+
+  const shareToChat = (target: ForwardTarget) => {
+    const message = `${previewText}\n${link}`;
+    if (target.kind === 'dm') sendDm(target.id, message);
+    else sendGroupMessage(target.id, message);
+    setChatShareSent(true);
+  };
+
+  if (sharingToChat) {
+    return (
+      <ForwardSheet
+        preview={previewText}
+        onForward={shareToChat}
+        onClose={() => {
+          if (chatShareSent) {
+            onClose();
+          } else {
+            setSharingToChat(false);
+          }
+        }}
+      />
+    );
+  }
 
   return (
     <View className="absolute inset-0 items-center justify-end bg-ink/40">
@@ -63,6 +94,17 @@ export default function ShareSheet({ title = 'Share post', link, previewText, on
           <Text className={`text-sm font-medium ${copied ? 'text-sage' : 'text-charcoal'}`}>
             {copied ? 'Link copied!' : 'Copy link'}
           </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => {
+            setChatShareSent(false);
+            setSharingToChat(true);
+          }}
+          className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
+        >
+          <Ionicons name="chatbubbles-outline" size={20} className="text-charcoal" />
+          <Text className="text-sm font-medium text-charcoal">Share to a chat</Text>
         </Pressable>
 
         <Pressable
