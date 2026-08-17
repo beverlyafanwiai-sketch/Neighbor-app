@@ -40,6 +40,10 @@ function capitalize(tag: string) {
   return tag.replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function sameSet(a: string[], b: string[]) {
+  return a.length === b.length && a.every((x) => b.includes(x));
+}
+
 function FieldLabel({ children }: { children: string }) {
   return (
     <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
@@ -72,6 +76,24 @@ export default function EditProfile() {
   const [skillsToShare, setSkillsToShare] = useState(profile.conversationStarters.skillsToShare);
   const [neighborhoodLove, setNeighborhoodLove] = useState(profile.conversationStarters.neighborhoodLove);
   const [promptAnswers, setPromptAnswers] = useState(profile.prompts.map((p) => p.a));
+  const [confirmingClose, setConfirmingClose] = useState(false);
+
+  const hasUnsavedChanges =
+    avatar !== profile.avatar ||
+    name !== profile.name ||
+    tagline !== profile.tagline ||
+    bio !== profile.bio ||
+    interests !== profile.interests ||
+    values !== profile.values ||
+    neighborhood !== profile.neighborhood ||
+    crossStreets !== profile.crossStreets ||
+    yearsInArea !== profile.yearsInArea ||
+    askMeAbout !== profile.conversationStarters.askMeAbout ||
+    skillsToShare !== profile.conversationStarters.skillsToShare ||
+    neighborhoodLove !== profile.conversationStarters.neighborhoodLove ||
+    !sameSet(tags, profile.tags) ||
+    !sameSet(verifications, profile.verifications) ||
+    promptAnswers.some((a, i) => a !== profile.prompts[i]?.a);
 
   const toggleTag = (tag: string) => {
     setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
@@ -104,11 +126,19 @@ export default function EditProfile() {
     router.back();
   };
 
+  const close = () => {
+    if (!hasUnsavedChanges) {
+      router.back();
+      return;
+    }
+    setConfirmingClose(true);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-cream" edges={['top']}>
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
-          onPress={() => router.back()}
+          onPress={close}
           className="h-9 w-9 items-center justify-center rounded-full bg-sand"
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
@@ -118,6 +148,20 @@ export default function EditProfile() {
           <Text className="text-sm font-semibold text-paper">Save</Text>
         </Pressable>
       </View>
+
+      {confirmingClose && (
+        <View className="gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="text-sm text-charcoal">Discard your unsaved changes?</Text>
+          <View className="flex-row justify-end gap-4">
+            <Pressable onPress={() => setConfirmingClose(false)}>
+              <Text className="text-sm font-medium text-charcoal/60">Keep editing</Text>
+            </Pressable>
+            <Pressable onPress={() => router.back()}>
+              <Text className="text-sm font-semibold text-terracotta">Discard</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">
