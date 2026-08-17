@@ -11,8 +11,10 @@ type RsvpState = {
   going: Record<string, boolean>;
   waitlisted: Record<string, boolean>;
   plusOne: Record<string, boolean>;
+  rsvpNotes: Record<string, string>;
   toggle: (eventId: string) => void;
   togglePlusOne: (eventId: string) => void;
+  setRsvpNote: (eventId: string, note: string) => void;
   joinWaitlist: (eventId: string) => void;
   leaveWaitlist: (eventId: string) => void;
 };
@@ -25,6 +27,7 @@ export const useRsvpStore = create<RsvpState>((set, get) => ({
   going: initialGoing,
   waitlisted: {},
   plusOne: {},
+  rsvpNotes: {},
 
   toggle: (eventId) => {
     const event = useEventsStore.getState().getEvent(eventId);
@@ -37,10 +40,14 @@ export const useRsvpStore = create<RsvpState>((set, get) => ({
 
     set((s) => ({
       going: { ...s.going, [eventId]: !currentlyGoing },
-      // Bringing a guest only makes sense while you're going.
+      // Bringing a guest (and any note) only makes sense while you're going.
       plusOne: currentlyGoing ? { ...s.plusOne, [eventId]: false } : s.plusOne,
+      rsvpNotes: currentlyGoing ? { ...s.rsvpNotes, [eventId]: '' } : s.rsvpNotes,
     }));
   },
+
+  setRsvpNote: (eventId, note) =>
+    set((s) => ({ rsvpNotes: { ...s.rsvpNotes, [eventId]: note.trim() } })),
 
   togglePlusOne: (eventId) => {
     const event = useEventsStore.getState().getEvent(eventId);

@@ -41,6 +41,8 @@ export default function EventDetail() {
   const bringingGuest = useRsvpStore((s) => (event ? (s.plusOne[event.id] ?? false) : false));
   const toggleRsvp = useRsvpStore((s) => s.toggle);
   const togglePlusOne = useRsvpStore((s) => s.togglePlusOne);
+  const rsvpNote = useRsvpStore((s) => (event ? (s.rsvpNotes[event.id] ?? '') : ''));
+  const setRsvpNote = useRsvpStore((s) => s.setRsvpNote);
   const joinWaitlist = useRsvpStore((s) => s.joinWaitlist);
   const leaveWaitlist = useRsvpStore((s) => s.leaveWaitlist);
   const friendStatuses = useFriendsStore((s) => s.statuses);
@@ -77,6 +79,8 @@ export default function EventDetail() {
   const [confirmingCancelOfferId, setConfirmingCancelOfferId] = useState<string | null>(null);
   const [postingUpdate, setPostingUpdate] = useState(false);
   const [checkingIn, setCheckingIn] = useState(false);
+  const [editingRsvpNote, setEditingRsvpNote] = useState(false);
+  const [rsvpNoteDraft, setRsvpNoteDraft] = useState('');
   const [attendeeQuery, setAttendeeQuery] = useState('');
   const [checkInNoteDraft, setCheckInNoteDraft] = useState('');
   const [updateDraft, setUpdateDraft] = useState('');
@@ -529,6 +533,47 @@ export default function EventDetail() {
             </Pressable>
           )}
 
+          {going &&
+            !isPast &&
+            (editingRsvpNote ? (
+              <View className="mt-3 gap-2 rounded-2xl bg-cream p-4">
+                <TextInput
+                  value={rsvpNoteDraft}
+                  onChangeText={setRsvpNoteDraft}
+                  placeholder="Optional note, e.g. running 10 min late"
+                  placeholderTextColor="#3D3D3D80"
+                  autoFocus
+                  className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+                />
+                <View className="flex-row justify-end gap-4">
+                  <Pressable onPress={() => setEditingRsvpNote(false)}>
+                    <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      setRsvpNote(event.id, rsvpNoteDraft);
+                      setEditingRsvpNote(false);
+                    }}
+                  >
+                    <Text className="text-sm font-semibold text-terracotta">Save</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => {
+                  setRsvpNoteDraft(rsvpNote);
+                  setEditingRsvpNote(true);
+                }}
+                className="mt-3 flex-row items-center justify-center gap-1.5 rounded-full border border-charcoal/15 py-3 active:opacity-70"
+              >
+                <Ionicons name="pencil-outline" size={15} className="text-charcoal" />
+                <Text className="text-sm font-semibold text-charcoal">
+                  {rsvpNote ? `Note: ${rsvpNote}` : 'Add a note'}
+                </Text>
+              </Pressable>
+            ))}
+
           <Pressable
             onPress={() => setSharing(true)}
             className="mt-3 flex-row items-center justify-center gap-1.5 rounded-full border border-charcoal/15 py-3 active:opacity-70"
@@ -652,9 +697,15 @@ export default function EventDetail() {
                       </View>
                     )}
                   </View>
-                  <Text className="text-xs text-charcoal/50" numberOfLines={1}>
-                    {a!.tagline}
-                  </Text>
+                  {isMe && rsvpNote ? (
+                    <Text className="text-xs text-charcoal/50" numberOfLines={1}>
+                      {rsvpNote}
+                    </Text>
+                  ) : (
+                    <Text className="text-xs text-charcoal/50" numberOfLines={1}>
+                      {a!.tagline}
+                    </Text>
+                  )}
                 </View>
                 {isAttendeeCoHost && (
                   <View className="flex-row items-center gap-1.5">
