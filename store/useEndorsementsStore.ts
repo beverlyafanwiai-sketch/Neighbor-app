@@ -5,11 +5,12 @@ import { ME } from '../data/mock';
 export type Endorsement = {
   skill: string;
   endorserId: string;
+  note?: string;
 };
 
 type EndorsementsState = {
   endorsements: Record<string, Endorsement[]>;
-  addEndorsement: (targetUserId: string, skill: string) => void;
+  addEndorsement: (targetUserId: string, skill: string, note?: string) => void;
   removeEndorsement: (targetUserId: string, skill: string) => void;
 };
 
@@ -25,7 +26,7 @@ const SEED: Record<string, Endorsement[]> = {
 export const useEndorsementsStore = create<EndorsementsState>((set) => ({
   endorsements: SEED,
 
-  addEndorsement: (targetUserId, skill) =>
+  addEndorsement: (targetUserId, skill, note) =>
     set((s) => {
       const clean = skill.trim();
       if (!clean) return s;
@@ -37,7 +38,10 @@ export const useEndorsementsStore = create<EndorsementsState>((set) => ({
       return {
         endorsements: {
           ...s.endorsements,
-          [targetUserId]: [...existing, { skill: clean, endorserId: ME.id }],
+          [targetUserId]: [
+            ...existing,
+            { skill: clean, endorserId: ME.id, note: note?.trim() || undefined },
+          ],
         },
       };
     }),

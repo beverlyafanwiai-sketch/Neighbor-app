@@ -129,6 +129,7 @@ export default function ProfileView({
   const endorsementGroups = getEndorsementGroups(user.id, endorsements);
   const [composingEndorsement, setComposingEndorsement] = useState(false);
   const [endorsementDraft, setEndorsementDraft] = useState('');
+  const [endorsementNoteDraft, setEndorsementNoteDraft] = useState('');
   const [confirmingUnfriend, setConfirmingUnfriend] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [viewingConnections, setViewingConnections] = useState(false);
@@ -668,6 +669,7 @@ export default function ProfileView({
                 <View className="mt-2 gap-2">
                   {endorsementGroups.map(({ skill, entries }) => {
                     const mine = entries.some((e) => e.endorserId === ME.id);
+                    const myNote = entries.find((e) => e.endorserId === ME.id)?.note;
                     const names = entries
                       .map((e) => (e.endorserId === ME.id ? 'You' : getUser(e.endorserId)?.name))
                       .filter((n): n is string => Boolean(n))
@@ -708,6 +710,9 @@ export default function ProfileView({
                           <Text className="text-charcoal/50"> · {entries.length}</Text>
                         </Text>
                         <Text className="mt-0.5 text-xs text-charcoal/50">— {names}</Text>
+                        {myNote && (
+                          <Text className="mt-1 text-xs italic text-charcoal/60">"{myNote}"</Text>
+                        )}
                       </Pressable>
                     );
                   })}
@@ -724,11 +729,19 @@ export default function ProfileView({
                       autoFocus
                       className="rounded-2xl bg-cream px-3 py-2.5 text-sm text-charcoal"
                     />
+                    <TextInput
+                      value={endorsementNoteDraft}
+                      onChangeText={setEndorsementNoteDraft}
+                      placeholder="Add a note (optional)"
+                      placeholderTextColor="#3D3D3D80"
+                      className="rounded-2xl bg-cream px-3 py-2.5 text-sm text-charcoal"
+                    />
                     <View className="flex-row justify-end gap-4">
                       <Pressable
                         onPress={() => {
                           setComposingEndorsement(false);
                           setEndorsementDraft('');
+                          setEndorsementNoteDraft('');
                         }}
                       >
                         <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
@@ -736,8 +749,9 @@ export default function ProfileView({
                       <Pressable
                         onPress={() => {
                           if (!endorsementDraft.trim()) return;
-                          addEndorsement(user.id, endorsementDraft.trim());
+                          addEndorsement(user.id, endorsementDraft.trim(), endorsementNoteDraft);
                           setEndorsementDraft('');
+                          setEndorsementNoteDraft('');
                           setComposingEndorsement(false);
                         }}
                       >
