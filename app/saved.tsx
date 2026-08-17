@@ -805,6 +805,7 @@ export default function Saved() {
                       <Text className="font-semibold text-charcoal">{item.title}</Text>
                       <Text className="text-xs text-charcoal/50">
                         {owner.name} · {item.price}
+                        {item.condition ? ` · ${item.condition}` : ''}
                       </Text>
                     </View>
                     <Pressable

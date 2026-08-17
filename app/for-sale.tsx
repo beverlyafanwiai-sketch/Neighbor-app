@@ -224,6 +224,9 @@ export default function ForSaleBoard() {
                               </View>
                             )
                           )}
+                          {item.condition && (
+                            <Text className="text-xs text-charcoal/40">· {item.condition}</Text>
+                          )}
                         </View>
                       </View>
                       <Pressable
@@ -419,6 +422,9 @@ export default function ForSaleBoard() {
                             </Text>
                           </View>
                         )
+                      )}
+                      {item.condition && (
+                        <Text className="text-xs text-charcoal/40">· {item.condition}</Text>
                       )}
                     </View>
                   </View>

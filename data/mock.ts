@@ -930,6 +930,10 @@ export const LEND_ITEMS: LendItem[] = [
   },
 ];
 
+export type SaleCondition = 'New' | 'Like new' | 'Good' | 'Well loved';
+
+export const SALE_CONDITIONS: SaleCondition[] = ['New', 'Like new', 'Good', 'Well loved'];
+
 export type SaleItem = {
   id: string;
   ownerId: string;
@@ -938,6 +942,7 @@ export type SaleItem = {
   price: string;
   note: string;
   imageUris?: string[];
+  condition?: SaleCondition;
   // Baseline ids of other neighbors already interested — mirrors
   // LendItem.helperIds as a "before ME" list.
   interestedByIds?: string[];
@@ -959,6 +964,7 @@ export const SALE_ITEMS: SaleItem[] = [
     price: '$25',
     note: 'Barely used, outgrown it fast. Blue, good tires, minor scuffs.',
     interestedByIds: ['maya'],
+    condition: 'Like new',
   },
   {
     id: 'standing-desk',

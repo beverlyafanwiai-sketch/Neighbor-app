@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { getUser, ME, SALE_ITEMS, type SaleItem } from '../data/mock';
+import { getUser, ME, SALE_ITEMS, type SaleCondition, type SaleItem } from '../data/mock';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
@@ -19,6 +19,7 @@ export type NewSaleItemInput = {
   price: string;
   note: string;
   imageUris?: string[];
+  condition?: SaleCondition;
 };
 
 export type SaleDraft = {
@@ -28,6 +29,7 @@ export type SaleDraft = {
   price: string;
   note: string;
   imageUris?: string[];
+  condition?: SaleCondition;
   updatedAt: number;
 };
 
@@ -99,6 +101,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
       price: input.price,
       note: input.note,
       imageUris: input.imageUris,
+      condition: input.condition,
     };
     set((s) => ({ items: [item, ...s.items] }));
 

@@ -14,6 +14,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { SALE_CONDITIONS, type SaleCondition } from '../data/mock';
 import { useSaleStore } from '../store/useSaleStore';
 
 const EMOJI_PRESETS = ['🚲', '🪑', '🎵', '🪴', '🧰', '📦', '🛋️', '📚', '🖥️', '🎉'];
@@ -57,6 +58,9 @@ export default function CreateSaleItem() {
     existing?.price ?? duplicateSource?.price ?? existingDraft?.price ?? ''
   );
   const [note, setNote] = useState(existing?.note ?? duplicateSource?.note ?? existingDraft?.note ?? '');
+  const [condition, setCondition] = useState<SaleCondition | undefined>(
+    existing?.condition ?? duplicateSource?.condition ?? existingDraft?.condition
+  );
   const [imageUris, setImageUris] = useState<string[]>(
     existing?.imageUris ?? duplicateSource?.imageUris ?? existingDraft?.imageUris ?? []
   );
@@ -64,7 +68,8 @@ export default function CreateSaleItem() {
 
   const canSave = title.trim() && price.trim() && note.trim();
   const hasUnsavedContent =
-    !isEditing && Boolean(title.trim() || price.trim() || note.trim() || imageUris.length > 0);
+    !isEditing &&
+    Boolean(title.trim() || price.trim() || note.trim() || imageUris.length > 0 || condition);
 
   const pickImages = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -93,11 +98,19 @@ export default function CreateSaleItem() {
         price: price.trim(),
         note: note.trim(),
         imageUris,
+        condition,
       });
       router.replace('/for-sale');
       return;
     }
-    createItem({ emoji, title: title.trim(), price: price.trim(), note: note.trim(), imageUris });
+    createItem({
+      emoji,
+      title: title.trim(),
+      price: price.trim(),
+      note: note.trim(),
+      imageUris,
+      condition,
+    });
     if (draftId) deleteDraft(draftId);
     router.replace('/for-sale');
   };
@@ -123,6 +136,7 @@ export default function CreateSaleItem() {
       price: price.trim(),
       note: note.trim(),
       imageUris,
+      condition,
     });
     router.back();
   };
@@ -260,6 +274,25 @@ export default function CreateSaleItem() {
                 placeholderTextColor="#3D3D3D80"
                 className="rounded-2xl bg-cream px-4 py-3 text-base text-charcoal"
               />
+            </View>
+
+            <View>
+              <FieldLabel>Condition (optional)</FieldLabel>
+              <View className="flex-row flex-wrap gap-2">
+                {SALE_CONDITIONS.map((c) => (
+                  <Pressable
+                    key={c}
+                    onPress={() => setCondition(condition === c ? undefined : c)}
+                    className={`rounded-full px-3 py-2 ${condition === c ? 'bg-terracotta' : 'bg-cream'}`}
+                  >
+                    <Text
+                      className={`text-sm font-medium ${condition === c ? 'text-paper' : 'text-charcoal/70'}`}
+                    >
+                      {c}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
 
             <View>
