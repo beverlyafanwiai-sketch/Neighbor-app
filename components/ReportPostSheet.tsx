@@ -8,12 +8,20 @@ type Props = {
   actionLabel?: string;
 };
 
+const REPORT_REASONS = [
+  { value: 'spam', label: 'Spam or scam' },
+  { value: 'harassment', label: 'Harassment or bullying' },
+  { value: 'inappropriate', label: 'Inappropriate content' },
+  { value: 'other', label: 'Something else' },
+] as const;
+
 export default function ReportPostSheet({
   onClose,
   title = 'Post options',
   actionLabel = 'Report this post',
 }: Props) {
   const [reported, setReported] = useState(false);
+  const [choosingReason, setChoosingReason] = useState(false);
 
   return (
     <View className="absolute inset-0 items-center justify-end bg-ink/40">
@@ -35,9 +43,24 @@ export default function ReportPostSheet({
               Thanks — we've received your report and will take a look.
             </Text>
           </View>
+        ) : choosingReason ? (
+          <View className="gap-2">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+              Why are you reporting this?
+            </Text>
+            {REPORT_REASONS.map((reason) => (
+              <Pressable
+                key={reason.value}
+                onPress={() => setReported(true)}
+                className="rounded-2xl bg-sand p-4 active:opacity-80"
+              >
+                <Text className="text-sm font-medium text-charcoal">{reason.label}</Text>
+              </Pressable>
+            ))}
+          </View>
         ) : (
           <Pressable
-            onPress={() => setReported(true)}
+            onPress={() => setChoosingReason(true)}
             className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
           >
             <Ionicons name="flag-outline" size={20} className="text-charcoal" />
