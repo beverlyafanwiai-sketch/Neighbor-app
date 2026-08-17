@@ -13,6 +13,7 @@ import { getGroupPhotos, useGroupAlbumStore } from '../../store/useGroupAlbumSto
 import { useEventsStore } from '../../store/useEventsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { isGroupAdmin, memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
+import { useGroupNotesStore } from '../../store/useGroupNotesStore';
 import { formatMutedUntil, useMutedGroupsStore } from '../../store/useMutedGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
@@ -58,6 +59,10 @@ export default function GroupDetail() {
   const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
   const muteGroupFor = useMutedGroupsStore((s) => s.muteFor);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const groupNotes = useGroupNotesStore((s) => s.notes);
+  const setGroupNote = useGroupNotesStore((s) => s.setNote);
+  const [editingGroupNote, setEditingGroupNote] = useState(false);
+  const [groupNoteDraft, setGroupNoteDraft] = useState('');
   const [choosingMuteDuration, setChoosingMuteDuration] = useState(false);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const [inviting, setInviting] = useState(false);
@@ -300,6 +305,57 @@ export default function GroupDetail() {
             </View>
           </Pressable>
         )}
+
+        <View className="mt-4 rounded-2xl bg-cream p-4">
+          <View className="flex-row items-center gap-1.5">
+            <Ionicons name="lock-closed-outline" size={12} className="text-charcoal/40" />
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+              Private note · only you can see this
+            </Text>
+          </View>
+          {editingGroupNote ? (
+            <View className="mt-2 gap-2">
+              <TextInput
+                value={groupNoteDraft}
+                onChangeText={setGroupNoteDraft}
+                placeholder="e.g. meets every other Tuesday"
+                placeholderTextColor="#3D3D3D80"
+                multiline
+                autoFocus
+                className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+              />
+              <View className="flex-row justify-end gap-4">
+                <Pressable onPress={() => setEditingGroupNote(false)}>
+                  <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setGroupNote(group.id, groupNoteDraft);
+                    setEditingGroupNote(false);
+                  }}
+                >
+                  <Text className="text-sm font-semibold text-terracotta">Save</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => {
+                setGroupNoteDraft(groupNotes[group.id] ?? '');
+                setEditingGroupNote(true);
+              }}
+              className="mt-1.5"
+            >
+              <Text
+                className={`text-sm ${
+                  groupNotes[group.id] ? 'text-charcoal' : 'italic text-charcoal/40'
+                }`}
+              >
+                {groupNotes[group.id] || 'Add a note'}
+              </Text>
+            </Pressable>
+          )}
+        </View>
 
         {(groupEvents.length > 0 || joined) && (
           <>
