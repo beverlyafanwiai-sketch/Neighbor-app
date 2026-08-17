@@ -30,21 +30,29 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateAlert() {
-  const { editId, draftId } = useLocalSearchParams<{ editId?: string; draftId?: string }>();
+  const { editId, duplicateId, draftId } = useLocalSearchParams<{
+    editId?: string;
+    duplicateId?: string;
+    draftId?: string;
+  }>();
   const postAlert = useAlertsStore((s) => s.postAlert);
   const updateAlert = useAlertsStore((s) => s.updateAlert);
   const existing = useAlertsStore((s) => (editId ? s.alerts.find((a) => a.id === editId) : undefined));
+  const duplicateSource = useAlertsStore((s) =>
+    duplicateId ? s.alerts.find((a) => a.id === duplicateId) : undefined
+  );
+  const isEditing = Boolean(existing);
+  const isDuplicating = Boolean(duplicateSource) && !isEditing;
   const existingDraft = useAlertsStore((s) =>
     draftId ? s.drafts.find((d) => d.id === draftId) : undefined
   );
-  const isEditing = Boolean(existing);
   const saveDraft = useAlertsStore((s) => s.saveDraft);
   const deleteDraft = useAlertsStore((s) => s.deleteDraft);
 
   const [category, setCategory] = useState<AlertCategoryValue>(
-    existing?.category ?? existingDraft?.category ?? 'lost-pet'
+    existing?.category ?? duplicateSource?.category ?? existingDraft?.category ?? 'lost-pet'
   );
-  const [text, setText] = useState(existing?.text ?? existingDraft?.text ?? '');
+  const [text, setText] = useState(existing?.text ?? duplicateSource?.text ?? existingDraft?.text ?? '');
   const [durationHours, setDurationHours] = useState(existingDraft?.durationHours ?? 24);
   const [confirmingClose, setConfirmingClose] = useState(false);
 
@@ -90,7 +98,7 @@ export default function CreateAlert() {
           <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">
-          {isEditing ? 'Edit alert' : 'Post an alert'}
+          {isEditing ? 'Edit alert' : isDuplicating ? 'Duplicate alert' : 'Post an alert'}
         </Text>
         <Pressable
           onPress={save}
@@ -122,6 +130,14 @@ export default function CreateAlert() {
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">
+          {isDuplicating && (
+            <View className="mb-2 mt-2 flex-row items-center gap-2 rounded-2xl bg-gold/15 p-3">
+              <Ionicons name="copy-outline" size={16} className="text-gold" />
+              <Text className="flex-1 text-xs text-charcoal/70">
+                Details copied from your earlier alert — give it a fresh look if needed.
+              </Text>
+            </View>
+          )}
           <Text className="mt-2 text-sm text-charcoal/60">
             For time-sensitive stuff — this'll disappear on its own once it expires.
           </Text>

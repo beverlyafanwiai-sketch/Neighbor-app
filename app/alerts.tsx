@@ -107,6 +107,14 @@ export default function NeighborhoodAlerts() {
                       {formatExpiresIn(alert.expiresAt, now)}
                     </Text>
                   </View>
+                  <View className="flex-row gap-1">
+                    <Pressable
+                      onPress={() => router.push(`/create-alert?duplicateId=${alert.id}`)}
+                      className="h-8 w-8 items-center justify-center rounded-full"
+                    >
+                      <Ionicons name="copy-outline" size={16} className="text-charcoal/50" />
+                    </Pressable>
+                  </View>
                   {isMine && (
                     <View className="flex-row gap-1">
                       <Pressable

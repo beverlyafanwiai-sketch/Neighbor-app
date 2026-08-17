@@ -306,6 +306,12 @@ export default function RecsBoard() {
                         <Ionicons name="pencil" size={16} className="text-charcoal/50" />
                       </Pressable>
                       <Pressable
+                        onPress={() => router.push(`/create-rec?duplicateId=${entry.id}`)}
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="copy-outline" size={16} className="text-charcoal/50" />
+                      </Pressable>
+                      <Pressable
                         onPress={() => setDeletingEntryId(entry.id)}
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >

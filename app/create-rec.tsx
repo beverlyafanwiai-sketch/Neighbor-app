@@ -34,26 +34,42 @@ function FieldLabel({ children }: { children: string }) {
 }
 
 export default function CreateRec() {
-  const { id: editId, draftId } = useLocalSearchParams<{ id?: string; draftId?: string }>();
+  const { id: editId, duplicateId, draftId } = useLocalSearchParams<{
+    id?: string;
+    duplicateId?: string;
+    draftId?: string;
+  }>();
   const existing = useRecsStore((s) => (editId ? s.entries.find((e) => e.id === editId) : undefined));
+  const duplicateSource = useRecsStore((s) =>
+    duplicateId ? s.entries.find((e) => e.id === duplicateId) : undefined
+  );
+  const isEditing = Boolean(existing);
+  const isDuplicating = Boolean(duplicateSource) && !isEditing;
   const existingDraft = useRecsStore((s) =>
     draftId ? s.drafts.find((d) => d.id === draftId) : undefined
   );
-  const isEditing = Boolean(existing);
   const createEntry = useRecsStore((s) => s.createEntry);
   const updateEntry = useRecsStore((s) => s.updateEntry);
   const saveDraft = useRecsStore((s) => s.saveDraft);
   const deleteDraft = useRecsStore((s) => s.deleteDraft);
 
-  const [kind, setKind] = useState<RecEntryKind>(existing?.kind ?? existingDraft?.kind ?? 'rec');
-  const [emoji, setEmoji] = useState(existing?.emoji ?? existingDraft?.emoji ?? '⭐');
-  const [category, setCategory] = useState(existing?.category ?? existingDraft?.category ?? '');
-  const [name, setName] = useState(existing?.name ?? existingDraft?.name ?? '');
-  const [note, setNote] = useState(existing?.note ?? existingDraft?.note ?? '');
-  const [imageUris, setImageUris] = useState<string[]>(
-    existing?.imageUris ?? existingDraft?.imageUris ?? []
+  const [kind, setKind] = useState<RecEntryKind>(
+    existing?.kind ?? duplicateSource?.kind ?? existingDraft?.kind ?? 'rec'
   );
-  const [urgent, setUrgent] = useState(existing?.urgent ?? existingDraft?.urgent ?? false);
+  const [emoji, setEmoji] = useState(
+    existing?.emoji ?? duplicateSource?.emoji ?? existingDraft?.emoji ?? '⭐'
+  );
+  const [category, setCategory] = useState(
+    existing?.category ?? duplicateSource?.category ?? existingDraft?.category ?? ''
+  );
+  const [name, setName] = useState(existing?.name ?? duplicateSource?.name ?? existingDraft?.name ?? '');
+  const [note, setNote] = useState(existing?.note ?? duplicateSource?.note ?? existingDraft?.note ?? '');
+  const [imageUris, setImageUris] = useState<string[]>(
+    existing?.imageUris ?? duplicateSource?.imageUris ?? existingDraft?.imageUris ?? []
+  );
+  const [urgent, setUrgent] = useState(
+    existing?.urgent ?? duplicateSource?.urgent ?? existingDraft?.urgent ?? false
+  );
   const [confirmingClose, setConfirmingClose] = useState(false);
 
   const canSave = category.trim() && note.trim() && (kind === 'ask' || name.trim());
@@ -143,7 +159,7 @@ export default function CreateRec() {
           <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">
-          {isEditing ? 'Edit post' : 'Post to the board'}
+          {isEditing ? 'Edit post' : isDuplicating ? 'Duplicate post' : 'Post to the board'}
         </Text>
         <Pressable
           onPress={save}
@@ -175,6 +191,14 @@ export default function CreateRec() {
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">
+          {isDuplicating && (
+            <View className="mb-2 mt-2 flex-row items-center gap-2 rounded-2xl bg-gold/15 p-3">
+              <Ionicons name="copy-outline" size={16} className="text-gold" />
+              <Text className="flex-1 text-xs text-charcoal/70">
+                Details copied from your earlier post — give it a fresh look if needed.
+              </Text>
+            </View>
+          )}
           <View className="mt-2 gap-2">
             {KINDS.map((k) => (
               <Pressable
