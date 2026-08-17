@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { getUser, ME } from '../data/mock';
 import { useEventsStore } from './useEventsStore';
+import { useMutedEventsStore } from './useMutedEventsStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
@@ -89,7 +90,10 @@ export const useCarpoolStore = create<CarpoolState>((set, get) => ({
         ),
       }));
 
-      if (useSettingsStore.getState().notificationPrefs.carpoolUpdates) {
+      if (
+        useSettingsStore.getState().notificationPrefs.carpoolUpdates &&
+        !useMutedEventsStore.getState().mutedEventIds[eventId]
+      ) {
         const event = useEventsStore.getState().getEvent(eventId);
         useNotificationsStore.getState().addNotification({
           type: 'carpool',

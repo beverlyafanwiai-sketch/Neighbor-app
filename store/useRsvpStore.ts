@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { EVENTS } from '../data/mock';
 import { useEventsStore } from './useEventsStore';
+import { useMutedEventsStore } from './useMutedEventsStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
@@ -94,7 +95,10 @@ export const useRsvpStore = create<RsvpState>((set, get) => ({
         waitlisted: { ...s.waitlisted, [eventId]: false },
       }));
 
-      if (useSettingsStore.getState().notificationPrefs.eventReminders) {
+      if (
+        useSettingsStore.getState().notificationPrefs.eventReminders &&
+        !useMutedEventsStore.getState().mutedEventIds[eventId]
+      ) {
         useNotificationsStore.getState().addNotification({
           type: 'event',
           text: `A spot opened up for ${event.title} — you're in!`,

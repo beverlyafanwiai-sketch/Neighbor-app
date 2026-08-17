@@ -21,6 +21,7 @@ export type NewSaleItemInput = {
   imageUris?: string[];
   condition?: SaleCondition;
   pickupLocation?: string;
+  priceFlexibility?: 'Firm' | 'Negotiable';
 };
 
 export type SaleDraft = {
@@ -32,6 +33,7 @@ export type SaleDraft = {
   imageUris?: string[];
   condition?: SaleCondition;
   pickupLocation?: string;
+  priceFlexibility?: 'Firm' | 'Negotiable';
   updatedAt: number;
 };
 
@@ -105,6 +107,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
       imageUris: input.imageUris,
       condition: input.condition,
       pickupLocation: input.pickupLocation,
+      priceFlexibility: input.priceFlexibility,
     };
     set((s) => ({ items: [item, ...s.items] }));
 

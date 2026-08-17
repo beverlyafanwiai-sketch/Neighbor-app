@@ -237,6 +237,21 @@ export default function ForSaleBoard() {
                           {item.condition && (
                             <Text className="text-xs text-charcoal/40">· {item.condition}</Text>
                           )}
+                          {item.priceFlexibility && (
+                            <View
+                              className={`rounded-full px-2 py-0.5 ${
+                                item.priceFlexibility === 'Firm' ? 'bg-charcoal/10' : 'bg-sage/15'
+                              }`}
+                            >
+                              <Text
+                                className={`text-[10px] font-semibold ${
+                                  item.priceFlexibility === 'Firm' ? 'text-charcoal/60' : 'text-sage'
+                                }`}
+                              >
+                                {item.priceFlexibility}
+                              </Text>
+                            </View>
+                          )}
                         </View>
                       </View>
                       <Pressable
@@ -441,6 +456,21 @@ export default function ForSaleBoard() {
                       )}
                       {item.condition && (
                         <Text className="text-xs text-charcoal/40">· {item.condition}</Text>
+                      )}
+                      {item.priceFlexibility && (
+                        <View
+                          className={`rounded-full px-2 py-0.5 ${
+                            item.priceFlexibility === 'Firm' ? 'bg-charcoal/10' : 'bg-sage/15'
+                          }`}
+                        >
+                          <Text
+                            className={`text-[10px] font-semibold ${
+                              item.priceFlexibility === 'Firm' ? 'text-charcoal/60' : 'text-sage'
+                            }`}
+                          >
+                            {item.priceFlexibility}
+                          </Text>
+                        </View>
                       )}
                     </View>
                   </View>

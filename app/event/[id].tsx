@@ -22,6 +22,7 @@ import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumSto
 import { useEventUpdatesStore } from '../../store/useEventUpdatesStore';
 import { canManageEvent, useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
+import { useMutedEventsStore } from '../../store/useMutedEventsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, getWaitlistPosition, useRsvpStore } from '../../store/useRsvpStore';
 import { useSavedEventsStore } from '../../store/useSavedEventsStore';
@@ -76,6 +77,8 @@ export default function EventDetail() {
   const cancelRideRequest = useCarpoolStore((s) => s.cancelRideRequest);
   const savedIds = useSavedEventsStore((s) => s.savedIds);
   const toggleSaveEvent = useSavedEventsStore((s) => s.toggleSave);
+  const mutedEventIds = useMutedEventsStore((s) => s.mutedEventIds);
+  const toggleMuteEvent = useMutedEventsStore((s) => s.toggle);
   const myRatings = useEventRatingsStore((s) => s.myRatings);
   const rateEvent = useEventRatingsStore((s) => s.rateEvent);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
@@ -611,6 +614,24 @@ export default function EventDetail() {
           >
             <Ionicons name="arrow-redo-outline" size={16} className="text-charcoal" />
             <Text className="text-sm font-semibold text-charcoal">Share</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => toggleMuteEvent(event.id)}
+            className="mt-3 flex-row items-center justify-center gap-1.5 rounded-full border border-charcoal/15 py-3 active:opacity-70"
+          >
+            <Ionicons
+              name={mutedEventIds[event.id] ? 'notifications-off' : 'notifications-off-outline'}
+              size={16}
+              className={mutedEventIds[event.id] ? 'text-terracotta' : 'text-charcoal'}
+            />
+            <Text
+              className={`text-sm font-semibold ${
+                mutedEventIds[event.id] ? 'text-terracotta' : 'text-charcoal'
+              }`}
+            >
+              {mutedEventIds[event.id] ? 'Muted — tap to unmute' : 'Mute this event'}
+            </Text>
           </Pressable>
 
           {!isPast && !isCancelled && (

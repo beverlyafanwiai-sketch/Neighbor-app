@@ -18,6 +18,7 @@ import { SALE_CONDITIONS, type SaleCondition } from '../data/mock';
 import { useSaleStore } from '../store/useSaleStore';
 
 const EMOJI_PRESETS = ['🚲', '🪑', '🎵', '🪴', '🧰', '📦', '🛋️', '📚', '🖥️', '🎉'];
+const PRICE_FLEXIBILITY_OPTIONS = ['Firm', 'Negotiable'] as const;
 const MAX_PHOTOS = 4;
 
 function FieldLabel({ children }: { children: string }) {
@@ -64,6 +65,9 @@ export default function CreateSaleItem() {
   const [pickupLocation, setPickupLocation] = useState(
     existing?.pickupLocation ?? duplicateSource?.pickupLocation ?? existingDraft?.pickupLocation ?? ''
   );
+  const [priceFlexibility, setPriceFlexibility] = useState<'Firm' | 'Negotiable' | undefined>(
+    existing?.priceFlexibility ?? duplicateSource?.priceFlexibility ?? existingDraft?.priceFlexibility
+  );
   const [imageUris, setImageUris] = useState<string[]>(
     existing?.imageUris ?? duplicateSource?.imageUris ?? existingDraft?.imageUris ?? []
   );
@@ -78,7 +82,8 @@ export default function CreateSaleItem() {
         note.trim() ||
         imageUris.length > 0 ||
         condition ||
-        pickupLocation.trim()
+        pickupLocation.trim() ||
+        priceFlexibility
     );
 
   const pickImages = async () => {
@@ -110,6 +115,7 @@ export default function CreateSaleItem() {
         imageUris,
         condition,
         pickupLocation: pickupLocation.trim() || undefined,
+        priceFlexibility,
       });
       router.replace('/for-sale');
       return;
@@ -122,6 +128,7 @@ export default function CreateSaleItem() {
       imageUris,
       condition,
       pickupLocation: pickupLocation.trim() || undefined,
+      priceFlexibility,
     });
     if (draftId) deleteDraft(draftId);
     router.replace('/for-sale');
@@ -150,6 +157,7 @@ export default function CreateSaleItem() {
       imageUris,
       condition,
       pickupLocation: pickupLocation.trim() || undefined,
+      priceFlexibility,
     });
     router.back();
   };
@@ -302,6 +310,29 @@ export default function CreateSaleItem() {
                       className={`text-sm font-medium ${condition === c ? 'text-paper' : 'text-charcoal/70'}`}
                     >
                       {c}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            <View>
+              <FieldLabel>Price (optional)</FieldLabel>
+              <View className="flex-row flex-wrap gap-2">
+                {PRICE_FLEXIBILITY_OPTIONS.map((f) => (
+                  <Pressable
+                    key={f}
+                    onPress={() => setPriceFlexibility(priceFlexibility === f ? undefined : f)}
+                    className={`rounded-full px-3 py-2 ${
+                      priceFlexibility === f ? 'bg-terracotta' : 'bg-cream'
+                    }`}
+                  >
+                    <Text
+                      className={`text-sm font-medium ${
+                        priceFlexibility === f ? 'text-paper' : 'text-charcoal/70'
+                      }`}
+                    >
+                      {f}
                     </Text>
                   </Pressable>
                 ))}

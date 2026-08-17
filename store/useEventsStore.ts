@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { EVENTS, ME, USERS, type EventCategory, type EventItem, type EventRecurrence } from '../data/mock';
 import { useGroupsStore } from './useGroupsStore';
+import { useMutedEventsStore } from './useMutedEventsStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
@@ -120,7 +121,10 @@ export const useEventsStore = create<EventsState>((set, get) => ({
         ),
       }));
 
-      if (useSettingsStore.getState().notificationPrefs.eventReminders) {
+      if (
+        useSettingsStore.getState().notificationPrefs.eventReminders &&
+        !useMutedEventsStore.getState().mutedEventIds[id]
+      ) {
         useNotificationsStore.getState().addNotification({
           type: 'event',
           actorId: attendee.id,

@@ -964,6 +964,7 @@ export type SaleItem = {
   imageUris?: string[];
   condition?: SaleCondition;
   pickupLocation?: string;
+  priceFlexibility?: 'Firm' | 'Negotiable';
   // Baseline ids of other neighbors already interested — mirrors
   // LendItem.helperIds as a "before ME" list.
   interestedByIds?: string[];
@@ -994,6 +995,7 @@ export const SALE_ITEMS: SaleItem[] = [
     title: 'Standing desk',
     price: '$60',
     note: 'Manual crank, sturdy top. Downsizing my home office, works great.',
+    priceFlexibility: 'Negotiable',
   },
   {
     id: 'record-player',
