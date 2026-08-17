@@ -7,6 +7,7 @@ import { useSettingsStore } from './useSettingsStore';
 const BORROW_APPROVAL_DELAY_MS = 2500;
 const INBOUND_REQUEST_DELAY_MS = 4000;
 const OFFER_THANKS_DELAY_MS = 2000;
+const DUE_REMINDER_DELAY_MS = 7000;
 const DUE_IN_DAYS = 5;
 
 export type BorrowStatus = 'available' | 'requested' | 'lent';
@@ -61,6 +62,23 @@ function dueLabelFromNow(days: number = DUE_IN_DAYS) {
 }
 
 let lendDraftSeq = 0;
+
+// Simulates a "due date approaching" reminder — compressed into a short
+// delay, same as the other borrow-flow notices in this store, rather than
+// waiting the real number of days.
+function scheduleDueReminder(get: () => LendState, itemId: string, item: LendItem) {
+  setTimeout(() => {
+    if (get().status[itemId] !== 'lent' || get().borrowerId[itemId] !== ME.id) return;
+    if (useSettingsStore.getState().notificationPrefs.lendUpdates) {
+      useNotificationsStore.getState().addNotification({
+        type: 'lend',
+        text: `Reminder: the ${item.title.toLowerCase()} is due back ${get().dueLabel[itemId]}`,
+        time: 'Just now',
+        target: { kind: 'lend', id: itemId },
+      });
+    }
+  }, DUE_REMINDER_DELAY_MS);
+}
 
 export const useLendStore = create<LendState>((set, get) => ({
   items: LEND_ITEMS,
@@ -141,6 +159,8 @@ export const useLendStore = create<LendState>((set, get) => ({
           target: { kind: 'lend', id: itemId },
         });
       }
+
+      scheduleDueReminder(get, itemId, item);
     }, BORROW_APPROVAL_DELAY_MS);
   },
 
