@@ -68,6 +68,8 @@ export default function Settings() {
   const quietHours = useSettingsStore((s) => s.quietHours);
   const toggleQuietHours = useSettingsStore((s) => s.toggleQuietHours);
   const setQuietHoursRange = useSettingsStore((s) => s.setQuietHoursRange);
+  const readReceipts = useSettingsStore((s) => s.readReceipts);
+  const toggleReadReceipts = useSettingsStore((s) => s.toggleReadReceipts);
   const signOut = useAuthStore((s) => s.signOut);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const toggleBlocked = useBlockedStore((s) => s.toggle);
@@ -194,6 +196,19 @@ export default function Settings() {
               })}
             </View>
           )}
+        </View>
+
+        <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+          Privacy
+        </Text>
+        <View className="flex-row items-center gap-3 rounded-2xl bg-cream p-4">
+          <View className="flex-1">
+            <Text className="text-sm font-medium text-charcoal">Read receipts</Text>
+            <Text className="mt-0.5 text-xs text-charcoal/50">
+              Let others see when you've read their group messages
+            </Text>
+          </View>
+          <Toggle on={readReceipts} onToggle={toggleReadReceipts} />
         </View>
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">

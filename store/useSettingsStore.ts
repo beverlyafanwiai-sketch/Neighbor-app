@@ -22,9 +22,11 @@ export type QuietHours = {
 type SettingsState = {
   notificationPrefs: NotificationPrefs;
   quietHours: QuietHours;
+  readReceipts: boolean;
   toggleNotificationPref: (key: keyof NotificationPrefs) => void;
   toggleQuietHours: () => void;
   setQuietHoursRange: (startHour: number, endHour: number) => void;
+  toggleReadReceipts: () => void;
 };
 
 export const useSettingsStore = create<SettingsState>((set) => ({
@@ -41,6 +43,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     carpoolUpdates: true,
   },
   quietHours: { enabled: false, startHour: 22, endHour: 7 },
+  readReceipts: true,
 
   toggleNotificationPref: (key) =>
     set((s) => ({
@@ -52,6 +55,8 @@ export const useSettingsStore = create<SettingsState>((set) => ({
 
   setQuietHoursRange: (startHour, endHour) =>
     set((s) => ({ quietHours: { ...s.quietHours, startHour, endHour } })),
+
+  toggleReadReceipts: () => set((s) => ({ readReceipts: !s.readReceipts })),
 }));
 
 // Handles the overnight wraparound case (e.g. 10 PM to 7 AM spans midnight).

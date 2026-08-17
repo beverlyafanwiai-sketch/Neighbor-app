@@ -183,8 +183,9 @@ export const useGroupChatStore = create<GroupChatState>((set, get) => ({
 
     setTimeout(() => {
       const current = get().messages[groupId] ?? [];
+      const readReceiptsOn = useSettingsStore.getState().readReceipts;
       const seenMessages = current.map((m) =>
-        m.senderId === ME.id ? { ...m, seenBy: otherMemberIds } : m
+        m.senderId === ME.id && readReceiptsOn ? { ...m, seenBy: otherMemberIds } : m
       );
       const reply: GroupMessage = {
         id: String(current.length + 1),
