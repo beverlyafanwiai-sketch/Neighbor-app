@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import EmptyState from '../components/EmptyState';
 import PhotoCarousel from '../components/PhotoCarousel';
 import PhotoViewer from '../components/PhotoViewer';
+import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
@@ -17,7 +18,11 @@ import {
   isFreeItem,
   useSaleStore,
 } from '../store/useSaleStore';
-import { itemCommentKey, useItemCommentsStore } from '../store/useItemCommentsStore';
+import {
+  itemCommentKey,
+  itemCommentReactionKey,
+  useItemCommentsStore,
+} from '../store/useItemCommentsStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { useSavedSaleStore } from '../store/useSavedSaleStore';
@@ -57,6 +62,9 @@ export default function ForSaleBoard() {
   const itemComments = useItemCommentsStore((s) => s.comments);
   const addItemComment = useItemCommentsStore((s) => s.addComment);
   const deleteItemComment = useItemCommentsStore((s) => s.deleteComment);
+  const myItemCommentReactions = useItemCommentsStore((s) => s.myReactions);
+  const tapItemCommentReaction = useItemCommentsStore((s) => s.tapReaction);
+  const setItemCommentReaction = useItemCommentsStore((s) => s.setReaction);
 
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -864,6 +872,15 @@ export default function ForSaleBoard() {
                           <Text className="text-xs text-charcoal/40">{c.time}</Text>
                         </View>
                         <Text className="mt-0.5 text-sm leading-5 text-charcoal">{c.text}</Text>
+                        <ReactionButton
+                          compact
+                          reactions={c.reactions}
+                          myReaction={
+                            myItemCommentReactions[itemCommentReactionKey(viewingCommentsKey, c.id)]
+                          }
+                          onTap={() => tapItemCommentReaction(viewingCommentsKey, c.id)}
+                          onSelect={(type) => setItemCommentReaction(viewingCommentsKey, c.id, type)}
+                        />
                       </View>
                       {isMine && (
                         <Pressable

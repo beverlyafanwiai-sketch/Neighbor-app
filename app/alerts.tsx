@@ -14,8 +14,9 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import ReactionButton from '../components/ReactionButton';
 import { ALERT_CATEGORIES, ME, getUser } from '../data/mock';
-import { useAlertCommentsStore } from '../store/useAlertCommentsStore';
+import { alertCommentKey, useAlertCommentsStore } from '../store/useAlertCommentsStore';
 import {
   formatExpiresIn,
   formatPostedAgo,
@@ -37,6 +38,9 @@ export default function NeighborhoodAlerts() {
   const comments = useAlertCommentsStore((s) => s.comments);
   const addComment = useAlertCommentsStore((s) => s.addComment);
   const deleteComment = useAlertCommentsStore((s) => s.deleteComment);
+  const myCommentReactions = useAlertCommentsStore((s) => s.myReactions);
+  const tapCommentReaction = useAlertCommentsStore((s) => s.tapReaction);
+  const setCommentReaction = useAlertCommentsStore((s) => s.setReaction);
   const profile = useProfileStore((s) => s.profile);
   const [now] = useState(() => Date.now());
   const [viewingCommentsId, setViewingCommentsId] = useState<string | null>(null);
@@ -301,6 +305,13 @@ export default function NeighborhoodAlerts() {
                             <Text className="text-xs text-charcoal/40">{c.time}</Text>
                           </View>
                           <Text className="mt-0.5 text-sm leading-5 text-charcoal">{c.text}</Text>
+                          <ReactionButton
+                            compact
+                            reactions={c.reactions}
+                            myReaction={myCommentReactions[alertCommentKey(viewingCommentsAlert.id, c.id)]}
+                            onTap={() => tapCommentReaction(viewingCommentsAlert.id, c.id)}
+                            onSelect={(type) => setCommentReaction(viewingCommentsAlert.id, c.id, type)}
+                          />
                         </View>
                         {isMine && (
                           <Pressable

@@ -1,18 +1,26 @@
 import { create } from 'zustand';
 
-import { ME } from '../data/mock';
+import { ME, type ReactionType } from '../data/mock';
 
 export type AlertComment = {
   id: string;
   authorId: string;
   text: string;
   time: string;
+  reactions?: Record<string, ReactionType>;
 };
+
+export function alertCommentKey(alertId: string, commentId: string) {
+  return `${alertId}:${commentId}`;
+}
 
 type AlertCommentsState = {
   comments: Record<string, AlertComment[]>;
+  myReactions: Record<string, ReactionType | undefined>;
   addComment: (alertId: string, text: string) => void;
   deleteComment: (alertId: string, commentId: string) => void;
+  tapReaction: (alertId: string, commentId: string) => void;
+  setReaction: (alertId: string, commentId: string, type: ReactionType) => void;
 };
 
 const SEED: Record<string, AlertComment[]> = {
@@ -28,6 +36,7 @@ const SEED: Record<string, AlertComment[]> = {
 
 export const useAlertCommentsStore = create<AlertCommentsState>((set) => ({
   comments: SEED,
+  myReactions: {},
 
   addComment: (alertId, text) => {
     const clean = text.trim();
@@ -50,4 +59,18 @@ export const useAlertCommentsStore = create<AlertCommentsState>((set) => ({
         [alertId]: (s.comments[alertId] ?? []).filter((c) => c.id !== commentId),
       },
     })),
+
+  tapReaction: (alertId, commentId) => {
+    const key = alertCommentKey(alertId, commentId);
+    set((s) => ({
+      myReactions: { ...s.myReactions, [key]: s.myReactions[key] ? undefined : 'love' },
+    }));
+  },
+
+  setReaction: (alertId, commentId, type) => {
+    const key = alertCommentKey(alertId, commentId);
+    set((s) => ({
+      myReactions: { ...s.myReactions, [key]: s.myReactions[key] === type ? undefined : type },
+    }));
+  },
 }));
