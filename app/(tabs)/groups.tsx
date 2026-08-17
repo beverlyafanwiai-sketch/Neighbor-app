@@ -7,8 +7,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { GROUP_SELFIE_SVG } from '../../assets/illustrations/group-selfie';
 import EmptyState from '../../components/EmptyState';
 import { getUser } from '../../data/mock';
+import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
+
+const GROUP_SORTS = ['Most active', 'A-Z'] as const;
+type GroupSort = (typeof GROUP_SORTS)[number];
 
 const TONE_STYLE: Record<string, { bg: string; text: string }> = {
   Casual: { bg: 'bg-sage/20', text: 'text-sage' },
@@ -30,7 +34,9 @@ export default function Groups() {
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
+  const groupLastActivity = useGroupChatStore((s) => s.lastActivity);
   const [query, setQuery] = useState('');
+  const [sortBy, setSortBy] = useState<GroupSort>('Most active');
 
   const q = query.trim().toLowerCase();
   const matches = (g: (typeof groups)[number]) =>
@@ -38,7 +44,12 @@ export default function Groups() {
     g.name.toLowerCase().includes(q) ||
     g.description.toLowerCase().includes(q);
 
-  const circles = groups.filter((g) => joinedMap[g.id] && matches(g));
+  const unsortedCircles = groups.filter((g) => joinedMap[g.id] && matches(g));
+  const circles = [...unsortedCircles].sort((a, b) =>
+    sortBy === 'A-Z'
+      ? a.name.localeCompare(b.name)
+      : (groupLastActivity[b.id] ?? 0) - (groupLastActivity[a.id] ?? 0)
+  );
   const discover = groups.filter((g) => !joinedMap[g.id] && matches(g));
 
   return (
@@ -72,9 +83,28 @@ export default function Groups() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
-        <Text className="mb-3 mt-2 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
-          Your circles
-        </Text>
+        <View className="mb-3 mt-2 flex-row items-center justify-between">
+          <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+            Your circles
+          </Text>
+          {circles.length > 1 && (
+            <View className="flex-row gap-2">
+              {GROUP_SORTS.map((s) => (
+                <Pressable
+                  key={s}
+                  onPress={() => setSortBy(s)}
+                  className={`rounded-full px-3 py-1 ${sortBy === s ? 'bg-ink' : 'bg-cream'}`}
+                >
+                  <Text
+                    className={`text-xs font-medium ${sortBy === s ? 'text-paper' : 'text-charcoal/60'}`}
+                  >
+                    {s}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </View>
         <View className="gap-3">
           {circles.map((c) => {
             const otherAvatars = c.memberIds.map((id) => getUser(id)).filter(Boolean);

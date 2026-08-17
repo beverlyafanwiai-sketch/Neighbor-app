@@ -526,6 +526,10 @@ export type EventItem = {
   // Baseline ids of other neighbors already on the waitlist ahead of ME —
   // same "baseline + mine" pattern as attendeeIds/checkedInIds.
   waitlistBaseline?: string[];
+  // Host-authored "what to bring" checklist — the list itself is shared,
+  // but each attendee's checked-off state is personal (kept separately in
+  // useEventChecklistStore).
+  checklist?: string[];
 };
 
 export const EVENTS: EventItem[] = [
@@ -546,6 +550,7 @@ export const EVENTS: EventItem[] = [
     spotsTotal: 8,
     attendeeIds: ['maya', 'theo', 'priya'],
     status: 'upcoming',
+    checklist: ['A dish to share', 'A folding chair if you have one', 'Something to drink'],
   },
   {
     id: 'sunset-ridge-hike',

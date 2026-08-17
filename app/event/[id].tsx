@@ -19,6 +19,7 @@ import {
   useEventRatingsStore,
 } from '../../store/useEventRatingsStore';
 import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumStore';
+import { checklistItemKey, useEventChecklistStore } from '../../store/useEventChecklistStore';
 import { useEventUpdatesStore } from '../../store/useEventUpdatesStore';
 import { canManageEvent, useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
@@ -36,6 +37,9 @@ export default function EventDetail() {
   const promoteCoHost = useEventsStore((s) => s.promoteCoHost);
   const demoteCoHost = useEventsStore((s) => s.demoteCoHost);
   const skipNextOccurrence = useEventsStore((s) => s.skipNextOccurrence);
+  const updateChecklist = useEventsStore((s) => s.updateChecklist);
+  const myChecked = useEventChecklistStore((s) => s.checked);
+  const toggleChecked = useEventChecklistStore((s) => s.toggle);
   const profile = useProfileStore((s) => s.profile);
   const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
   const waitlisted = useRsvpStore((s) => (event ? (s.waitlisted[event.id] ?? false) : false));
@@ -85,6 +89,8 @@ export default function EventDetail() {
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [confirmingCancelOfferId, setConfirmingCancelOfferId] = useState<string | null>(null);
   const [postingUpdate, setPostingUpdate] = useState(false);
+  const [editingChecklist, setEditingChecklist] = useState(false);
+  const [checklistDraft, setChecklistDraft] = useState<string[]>(['']);
   const [checkingIn, setCheckingIn] = useState(false);
   const [editingRsvpNote, setEditingRsvpNote] = useState(false);
   const [rsvpNoteDraft, setRsvpNoteDraft] = useState('');
@@ -383,6 +389,112 @@ export default function EventDetail() {
           )}
 
           <Text className="mt-4 text-[15px] leading-5 text-charcoal/80">{event.description}</Text>
+
+          {((event.checklist && event.checklist.length > 0) || canManage) && (
+            <View className="mt-4 gap-2">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                  What to bring
+                </Text>
+                {canManage && !editingChecklist && (
+                  <Pressable
+                    onPress={() => {
+                      setChecklistDraft(
+                        event.checklist && event.checklist.length > 0 ? event.checklist : ['']
+                      );
+                      setEditingChecklist(true);
+                    }}
+                  >
+                    <Ionicons name="pencil" size={14} className="text-charcoal/50" />
+                  </Pressable>
+                )}
+              </View>
+
+              {editingChecklist ? (
+                <View className="gap-2 rounded-2xl bg-sand p-3.5">
+                  {checklistDraft.map((item, i) => (
+                    <View key={i} className="flex-row items-center gap-2">
+                      <TextInput
+                        value={item}
+                        onChangeText={(text) =>
+                          setChecklistDraft((prev) =>
+                            prev.map((v, vi) => (vi === i ? text : v))
+                          )
+                        }
+                        placeholder={`Item ${i + 1}`}
+                        placeholderTextColor="#3D3D3D80"
+                        className="flex-1 rounded-xl bg-cream px-3 py-2 text-sm text-charcoal"
+                      />
+                      {checklistDraft.length > 1 && (
+                        <Pressable
+                          onPress={() =>
+                            setChecklistDraft((prev) => prev.filter((_, vi) => vi !== i))
+                          }
+                        >
+                          <Ionicons name="remove-circle-outline" size={18} className="text-terracotta" />
+                        </Pressable>
+                      )}
+                    </View>
+                  ))}
+                  <Pressable
+                    onPress={() => setChecklistDraft((prev) => [...prev, ''])}
+                    className="flex-row items-center gap-1.5 self-start py-1"
+                  >
+                    <Ionicons name="add-circle-outline" size={16} className="text-sage" />
+                    <Text className="text-xs font-medium text-sage">Add item</Text>
+                  </Pressable>
+                  <View className="flex-row justify-end gap-4">
+                    <Pressable onPress={() => setEditingChecklist(false)}>
+                      <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        updateChecklist(
+                          event.id,
+                          checklistDraft.map((v) => v.trim()).filter(Boolean)
+                        );
+                        setEditingChecklist(false);
+                      }}
+                    >
+                      <Text className="text-sm font-semibold text-terracotta">Save</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ) : (
+                <View className="gap-1.5">
+                  {(event.checklist ?? []).map((item, i) => {
+                    const key = checklistItemKey(event.id, i);
+                    const checked = myChecked[key] ?? false;
+                    return (
+                      <Pressable
+                        key={i}
+                        onPress={() => toggleChecked(key)}
+                        className="flex-row items-center gap-2.5 rounded-xl bg-sand px-3 py-2.5"
+                      >
+                        <Ionicons
+                          name={checked ? 'checkbox' : 'square-outline'}
+                          size={18}
+                          className={checked ? 'text-sage' : 'text-charcoal/40'}
+                        />
+                        <Text
+                          className={`flex-1 text-sm ${
+                            checked ? 'text-charcoal/40 line-through' : 'text-charcoal'
+                          }`}
+                        >
+                          {item}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                  {(!event.checklist || event.checklist.length === 0) && canManage && (
+                    <Text className="text-sm text-charcoal/50">
+                      No checklist yet — tap the pencil to add one.
+                    </Text>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
 
           {(eventUpdates.length > 0 || canManage) && (
             <View className="mt-4 gap-2">

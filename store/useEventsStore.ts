@@ -47,6 +47,7 @@ type EventsState = {
   getEvent: (id: string) => EventItem | undefined;
   createEvent: (input: NewEventInput) => string;
   updateEvent: (id: string, updates: Partial<NewEventInput>) => void;
+  updateChecklist: (id: string, items: string[]) => void;
   deleteEvent: (id: string) => void;
   cancelEvent: (id: string) => void;
   reinstateEvent: (id: string) => void;
@@ -147,6 +148,11 @@ export const useEventsStore = create<EventsState>((set, get) => ({
           ? { ...e, ...updates, ...(updates.month ? { month: updates.month.toUpperCase() } : {}) }
           : e
       ),
+    })),
+
+  updateChecklist: (id, items) =>
+    set((s) => ({
+      events: s.events.map((e) => (e.id === id ? { ...e, checklist: items } : e)),
     })),
 
   deleteEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
