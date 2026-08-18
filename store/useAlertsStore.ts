@@ -26,6 +26,8 @@ type AlertsState = {
   pinAlert: (id: string) => void;
   unpinAlert: () => void;
   toggleConfirm: (id: string) => void;
+  resolveAlert: (id: string) => void;
+  reopenAlert: (id: string) => void;
   saveDraft: (input: AlertDraftInput) => string;
   deleteDraft: (id: string) => void;
 };
@@ -72,6 +74,12 @@ export const useAlertsStore = create<AlertsState>((set) => ({
 
   toggleConfirm: (id) =>
     set((s) => ({ myConfirmed: { ...s.myConfirmed, [id]: !s.myConfirmed[id] } })),
+
+  resolveAlert: (id) =>
+    set((s) => ({ alerts: s.alerts.map((a) => (a.id === id ? { ...a, resolved: true } : a)) })),
+
+  reopenAlert: (id) =>
+    set((s) => ({ alerts: s.alerts.map((a) => (a.id === id ? { ...a, resolved: false } : a)) })),
 
   saveDraft: (input) => {
     const draftId = input.id ?? `alert-draft-${++alertDraftSeq}`;

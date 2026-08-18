@@ -1111,6 +1111,7 @@ export type NeighborhoodAlert = {
   postedAt: number;
   expiresAt: number;
   confirmedByIds?: string[];
+  resolved?: boolean;
 };
 
 const alertSeedNow = Date.now();

@@ -40,6 +40,8 @@ export default function NeighborhoodAlerts() {
   const unpinAlert = useAlertsStore((s) => s.unpinAlert);
   const myConfirmed = useAlertsStore((s) => s.myConfirmed);
   const toggleConfirm = useAlertsStore((s) => s.toggleConfirm);
+  const resolveAlert = useAlertsStore((s) => s.resolveAlert);
+  const reopenAlert = useAlertsStore((s) => s.reopenAlert);
   const comments = useAlertCommentsStore((s) => s.comments);
   const addComment = useAlertCommentsStore((s) => s.addComment);
   const updateComment = useAlertCommentsStore((s) => s.updateComment);
@@ -168,6 +170,11 @@ export default function NeighborhoodAlerts() {
                           <Text className="text-[10px] font-semibold text-gold">Pinned</Text>
                         </View>
                       )}
+                      {alert.resolved && (
+                        <View className="rounded-full bg-sage/20 px-2 py-0.5">
+                          <Text className="text-[10px] font-bold text-sage">RESOLVED</Text>
+                        </View>
+                      )}
                     </View>
                     <Text className="mt-1 text-[15px] leading-5 text-charcoal">{alert.text}</Text>
                     <Text className="mt-2 text-xs text-charcoal/50">
@@ -191,6 +198,18 @@ export default function NeighborhoodAlerts() {
                   </View>
                   {isMine && (
                     <View className="flex-row gap-1">
+                      <Pressable
+                        onPress={() =>
+                          alert.resolved ? reopenAlert(alert.id) : resolveAlert(alert.id)
+                        }
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons
+                          name={alert.resolved ? 'checkmark-circle' : 'checkmark-circle-outline'}
+                          size={16}
+                          className={alert.resolved ? 'text-sage' : 'text-charcoal/50'}
+                        />
+                      </Pressable>
                       <Pressable
                         onPress={() => (isPinned ? unpinAlert() : pinAlert(alert.id))}
                         className="h-8 w-8 items-center justify-center rounded-full"
@@ -237,13 +256,26 @@ export default function NeighborhoodAlerts() {
                       </Pressable>
                     )}
                     <Pressable
+                      disabled={alert.resolved}
                       onPress={() => toggleConfirm(alert.id)}
-                      className={`rounded-full px-3 py-1.5 ${confirmed ? 'bg-sage/20' : 'bg-sand'}`}
+                      className={`rounded-full px-3 py-1.5 ${
+                        alert.resolved ? 'bg-sand' : confirmed ? 'bg-sage/20' : 'bg-sand'
+                      }`}
                     >
                       <Text
-                        className={`text-xs font-semibold ${confirmed ? 'text-sage' : 'text-charcoal/70'}`}
+                        className={`text-xs font-semibold ${
+                          alert.resolved
+                            ? 'text-charcoal/40'
+                            : confirmed
+                              ? 'text-sage'
+                              : 'text-charcoal/70'
+                        }`}
                       >
-                        {confirmed ? 'Still happening ✓' : 'Still happening?'}
+                        {alert.resolved
+                          ? 'Resolved'
+                          : confirmed
+                            ? 'Still happening ✓'
+                            : 'Still happening?'}
                       </Text>
                     </Pressable>
                   </View>
