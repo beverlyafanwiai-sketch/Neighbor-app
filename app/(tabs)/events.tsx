@@ -15,6 +15,7 @@ import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useMutedStore } from '../../store/useMutedStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, getWaitlistPosition, useRsvpStore } from '../../store/useRsvpStore';
+import { useSavedEventSearchesStore } from '../../store/useSavedEventSearchesStore';
 import { useSavedEventsStore } from '../../store/useSavedEventsStore';
 
 const EVENT_TABS = ['Upcoming', 'Hosting', 'Past'] as const;
@@ -48,12 +49,36 @@ export default function Events() {
   const toggleSaveEvent = useSavedEventsStore((s) => s.toggleSave);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const savedSearches = useSavedEventSearchesStore((s) => s.searches);
+  const saveSearch = useSavedEventSearchesStore((s) => s.saveSearch);
+  const renameSearch = useSavedEventSearchesStore((s) => s.renameSearch);
+  const deleteSearch = useSavedEventSearchesStore((s) => s.deleteSearch);
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [onlyGoing, setOnlyGoing] = useState(false);
   const [onlyFriends, setOnlyFriends] = useState(false);
   const [sortBy, setSortBy] = useState<SortBy>('soonest');
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [searchNameDraft, setSearchNameDraft] = useState('');
+  const [renamingSearchId, setRenamingSearchId] = useState<string | null>(null);
+
+  const isSearchModified =
+    query.trim().length > 0 ||
+    categoryFilter !== 'All' ||
+    onlyOpen ||
+    onlyGoing ||
+    onlyFriends ||
+    sortBy !== 'soonest';
+
+  const applySearch = (search: (typeof savedSearches)[number]) => {
+    setQuery(search.query);
+    setCategoryFilter(search.categoryFilter as CategoryFilter);
+    setOnlyOpen(Boolean(search.onlyOpen));
+    setOnlyGoing(Boolean(search.onlyGoing));
+    setOnlyFriends(Boolean(search.onlyFriends));
+    setSortBy(search.sortBy as SortBy);
+  };
 
   const q = query.trim().toLowerCase();
   const matches = (e: (typeof events)[number]) =>
@@ -156,7 +181,103 @@ export default function Events() {
               <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}
+          {isSearchModified && (
+            <Pressable
+              onPress={() => {
+                setSearchNameDraft('');
+                setSavingSearch(true);
+              }}
+              className="ml-1 h-7 w-7 items-center justify-center"
+            >
+              <Ionicons name="bookmark-outline" size={17} className="text-charcoal/50" />
+            </Pressable>
+          )}
         </View>
+        {(savingSearch || renamingSearchId) && (
+          <View className="mt-2 flex-row items-center gap-2 rounded-full bg-cream px-4 py-2">
+            <TextInput
+              value={searchNameDraft}
+              onChangeText={setSearchNameDraft}
+              placeholder={renamingSearchId ? 'Rename search...' : 'Name this search...'}
+              placeholderTextColor="#3D3D3D80"
+              autoFocus
+              className="flex-1 text-sm text-charcoal"
+            />
+            <Pressable
+              onPress={() => {
+                setSavingSearch(false);
+                setRenamingSearchId(null);
+              }}
+            >
+              <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+            </Pressable>
+            <Pressable
+              disabled={!searchNameDraft.trim()}
+              onPress={() => {
+                if (renamingSearchId) {
+                  renameSearch(renamingSearchId, searchNameDraft);
+                } else {
+                  saveSearch({
+                    name: searchNameDraft.trim(),
+                    query,
+                    categoryFilter,
+                    onlyOpen,
+                    onlyGoing,
+                    onlyFriends,
+                    sortBy,
+                  });
+                }
+                setSavingSearch(false);
+                setRenamingSearchId(null);
+              }}
+            >
+              <Text
+                className={`text-xs font-semibold ${
+                  searchNameDraft.trim() ? 'text-terracotta' : 'text-charcoal/30'
+                }`}
+              >
+                Save
+              </Text>
+            </Pressable>
+          </View>
+        )}
+        {savedSearches.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="mt-2 gap-2"
+          >
+            {savedSearches.map((s) => (
+              <Pressable
+                key={s.id}
+                onPress={() => applySearch(s)}
+                className="flex-row items-center gap-1.5 rounded-full bg-cream px-3 py-1.5"
+              >
+                <Ionicons name="bookmark" size={11} className="text-terracotta" />
+                <Text className="text-xs font-medium text-charcoal">{s.name}</Text>
+                <Pressable
+                  onPress={(evt) => {
+                    evt.stopPropagation();
+                    setSearchNameDraft(s.name);
+                    setRenamingSearchId(s.id);
+                  }}
+                  className="ml-0.5"
+                >
+                  <Ionicons name="pencil" size={11} className="text-charcoal/40" />
+                </Pressable>
+                <Pressable
+                  onPress={(evt) => {
+                    evt.stopPropagation();
+                    deleteSearch(s.id);
+                  }}
+                  className="ml-0.5"
+                >
+                  <Ionicons name="close" size={12} className="text-charcoal/40" />
+                </Pressable>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
       </View>
 
       <View className="flex-row gap-2 px-5 pb-3">
