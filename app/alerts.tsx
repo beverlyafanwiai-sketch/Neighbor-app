@@ -97,6 +97,8 @@ export default function NeighborhoodAlerts() {
   const [viewingConfirmedId, setViewingConfirmedId] = useState<string | null>(null);
   const [managingCategories, setManagingCategories] = useState(false);
   const [extendingId, setExtendingId] = useState<string | null>(null);
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [resolveNoteDraft, setResolveNoteDraft] = useState('');
   const [snoozingId, setSnoozingId] = useState<string | null>(null);
   const [showSnoozed, setShowSnoozed] = useState(false);
   const [viewingPhotos, setViewingPhotos] = useState<{
@@ -326,6 +328,9 @@ export default function NeighborhoodAlerts() {
                       )}
                     </View>
                     <MentionText text={alert.text} className="mt-1 text-[15px] leading-5 text-charcoal" />
+                    {alert.resolved && alert.resolvedNote && (
+                      <Text className="mt-1 text-xs italic text-sage">{alert.resolvedNote}</Text>
+                    )}
                     {alert.location && (
                       <View className="mt-1.5 flex-row items-center gap-1">
                         <Ionicons name="location-outline" size={12} className="text-charcoal/40" />
@@ -376,9 +381,14 @@ export default function NeighborhoodAlerts() {
                         </Pressable>
                       )}
                       <Pressable
-                        onPress={() =>
-                          alert.resolved ? reopenAlert(alert.id) : resolveAlert(alert.id)
-                        }
+                        onPress={() => {
+                          if (alert.resolved) {
+                            reopenAlert(alert.id);
+                          } else {
+                            setResolvingId(resolvingId === alert.id ? null : alert.id);
+                            setResolveNoteDraft('');
+                          }
+                        }}
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons
@@ -442,6 +452,28 @@ export default function NeighborhoodAlerts() {
                         <Text className="text-xs font-medium text-charcoal/70">{opt.label}</Text>
                       </Pressable>
                     ))}
+                  </View>
+                )}
+                {resolvingId === alert.id && (
+                  <View className="mt-3 flex-row items-center gap-2">
+                    <TextInput
+                      value={resolveNoteDraft}
+                      onChangeText={setResolveNoteDraft}
+                      placeholder="Optional note, e.g. found the dog!"
+                      placeholderTextColor="#3D3D3D80"
+                      autoFocus
+                      className="flex-1 rounded-full bg-sand px-4 py-2 text-sm text-charcoal"
+                    />
+                    <Pressable
+                      onPress={() => {
+                        resolveAlert(alert.id, resolveNoteDraft);
+                        setResolvingId(null);
+                        setResolveNoteDraft('');
+                      }}
+                      className="rounded-full bg-sage px-4 py-2"
+                    >
+                      <Text className="text-xs font-semibold text-paper">Resolve</Text>
+                    </Pressable>
                   </View>
                 )}
                 {extendingId === alert.id && (

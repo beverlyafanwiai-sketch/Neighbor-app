@@ -41,7 +41,7 @@ type AlertsState = {
   pinAlert: (id: string) => void;
   unpinAlert: () => void;
   toggleConfirm: (id: string) => void;
-  resolveAlert: (id: string) => void;
+  resolveAlert: (id: string, note?: string) => void;
   reopenAlert: (id: string) => void;
   extendAlert: (id: string, additionalHours: number) => void;
   snoozeAlert: (id: string, delayMs: number) => void;
@@ -103,11 +103,19 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
   toggleConfirm: (id) =>
     set((s) => ({ myConfirmed: { ...s.myConfirmed, [id]: !s.myConfirmed[id] } })),
 
-  resolveAlert: (id) =>
-    set((s) => ({ alerts: s.alerts.map((a) => (a.id === id ? { ...a, resolved: true } : a)) })),
+  resolveAlert: (id, note) =>
+    set((s) => ({
+      alerts: s.alerts.map((a) =>
+        a.id === id ? { ...a, resolved: true, resolvedNote: note?.trim() || undefined } : a
+      ),
+    })),
 
   reopenAlert: (id) =>
-    set((s) => ({ alerts: s.alerts.map((a) => (a.id === id ? { ...a, resolved: false } : a)) })),
+    set((s) => ({
+      alerts: s.alerts.map((a) =>
+        a.id === id ? { ...a, resolved: false, resolvedNote: undefined } : a
+      ),
+    })),
 
   extendAlert: (id, additionalHours) =>
     set((s) => ({

@@ -1119,6 +1119,7 @@ export type NeighborhoodAlert = {
   expiresAt: number;
   confirmedByIds?: string[];
   resolved?: boolean;
+  resolvedNote?: string;
   imageUris?: string[];
   location?: string;
 };
