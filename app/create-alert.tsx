@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -9,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import MentionTextInput from '../components/MentionTextInput';
@@ -20,6 +22,8 @@ const DURATION_OPTIONS: { hours: number; label: string }[] = [
   { hours: 24, label: '24 hours' },
   { hours: 72, label: '3 days' },
 ];
+
+const MAX_PHOTOS = 4;
 
 function FieldLabel({ children }: { children: string }) {
   return (
@@ -54,17 +58,38 @@ export default function CreateAlert() {
   );
   const [text, setText] = useState(existing?.text ?? duplicateSource?.text ?? existingDraft?.text ?? '');
   const [durationHours, setDurationHours] = useState(existingDraft?.durationHours ?? 24);
+  const [imageUris, setImageUris] = useState<string[]>(
+    existing?.imageUris ?? duplicateSource?.imageUris ?? existingDraft?.imageUris ?? []
+  );
   const [confirmingClose, setConfirmingClose] = useState(false);
 
   const canPost = text.trim().length > 0;
-  const hasUnsavedContent = !isEditing && text.trim().length > 0;
+  const hasUnsavedContent = !isEditing && (text.trim().length > 0 || imageUris.length > 0);
+
+  const pickImages = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_PHOTOS - imageUris.length,
+    });
+    if (!result.canceled && result.assets.length > 0) {
+      setImageUris((prev) => [...prev, ...result.assets.map((a) => a.uri)].slice(0, MAX_PHOTOS));
+    }
+  };
+
+  const removeImage = (uri: string) => {
+    setImageUris((prev) => prev.filter((u) => u !== uri));
+  };
 
   const save = () => {
     if (!canPost) return;
     if (existing) {
-      updateAlert(existing.id, { category, text: text.trim(), durationHours });
+      updateAlert(existing.id, { category, text: text.trim(), durationHours, imageUris });
     } else {
-      postAlert({ category, text: text.trim(), durationHours });
+      postAlert({ category, text: text.trim(), durationHours, imageUris });
     }
     if (draftId) deleteDraft(draftId);
     router.replace('/alerts');
@@ -84,7 +109,7 @@ export default function CreateAlert() {
   };
 
   const saveDraftAndClose = () => {
-    saveDraft({ id: draftId, category, text: text.trim(), durationHours });
+    saveDraft({ id: draftId, category, text: text.trim(), durationHours, imageUris });
     router.back();
   };
 
@@ -200,6 +225,40 @@ export default function CreateAlert() {
                   </Pressable>
                 ))}
               </View>
+            </View>
+
+            <View>
+              <FieldLabel>Photos (optional)</FieldLabel>
+              {imageUris.length > 0 && (
+                <View className="mb-3 flex-row flex-wrap gap-2">
+                  {imageUris.map((uri) => (
+                    <View key={uri} className="w-[47%]" style={{ aspectRatio: 1 }}>
+                      <Image source={{ uri }} className="h-full w-full rounded-2xl bg-cream" />
+                      <Pressable
+                        onPress={() => removeImage(uri)}
+                        className="absolute right-1.5 top-1.5 h-7 w-7 items-center justify-center rounded-full bg-ink/60"
+                      >
+                        <Ionicons name="close" size={14} className="text-paper" />
+                      </Pressable>
+                    </View>
+                  ))}
+                </View>
+              )}
+              {imageUris.length < MAX_PHOTOS ? (
+                <Pressable
+                  onPress={pickImages}
+                  className="flex-row items-center justify-center gap-2 rounded-2xl bg-cream py-3"
+                >
+                  <Ionicons name="image-outline" size={18} className="text-sage" />
+                  <Text className="text-sm font-medium text-charcoal">
+                    {imageUris.length > 0 ? 'Add more photos' : 'Add photos'}
+                  </Text>
+                </Pressable>
+              ) : (
+                <View className="flex-row items-center justify-center gap-2 rounded-2xl bg-cream py-3">
+                  <Text className="text-sm text-charcoal/40">Max {MAX_PHOTOS} photos</Text>
+                </View>
+              )}
             </View>
           </View>
         </ScrollView>

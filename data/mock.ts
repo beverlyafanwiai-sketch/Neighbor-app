@@ -1112,6 +1112,7 @@ export type NeighborhoodAlert = {
   expiresAt: number;
   confirmedByIds?: string[];
   resolved?: boolean;
+  imageUris?: string[];
 };
 
 const alertSeedNow = Date.now();

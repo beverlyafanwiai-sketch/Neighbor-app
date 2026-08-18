@@ -15,6 +15,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
 import MentionText from '../components/MentionText';
+import PhotoCarousel from '../components/PhotoCarousel';
+import PhotoViewer from '../components/PhotoViewer';
 import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
@@ -81,6 +83,7 @@ export default function NeighborhoodAlerts() {
   const [extendingId, setExtendingId] = useState<string | null>(null);
   const [snoozingId, setSnoozingId] = useState<string | null>(null);
   const [showSnoozed, setShowSnoozed] = useState(false);
+  const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
   const mutedCategories = useMutedAlertCategoriesStore((s) => s.muted);
   const toggleMutedCategory = useMutedAlertCategoriesStore((s) => s.toggle);
   const [sortBy, setSortBy] = useState<AlertSort>('Expiring soon');
@@ -311,6 +314,12 @@ export default function NeighborhoodAlerts() {
                     </View>
                   )}
                 </View>
+                {alert.imageUris && alert.imageUris.length > 0 && (
+                  <PhotoCarousel
+                    uris={alert.imageUris}
+                    onPhotoPress={(i) => setViewingPhotos({ uris: alert.imageUris!, index: i })}
+                  />
+                )}
                 {snoozingId === alert.id && (
                   <View className="mt-3 flex-row items-center gap-2">
                     <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
@@ -427,6 +436,14 @@ export default function NeighborhoodAlerts() {
           onClose={() => setReportingId(null)}
           title="Alert options"
           actionLabel="Report this alert"
+        />
+      )}
+
+      {viewingPhotos && (
+        <PhotoViewer
+          uris={viewingPhotos.uris}
+          initialIndex={viewingPhotos.index}
+          onClose={() => setViewingPhotos(null)}
         />
       )}
 

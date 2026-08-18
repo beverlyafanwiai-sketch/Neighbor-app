@@ -7,6 +7,7 @@ export type AlertDraft = {
   category: AlertCategoryValue;
   text: string;
   durationHours: number;
+  imageUris?: string[];
   updatedAt: number;
 };
 
@@ -18,10 +19,15 @@ type AlertsState = {
   pinnedAlertId: string | null;
   myConfirmed: Record<string, boolean>;
   snoozedUntil: Record<string, number>;
-  postAlert: (input: { category: AlertCategoryValue; text: string; durationHours: number }) => void;
+  postAlert: (input: {
+    category: AlertCategoryValue;
+    text: string;
+    durationHours: number;
+    imageUris?: string[];
+  }) => void;
   updateAlert: (
     id: string,
-    input: { category: AlertCategoryValue; text: string; durationHours: number }
+    input: { category: AlertCategoryValue; text: string; durationHours: number; imageUris?: string[] }
   ) => void;
   deleteAlert: (id: string) => void;
   pinAlert: (id: string) => void;
@@ -45,7 +51,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
   pinnedAlertId: null,
   myConfirmed: {},
 
-  postAlert: ({ category, text, durationHours }) => {
+  postAlert: ({ category, text, durationHours, imageUris }) => {
     const now = Date.now();
     const alert: NeighborhoodAlert = {
       id: `alert-${now}`,
@@ -54,15 +60,22 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       text,
       postedAt: now,
       expiresAt: now + durationHours * 60 * 60 * 1000,
+      imageUris,
     };
     set((s) => ({ alerts: [alert, ...s.alerts] }));
   },
 
-  updateAlert: (id, { category, text, durationHours }) =>
+  updateAlert: (id, { category, text, durationHours, imageUris }) =>
     set((s) => ({
       alerts: s.alerts.map((a) =>
         a.id === id
-          ? { ...a, category, text, expiresAt: Date.now() + durationHours * 60 * 60 * 1000 }
+          ? {
+              ...a,
+              category,
+              text,
+              expiresAt: Date.now() + durationHours * 60 * 60 * 1000,
+              imageUris,
+            }
           : a
       ),
     })),
