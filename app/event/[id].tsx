@@ -1264,6 +1264,30 @@ export default function EventDetail() {
                         })}
                       </View>
                     )}
+                    {isMyOffer && offer.cancelNotes && Object.keys(offer.cancelNotes).length > 0 && (
+                      <View className="mt-3 gap-1.5 border-t border-charcoal/10 pt-3">
+                        <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+                          Recently left
+                        </Text>
+                        {Object.entries(offer.cancelNotes).map(([riderId, note]) => {
+                          const rider = resolveUser(riderId);
+                          if (!rider) return null;
+                          return (
+                            <View key={riderId} className="flex-row items-center gap-2">
+                              <Text className="text-xs font-medium text-charcoal/60">
+                                {rider.name}
+                              </Text>
+                              <Text
+                                className="flex-1 text-xs italic text-charcoal/40"
+                                numberOfLines={1}
+                              >
+                                {note}
+                              </Text>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    )}
                     {canCarpool && confirmingCancelOfferId === offer.id && (
                       <View className="mt-3 gap-2 border-t border-charcoal/10 pt-3">
                         <Text className="text-sm text-charcoal">
