@@ -53,6 +53,7 @@ export default function LendBoard() {
   const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
   const itemComments = useItemCommentsStore((s) => s.comments);
   const addItemComment = useItemCommentsStore((s) => s.addComment);
+  const updateItemComment = useItemCommentsStore((s) => s.updateComment);
   const deleteItemComment = useItemCommentsStore((s) => s.deleteComment);
   const myItemCommentReactions = useItemCommentsStore((s) => s.myReactions);
   const tapItemCommentReaction = useItemCommentsStore((s) => s.tapReaction);
@@ -67,6 +68,8 @@ export default function LendBoard() {
   const [viewingCommentsId, setViewingCommentsId] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
   const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editCommentDraft, setEditCommentDraft] = useState('');
   const [sortBy, setSortBy] = useState<LendSort>('Newest');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [query, setQuery] = useState('');
@@ -878,6 +881,33 @@ export default function LendBoard() {
                     );
                   }
 
+                  if (editingCommentId === c.id) {
+                    return (
+                      <View key={c.id} className="gap-2 rounded-2xl bg-sand p-3">
+                        <TextInput
+                          value={editCommentDraft}
+                          onChangeText={setEditCommentDraft}
+                          autoFocus
+                          multiline
+                          className="rounded-xl bg-cream px-3 py-2 text-sm text-charcoal"
+                        />
+                        <View className="flex-row justify-end gap-4">
+                          <Pressable onPress={() => setEditingCommentId(null)}>
+                            <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => {
+                              updateItemComment(viewingCommentsKey, c.id, editCommentDraft);
+                              setEditingCommentId(null);
+                            }}
+                          >
+                            <Text className="text-sm font-semibold text-terracotta">Save</Text>
+                          </Pressable>
+                        </View>
+                      </View>
+                    );
+                  }
+
                   return (
                     <View key={c.id} className="flex-row items-start gap-2.5 rounded-2xl bg-sand p-3">
                       <Image source={{ uri: author.avatar }} className="h-8 w-8 rounded-full" />
@@ -886,7 +916,10 @@ export default function LendBoard() {
                           <Text className="text-sm font-semibold text-charcoal">
                             {isMine ? 'You' : author.name}
                           </Text>
-                          <Text className="text-xs text-charcoal/40">{c.time}</Text>
+                          <Text className="text-xs text-charcoal/40">
+                            {c.time}
+                            {c.edited && ' · edited'}
+                          </Text>
                         </View>
                         <Text className="mt-0.5 text-sm leading-5 text-charcoal">{c.text}</Text>
                         <ReactionButton
@@ -900,12 +933,23 @@ export default function LendBoard() {
                         />
                       </View>
                       {isMine && (
-                        <Pressable
-                          onPress={() => setConfirmingDeleteCommentId(c.id)}
-                          className="h-7 w-7 items-center justify-center"
-                        >
-                          <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
-                        </Pressable>
+                        <>
+                          <Pressable
+                            onPress={() => {
+                              setEditingCommentId(c.id);
+                              setEditCommentDraft(c.text);
+                            }}
+                            className="h-7 w-7 items-center justify-center"
+                          >
+                            <Ionicons name="pencil" size={13} className="text-charcoal/40" />
+                          </Pressable>
+                          <Pressable
+                            onPress={() => setConfirmingDeleteCommentId(c.id)}
+                            className="h-7 w-7 items-center justify-center"
+                          >
+                            <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
+                          </Pressable>
+                        </>
                       )}
                     </View>
                   );
