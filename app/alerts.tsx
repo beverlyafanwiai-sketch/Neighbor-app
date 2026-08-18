@@ -235,6 +235,12 @@ export default function NeighborhoodAlerts() {
                       )}
                     </View>
                     <MentionText text={alert.text} className="mt-1 text-[15px] leading-5 text-charcoal" />
+                    {alert.location && (
+                      <View className="mt-1.5 flex-row items-center gap-1">
+                        <Ionicons name="location-outline" size={12} className="text-charcoal/40" />
+                        <Text className="text-xs text-charcoal/50">{alert.location}</Text>
+                      </View>
+                    )}
                     <Text className="mt-2 text-xs text-charcoal/50">
                       {author?.name ?? 'A neighbor'} · {formatPostedAgo(alert.postedAt, now)} ·{' '}
                       {formatExpiresIn(alert.expiresAt, now)}

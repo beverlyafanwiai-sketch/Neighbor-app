@@ -6,6 +6,7 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,6 +62,9 @@ export default function CreateAlert() {
   const [imageUris, setImageUris] = useState<string[]>(
     existing?.imageUris ?? duplicateSource?.imageUris ?? existingDraft?.imageUris ?? []
   );
+  const [location, setLocation] = useState(
+    existing?.location ?? duplicateSource?.location ?? existingDraft?.location ?? ''
+  );
   const [confirmingClose, setConfirmingClose] = useState(false);
 
   const canPost = text.trim().length > 0;
@@ -86,10 +90,17 @@ export default function CreateAlert() {
 
   const save = () => {
     if (!canPost) return;
+    const trimmedLocation = location.trim() || undefined;
     if (existing) {
-      updateAlert(existing.id, { category, text: text.trim(), durationHours, imageUris });
+      updateAlert(existing.id, {
+        category,
+        text: text.trim(),
+        durationHours,
+        imageUris,
+        location: trimmedLocation,
+      });
     } else {
-      postAlert({ category, text: text.trim(), durationHours, imageUris });
+      postAlert({ category, text: text.trim(), durationHours, imageUris, location: trimmedLocation });
     }
     if (draftId) deleteDraft(draftId);
     router.replace('/alerts');
@@ -109,7 +120,14 @@ export default function CreateAlert() {
   };
 
   const saveDraftAndClose = () => {
-    saveDraft({ id: draftId, category, text: text.trim(), durationHours, imageUris });
+    saveDraft({
+      id: draftId,
+      category,
+      text: text.trim(),
+      durationHours,
+      imageUris,
+      location: location.trim() || undefined,
+    });
     router.back();
   };
 
@@ -225,6 +243,17 @@ export default function CreateAlert() {
                   </Pressable>
                 ))}
               </View>
+            </View>
+
+            <View>
+              <FieldLabel>Location (optional)</FieldLabel>
+              <TextInput
+                value={location}
+                onChangeText={setLocation}
+                placeholder="e.g. 5th & Elm, Birch St near the park"
+                placeholderTextColor="#3D3D3D80"
+                className="rounded-2xl bg-cream px-4 py-3 text-base text-charcoal"
+              />
             </View>
 
             <View>

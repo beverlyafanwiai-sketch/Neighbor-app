@@ -8,6 +8,7 @@ export type AlertDraft = {
   text: string;
   durationHours: number;
   imageUris?: string[];
+  location?: string;
   updatedAt: number;
 };
 
@@ -24,10 +25,17 @@ type AlertsState = {
     text: string;
     durationHours: number;
     imageUris?: string[];
+    location?: string;
   }) => void;
   updateAlert: (
     id: string,
-    input: { category: AlertCategoryValue; text: string; durationHours: number; imageUris?: string[] }
+    input: {
+      category: AlertCategoryValue;
+      text: string;
+      durationHours: number;
+      imageUris?: string[];
+      location?: string;
+    }
   ) => void;
   deleteAlert: (id: string) => void;
   pinAlert: (id: string) => void;
@@ -51,7 +59,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
   pinnedAlertId: null,
   myConfirmed: {},
 
-  postAlert: ({ category, text, durationHours, imageUris }) => {
+  postAlert: ({ category, text, durationHours, imageUris, location }) => {
     const now = Date.now();
     const alert: NeighborhoodAlert = {
       id: `alert-${now}`,
@@ -61,11 +69,12 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       postedAt: now,
       expiresAt: now + durationHours * 60 * 60 * 1000,
       imageUris,
+      location,
     };
     set((s) => ({ alerts: [alert, ...s.alerts] }));
   },
 
-  updateAlert: (id, { category, text, durationHours, imageUris }) =>
+  updateAlert: (id, { category, text, durationHours, imageUris, location }) =>
     set((s) => ({
       alerts: s.alerts.map((a) =>
         a.id === id
@@ -75,6 +84,7 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
               text,
               expiresAt: Date.now() + durationHours * 60 * 60 * 1000,
               imageUris,
+              location,
             }
           : a
       ),

@@ -1113,6 +1113,7 @@ export type NeighborhoodAlert = {
   confirmedByIds?: string[];
   resolved?: boolean;
   imageUris?: string[];
+  location?: string;
 };
 
 const alertSeedNow = Date.now();
