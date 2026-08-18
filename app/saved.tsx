@@ -31,6 +31,7 @@ import { savedNoteKey, useSavedNotesStore } from '../store/useSavedNotesStore';
 import { useSavedPinsStore } from '../store/useSavedPinsStore';
 import { useSavedRecsStore } from '../store/useSavedRecsStore';
 import { useSavedSaleStore } from '../store/useSavedSaleStore';
+import { useSavedSearchesStore } from '../store/useSavedSearchesStore';
 
 const ALL_PEOPLE = [...USERS, ...DISCOVER_USERS];
 const MODES = ['Posts', 'Events', 'Recs', 'Lend', 'For Sale'] as const;
@@ -97,6 +98,13 @@ export default function Saved() {
   const [onlyFriends, setOnlyFriends] = useState(false);
   const [editingNoteKey, setEditingNoteKey] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState('');
+  const savedSearches = useSavedSearchesStore((s) => s.searches);
+  const saveSearch = useSavedSearchesStore((s) => s.saveSearch);
+  const renameSearch = useSavedSearchesStore((s) => s.renameSearch);
+  const deleteSearch = useSavedSearchesStore((s) => s.deleteSearch);
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [searchNameDraft, setSearchNameDraft] = useState('');
+  const [renamingSearchId, setRenamingSearchId] = useState<string | null>(null);
   const savedNotes = useSavedNotesStore((s) => s.notes);
   const setSavedNote = useSavedNotesStore((s) => s.setNote);
   const pinned = useSavedPinsStore((s) => s.pinned);
@@ -139,6 +147,32 @@ export default function Saved() {
     q.length === 0 || fields.some((f) => (f ?? '').toLowerCase().includes(q));
   const matchesFriends = (authorId?: string) =>
     !onlyFriends || !authorId || authorId === ME.id || friendStatuses[authorId] === 'friends';
+
+  const isSearchModified =
+    query.trim().length > 0 ||
+    sortBy !== 'Newest' ||
+    recKindFilter !== 'All' ||
+    recCategoryFilter !== 'All' ||
+    hideSold ||
+    hideUnavailable ||
+    hidePast ||
+    eventCategoryFilter !== 'All' ||
+    hideResolved ||
+    onlyFriends;
+
+  const applySearch = (search: (typeof savedSearches)[number]) => {
+    setMode(search.mode as Mode);
+    setQuery(search.query);
+    setSortBy(search.sortBy as SavedSort);
+    setRecKindFilter(search.recKindFilter as RecKindFilter);
+    setRecCategoryFilter(search.recCategoryFilter);
+    setHideSold(Boolean(search.hideSold));
+    setHideUnavailable(Boolean(search.hideUnavailable));
+    setHidePast(Boolean(search.hidePast));
+    setEventCategoryFilter(search.eventCategoryFilter);
+    setHideResolved(Boolean(search.hideResolved));
+    setOnlyFriends(Boolean(search.onlyFriends));
+  };
 
   const savedPosts = withPinnedFirst(
     posts.filter(
@@ -350,7 +384,108 @@ export default function Saved() {
               <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}
+          {isSearchModified && (
+            <Pressable
+              onPress={() => {
+                setSearchNameDraft('');
+                setSavingSearch(true);
+              }}
+              className="ml-1 h-7 w-7 items-center justify-center"
+            >
+              <Ionicons name="bookmark-outline" size={17} className="text-charcoal/50" />
+            </Pressable>
+          )}
         </View>
+        {(savingSearch || renamingSearchId) && (
+          <View className="mt-2 flex-row items-center gap-2 rounded-full bg-cream px-4 py-2">
+            <TextInput
+              value={searchNameDraft}
+              onChangeText={setSearchNameDraft}
+              placeholder={renamingSearchId ? 'Rename search...' : 'Name this search...'}
+              placeholderTextColor="#3D3D3D80"
+              autoFocus
+              className="flex-1 text-sm text-charcoal"
+            />
+            <Pressable
+              onPress={() => {
+                setSavingSearch(false);
+                setRenamingSearchId(null);
+              }}
+            >
+              <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+            </Pressable>
+            <Pressable
+              disabled={!searchNameDraft.trim()}
+              onPress={() => {
+                if (renamingSearchId) {
+                  renameSearch(renamingSearchId, searchNameDraft);
+                } else {
+                  saveSearch({
+                    name: searchNameDraft.trim(),
+                    mode,
+                    query,
+                    sortBy,
+                    recKindFilter,
+                    recCategoryFilter,
+                    hideSold,
+                    hideUnavailable,
+                    hidePast,
+                    eventCategoryFilter,
+                    hideResolved,
+                    onlyFriends,
+                  });
+                }
+                setSavingSearch(false);
+                setRenamingSearchId(null);
+              }}
+            >
+              <Text
+                className={`text-xs font-semibold ${
+                  searchNameDraft.trim() ? 'text-terracotta' : 'text-charcoal/30'
+                }`}
+              >
+                Save
+              </Text>
+            </Pressable>
+          </View>
+        )}
+        {savedSearches.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="mt-2 gap-2"
+          >
+            {savedSearches.map((s) => (
+              <Pressable
+                key={s.id}
+                onPress={() => applySearch(s)}
+                className="flex-row items-center gap-1.5 rounded-full bg-cream px-3 py-1.5"
+              >
+                <Ionicons name="bookmark" size={11} className="text-terracotta" />
+                <Text className="text-xs font-medium text-charcoal">{s.name}</Text>
+                <Pressable
+                  onPress={(evt) => {
+                    evt.stopPropagation();
+                    setSearchNameDraft(s.name);
+                    setRenamingSearchId(s.id);
+                  }}
+                  className="ml-0.5"
+                >
+                  <Ionicons name="pencil" size={11} className="text-charcoal/40" />
+                </Pressable>
+                <Pressable
+                  onPress={(evt) => {
+                    evt.stopPropagation();
+                    deleteSearch(s.id);
+                  }}
+                  className="ml-0.5"
+                >
+                  <Ionicons name="close" size={12} className="text-charcoal/40" />
+                </Pressable>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
         <Pressable
           onPress={() => setOnlyFriends((v) => !v)}
           className="mt-2 flex-row items-center gap-2"
