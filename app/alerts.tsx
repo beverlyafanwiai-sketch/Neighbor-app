@@ -24,6 +24,7 @@ import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { ALERT_CATEGORIES, ME, getUser, type AlertCategoryValue } from '../data/mock';
 import { alertCommentKey, useAlertCommentsStore } from '../store/useAlertCommentsStore';
+import { useAlertNotesStore } from '../store/useAlertNotesStore';
 import {
   formatExpiresIn,
   formatPostedAgo,
@@ -119,6 +120,10 @@ export default function NeighborhoodAlerts() {
   const [categoryFilter, setCategoryFilter] = useState<'All' | AlertCategoryValue>('All');
   const [onlyFriends, setOnlyFriends] = useState(false);
   const [query, setQuery] = useState('');
+  const alertNotes = useAlertNotesStore((s) => s.notes);
+  const setAlertNote = useAlertNotesStore((s) => s.setNote);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [alertNoteDraft, setAlertNoteDraft] = useState('');
 
   const q = query.trim().toLowerCase();
   const matchesQuery = (a: (typeof allAlerts)[number]) => {
@@ -188,6 +193,52 @@ export default function NeighborhoodAlerts() {
   const viewingConfirmedIds = viewingConfirmedAlert
     ? getEffectiveConfirmedIds(viewingConfirmedAlert, myConfirmed[viewingConfirmedAlert.id] ?? false)
     : [];
+
+  const renderAlertNote = (alertId: string) => {
+    if (editingNoteId === alertId) {
+      return (
+        <View className="mt-2">
+          <TextInput
+            value={alertNoteDraft}
+            onChangeText={setAlertNoteDraft}
+            placeholder="Only you can see this..."
+            placeholderTextColor="#3D3D3D80"
+            multiline
+            autoFocus
+            className="min-h-[52px] rounded-xl bg-sand px-3 py-2 text-xs text-charcoal"
+          />
+          <View className="mt-2 flex-row justify-end gap-4">
+            <Pressable onPress={() => setEditingNoteId(null)}>
+              <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setAlertNote(alertId, alertNoteDraft);
+                setEditingNoteId(null);
+              }}
+            >
+              <Text className="text-xs font-semibold text-terracotta">Save note</Text>
+            </Pressable>
+          </View>
+        </View>
+      );
+    }
+    const note = alertNotes[alertId];
+    return (
+      <Pressable
+        onPress={() => {
+          setAlertNoteDraft(note ?? '');
+          setEditingNoteId(alertId);
+        }}
+        className="mt-2 flex-row items-start gap-1"
+      >
+        <Ionicons name="lock-closed-outline" size={12} className="mt-0.5 text-charcoal/40" />
+        <Text className="flex-1 text-xs italic text-charcoal/50" numberOfLines={2}>
+          {note || 'Add a private note'}
+        </Text>
+      </Pressable>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -587,6 +638,7 @@ export default function NeighborhoodAlerts() {
                     </Pressable>
                   </View>
                 </View>
+                {renderAlertNote(alert.id)}
               </View>
             );
           })}
