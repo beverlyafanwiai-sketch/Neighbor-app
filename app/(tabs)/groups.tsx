@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { GROUP_SELFIE_SVG } from '../../assets/illustrations/group-selfie';
 import EmptyState from '../../components/EmptyState';
 import { getUser } from '../../data/mock';
+import { useDismissedDiscoverStore } from '../../store/useDismissedDiscoverStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -38,6 +39,8 @@ export default function Groups() {
   const groupLastActivity = useGroupChatStore((s) => s.lastActivity);
   const savedGroupIds = useSavedGroupsStore((s) => s.savedIds);
   const toggleSaveGroup = useSavedGroupsStore((s) => s.toggleSave);
+  const dismissedGroupIds = useDismissedDiscoverStore((s) => s.dismissedGroupIds);
+  const dismissGroup = useDismissedDiscoverStore((s) => s.dismissGroup);
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState<GroupSort>('Most active');
 
@@ -53,7 +56,9 @@ export default function Groups() {
       ? a.name.localeCompare(b.name)
       : (groupLastActivity[b.id] ?? 0) - (groupLastActivity[a.id] ?? 0)
   );
-  const discover = groups.filter((g) => !joinedMap[g.id] && matches(g));
+  const discover = groups.filter(
+    (g) => !joinedMap[g.id] && !dismissedGroupIds[g.id] && matches(g)
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -222,6 +227,15 @@ export default function Groups() {
                 className="rounded-full bg-ink px-4 py-2"
               >
                 <Text className="text-xs font-semibold text-paper">Join</Text>
+              </Pressable>
+              <Pressable
+                onPress={(evt) => {
+                  evt.stopPropagation();
+                  dismissGroup(g.id);
+                }}
+                className="h-8 w-8 items-center justify-center"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal/40" />
               </Pressable>
             </Pressable>
           ))}
