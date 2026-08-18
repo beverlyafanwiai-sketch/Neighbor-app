@@ -23,6 +23,7 @@ import {
   usePostsStore,
 } from '../store/usePostsStore';
 import { useProfileStore } from '../store/useProfileStore';
+import { useRecentSearchesStore } from '../store/useRecentSearchesStore';
 import { useRecsStore } from '../store/useRecsStore';
 import { useSaleStore } from '../store/useSaleStore';
 
@@ -45,6 +46,10 @@ function SectionLabel({ children }: { children: string }) {
 export default function Search() {
   const { q: initialQ } = useLocalSearchParams<{ q?: string }>();
   const [query, setQuery] = useState(initialQ ?? '');
+  const recentSearches = useRecentSearchesStore((s) => s.queries);
+  const addRecentSearch = useRecentSearchesStore((s) => s.addSearch);
+  const removeRecentSearch = useRecentSearchesStore((s) => s.removeSearch);
+  const clearRecentSearches = useRecentSearchesStore((s) => s.clear);
 
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
@@ -210,8 +215,11 @@ export default function Search() {
           <TextInput
             value={query}
             onChangeText={setQuery}
+            onSubmitEditing={() => addRecentSearch(query)}
+            onBlur={() => addRecentSearch(query)}
             placeholder="Search posts, people, groups, events, messages..."
             placeholderTextColor="#3D3D3D80"
+            returnKeyType="search"
             autoFocus
             className="ml-2 flex-1 text-charcoal"
           />
@@ -224,7 +232,43 @@ export default function Search() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
-        {q.length === 0 && (
+        {q.length === 0 && recentSearches.length > 0 && (
+          <View className="mt-2">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                Recent searches
+              </Text>
+              <Pressable onPress={clearRecentSearches}>
+                <Text className="text-xs font-medium text-charcoal/50">Clear</Text>
+              </Pressable>
+            </View>
+            <View className="mt-3 gap-2">
+              {recentSearches.map((rq) => (
+                <Pressable
+                  key={rq}
+                  onPress={() => setQuery(rq)}
+                  className="flex-row items-center gap-3 rounded-2xl bg-cream p-3.5 active:opacity-80"
+                >
+                  <Ionicons name="time-outline" size={16} className="text-charcoal/40" />
+                  <Text className="flex-1 text-sm text-charcoal" numberOfLines={1}>
+                    {rq}
+                  </Text>
+                  <Pressable
+                    onPress={(evt) => {
+                      evt.stopPropagation();
+                      removeRecentSearch(rq);
+                    }}
+                    className="h-6 w-6 items-center justify-center"
+                  >
+                    <Ionicons name="close" size={14} className="text-charcoal/40" />
+                  </Pressable>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {q.length === 0 && recentSearches.length === 0 && (
           <EmptyState
             icon="search-outline"
             iconColorClassName="text-charcoal/50"
