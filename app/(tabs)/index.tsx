@@ -111,8 +111,11 @@ function LeftRail({ profile }: { profile: User }) {
 }
 
 function RightRail() {
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const mutedIds = useMutedStore((s) => s.mutedIds);
   const events = useEventsStore((s) => s.events)
     .filter((e) => e.status === 'upcoming')
+    .filter((e) => !e.hostId || (!blockedIds[e.hostId] && !mutedIds[e.hostId]))
     .slice(0, 3);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const groups = useGroupsStore((s) => s.groups);

@@ -8,9 +8,11 @@ import EmptyState from '../../components/EmptyState';
 import EventCalendar from '../../components/EventCalendar';
 import { EVENT_CATEGORIES, ME, getUser, type EventCategory } from '../../data/mock';
 import { getCountdownLabel } from '../../lib/eventCountdown';
+import { useBlockedStore } from '../../store/useBlockedStore';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckInStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
+import { useMutedStore } from '../../store/useMutedStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, getWaitlistPosition, useRsvpStore } from '../../store/useRsvpStore';
 import { useSavedEventsStore } from '../../store/useSavedEventsStore';
@@ -44,6 +46,8 @@ export default function Events() {
   const myCheckIns = useCheckInStore((s) => s.myCheckIns);
   const savedEventIds = useSavedEventsStore((s) => s.savedIds);
   const toggleSaveEvent = useSavedEventsStore((s) => s.toggleSave);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const mutedIds = useMutedStore((s) => s.mutedIds);
   const [query, setQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
   const [onlyOpen, setOnlyOpen] = useState(false);
@@ -52,6 +56,7 @@ export default function Events() {
 
   const q = query.trim().toLowerCase();
   const matches = (e: (typeof events)[number]) =>
+    (!e.hostId || (!blockedIds[e.hostId] && !mutedIds[e.hostId])) &&
     (categoryFilter === 'All' || e.category === categoryFilter) &&
     (q.length === 0 ||
       e.title.toLowerCase().includes(q) ||
