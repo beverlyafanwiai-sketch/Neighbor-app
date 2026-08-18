@@ -55,6 +55,8 @@ export default function RecsBoard() {
   const bestAnswerIds = useRecCommentsStore((s) => s.bestAnswerId);
   const markBestAnswer = useRecCommentsStore((s) => s.markBestAnswer);
   const unmarkBestAnswer = useRecCommentsStore((s) => s.unmarkBestAnswer);
+  const pinnedCommentIds = useRecCommentsStore((s) => s.pinnedCommentId);
+  const togglePinComment = useRecCommentsStore((s) => s.togglePinComment);
   const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
   const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
   const [categoryFilter, setCategoryFilter] = useState('All');
@@ -91,12 +93,20 @@ export default function RecsBoard() {
   const viewingBestAnswerId = viewingCommentsEntry ? bestAnswerIds[viewingCommentsEntry.id] : undefined;
   const canMarkBestAnswer =
     viewingCommentsEntry?.kind === 'ask' && viewingCommentsEntry.authorId === ME.id;
+  const viewingPinnedCommentId = viewingCommentsEntry
+    ? pinnedCommentIds[viewingCommentsEntry.id]
+    : undefined;
+  const canPinComments = viewingCommentsEntry?.authorId === ME.id;
   const viewingComments = viewingCommentsEntry ? (comments[viewingCommentsEntry.id] ?? []) : [];
-  const sortedViewingComments = viewingBestAnswerId
-    ? [...viewingComments].sort((a, b) =>
-        a.id === viewingBestAnswerId ? -1 : b.id === viewingBestAnswerId ? 1 : 0
-      )
-    : viewingComments;
+  const sortedViewingComments = [...viewingComments].sort((a, b) => {
+    const aPinned = a.id === viewingPinnedCommentId;
+    const bPinned = b.id === viewingPinnedCommentId;
+    if (aPinned !== bPinned) return aPinned ? -1 : 1;
+    const aBest = a.id === viewingBestAnswerId;
+    const bBest = b.id === viewingBestAnswerId;
+    if (aBest !== bBest) return aBest ? -1 : 1;
+    return 0;
+  });
 
   const categories = ['All', ...Array.from(new Set(entries.map((e) => e.category))).sort()];
   const matchesCategory = (e: (typeof entries)[number]) =>
@@ -714,6 +724,7 @@ export default function RecsBoard() {
                     }
 
                     const isBest = c.id === viewingBestAnswerId;
+                    const isPinned = c.id === viewingPinnedCommentId;
                     return (
                       <View
                         key={c.id}
@@ -723,6 +734,14 @@ export default function RecsBoard() {
                       >
                         <Image source={{ uri: author.avatar }} className="h-8 w-8 rounded-full" />
                         <View className="flex-1">
+                          {isPinned && (
+                            <View className="mb-1 flex-row items-center gap-1 self-start rounded-full bg-gold/20 px-2 py-0.5">
+                              <Ionicons name="pin" size={10} className="text-gold" />
+                              <Text className="text-[10px] font-semibold uppercase tracking-wide text-gold">
+                                Pinned
+                              </Text>
+                            </View>
+                          )}
                           {isBest && (
                             <View className="mb-1 flex-row items-center gap-1 self-start rounded-full bg-sage/25 px-2 py-0.5">
                               <Ionicons name="checkmark-circle" size={11} className="text-sage" />
@@ -749,6 +768,18 @@ export default function RecsBoard() {
                             onSelect={(type) => setCommentReaction(viewingCommentsEntry.id, c.id, type)}
                           />
                         </View>
+                        {canPinComments && (
+                          <Pressable
+                            onPress={() => togglePinComment(viewingCommentsEntry.id, c.id)}
+                            className="h-7 w-7 items-center justify-center"
+                          >
+                            <Ionicons
+                              name={isPinned ? 'pin' : 'pin-outline'}
+                              size={14}
+                              className={isPinned ? 'text-gold' : 'text-charcoal/30'}
+                            />
+                          </Pressable>
+                        )}
                         {canMarkBestAnswer && (
                           <Pressable
                             onPress={() =>

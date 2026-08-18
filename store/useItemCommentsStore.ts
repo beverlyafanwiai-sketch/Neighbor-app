@@ -14,11 +14,13 @@ export type ItemComment = {
 type ItemCommentsState = {
   comments: Record<string, ItemComment[]>;
   myReactions: Record<string, ReactionType | undefined>;
+  pinnedCommentId: Record<string, string | undefined>;
   addComment: (key: string, text: string) => void;
   updateComment: (key: string, commentId: string, text: string) => void;
   deleteComment: (key: string, commentId: string) => void;
   tapReaction: (key: string, commentId: string) => void;
   setReaction: (key: string, commentId: string, type: ReactionType) => void;
+  togglePinComment: (key: string, commentId: string) => void;
 };
 
 let itemCommentSeq = 0;
@@ -26,6 +28,7 @@ let itemCommentSeq = 0;
 export const useItemCommentsStore = create<ItemCommentsState>((set) => ({
   comments: {},
   myReactions: {},
+  pinnedCommentId: {},
 
   addComment: (key, text) => {
     const clean = text.trim();
@@ -60,6 +63,10 @@ export const useItemCommentsStore = create<ItemCommentsState>((set) => ({
         ...s.comments,
         [key]: (s.comments[key] ?? []).filter((c) => c.id !== commentId),
       },
+      pinnedCommentId:
+        s.pinnedCommentId[key] === commentId
+          ? { ...s.pinnedCommentId, [key]: undefined }
+          : s.pinnedCommentId,
     })),
 
   tapReaction: (key, commentId) => {
@@ -81,6 +88,14 @@ export const useItemCommentsStore = create<ItemCommentsState>((set) => ({
       },
     }));
   },
+
+  togglePinComment: (key, commentId) =>
+    set((s) => ({
+      pinnedCommentId: {
+        ...s.pinnedCommentId,
+        [key]: s.pinnedCommentId[key] === commentId ? undefined : commentId,
+      },
+    })),
 }));
 
 export function itemCommentKey(type: string, itemId: string) {

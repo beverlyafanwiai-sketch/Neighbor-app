@@ -19,6 +19,7 @@ type RecCommentsState = {
   comments: Record<string, RecComment[]>;
   myReactions: Record<string, ReactionType | undefined>;
   bestAnswerId: Record<string, string | undefined>;
+  pinnedCommentId: Record<string, string | undefined>;
   addComment: (entryId: string, text: string) => void;
   updateComment: (entryId: string, commentId: string, text: string) => void;
   deleteComment: (entryId: string, commentId: string) => void;
@@ -26,6 +27,7 @@ type RecCommentsState = {
   setReaction: (entryId: string, commentId: string, type: ReactionType) => void;
   markBestAnswer: (entryId: string, commentId: string) => void;
   unmarkBestAnswer: (entryId: string) => void;
+  togglePinComment: (entryId: string, commentId: string) => void;
 };
 
 const SEED: Record<string, RecComment[]> = {
@@ -44,6 +46,7 @@ export const useRecCommentsStore = create<RecCommentsState>((set) => ({
   comments: SEED,
   myReactions: {},
   bestAnswerId: {},
+  pinnedCommentId: {},
 
   addComment: (entryId, text) => {
     const clean = text.trim();
@@ -82,6 +85,10 @@ export const useRecCommentsStore = create<RecCommentsState>((set) => ({
         s.bestAnswerId[entryId] === commentId
           ? { ...s.bestAnswerId, [entryId]: undefined }
           : s.bestAnswerId,
+      pinnedCommentId:
+        s.pinnedCommentId[entryId] === commentId
+          ? { ...s.pinnedCommentId, [entryId]: undefined }
+          : s.pinnedCommentId,
     })),
 
   tapReaction: (entryId, commentId) => {
@@ -103,4 +110,12 @@ export const useRecCommentsStore = create<RecCommentsState>((set) => ({
 
   unmarkBestAnswer: (entryId) =>
     set((s) => ({ bestAnswerId: { ...s.bestAnswerId, [entryId]: undefined } })),
+
+  togglePinComment: (entryId, commentId) =>
+    set((s) => ({
+      pinnedCommentId: {
+        ...s.pinnedCommentId,
+        [entryId]: s.pinnedCommentId[entryId] === commentId ? undefined : commentId,
+      },
+    })),
 }));

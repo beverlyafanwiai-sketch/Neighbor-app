@@ -71,6 +71,8 @@ export default function NeighborhoodAlerts() {
   const myCommentReactions = useAlertCommentsStore((s) => s.myReactions);
   const tapCommentReaction = useAlertCommentsStore((s) => s.tapReaction);
   const setCommentReaction = useAlertCommentsStore((s) => s.setReaction);
+  const pinnedCommentIds = useAlertCommentsStore((s) => s.pinnedCommentId);
+  const togglePinComment = useAlertCommentsStore((s) => s.togglePinComment);
   const profile = useProfileStore((s) => s.profile);
   const [now] = useState(() => Date.now());
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -120,6 +122,15 @@ export default function NeighborhoodAlerts() {
   const sharingAlert = activeAlerts.find((a) => a.id === sharingId);
   const viewingCommentsAlert = activeAlerts.find((a) => a.id === viewingCommentsId);
   const viewingComments = viewingCommentsAlert ? (comments[viewingCommentsAlert.id] ?? []) : [];
+  const viewingPinnedCommentId = viewingCommentsAlert
+    ? pinnedCommentIds[viewingCommentsAlert.id]
+    : undefined;
+  const canPinComments = viewingCommentsAlert?.authorId === ME.id;
+  const sortedViewingComments = viewingPinnedCommentId
+    ? [...viewingComments].sort((a, b) =>
+        a.id === viewingPinnedCommentId ? -1 : b.id === viewingPinnedCommentId ? 1 : 0
+      )
+    : viewingComments;
   const viewingConfirmedAlert = activeAlerts.find((a) => a.id === viewingConfirmedId);
   const viewingConfirmedIds = viewingConfirmedAlert
     ? getEffectiveConfirmedIds(viewingConfirmedAlert, myConfirmed[viewingConfirmedAlert.id] ?? false)
@@ -600,7 +611,7 @@ export default function NeighborhoodAlerts() {
                       No comments yet — share an update or ask a question.
                     </Text>
                   )}
-                  {viewingComments.map((c) => {
+                  {sortedViewingComments.map((c) => {
                     const isMine = c.authorId === ME.id;
                     const author = isMine ? profile : getUser(c.authorId);
                     if (!author) return null;
@@ -653,10 +664,19 @@ export default function NeighborhoodAlerts() {
                       );
                     }
 
+                    const isPinned = c.id === viewingPinnedCommentId;
                     return (
                       <View key={c.id} className="flex-row items-start gap-2.5 rounded-2xl bg-sand p-3">
                         <Image source={{ uri: author.avatar }} className="h-8 w-8 rounded-full" />
                         <View className="flex-1">
+                          {isPinned && (
+                            <View className="mb-1 flex-row items-center gap-1 self-start rounded-full bg-gold/20 px-2 py-0.5">
+                              <Ionicons name="pin" size={10} className="text-gold" />
+                              <Text className="text-[10px] font-semibold uppercase tracking-wide text-gold">
+                                Pinned
+                              </Text>
+                            </View>
+                          )}
                           <View className="flex-row items-center gap-1.5">
                             <Text className="text-sm font-semibold text-charcoal">
                               {isMine ? 'You' : author.name}
@@ -675,6 +695,18 @@ export default function NeighborhoodAlerts() {
                             onSelect={(type) => setCommentReaction(viewingCommentsAlert.id, c.id, type)}
                           />
                         </View>
+                        {canPinComments && (
+                          <Pressable
+                            onPress={() => togglePinComment(viewingCommentsAlert.id, c.id)}
+                            className="h-7 w-7 items-center justify-center"
+                          >
+                            <Ionicons
+                              name={isPinned ? 'pin' : 'pin-outline'}
+                              size={14}
+                              className={isPinned ? 'text-gold' : 'text-charcoal/30'}
+                            />
+                          </Pressable>
+                        )}
                         {isMine && (
                           <>
                             <Pressable

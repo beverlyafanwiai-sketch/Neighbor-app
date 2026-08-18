@@ -18,11 +18,13 @@ export function alertCommentKey(alertId: string, commentId: string) {
 type AlertCommentsState = {
   comments: Record<string, AlertComment[]>;
   myReactions: Record<string, ReactionType | undefined>;
+  pinnedCommentId: Record<string, string | undefined>;
   addComment: (alertId: string, text: string) => void;
   updateComment: (alertId: string, commentId: string, text: string) => void;
   deleteComment: (alertId: string, commentId: string) => void;
   tapReaction: (alertId: string, commentId: string) => void;
   setReaction: (alertId: string, commentId: string, type: ReactionType) => void;
+  togglePinComment: (alertId: string, commentId: string) => void;
 };
 
 const SEED: Record<string, AlertComment[]> = {
@@ -39,6 +41,7 @@ const SEED: Record<string, AlertComment[]> = {
 export const useAlertCommentsStore = create<AlertCommentsState>((set) => ({
   comments: SEED,
   myReactions: {},
+  pinnedCommentId: {},
 
   addComment: (alertId, text) => {
     const clean = text.trim();
@@ -73,6 +76,10 @@ export const useAlertCommentsStore = create<AlertCommentsState>((set) => ({
         ...s.comments,
         [alertId]: (s.comments[alertId] ?? []).filter((c) => c.id !== commentId),
       },
+      pinnedCommentId:
+        s.pinnedCommentId[alertId] === commentId
+          ? { ...s.pinnedCommentId, [alertId]: undefined }
+          : s.pinnedCommentId,
     })),
 
   tapReaction: (alertId, commentId) => {
@@ -88,4 +95,12 @@ export const useAlertCommentsStore = create<AlertCommentsState>((set) => ({
       myReactions: { ...s.myReactions, [key]: s.myReactions[key] === type ? undefined : type },
     }));
   },
+
+  togglePinComment: (alertId, commentId) =>
+    set((s) => ({
+      pinnedCommentId: {
+        ...s.pinnedCommentId,
+        [alertId]: s.pinnedCommentId[alertId] === commentId ? undefined : commentId,
+      },
+    })),
 }));
