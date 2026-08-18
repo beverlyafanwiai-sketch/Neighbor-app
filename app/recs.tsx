@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import ForwardSheet, { type ForwardTarget } from '../components/ForwardSheet';
 import MentionText from '../components/MentionText';
 import MentionTextInput from '../components/MentionTextInput';
 import PhotoCarousel from '../components/PhotoCarousel';
@@ -22,6 +23,8 @@ import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
+import { useConversationsStore } from '../store/useConversationsStore';
+import { useGroupChatStore } from '../store/useGroupChatStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { recCommentKey, useRecCommentsStore } from '../store/useRecCommentsStore';
 import { useRecNotesStore } from '../store/useRecNotesStore';
@@ -81,6 +84,7 @@ export default function RecsBoard() {
   const [commentDraft, setCommentDraft] = useState('');
   const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
+  const [forwardingCommentId, setForwardingCommentId] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentDraft, setEditCommentDraft] = useState('');
   const [viewingPhotos, setViewingPhotos] = useState<{
@@ -113,6 +117,18 @@ export default function RecsBoard() {
     if (aBest !== bBest) return aBest ? -1 : 1;
     return 0;
   });
+  const forwardingComment = viewingComments.find((c) => c.id === forwardingCommentId);
+
+  const forwardComment = (target: ForwardTarget) => {
+    if (!forwardingComment) return;
+    const author = forwardingComment.authorId === ME.id ? profile : getUser(forwardingComment.authorId);
+    const senderName = forwardingComment.authorId === ME.id ? 'You' : (author?.name ?? 'Someone');
+    if (target.kind === 'dm') {
+      useConversationsStore.getState().sendMessage(target.id, forwardingComment.text, undefined, senderName);
+    } else {
+      useGroupChatStore.getState().sendMessage(target.id, forwardingComment.text, undefined, senderName);
+    }
+  };
 
   const isSearchModified =
     query.trim().length > 0 || categoryFilter !== 'All' || kindFilter !== 'All' || sortBy !== 'Newest';
@@ -852,6 +868,12 @@ export default function RecsBoard() {
                             onSelect={(type) => setCommentReaction(viewingCommentsEntry.id, c.id, type)}
                           />
                         </View>
+                        <Pressable
+                          onPress={() => setForwardingCommentId(c.id)}
+                          className="h-7 w-7 items-center justify-center"
+                        >
+                          <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/30" />
+                        </Pressable>
                         {canPinComments && (
                           <Pressable
                             onPress={() => togglePinComment(viewingCommentsEntry.id, c.id)}
@@ -944,6 +966,14 @@ export default function RecsBoard() {
           onClose={() => setReportingCommentId(null)}
           title="Comment options"
           actionLabel="Report this comment"
+        />
+      )}
+
+      {forwardingComment && (
+        <ForwardSheet
+          preview={forwardingComment.text}
+          onForward={forwardComment}
+          onClose={() => setForwardingCommentId(null)}
         />
       )}
 
