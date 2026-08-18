@@ -7,8 +7,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import EmptyState from '../components/EmptyState';
 import MentionText from '../components/MentionText';
 import { DISCOVER_USERS, ME, USERS } from '../data/mock';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../store/useCheckInStore';
 import { useEventsStore } from '../store/useEventsStore';
+import { useMutedStore } from '../store/useMutedStore';
 import { getEffectiveHelperCount, useLendStore } from '../store/useLendStore';
 import {
   getEffectiveReactions,
@@ -98,6 +100,8 @@ export default function Saved() {
   const pinned = useSavedPinsStore((s) => s.pinned);
   const togglePin = useSavedPinsStore((s) => s.togglePin);
   const profile = useProfileStore((s) => s.profile);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const mutedIds = useMutedStore((s) => s.mutedIds);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
   const myReactions = usePostsStore((s) => s.myReactions);
@@ -132,11 +136,21 @@ export default function Saved() {
     q.length === 0 || fields.some((f) => (f ?? '').toLowerCase().includes(q));
 
   const savedPosts = withPinnedFirst(
-    posts.filter((p) => (savedIds[p.id] ?? false) && matches(p.body)),
+    posts.filter(
+      (p) =>
+        (savedIds[p.id] ?? false) &&
+        !blockedIds[p.authorId] &&
+        !mutedIds[p.authorId] &&
+        matches(p.body)
+    ),
     (p) => savedNoteKey('post', p.id),
     pinned
   );
-  const savedEventEntries = events.filter((e) => savedEventIds[e.id] ?? false);
+  const savedEventEntries = events.filter(
+    (e) =>
+      (savedEventIds[e.id] ?? false) &&
+      (!e.hostId || (!blockedIds[e.hostId] && !mutedIds[e.hostId]))
+  );
   const eventCategories = [
     'All',
     ...Array.from(new Set(savedEventEntries.map((e) => e.category))).sort(),
@@ -155,7 +169,9 @@ export default function Saved() {
     (e) => savedNoteKey('event', e.id),
     pinned
   );
-  const savedRecEntries = recEntries.filter((e) => savedRecIds[e.id] ?? false);
+  const savedRecEntries = recEntries.filter(
+    (e) => (savedRecIds[e.id] ?? false) && !blockedIds[e.authorId] && !mutedIds[e.authorId]
+  );
   const recCategories = [
     'All',
     ...Array.from(new Set(savedRecEntries.map((e) => e.category))).sort(),
@@ -182,6 +198,8 @@ export default function Saved() {
       lendItems.filter(
         (i) =>
           (savedLendIds[i.id] ?? false) &&
+          !blockedIds[i.ownerId] &&
+          !mutedIds[i.ownerId] &&
           matches(i.title, i.note) &&
           (!hideUnavailable || ((lendStatus[i.id] ?? 'available') === 'available' && !i.unavailableNote))
       ),
@@ -198,6 +216,8 @@ export default function Saved() {
       saleItems.filter(
         (i) =>
           (savedSaleIds[i.id] ?? false) &&
+          !blockedIds[i.ownerId] &&
+          !mutedIds[i.ownerId] &&
           matches(i.title, i.note) &&
           (!hideSold || !(sold[i.id] ?? false))
       ),
