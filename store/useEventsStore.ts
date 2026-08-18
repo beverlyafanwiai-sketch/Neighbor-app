@@ -44,6 +44,7 @@ type EventDraftInput = Omit<EventDraft, 'updatedAt' | 'id'> & { id?: string };
 type EventsState = {
   events: EventItem[];
   drafts: EventDraft[];
+  pinnedEventId: string | null;
   getEvent: (id: string) => EventItem | undefined;
   createEvent: (input: NewEventInput) => string;
   updateEvent: (id: string, updates: Partial<NewEventInput>) => void;
@@ -55,6 +56,8 @@ type EventsState = {
   demoteCoHost: (eventId: string, userId: string) => void;
   decrementSpotsTaken: (id: string) => void;
   skipNextOccurrence: (id: string) => void;
+  pinEvent: (id: string) => void;
+  unpinEvent: () => void;
   saveDraft: (input: EventDraftInput) => string;
   deleteDraft: (id: string) => void;
 };
@@ -74,6 +77,7 @@ function slugify(title: string) {
 export const useEventsStore = create<EventsState>((set, get) => ({
   events: EVENTS,
   drafts: [],
+  pinnedEventId: null,
 
   getEvent: (id) => get().events.find((e) => e.id === id),
 
@@ -155,7 +159,11 @@ export const useEventsStore = create<EventsState>((set, get) => ({
       events: s.events.map((e) => (e.id === id ? { ...e, checklist: items } : e)),
     })),
 
-  deleteEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
+  deleteEvent: (id) =>
+    set((s) => ({
+      events: s.events.filter((e) => e.id !== id),
+      pinnedEventId: s.pinnedEventId === id ? null : s.pinnedEventId,
+    })),
 
   cancelEvent: (id, reason) =>
     set((s) => ({
@@ -202,6 +210,10 @@ export const useEventsStore = create<EventsState>((set, get) => ({
         e.id === id ? { ...e, skipCount: (e.skipCount ?? 0) + 1 } : e
       ),
     })),
+
+  pinEvent: (id) => set({ pinnedEventId: id }),
+
+  unpinEvent: () => set({ pinnedEventId: null }),
 
   saveDraft: (input) => {
     const draftId = input.id ?? `event-draft-${++eventDraftSeq}`;

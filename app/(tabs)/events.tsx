@@ -46,6 +46,9 @@ export default function Events() {
   const respondFriend = useFriendsStore((s) => s.respond);
   const myCheckIns = useCheckInStore((s) => s.myCheckIns);
   const savedEventIds = useSavedEventsStore((s) => s.savedIds);
+  const pinnedEventId = useEventsStore((s) => s.pinnedEventId);
+  const pinEvent = useEventsStore((s) => s.pinEvent);
+  const unpinEvent = useEventsStore((s) => s.unpinEvent);
   const toggleSaveEvent = useSavedEventsStore((s) => s.toggleSave);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
@@ -106,15 +109,20 @@ export default function Events() {
   if (onlyFriends) {
     upcoming = upcoming.filter((e) => e.hostId && friendStatuses[e.hostId] === 'friends');
   }
-  upcoming = [...upcoming].sort((a, b) => {
-    if (sortBy === 'popular') return b.spotsTaken - a.spotsTaken;
-    if (sortBy === 'open') {
-      const openA = a.spotsTotal - getEffectiveSpots(a.id, goingMap[a.id] ?? false).spotsTaken;
-      const openB = b.spotsTotal - getEffectiveSpots(b.id, goingMap[b.id] ?? false).spotsTaken;
-      return openB - openA;
-    }
-    return Number(a.day) - Number(b.day);
-  });
+  upcoming = (() => {
+    const pinned = upcoming.find((e) => e.id === pinnedEventId);
+    const rest = upcoming.filter((e) => e.id !== pinnedEventId);
+    const sortedRest = [...rest].sort((a, b) => {
+      if (sortBy === 'popular') return b.spotsTaken - a.spotsTaken;
+      if (sortBy === 'open') {
+        const openA = a.spotsTotal - getEffectiveSpots(a.id, goingMap[a.id] ?? false).spotsTaken;
+        const openB = b.spotsTotal - getEffectiveSpots(b.id, goingMap[b.id] ?? false).spotsTaken;
+        return openB - openA;
+      }
+      return Number(a.day) - Number(b.day);
+    });
+    return pinned ? [pinned, ...sortedRest] : sortedRest;
+  })();
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -396,6 +404,7 @@ export default function Events() {
               const otherAvatars = e.attendeeIds.map((id) => getUser(id)).filter(Boolean);
               const avatars = going ? [profile, ...otherAvatars] : otherAvatars;
               const saved = savedEventIds[e.id] ?? false;
+              const isPinned = e.id === pinnedEventId;
               const countdownLabel = getCountdownLabel(e);
               return (
                 <Pressable
@@ -409,12 +418,26 @@ export default function Events() {
                   </View>
                   <View className="flex-1">
                     <View className="flex-row items-center gap-1.5">
+                      {isPinned && <Ionicons name="pin" size={12} className="text-gold" />}
                       <Text className="flex-1 font-semibold text-charcoal" numberOfLines={1}>
                         {e.title}
                       </Text>
                       {e.recurrence && (
                         <Ionicons name="repeat" size={12} className="text-terracotta" />
                       )}
+                      <Pressable
+                        onPress={(evt) => {
+                          evt.stopPropagation();
+                          isPinned ? unpinEvent() : pinEvent(e.id);
+                        }}
+                        className="h-6 w-6 items-center justify-center"
+                      >
+                        <Ionicons
+                          name={isPinned ? 'pin' : 'pin-outline'}
+                          size={14}
+                          className={isPinned ? 'text-gold' : 'text-charcoal/40'}
+                        />
+                      </Pressable>
                       <Pressable
                         onPress={(evt) => {
                           evt.stopPropagation();
