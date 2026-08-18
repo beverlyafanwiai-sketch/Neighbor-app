@@ -22,6 +22,7 @@ import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { recCommentKey, useRecCommentsStore } from '../store/useRecCommentsStore';
+import { useRecNotesStore } from '../store/useRecNotesStore';
 import { getEffectiveAgreeCount, getEffectiveAgreedIds, useRecsStore } from '../store/useRecsStore';
 import { useSavedRecsStore } from '../store/useSavedRecsStore';
 import { useProfileStore } from '../store/useProfileStore';
@@ -61,6 +62,10 @@ export default function RecsBoard() {
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [viewingAgreedId, setViewingAgreedId] = useState<string | null>(null);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
+  const entryNotes = useRecNotesStore((s) => s.notes);
+  const setEntryNote = useRecNotesStore((s) => s.setNote);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [entryNoteDraft, setEntryNoteDraft] = useState('');
   const [reportingId, setReportingId] = useState<string | null>(null);
   const [viewingCommentsId, setViewingCommentsId] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
@@ -117,6 +122,52 @@ export default function RecsBoard() {
             getEffectiveAgreeCount(a.id, myAgreed[a.id] ?? false)
         )
       : filteredBoardEntries;
+
+  const renderEntryNote = (entryId: string) => {
+    if (editingNoteId === entryId) {
+      return (
+        <View className="mt-2">
+          <TextInput
+            value={entryNoteDraft}
+            onChangeText={setEntryNoteDraft}
+            placeholder="Only you can see this..."
+            placeholderTextColor="#3D3D3D80"
+            multiline
+            autoFocus
+            className="min-h-[52px] rounded-xl bg-sand px-3 py-2 text-xs text-charcoal"
+          />
+          <View className="mt-2 flex-row justify-end gap-4">
+            <Pressable onPress={() => setEditingNoteId(null)}>
+              <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setEntryNote(entryId, entryNoteDraft);
+                setEditingNoteId(null);
+              }}
+            >
+              <Text className="text-xs font-semibold text-terracotta">Save note</Text>
+            </Pressable>
+          </View>
+        </View>
+      );
+    }
+    const note = entryNotes[entryId];
+    return (
+      <Pressable
+        onPress={() => {
+          setEntryNoteDraft(note ?? '');
+          setEditingNoteId(entryId);
+        }}
+        className="mt-2 flex-row items-start gap-1"
+      >
+        <Ionicons name="lock-closed-outline" size={12} className="mt-0.5 text-charcoal/40" />
+        <Text className="flex-1 text-xs italic text-charcoal/50" numberOfLines={2}>
+          {note || 'Add a private note'}
+        </Text>
+      </Pressable>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -346,6 +397,7 @@ export default function RecsBoard() {
                             : `${count} neighbor${count === 1 ? '' : 's'} have a suggestion`}
                       </Text>
                     </Pressable>
+                    {renderEntryNote(entry.id)}
                   </View>
                 );
               })}
@@ -480,6 +532,7 @@ export default function RecsBoard() {
                     </Text>
                   </Pressable>
                 </View>
+                {renderEntryNote(entry.id)}
               </View>
             );
           })}
