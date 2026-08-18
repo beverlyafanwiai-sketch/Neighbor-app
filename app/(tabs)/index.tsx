@@ -23,6 +23,7 @@ import { getActiveAlerts, useAlertsStore } from '../../store/useAlertsStore';
 import { useMutedAlertCategoriesStore } from '../../store/useMutedAlertCategoriesStore';
 import { isAvailable, useAvailabilityStore } from '../../store/useAvailabilityStore';
 import { useBlockedStore } from '../../store/useBlockedStore';
+import { useHiddenPostsStore } from '../../store/useHiddenPostsStore';
 import { useMutedStore } from '../../store/useMutedStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
@@ -231,6 +232,9 @@ export default function HomeFeed() {
   const [sharingPost, setSharingPost] = useState<Post | null>(null);
   const [reactorsPost, setReactorsPost] = useState<Post | null>(null);
   const [reportingPost, setReportingPost] = useState<Post | null>(null);
+  const hiddenPostIds = useHiddenPostsStore((s) => s.hiddenIds);
+  const hidePost = useHiddenPostsStore((s) => s.hide);
+  const [postMenuId, setPostMenuId] = useState<string | null>(null);
   const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const friendStatuses = useFriendsStore((s) => s.statuses);
@@ -249,7 +253,7 @@ export default function HomeFeed() {
   const spotlightStatus = spotlight ? (friendStatuses[spotlight.id] ?? 'none') : 'none';
 
   const postsWithAuthor = posts
-    .filter((post) => !blockedIds[post.authorId] && !mutedIds[post.authorId])
+    .filter((post) => !blockedIds[post.authorId] && !mutedIds[post.authorId] && !hiddenPostIds[post.id])
     .map((post) => ({
       post,
       author: post.authorId === ME.id ? profile : USERS.find((u) => u.id === post.authorId),
@@ -577,12 +581,47 @@ export default function HomeFeed() {
                     </View>
                   </Pressable>
                   {author.id !== ME.id && (
-                    <Pressable
-                      onPress={() => setReportingPost(post)}
-                      className="h-8 w-8 items-center justify-center rounded-full"
-                    >
-                      <Ionicons name="ellipsis-horizontal" size={18} className="text-charcoal/50" />
-                    </Pressable>
+                    <View style={{ position: 'relative' }}>
+                      <Pressable
+                        onPress={() => setPostMenuId(postMenuId === post.id ? null : post.id)}
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="ellipsis-horizontal" size={18} className="text-charcoal/50" />
+                      </Pressable>
+                      {postMenuId === post.id && (
+                        <View
+                          className="absolute right-0 top-9 z-10 w-56 gap-1 rounded-2xl bg-cream p-2"
+                          style={{
+                            shadowColor: '#3D3D3D',
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.2,
+                            shadowRadius: 10,
+                            elevation: 8,
+                          }}
+                        >
+                          <Pressable
+                            onPress={() => {
+                              hidePost(post.id);
+                              setPostMenuId(null);
+                            }}
+                            className="flex-row items-center gap-2.5 rounded-xl px-3 py-2.5 active:bg-sand"
+                          >
+                            <Ionicons name="eye-off-outline" size={16} className="text-charcoal" />
+                            <Text className="text-sm font-medium text-charcoal">Hide this post</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => {
+                              setPostMenuId(null);
+                              setReportingPost(post);
+                            }}
+                            className="flex-row items-center gap-2.5 rounded-xl px-3 py-2.5 active:bg-sand"
+                          >
+                            <Ionicons name="flag-outline" size={16} className="text-terracotta" />
+                            <Text className="text-sm font-medium text-terracotta">Report post</Text>
+                          </Pressable>
+                        </View>
+                      )}
+                    </View>
                   )}
                 </View>
 
