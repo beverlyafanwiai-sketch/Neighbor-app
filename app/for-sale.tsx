@@ -5,6 +5,8 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import MentionText from '../components/MentionText';
+import MentionTextInput from '../components/MentionTextInput';
 import PhotoCarousel from '../components/PhotoCarousel';
 import PhotoViewer from '../components/PhotoViewer';
 import ReactionButton from '../components/ReactionButton';
@@ -954,7 +956,7 @@ export default function ForSaleBoard() {
                   if (editingCommentId === c.id) {
                     return (
                       <View key={c.id} className="gap-2 rounded-2xl bg-sand p-3">
-                        <TextInput
+                        <MentionTextInput
                           value={editCommentDraft}
                           onChangeText={setEditCommentDraft}
                           autoFocus
@@ -991,7 +993,7 @@ export default function ForSaleBoard() {
                             {c.edited && ' · edited'}
                           </Text>
                         </View>
-                        <Text className="mt-0.5 text-sm leading-5 text-charcoal">{c.text}</Text>
+                        <MentionText text={c.text} className="mt-0.5 text-sm leading-5 text-charcoal" />
                         <ReactionButton
                           compact
                           reactions={c.reactions}
@@ -1027,14 +1029,16 @@ export default function ForSaleBoard() {
               </View>
             </ScrollView>
             <View className="flex-row items-center gap-2 border-t border-charcoal/10 pt-3">
-              <TextInput
-                value={commentDraft}
-                onChangeText={setCommentDraft}
-                placeholder="Add a comment..."
-                placeholderTextColor="#3D3D3D80"
-                multiline
-                className="max-h-24 flex-1 rounded-2xl bg-sand px-3 py-2.5 text-sm text-charcoal"
-              />
+              <View className="flex-1">
+                <MentionTextInput
+                  value={commentDraft}
+                  onChangeText={setCommentDraft}
+                  placeholder="Add a comment..."
+                  multiline
+                  dropdownPosition="above"
+                  className="max-h-24 rounded-2xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+                />
+              </View>
               <Pressable
                 disabled={!commentDraft.trim()}
                 onPress={() => {
