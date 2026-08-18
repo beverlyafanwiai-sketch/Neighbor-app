@@ -17,6 +17,7 @@ type AlertsState = {
   drafts: AlertDraft[];
   pinnedAlertId: string | null;
   myConfirmed: Record<string, boolean>;
+  snoozedUntil: Record<string, number>;
   postAlert: (input: { category: AlertCategoryValue; text: string; durationHours: number }) => void;
   updateAlert: (
     id: string,
@@ -29,15 +30,18 @@ type AlertsState = {
   resolveAlert: (id: string) => void;
   reopenAlert: (id: string) => void;
   extendAlert: (id: string, additionalHours: number) => void;
+  snoozeAlert: (id: string, delayMs: number) => void;
+  unsnoozeAlert: (id: string) => void;
   saveDraft: (input: AlertDraftInput) => string;
   deleteDraft: (id: string) => void;
 };
 
 let alertDraftSeq = 0;
 
-export const useAlertsStore = create<AlertsState>((set) => ({
+export const useAlertsStore = create<AlertsState>((set, get) => ({
   alerts: NEIGHBORHOOD_ALERTS,
   drafts: [],
+  snoozedUntil: {},
   pinnedAlertId: null,
   myConfirmed: {},
 
@@ -88,6 +92,25 @@ export const useAlertsStore = create<AlertsState>((set) => ({
         a.id === id ? { ...a, expiresAt: a.expiresAt + additionalHours * 60 * 60 * 1000 } : a
       ),
     })),
+
+  snoozeAlert: (id, delayMs) => {
+    const until = Date.now() + delayMs;
+    set((s) => ({ snoozedUntil: { ...s.snoozedUntil, [id]: until } }));
+
+    setTimeout(() => {
+      if (get().snoozedUntil[id] !== until) return;
+      set((s) => {
+        const { [id]: _removed, ...snoozedUntil } = s.snoozedUntil;
+        return { snoozedUntil };
+      });
+    }, delayMs);
+  },
+
+  unsnoozeAlert: (id) =>
+    set((s) => {
+      const { [id]: _removed, ...snoozedUntil } = s.snoozedUntil;
+      return { snoozedUntil };
+    }),
 
   saveDraft: (input) => {
     const draftId = input.id ?? `alert-draft-${++alertDraftSeq}`;

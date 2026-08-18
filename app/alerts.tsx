@@ -39,6 +39,12 @@ const EXTEND_OPTIONS: { hours: number; label: string }[] = [
 ];
 type AlertSort = (typeof ALERT_SORTS)[number];
 
+const SNOOZE_OPTIONS = [
+  { label: '1 hour', ms: 60 * 60 * 1000 },
+  { label: '3 hours', ms: 3 * 60 * 60 * 1000 },
+  { label: 'Tomorrow', ms: 24 * 60 * 60 * 1000 },
+] as const;
+
 export default function NeighborhoodAlerts() {
   const allAlerts = useAlertsStore((s) => s.alerts);
   const deleteAlert = useAlertsStore((s) => s.deleteAlert);
@@ -50,6 +56,9 @@ export default function NeighborhoodAlerts() {
   const resolveAlert = useAlertsStore((s) => s.resolveAlert);
   const reopenAlert = useAlertsStore((s) => s.reopenAlert);
   const extendAlert = useAlertsStore((s) => s.extendAlert);
+  const snoozedUntil = useAlertsStore((s) => s.snoozedUntil);
+  const snoozeAlert = useAlertsStore((s) => s.snoozeAlert);
+  const unsnoozeAlert = useAlertsStore((s) => s.unsnoozeAlert);
   const comments = useAlertCommentsStore((s) => s.comments);
   const addComment = useAlertCommentsStore((s) => s.addComment);
   const updateComment = useAlertCommentsStore((s) => s.updateComment);
@@ -69,13 +78,17 @@ export default function NeighborhoodAlerts() {
   const [viewingConfirmedId, setViewingConfirmedId] = useState<string | null>(null);
   const [managingCategories, setManagingCategories] = useState(false);
   const [extendingId, setExtendingId] = useState<string | null>(null);
+  const [snoozingId, setSnoozingId] = useState<string | null>(null);
+  const [showSnoozed, setShowSnoozed] = useState(false);
   const mutedCategories = useMutedAlertCategoriesStore((s) => s.muted);
   const toggleMutedCategory = useMutedAlertCategoriesStore((s) => s.toggle);
   const [sortBy, setSortBy] = useState<AlertSort>('Expiring soon');
 
   const allActiveAlerts = getActiveAlerts(allAlerts, now, pinnedAlertId);
-  const unsortedActiveAlerts = allActiveAlerts.filter((a) => !mutedCategories[a.category]);
-  const mutedCount = allActiveAlerts.length - unsortedActiveAlerts.length;
+  const unmutedActiveAlerts = allActiveAlerts.filter((a) => !mutedCategories[a.category]);
+  const mutedCount = allActiveAlerts.length - unmutedActiveAlerts.length;
+  const snoozedAlerts = unmutedActiveAlerts.filter((a) => snoozedUntil[a.id]);
+  const unsortedActiveAlerts = unmutedActiveAlerts.filter((a) => !snoozedUntil[a.id]);
   const activeAlerts =
     sortBy === 'Expiring soon'
       ? unsortedActiveAlerts
@@ -133,6 +146,36 @@ export default function NeighborhoodAlerts() {
           <Text className="mt-2 text-xs text-charcoal/40">
             {mutedCount} alert{mutedCount === 1 ? '' : 's'} hidden from muted categories
           </Text>
+        )}
+
+        {snoozedAlerts.length > 0 && (
+          <Pressable
+            onPress={() => setShowSnoozed((v) => !v)}
+            className="mt-2 flex-row items-center gap-1.5"
+          >
+            <Ionicons name="time-outline" size={13} className="text-charcoal/40" />
+            <Text className="text-xs font-medium text-charcoal/50">
+              {snoozedAlerts.length} snoozed · tap to {showSnoozed ? 'hide' : 'view'}
+            </Text>
+          </Pressable>
+        )}
+
+        {showSnoozed && snoozedAlerts.length > 0 && (
+          <View className="mt-3 gap-2 rounded-2xl bg-cream/60 p-3">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+              Snoozed
+            </Text>
+            {snoozedAlerts.map((a) => (
+              <View key={a.id} className="flex-row items-center gap-2">
+                <Text className="flex-1 text-xs text-charcoal/60" numberOfLines={1}>
+                  {a.text}
+                </Text>
+                <Pressable onPress={() => unsnoozeAlert(a.id)}>
+                  <Text className="text-xs font-semibold text-terracotta">Unsnooze</Text>
+                </Pressable>
+              </View>
+            ))}
+          </View>
         )}
 
         {activeAlerts.length > 1 && (
@@ -193,6 +236,12 @@ export default function NeighborhoodAlerts() {
                     </Text>
                   </View>
                   <View className="flex-row gap-1">
+                    <Pressable
+                      onPress={() => setSnoozingId(snoozingId === alert.id ? null : alert.id)}
+                      className="h-8 w-8 items-center justify-center rounded-full"
+                    >
+                      <Ionicons name="time-outline" size={16} className="text-charcoal/50" />
+                    </Pressable>
                     <Pressable
                       onPress={() => setSharingId(alert.id)}
                       className="h-8 w-8 items-center justify-center rounded-full"
@@ -261,6 +310,25 @@ export default function NeighborhoodAlerts() {
                     </View>
                   )}
                 </View>
+                {snoozingId === alert.id && (
+                  <View className="mt-3 flex-row items-center gap-2">
+                    <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+                      Snooze
+                    </Text>
+                    {SNOOZE_OPTIONS.map((opt) => (
+                      <Pressable
+                        key={opt.label}
+                        onPress={() => {
+                          snoozeAlert(alert.id, opt.ms);
+                          setSnoozingId(null);
+                        }}
+                        className="rounded-full bg-sand px-3 py-1"
+                      >
+                        <Text className="text-xs font-medium text-charcoal/70">{opt.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
                 {extendingId === alert.id && (
                   <View className="mt-3 flex-row items-center gap-2">
                     <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
