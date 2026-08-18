@@ -1047,6 +1047,7 @@ export type RecEntry = {
   // Only meaningful for kind 'ask' — marks that the author found what
   // they needed, without deleting the record.
   resolved?: boolean;
+  resolvedNote?: string;
   // Only meaningful for kind 'ask' — flags a time-sensitive ask.
   urgent?: boolean;
 };

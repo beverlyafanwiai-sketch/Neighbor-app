@@ -38,7 +38,7 @@ type RecsState = {
   updateEntry: (entryId: string, updates: Partial<NewRecEntryInput>) => void;
   toggleAgree: (entryId: string) => void;
   deleteEntry: (entryId: string) => void;
-  resolveEntry: (entryId: string) => void;
+  resolveEntry: (entryId: string, note?: string) => void;
   reopenEntry: (entryId: string) => void;
   saveDraft: (input: RecDraftInput) => string;
   deleteDraft: (id: string) => void;
@@ -106,14 +106,18 @@ export const useRecsStore = create<RecsState>((set, get) => ({
 
   deleteEntry: (entryId) => set((s) => ({ entries: s.entries.filter((e) => e.id !== entryId) })),
 
-  resolveEntry: (entryId) =>
+  resolveEntry: (entryId, note) =>
     set((s) => ({
-      entries: s.entries.map((e) => (e.id === entryId ? { ...e, resolved: true } : e)),
+      entries: s.entries.map((e) =>
+        e.id === entryId ? { ...e, resolved: true, resolvedNote: note?.trim() || undefined } : e
+      ),
     })),
 
   reopenEntry: (entryId) =>
     set((s) => ({
-      entries: s.entries.map((e) => (e.id === entryId ? { ...e, resolved: false } : e)),
+      entries: s.entries.map((e) =>
+        e.id === entryId ? { ...e, resolved: false, resolvedNote: undefined } : e
+      ),
     })),
 
   saveDraft: (input) => {

@@ -89,6 +89,8 @@ export default function RecsBoard() {
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [viewingAgreedId, setViewingAgreedId] = useState<string | null>(null);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
+  const [resolvingEntryId, setResolvingEntryId] = useState<string | null>(null);
+  const [resolveNoteDraft, setResolveNoteDraft] = useState('');
   const entryNotes = useRecNotesStore((s) => s.notes);
   const setEntryNote = useRecNotesStore((s) => s.setNote);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -551,9 +553,14 @@ export default function RecsBoard() {
                       </View>
                       {entry.kind === 'ask' && (
                         <Pressable
-                          onPress={() =>
-                            entry.resolved ? reopenEntry(entry.id) : resolveEntry(entry.id)
-                          }
+                          onPress={() => {
+                            if (entry.resolved) {
+                              reopenEntry(entry.id);
+                            } else {
+                              setResolvingEntryId(resolvingEntryId === entry.id ? null : entry.id);
+                              setResolveNoteDraft('');
+                            }
+                          }}
                           className="h-8 w-8 items-center justify-center rounded-full"
                         >
                           <Ionicons
@@ -594,6 +601,31 @@ export default function RecsBoard() {
                         <Ionicons name="trash-outline" size={16} className="text-terracotta" />
                       </Pressable>
                     </View>
+                    {entry.resolved && entry.resolvedNote && (
+                      <Text className="mt-1 text-xs italic text-sage">{entry.resolvedNote}</Text>
+                    )}
+                    {resolvingEntryId === entry.id && (
+                      <View className="mt-2 flex-row items-center gap-2">
+                        <TextInput
+                          value={resolveNoteDraft}
+                          onChangeText={setResolveNoteDraft}
+                          placeholder="Optional note, e.g. found a great plumber"
+                          placeholderTextColor="#3D3D3D80"
+                          autoFocus
+                          className="flex-1 rounded-full bg-sand px-4 py-2 text-sm text-charcoal"
+                        />
+                        <Pressable
+                          onPress={() => {
+                            resolveEntry(entry.id, resolveNoteDraft);
+                            setResolvingEntryId(null);
+                            setResolveNoteDraft('');
+                          }}
+                          className="rounded-full bg-sage px-4 py-2"
+                        >
+                          <Text className="text-xs font-semibold text-paper">Resolve</Text>
+                        </Pressable>
+                      </View>
+                    )}
                     {entry.imageUris && entry.imageUris.length > 0 && (
                       <PhotoCarousel
                         uris={entry.imageUris}
@@ -699,6 +731,9 @@ export default function RecsBoard() {
                   </Pressable>
                 </View>
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{entry.note}</Text>
+                {!isRec && entry.resolved && entry.resolvedNote && (
+                  <Text className="mt-1 text-xs italic text-sage">{entry.resolvedNote}</Text>
+                )}
                 {entry.imageUris && entry.imageUris.length > 0 && (
                   <PhotoCarousel
                     uris={entry.imageUris}
