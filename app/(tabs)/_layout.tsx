@@ -2,9 +2,31 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
 
+import { useBlockedStore } from '../../store/useBlockedStore';
+import { useConversationsStore } from '../../store/useConversationsStore';
+import { useGroupsStore } from '../../store/useGroupsStore';
+import { useMutedStore } from '../../store/useMutedStore';
+import { useNotificationsStore } from '../../store/useNotificationsStore';
+
 export default function TabsLayout() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+
+  const mutedIds = useMutedStore((s) => s.mutedIds);
+  const notifUnread = useNotificationsStore(
+    (s) => s.notifications.filter((n) => !n.read && (!n.actorId || !mutedIds[n.actorId])).length
+  );
+
+  const conversations = useConversationsStore((s) => s.conversations);
+  const dmUnread = useConversationsStore((s) => s.unread);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const groups = useGroupsStore((s) => s.groups);
+  const joinedMap = useGroupsStore((s) => s.joined);
+  const chatUnread =
+    Object.values(conversations)
+      .filter((c) => !blockedIds[c.userId])
+      .reduce((sum, c) => sum + (dmUnread[c.id] ?? 0), 0) +
+    groups.filter((g) => joinedMap[g.id]).reduce((sum, g) => sum + g.unread, 0);
 
   return (
     <Tabs
@@ -13,6 +35,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: '#E0533C',
         tabBarInactiveTintColor: isDark ? '#EDE7DB80' : '#3D3D3D80',
         tabBarStyle: { backgroundColor: isDark ? '#2A2622' : '#F5F2E9', borderTopWidth: 0 },
+        tabBarBadgeStyle: { backgroundColor: '#E0533C' },
       }}
     >
       <Tabs.Screen
@@ -20,6 +43,7 @@ export default function TabsLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => <Ionicons name="home" color={color} size={size} />,
+          tabBarBadge: notifUnread > 0 ? notifUnread : undefined,
         }}
       />
       <Tabs.Screen
@@ -43,6 +67,7 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubble-ellipses" color={color} size={size} />
           ),
+          tabBarBadge: chatUnread > 0 ? chatUnread : undefined,
         }}
       />
       <Tabs.Screen
