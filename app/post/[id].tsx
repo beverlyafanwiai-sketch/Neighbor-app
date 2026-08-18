@@ -13,6 +13,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import ForwardSheet, { type ForwardTarget } from '../../components/ForwardSheet';
 import MentionText from '../../components/MentionText';
 import MentionTextInput from '../../components/MentionTextInput';
 import PhotoCarousel from '../../components/PhotoCarousel';
@@ -23,6 +24,8 @@ import ReactorsSheet from '../../components/ReactorsSheet';
 import ReportPostSheet from '../../components/ReportPostSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser, type CommentItem } from '../../data/mock';
+import { useConversationsStore } from '../../store/useConversationsStore';
+import { useGroupChatStore } from '../../store/useGroupChatStore';
 import {
   commentKey,
   getEffectiveReactions,
@@ -76,6 +79,7 @@ export default function PostDetail() {
   const [reactorsFor, setReactorsFor] = useState<'post' | string | null>(null);
   const [reporting, setReporting] = useState(false);
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
+  const [forwardingCommentId, setForwardingCommentId] = useState<string | null>(null);
   const [replyingTo, setReplyingTo] = useState<{ id: string; name: string } | null>(null);
   const [commentSort, setCommentSort] = useState<CommentSort>('oldest');
   const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
@@ -84,6 +88,18 @@ export default function PostDetail() {
   const author = post ? resolveUser(post.authorId) : undefined;
   const isAuthor = post?.authorId === ME.id;
   const isPinned = post ? post.id === pinnedPostId : false;
+  const forwardingComment = comments.find((c) => c.id === forwardingCommentId);
+
+  const forwardComment = (target: ForwardTarget) => {
+    if (!forwardingComment) return;
+    const commentAuthor = resolveUser(forwardingComment.authorId);
+    const senderName = forwardingComment.authorId === ME.id ? 'You' : (commentAuthor?.name ?? 'Someone');
+    if (target.kind === 'dm') {
+      useConversationsStore.getState().sendMessage(target.id, forwardingComment.text, undefined, senderName);
+    } else {
+      useGroupChatStore.getState().sendMessage(target.id, forwardingComment.text, undefined, senderName);
+    }
+  };
 
   if (!post || !author) {
     return (
@@ -416,6 +432,12 @@ export default function PostDetail() {
                   </View>
                 </View>
                 <View className="flex-row items-center gap-1">
+                  <Pressable
+                    onPress={() => setForwardingCommentId(item.id)}
+                    className="h-7 w-7 items-center justify-center rounded-full"
+                  >
+                    <Ionicons name="arrow-redo-outline" size={13} className="text-charcoal/40" />
+                  </Pressable>
                   {isAuthor && (
                     <Pressable
                       onPress={() =>
@@ -546,6 +568,14 @@ export default function PostDetail() {
           onClose={() => setReportingCommentId(null)}
           title="Comment options"
           actionLabel="Report this comment"
+        />
+      )}
+
+      {forwardingComment && (
+        <ForwardSheet
+          preview={forwardingComment.text}
+          onForward={forwardComment}
+          onClose={() => setForwardingCommentId(null)}
         />
       )}
     </SafeAreaView>
