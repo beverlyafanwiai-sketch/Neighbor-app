@@ -48,6 +48,8 @@ export default function GroupDetail() {
   const albumPhotos = useGroupAlbumStore((s) => s.photos);
   const addPhotos = useGroupAlbumStore((s) => s.addPhotos);
   const removePhoto = useGroupAlbumStore((s) => s.removePhoto);
+  const photoCaptions = useGroupAlbumStore((s) => s.captions);
+  const setPhotoCaption = useGroupAlbumStore((s) => s.setCaption);
   const events = useEventsStore((s) => s.events);
   const goingMap = useRsvpStore((s) => s.going);
   const inviteCode = useGroupsStore((s) => (group ? s.inviteCodes[group.id] : undefined));
@@ -740,6 +742,9 @@ export default function GroupDetail() {
           uris={groupPhotos.map((p) => p.uri)}
           initialIndex={viewingPhotoIndex}
           onClose={() => setViewingPhotoIndex(null)}
+          captions={groupPhotos.map((p) => photoCaptions[p.id] ?? '')}
+          editableIndices={groupPhotos.map((p) => p.uploaderId === ME.id)}
+          onCaptionChange={(i, text) => setPhotoCaption(groupPhotos[i].id, text)}
         />
       )}
 
