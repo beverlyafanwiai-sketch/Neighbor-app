@@ -8,6 +8,7 @@ export type SavedRecSearch = {
   kindFilter: string;
   sortBy: string;
   onlyUrgent: boolean;
+  onlyFriends: boolean;
 };
 
 type SavedRecSearchesState = {

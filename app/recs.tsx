@@ -25,6 +25,7 @@ import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useConversationsStore } from '../store/useConversationsStore';
+import { useFriendsStore } from '../store/useFriendsStore';
 import { useGroupChatStore } from '../store/useGroupChatStore';
 import { useMutedRecCategoriesStore } from '../store/useMutedRecCategoriesStore';
 import { useMutedStore } from '../store/useMutedStore';
@@ -46,6 +47,7 @@ export default function RecsBoard() {
   const entries = useRecsStore((s) => s.entries);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const friendStatuses = useFriendsStore((s) => s.statuses);
   const mutedCategories = useMutedRecCategoriesStore((s) => s.muted);
   const toggleMutedCategory = useMutedRecCategoriesStore((s) => s.toggle);
   const myAgreed = useRecsStore((s) => s.myAgreed);
@@ -77,6 +79,7 @@ export default function RecsBoard() {
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [managingCategories, setManagingCategories] = useState(false);
   const [onlyUrgent, setOnlyUrgent] = useState(false);
+  const [onlyFriends, setOnlyFriends] = useState(false);
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [sortBy, setSortBy] = useState<RecsSort>('Newest');
   const [query, setQuery] = useState('');
@@ -151,7 +154,8 @@ export default function RecsBoard() {
     categoryFilter !== 'All' ||
     kindFilter !== 'All' ||
     sortBy !== 'Newest' ||
-    onlyUrgent;
+    onlyUrgent ||
+    onlyFriends;
 
   const applySearch = (search: (typeof savedSearches)[number]) => {
     setQuery(search.query);
@@ -159,6 +163,7 @@ export default function RecsBoard() {
     setKindFilter(search.kindFilter as KindFilter);
     setSortBy(search.sortBy as RecsSort);
     setOnlyUrgent(Boolean(search.onlyUrgent));
+    setOnlyFriends(Boolean(search.onlyFriends));
   };
 
   const categories = ['All', ...Array.from(new Set(entries.map((e) => e.category))).sort()];
@@ -187,6 +192,7 @@ export default function RecsBoard() {
       e.authorId !== ME.id &&
       !blockedIds[e.authorId] &&
       !mutedIds[e.authorId] &&
+      (!onlyFriends || friendStatuses[e.authorId] === 'friends') &&
       matchesKind(e) &&
       matchesUrgent(e) &&
       matchesQuery(e)
@@ -331,6 +337,7 @@ export default function RecsBoard() {
                     kindFilter,
                     sortBy,
                     onlyUrgent,
+                    onlyFriends,
                   });
                 }
                 setSavingSearch(false);
@@ -400,19 +407,32 @@ export default function RecsBoard() {
         ))}
       </View>
 
-      {kindFilter !== 'Recs' && (
+      <View className="mb-1 flex-row flex-wrap items-center gap-x-4 gap-y-1.5 px-5 pb-3">
+        {kindFilter !== 'Recs' && (
+          <Pressable
+            onPress={() => setOnlyUrgent((v) => !v)}
+            className="flex-row items-center gap-2"
+          >
+            <Ionicons
+              name={onlyUrgent ? 'checkbox' : 'square-outline'}
+              size={16}
+              className={onlyUrgent ? 'text-terracotta' : 'text-charcoal/40'}
+            />
+            <Text className="text-xs font-medium text-charcoal/60">Urgent asks only</Text>
+          </Pressable>
+        )}
         <Pressable
-          onPress={() => setOnlyUrgent((v) => !v)}
-          className="mb-1 flex-row items-center gap-2 px-5 pb-3"
+          onPress={() => setOnlyFriends((v) => !v)}
+          className="flex-row items-center gap-2"
         >
           <Ionicons
-            name={onlyUrgent ? 'checkbox' : 'square-outline'}
+            name={onlyFriends ? 'checkbox' : 'square-outline'}
             size={16}
-            className={onlyUrgent ? 'text-terracotta' : 'text-charcoal/40'}
+            className={onlyFriends ? 'text-terracotta' : 'text-charcoal/40'}
           />
-          <Text className="text-xs font-medium text-charcoal/60">Urgent asks only</Text>
+          <Text className="text-xs font-medium text-charcoal/60">Friends only</Text>
         </Pressable>
-      )}
+      </View>
 
       {categories.length > 2 && (
         <ScrollView
