@@ -51,6 +51,7 @@ type SaleState = {
   declineNotes: Record<string, Record<string, string>>;
   counterOffers: Record<string, Record<string, string>>;
   reservedForId: Record<string, string>;
+  reserveNotes: Record<string, string>;
   drafts: SaleDraft[];
   createItem: (input: NewSaleItemInput) => string;
   updateItem: (itemId: string, updates: Partial<NewSaleItemInput>) => void;
@@ -64,7 +65,7 @@ type SaleState = {
   markFree: (itemId: string) => void;
   markSold: (itemId: string) => void;
   relistItem: (itemId: string) => void;
-  reserveFor: (itemId: string, userId: string) => void;
+  reserveFor: (itemId: string, userId: string, note?: string) => void;
   unreserve: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
   saveDraft: (input: SaleDraftInput) => string;
@@ -99,6 +100,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   declineNotes: {},
   counterOffers: {},
   reservedForId: {},
+  reserveNotes: {},
   drafts: [],
 
   createItem: (input) => {
@@ -283,13 +285,19 @@ export const useSaleStore = create<SaleState>((set, get) => ({
       };
     }),
 
-  reserveFor: (itemId, userId) =>
-    set((s) => ({ reservedForId: { ...s.reservedForId, [itemId]: userId } })),
+  reserveFor: (itemId, userId, note) =>
+    set((s) => ({
+      reservedForId: { ...s.reservedForId, [itemId]: userId },
+      reserveNotes: note?.trim()
+        ? { ...s.reserveNotes, [itemId]: note.trim() }
+        : s.reserveNotes,
+    })),
 
   unreserve: (itemId) =>
     set((s) => {
       const { [itemId]: _removed, ...reservedForId } = s.reservedForId;
-      return { reservedForId };
+      const { [itemId]: _removedNote, ...reserveNotes } = s.reserveNotes;
+      return { reservedForId, reserveNotes };
     }),
 
   updateItem: (itemId, updates) =>

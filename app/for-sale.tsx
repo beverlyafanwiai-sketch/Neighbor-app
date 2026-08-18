@@ -73,6 +73,7 @@ export default function ForSaleBoard() {
   const relistItem = useSaleStore((s) => s.relistItem);
   const reservedForId = useSaleStore((s) => s.reservedForId);
   const reserveFor = useSaleStore((s) => s.reserveFor);
+  const reserveNotes = useSaleStore((s) => s.reserveNotes);
   const unreserve = useSaleStore((s) => s.unreserve);
   const deleteItem = useSaleStore((s) => s.deleteItem);
   const profile = useProfileStore((s) => s.profile);
@@ -131,6 +132,8 @@ export default function ForSaleBoard() {
   const [confirmingFreeId, setConfirmingFreeId] = useState<string | null>(null);
   const [counteringUserId, setCounteringUserId] = useState<string | null>(null);
   const [decliningOfferUserId, setDecliningOfferUserId] = useState<string | null>(null);
+  const [reservingUserId, setReservingUserId] = useState<string | null>(null);
+  const [reserveNoteDraft, setReserveNoteDraft] = useState('');
   const [declineOfferNoteDraft, setDeclineOfferNoteDraft] = useState('');
   const [counterDraft, setCounterDraft] = useState('');
   const [ratingItemId, setRatingItemId] = useState<string | null>(null);
@@ -590,7 +593,9 @@ export default function ForSaleBoard() {
                               ? `Sold to ${acceptedBuyer.name} for ${accepted!.price}`
                               : 'Marked as sold'
                             : reservedBuyer
-                              ? `Reserved for ${reservedBuyer.name}`
+                              ? `Reserved for ${reservedBuyer.name}${
+                                  reserveNotes[item.id] ? ` · ${reserveNotes[item.id]}` : ''
+                                }`
                               : interestCount === 0
                                 ? 'No interest yet'
                                 : `${interestCount} neighbor${interestCount === 1 ? '' : 's'} interested`}
@@ -1078,11 +1083,14 @@ export default function ForSaleBoard() {
                           viewingInterestedItem.ownerId === ME.id &&
                           !(sold[viewingInterestedItem.id] ?? false) && (
                             <Pressable
-                              onPress={() =>
-                                reservedForId[viewingInterestedItem.id] === userId
-                                  ? unreserve(viewingInterestedItem.id)
-                                  : reserveFor(viewingInterestedItem.id, userId)
-                              }
+                              onPress={() => {
+                                if (reservedForId[viewingInterestedItem.id] === userId) {
+                                  unreserve(viewingInterestedItem.id);
+                                } else {
+                                  setReservingUserId(userId);
+                                  setReserveNoteDraft('');
+                                }
+                              }}
                               className={`rounded-full px-3 py-1.5 ${
                                 reservedForId[viewingInterestedItem.id] === userId
                                   ? 'bg-gold/20'
@@ -1163,6 +1171,37 @@ export default function ForSaleBoard() {
                             className="rounded-full bg-terracotta px-4 py-2"
                           >
                             <Text className="text-xs font-semibold text-paper">Decline</Text>
+                          </Pressable>
+                        </View>
+                      )}
+                      {reservingUserId === userId && (
+                        <View className="flex-row items-center gap-2">
+                          <TextInput
+                            value={reserveNoteDraft}
+                            onChangeText={setReserveNoteDraft}
+                            placeholder="Optional note, e.g. pickup Saturday"
+                            placeholderTextColor="#8A8378"
+                            autoFocus
+                            className="flex-1 rounded-full bg-sand px-4 py-2 text-sm text-charcoal"
+                          />
+                          <Pressable
+                            onPress={() => {
+                              setReservingUserId(null);
+                              setReserveNoteDraft('');
+                            }}
+                            className="px-2 py-2"
+                          >
+                            <Text className="text-xs font-semibold text-charcoal/50">Cancel</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => {
+                              reserveFor(viewingInterestedItem.id, userId, reserveNoteDraft);
+                              setReservingUserId(null);
+                              setReserveNoteDraft('');
+                            }}
+                            className="rounded-full bg-gold px-4 py-2"
+                          >
+                            <Text className="text-xs font-semibold text-charcoal">Reserve</Text>
                           </Pressable>
                         </View>
                       )}
