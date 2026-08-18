@@ -11,6 +11,7 @@ import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
+import { useDismissedListingsStore } from '../store/useDismissedListingsStore';
 import { getEffectiveHelperCount, getEffectiveHelperIds, useLendStore } from '../store/useLendStore';
 import {
   itemCommentKey,
@@ -56,6 +57,8 @@ export default function LendBoard() {
   const myItemCommentReactions = useItemCommentsStore((s) => s.myReactions);
   const tapItemCommentReaction = useItemCommentsStore((s) => s.tapReaction);
   const setItemCommentReaction = useItemCommentsStore((s) => s.setReaction);
+  const dismissedLendIds = useDismissedListingsStore((s) => s.dismissedLendIds);
+  const dismissLendItem = useDismissedListingsStore((s) => s.dismissLendItem);
 
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -92,7 +95,8 @@ export default function LendBoard() {
       i.ownerId !== ME.id &&
       matchesKind(i) &&
       matchesQuery(i) &&
-      (!hideUnavailable || ((status[i.id] ?? 'available') === 'available' && !i.unavailableNote))
+      (!hideUnavailable || ((status[i.id] ?? 'available') === 'available' && !i.unavailableNote)) &&
+      !(dismissedLendIds[i.id] ?? false)
   );
   const boardItems =
     sortBy === 'A-Z'
@@ -499,6 +503,12 @@ export default function LendBoard() {
                     >
                       <Ionicons name="flag-outline" size={17} className="text-charcoal/40" />
                     </Pressable>
+                    <Pressable
+                      onPress={() => dismissLendItem(item.id)}
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons name="close" size={18} className="text-charcoal/40" />
+                    </Pressable>
                   </View>
                   <Text className="mt-2 text-sm leading-5 text-charcoal/80">{item.note}</Text>
                   {item.pickupLocation && (
@@ -664,6 +674,12 @@ export default function LendBoard() {
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="flag-outline" size={17} className="text-charcoal/40" />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => dismissLendItem(item.id)}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons name="close" size={18} className="text-charcoal/40" />
                   </Pressable>
                 </View>
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{item.note}</Text>

@@ -11,6 +11,7 @@ import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
+import { useDismissedListingsStore } from '../store/useDismissedListingsStore';
 import {
   getEffectiveInterestCount,
   getEffectiveInterestedIds,
@@ -68,6 +69,8 @@ export default function ForSaleBoard() {
   const myItemCommentReactions = useItemCommentsStore((s) => s.myReactions);
   const tapItemCommentReaction = useItemCommentsStore((s) => s.tapReaction);
   const setItemCommentReaction = useItemCommentsStore((s) => s.setReaction);
+  const dismissedSaleIds = useDismissedListingsStore((s) => s.dismissedSaleIds);
+  const dismissSaleItem = useDismissedListingsStore((s) => s.dismissSaleItem);
 
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -99,7 +102,11 @@ export default function ForSaleBoard() {
 
   const myItems = items.filter((i) => i.ownerId === ME.id && matchesQuery(i));
   const unsortedBoardItems = items.filter(
-    (i) => i.ownerId !== ME.id && matchesQuery(i) && (!hideSold || !(sold[i.id] ?? false))
+    (i) =>
+      i.ownerId !== ME.id &&
+      matchesQuery(i) &&
+      (!hideSold || !(sold[i.id] ?? false)) &&
+      !(dismissedSaleIds[i.id] ?? false)
   );
   const boardItems =
     sortBy === 'Most interest'
@@ -547,6 +554,12 @@ export default function ForSaleBoard() {
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="flag-outline" size={17} className="text-charcoal/40" />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => dismissSaleItem(item.id)}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons name="close" size={18} className="text-charcoal/40" />
                   </Pressable>
                 </View>
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{item.note}</Text>
