@@ -22,7 +22,7 @@ import PhotoViewer from '../components/PhotoViewer';
 import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
-import { ALERT_CATEGORIES, ME, getUser } from '../data/mock';
+import { ALERT_CATEGORIES, ME, getUser, type AlertCategoryValue } from '../data/mock';
 import { alertCommentKey, useAlertCommentsStore } from '../store/useAlertCommentsStore';
 import {
   formatExpiresIn,
@@ -112,6 +112,7 @@ export default function NeighborhoodAlerts() {
   const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
   const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
   const [sortBy, setSortBy] = useState<AlertSort>('Expiring soon');
+  const [categoryFilter, setCategoryFilter] = useState<'All' | AlertCategoryValue>('All');
 
   const visibleAlerts = allAlerts.filter(
     (a) => !blockedIds[a.authorId] && !mutedIds[a.authorId]
@@ -120,7 +121,9 @@ export default function NeighborhoodAlerts() {
   const unmutedActiveAlerts = allActiveAlerts.filter((a) => !mutedCategories[a.category]);
   const mutedCount = allActiveAlerts.length - unmutedActiveAlerts.length;
   const snoozedAlerts = unmutedActiveAlerts.filter((a) => snoozedUntil[a.id]);
-  const unsortedActiveAlerts = unmutedActiveAlerts.filter((a) => !snoozedUntil[a.id]);
+  const unsortedActiveAlerts = unmutedActiveAlerts
+    .filter((a) => !snoozedUntil[a.id])
+    .filter((a) => categoryFilter === 'All' || a.category === categoryFilter);
   const activeAlerts =
     sortBy === 'Expiring soon'
       ? unsortedActiveAlerts
@@ -231,6 +234,45 @@ export default function NeighborhoodAlerts() {
             ))}
           </View>
         )}
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="mt-4 gap-2"
+        >
+          <Pressable
+            onPress={() => setCategoryFilter('All')}
+            className={`rounded-full px-3.5 py-1.5 ${
+              categoryFilter === 'All' ? 'bg-terracotta' : 'bg-cream'
+            }`}
+          >
+            <Text
+              className={`text-xs font-medium ${
+                categoryFilter === 'All' ? 'text-paper' : 'text-charcoal/60'
+              }`}
+            >
+              All
+            </Text>
+          </Pressable>
+          {ALERT_CATEGORIES.map((c) => (
+            <Pressable
+              key={c.value}
+              onPress={() => setCategoryFilter(c.value)}
+              className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-1.5 ${
+                categoryFilter === c.value ? 'bg-terracotta' : 'bg-cream'
+              }`}
+            >
+              <Text style={{ fontSize: 14 }}>{c.emoji}</Text>
+              <Text
+                className={`text-xs font-medium ${
+                  categoryFilter === c.value ? 'text-paper' : 'text-charcoal/60'
+                }`}
+              >
+                {c.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
 
         {activeAlerts.length > 1 && (
           <View className="mt-4 flex-row items-center gap-2">
