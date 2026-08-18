@@ -31,6 +31,12 @@ import { useMutedAlertCategoriesStore } from '../store/useMutedAlertCategoriesSt
 import { useProfileStore } from '../store/useProfileStore';
 
 const ALERT_SORTS = ['Expiring soon', 'Newest', 'Most confirmed'] as const;
+
+const EXTEND_OPTIONS: { hours: number; label: string }[] = [
+  { hours: 6, label: '+6 hours' },
+  { hours: 24, label: '+24 hours' },
+  { hours: 72, label: '+3 days' },
+];
 type AlertSort = (typeof ALERT_SORTS)[number];
 
 export default function NeighborhoodAlerts() {
@@ -43,6 +49,7 @@ export default function NeighborhoodAlerts() {
   const toggleConfirm = useAlertsStore((s) => s.toggleConfirm);
   const resolveAlert = useAlertsStore((s) => s.resolveAlert);
   const reopenAlert = useAlertsStore((s) => s.reopenAlert);
+  const extendAlert = useAlertsStore((s) => s.extendAlert);
   const comments = useAlertCommentsStore((s) => s.comments);
   const addComment = useAlertCommentsStore((s) => s.addComment);
   const updateComment = useAlertCommentsStore((s) => s.updateComment);
@@ -61,6 +68,7 @@ export default function NeighborhoodAlerts() {
   const [editCommentDraft, setEditCommentDraft] = useState('');
   const [viewingConfirmedId, setViewingConfirmedId] = useState<string | null>(null);
   const [managingCategories, setManagingCategories] = useState(false);
+  const [extendingId, setExtendingId] = useState<string | null>(null);
   const mutedCategories = useMutedAlertCategoriesStore((s) => s.muted);
   const toggleMutedCategory = useMutedAlertCategoriesStore((s) => s.toggle);
   const [sortBy, setSortBy] = useState<AlertSort>('Expiring soon');
@@ -208,6 +216,14 @@ export default function NeighborhoodAlerts() {
                   </View>
                   {isMine && (
                     <View className="flex-row gap-1">
+                      {!alert.resolved && (
+                        <Pressable
+                          onPress={() => setExtendingId(extendingId === alert.id ? null : alert.id)}
+                          className="h-8 w-8 items-center justify-center rounded-full"
+                        >
+                          <Ionicons name="hourglass-outline" size={16} className="text-charcoal/50" />
+                        </Pressable>
+                      )}
                       <Pressable
                         onPress={() =>
                           alert.resolved ? reopenAlert(alert.id) : resolveAlert(alert.id)
@@ -245,6 +261,25 @@ export default function NeighborhoodAlerts() {
                     </View>
                   )}
                 </View>
+                {extendingId === alert.id && (
+                  <View className="mt-3 flex-row items-center gap-2">
+                    <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+                      Extend
+                    </Text>
+                    {EXTEND_OPTIONS.map((opt) => (
+                      <Pressable
+                        key={opt.hours}
+                        onPress={() => {
+                          extendAlert(alert.id, opt.hours);
+                          setExtendingId(null);
+                        }}
+                        className="rounded-full bg-sand px-3 py-1"
+                      >
+                        <Text className="text-xs font-medium text-charcoal/70">{opt.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
                 <View className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3">
                   <Pressable
                     onPress={() => setViewingCommentsId(alert.id)}

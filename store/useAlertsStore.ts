@@ -28,6 +28,7 @@ type AlertsState = {
   toggleConfirm: (id: string) => void;
   resolveAlert: (id: string) => void;
   reopenAlert: (id: string) => void;
+  extendAlert: (id: string, additionalHours: number) => void;
   saveDraft: (input: AlertDraftInput) => string;
   deleteDraft: (id: string) => void;
 };
@@ -80,6 +81,13 @@ export const useAlertsStore = create<AlertsState>((set) => ({
 
   reopenAlert: (id) =>
     set((s) => ({ alerts: s.alerts.map((a) => (a.id === id ? { ...a, resolved: false } : a)) })),
+
+  extendAlert: (id, additionalHours) =>
+    set((s) => ({
+      alerts: s.alerts.map((a) =>
+        a.id === id ? { ...a, expiresAt: a.expiresAt + additionalHours * 60 * 60 * 1000 } : a
+      ),
+    })),
 
   saveDraft: (input) => {
     const draftId = input.id ?? `alert-draft-${++alertDraftSeq}`;
