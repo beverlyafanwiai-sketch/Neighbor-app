@@ -113,6 +113,7 @@ export default function EventDetail() {
   const [checkInNoteDraft, setCheckInNoteDraft] = useState('');
   const [updateDraft, setUpdateDraft] = useState('');
   const [confirmingRemoveRiderId, setConfirmingRemoveRiderId] = useState<string | null>(null);
+  const [removeRiderNoteDraft, setRemoveRiderNoteDraft] = useState('');
   const [calendarAdded, setCalendarAdded] = useState(false);
   const [offeringRide, setOfferingRide] = useState(false);
   const [offerSeats, setOfferSeats] = useState(2);
@@ -1194,16 +1195,29 @@ export default function EventDetail() {
                                 <Text className="text-sm text-charcoal">
                                   Remove {rider.name} from your carpool?
                                 </Text>
+                                <TextInput
+                                  value={removeRiderNoteDraft}
+                                  onChangeText={setRemoveRiderNoteDraft}
+                                  placeholder="Optional note, e.g. switched to another ride"
+                                  placeholderTextColor="#3D3D3D80"
+                                  className="rounded-lg bg-cream px-3 py-2 text-sm text-charcoal"
+                                />
                                 <View className="flex-row justify-end gap-4">
-                                  <Pressable onPress={() => setConfirmingRemoveRiderId(null)}>
+                                  <Pressable
+                                    onPress={() => {
+                                      setConfirmingRemoveRiderId(null);
+                                      setRemoveRiderNoteDraft('');
+                                    }}
+                                  >
                                     <Text className="text-sm font-medium text-charcoal/60">
                                       Keep them
                                     </Text>
                                   </Pressable>
                                   <Pressable
                                     onPress={() => {
-                                      removeRider(offer.id, riderId);
+                                      removeRider(offer.id, riderId, removeRiderNoteDraft);
                                       setConfirmingRemoveRiderId(null);
+                                      setRemoveRiderNoteDraft('');
                                     }}
                                   >
                                     <Text className="text-sm font-semibold text-terracotta">
@@ -1233,7 +1247,10 @@ export default function EventDetail() {
                                 </View>
                               </Pressable>
                               <Pressable
-                                onPress={() => setConfirmingRemoveRiderId(riderId)}
+                                onPress={() => {
+                                  setConfirmingRemoveRiderId(riderId);
+                                  setRemoveRiderNoteDraft('');
+                                }}
                                 className="h-7 w-7 items-center justify-center"
                               >
                                 <Ionicons

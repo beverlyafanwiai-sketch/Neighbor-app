@@ -36,7 +36,7 @@ type CarpoolState = {
   requestSeat: (offerId: string, note?: string) => void;
   updateRiderNote: (offerId: string, note: string) => void;
   leaveSeat: (offerId: string, note?: string) => void;
-  removeRider: (offerId: string, riderId: string) => void;
+  removeRider: (offerId: string, riderId: string, note?: string) => void;
   offerSeatTo: (eventId: string, riderId: string) => void;
   requestRide: (eventId: string, note: string) => void;
   updateRequest: (eventId: string, note: string) => void;
@@ -159,12 +159,19 @@ export const useCarpoolStore = create<CarpoolState>((set, get) => ({
       }),
     })),
 
-  removeRider: (offerId, riderId) =>
+  removeRider: (offerId, riderId, note) =>
     set((s) => ({
       offers: s.offers.map((o) => {
         if (o.id !== offerId || o.driverId !== ME.id) return o;
         const { [riderId]: _removed, ...riderNotes } = o.riderNotes ?? {};
-        return { ...o, riderIds: o.riderIds.filter((id) => id !== riderId), riderNotes };
+        return {
+          ...o,
+          riderIds: o.riderIds.filter((id) => id !== riderId),
+          riderNotes,
+          cancelNotes: note?.trim()
+            ? { ...o.cancelNotes, [riderId]: note.trim() }
+            : o.cancelNotes,
+        };
       }),
     })),
 
