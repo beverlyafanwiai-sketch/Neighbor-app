@@ -6,6 +6,8 @@ export type SavedSaleSearch = {
   query: string;
   sortBy: string;
   hideSold: boolean;
+  minPrice: string;
+  maxPrice: string;
 };
 
 type SavedSaleSearchesState = {

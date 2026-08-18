@@ -116,6 +116,8 @@ export default function ForSaleBoard() {
   const [sortBy, setSortBy] = useState<SaleSort>('Newest');
   const [query, setQuery] = useState('');
   const [hideSold, setHideSold] = useState(false);
+  const [minPriceFilter, setMinPriceFilter] = useState('');
+  const [maxPriceFilter, setMaxPriceFilter] = useState('');
   const [savingSearch, setSavingSearch] = useState(false);
   const [renamingSearchId, setRenamingSearchId] = useState<string | null>(null);
   const [searchNameDraft, setSearchNameDraft] = useState('');
@@ -144,12 +146,29 @@ export default function ForSaleBoard() {
   const matchesQuery = (i: (typeof items)[number]) =>
     q.length === 0 || i.title.toLowerCase().includes(q) || i.note.toLowerCase().includes(q);
 
-  const isSearchModified = query.trim().length > 0 || sortBy !== 'Newest' || hideSold;
+  const isSearchModified =
+    query.trim().length > 0 ||
+    sortBy !== 'Newest' ||
+    hideSold ||
+    minPriceFilter.trim().length > 0 ||
+    maxPriceFilter.trim().length > 0;
 
   const applySearch = (search: (typeof savedSearches)[number]) => {
     setQuery(search.query);
     setSortBy(search.sortBy as SaleSort);
     setHideSold(search.hideSold);
+    setMinPriceFilter(search.minPrice);
+    setMaxPriceFilter(search.maxPrice);
+  };
+
+  const minPrice = minPriceFilter.trim() ? parseFloat(minPriceFilter) : undefined;
+  const maxPrice = maxPriceFilter.trim() ? parseFloat(maxPriceFilter) : undefined;
+  const matchesPriceRange = (i: (typeof items)[number]) => {
+    if (minPrice === undefined && maxPrice === undefined) return true;
+    const price = isFreeItem(i.price) ? 0 : parsePrice(i.price);
+    if (minPrice !== undefined && price < minPrice) return false;
+    if (maxPrice !== undefined && price > maxPrice) return false;
+    return true;
   };
 
   const myItems = items.filter((i) => i.ownerId === ME.id && matchesQuery(i));
@@ -159,6 +178,7 @@ export default function ForSaleBoard() {
       !blockedIds[i.ownerId] &&
       !mutedIds[i.ownerId] &&
       matchesQuery(i) &&
+      matchesPriceRange(i) &&
       (!hideSold || !(sold[i.id] ?? false)) &&
       !(dismissedSaleIds[i.id] ?? false)
   );
@@ -354,7 +374,14 @@ export default function ForSaleBoard() {
                 if (renamingSearchId) {
                   renameSearch(renamingSearchId, searchNameDraft);
                 } else {
-                  saveSearch({ name: searchNameDraft.trim(), query, sortBy, hideSold });
+                  saveSearch({
+                    name: searchNameDraft.trim(),
+                    query,
+                    sortBy,
+                    hideSold,
+                    minPrice: minPriceFilter,
+                    maxPrice: maxPriceFilter,
+                  });
                 }
                 setSavingSearch(false);
                 setRenamingSearchId(null);
@@ -425,6 +452,45 @@ export default function ForSaleBoard() {
           />
           <Text className="text-xs font-medium text-charcoal/60">Hide sold items</Text>
         </Pressable>
+
+        <View className="mt-3 flex-row items-center gap-2">
+          <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+            Price
+          </Text>
+          <View className="flex-row items-center gap-1.5 rounded-full bg-cream px-3 py-1.5">
+            <Text className="text-xs text-charcoal/40">$</Text>
+            <TextInput
+              value={minPriceFilter}
+              onChangeText={setMinPriceFilter}
+              placeholder="Min"
+              placeholderTextColor="#3D3D3D80"
+              keyboardType="numeric"
+              className="w-12 text-xs text-charcoal"
+            />
+          </View>
+          <Text className="text-xs text-charcoal/40">–</Text>
+          <View className="flex-row items-center gap-1.5 rounded-full bg-cream px-3 py-1.5">
+            <Text className="text-xs text-charcoal/40">$</Text>
+            <TextInput
+              value={maxPriceFilter}
+              onChangeText={setMaxPriceFilter}
+              placeholder="Max"
+              placeholderTextColor="#3D3D3D80"
+              keyboardType="numeric"
+              className="w-12 text-xs text-charcoal"
+            />
+          </View>
+          {(minPriceFilter.length > 0 || maxPriceFilter.length > 0) && (
+            <Pressable
+              onPress={() => {
+                setMinPriceFilter('');
+                setMaxPriceFilter('');
+              }}
+            >
+              <Ionicons name="close-circle" size={16} className="text-charcoal/40" />
+            </Pressable>
+          )}
+        </View>
 
         {unsortedBoardItems.length > 1 && (
           <View className="mt-4 flex-row items-center gap-2">
