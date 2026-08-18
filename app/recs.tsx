@@ -25,6 +25,7 @@ import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useConversationsStore } from '../store/useConversationsStore';
+import { useDismissedRecsStore } from '../store/useDismissedRecsStore';
 import { useFriendsStore } from '../store/useFriendsStore';
 import { useGroupChatStore } from '../store/useGroupChatStore';
 import { useMutedRecCategoriesStore } from '../store/useMutedRecCategoriesStore';
@@ -56,6 +57,8 @@ export default function RecsBoard() {
   const resolveEntry = useRecsStore((s) => s.resolveEntry);
   const reopenEntry = useRecsStore((s) => s.reopenEntry);
   const pinnedEntryId = useRecsStore((s) => s.pinnedEntryId);
+  const dismissedIds = useDismissedRecsStore((s) => s.dismissedIds);
+  const dismissEntry = useDismissedRecsStore((s) => s.dismissEntry);
   const pinEntry = useRecsStore((s) => s.pinEntry);
   const unpinEntry = useRecsStore((s) => s.unpinEntry);
   const savedIds = useSavedRecsStore((s) => s.savedIds);
@@ -200,7 +203,8 @@ export default function RecsBoard() {
       (!onlyFriends || friendStatuses[e.authorId] === 'friends') &&
       matchesKind(e) &&
       matchesUrgent(e) &&
-      matchesQuery(e)
+      matchesQuery(e) &&
+      !(dismissedIds[e.id] ?? false)
   );
   const mutedCategoryCount = unmutedCategoryBoardEntries.filter(
     (e) => mutedCategories[e.category]
@@ -748,6 +752,12 @@ export default function RecsBoard() {
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="flag-outline" size={17} className="text-charcoal/40" />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => dismissEntry(entry.id)}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons name="close" size={18} className="text-charcoal/40" />
                   </Pressable>
                 </View>
                 <Text className="mt-2 text-sm leading-5 text-charcoal/80">{entry.note}</Text>
