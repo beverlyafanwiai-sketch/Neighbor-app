@@ -52,6 +52,7 @@ export default function Events() {
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('All');
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [onlyGoing, setOnlyGoing] = useState(false);
+  const [onlyFriends, setOnlyFriends] = useState(false);
   const [sortBy, setSortBy] = useState<SortBy>('soonest');
 
   const q = query.trim().toLowerCase();
@@ -76,6 +77,9 @@ export default function Events() {
   }
   if (onlyGoing) {
     upcoming = upcoming.filter((e) => goingMap[e.id] ?? false);
+  }
+  if (onlyFriends) {
+    upcoming = upcoming.filter((e) => e.hostId && friendStatuses[e.hostId] === 'friends');
   }
   upcoming = [...upcoming].sort((a, b) => {
     if (sortBy === 'popular') return b.spotsTaken - a.spotsTaken;
@@ -212,6 +216,19 @@ export default function Events() {
               {onlyGoing && <Ionicons name="checkmark" size={13} className="text-sage" />}
               <Text className={`text-xs font-medium ${onlyGoing ? 'text-sage' : 'text-charcoal/60'}`}>
                 I'm going
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setOnlyFriends((v) => !v)}
+              className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-1.5 ${
+                onlyFriends ? 'bg-sage/20' : 'bg-cream'
+              }`}
+            >
+              {onlyFriends && <Ionicons name="checkmark" size={13} className="text-sage" />}
+              <Text
+                className={`text-xs font-medium ${onlyFriends ? 'text-sage' : 'text-charcoal/60'}`}
+              >
+                Hosted by friends
               </Text>
             </Pressable>
           </View>
