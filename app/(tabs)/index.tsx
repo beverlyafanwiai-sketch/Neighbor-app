@@ -23,6 +23,7 @@ import { getActiveAlerts, useAlertsStore } from '../../store/useAlertsStore';
 import { useMutedAlertCategoriesStore } from '../../store/useMutedAlertCategoriesStore';
 import { isAvailable, useAvailabilityStore } from '../../store/useAvailabilityStore';
 import { useBlockedStore } from '../../store/useBlockedStore';
+import { useDismissedDiscoverStore } from '../../store/useDismissedDiscoverStore';
 import { useHiddenPostsStore } from '../../store/useHiddenPostsStore';
 import { useMutedStore } from '../../store/useMutedStore';
 import { useEventsStore } from '../../store/useEventsStore';
@@ -122,11 +123,14 @@ function RightRail() {
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const myAvailable = useAvailabilityStore((s) => s.myAvailable);
+  const dismissedGroupIds = useDismissedDiscoverStore((s) => s.dismissedGroupIds);
 
   const friends = [...USERS, ...DISCOVER_USERS]
     .filter((u) => friendStatuses[u.id] === 'friends')
     .slice(0, 5);
-  const suggestedGroups = groups.filter((g) => !joinedMap[g.id]).slice(0, 3);
+  const suggestedGroups = groups
+    .filter((g) => !joinedMap[g.id] && !dismissedGroupIds[g.id])
+    .slice(0, 3);
 
   return (
     <ScrollView className="w-72 border-l border-charcoal/10 bg-cream/60" contentContainerClassName="gap-4 px-4 pb-6 pt-4">
