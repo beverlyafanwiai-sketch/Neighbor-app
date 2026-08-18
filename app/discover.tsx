@@ -10,6 +10,7 @@ import { useBlockedStore } from '../store/useBlockedStore';
 import { useDismissedDiscoverStore } from '../store/useDismissedDiscoverStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { getEffectiveMemberCount, memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
+import { useMutedStore } from '../store/useMutedStore';
 import { useProfileStore } from '../store/useProfileStore';
 
 const MODES = ['People', 'Groups'] as const;
@@ -47,6 +48,7 @@ export default function Discover() {
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const mutedIds = useMutedStore((s) => s.mutedIds);
   const toggleBlocked = useBlockedStore((s) => s.toggle);
   const [confirmingBlockId, setConfirmingBlockId] = useState<string | null>(null);
   const dismissedIds = useDismissedDiscoverStore((s) => s.dismissedIds);
@@ -57,7 +59,9 @@ export default function Discover() {
   const myTags = useProfileStore((s) => s.profile.tags);
 
   const discoverGroups = allGroups.filter((g) => !joinedMap[g.id] && !dismissedGroupIds[g.id]);
-  const discoverableUsers = DISCOVER_USERS.filter((u) => !blockedIds[u.id] && !dismissedIds[u.id]);
+  const discoverableUsers = DISCOVER_USERS.filter(
+    (u) => !blockedIds[u.id] && !mutedIds[u.id] && !dismissedIds[u.id]
+  );
 
   const people = useMemo(() => {
     const q = query.trim().toLowerCase();
