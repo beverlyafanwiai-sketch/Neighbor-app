@@ -28,6 +28,9 @@ import {
 import { useMutedAlertCategoriesStore } from '../store/useMutedAlertCategoriesStore';
 import { useProfileStore } from '../store/useProfileStore';
 
+const ALERT_SORTS = ['Expiring soon', 'Newest', 'Most confirmed'] as const;
+type AlertSort = (typeof ALERT_SORTS)[number];
+
 export default function NeighborhoodAlerts() {
   const allAlerts = useAlertsStore((s) => s.alerts);
   const deleteAlert = useAlertsStore((s) => s.deleteAlert);
@@ -51,10 +54,25 @@ export default function NeighborhoodAlerts() {
   const [managingCategories, setManagingCategories] = useState(false);
   const mutedCategories = useMutedAlertCategoriesStore((s) => s.muted);
   const toggleMutedCategory = useMutedAlertCategoriesStore((s) => s.toggle);
+  const [sortBy, setSortBy] = useState<AlertSort>('Expiring soon');
 
   const allActiveAlerts = getActiveAlerts(allAlerts, now, pinnedAlertId);
-  const activeAlerts = allActiveAlerts.filter((a) => !mutedCategories[a.category]);
-  const mutedCount = allActiveAlerts.length - activeAlerts.length;
+  const unsortedActiveAlerts = allActiveAlerts.filter((a) => !mutedCategories[a.category]);
+  const mutedCount = allActiveAlerts.length - unsortedActiveAlerts.length;
+  const activeAlerts =
+    sortBy === 'Expiring soon'
+      ? unsortedActiveAlerts
+      : (() => {
+          const pinned = unsortedActiveAlerts.find((a) => a.id === pinnedAlertId);
+          const rest = unsortedActiveAlerts.filter((a) => a.id !== pinnedAlertId);
+          const sortedRest = [...rest].sort((a, b) =>
+            sortBy === 'Newest'
+              ? b.postedAt - a.postedAt
+              : getEffectiveConfirmCount(b, myConfirmed[b.id] ?? false) -
+                getEffectiveConfirmCount(a, myConfirmed[a.id] ?? false)
+          );
+          return pinned ? [pinned, ...sortedRest] : sortedRest;
+        })();
   const viewingCommentsAlert = activeAlerts.find((a) => a.id === viewingCommentsId);
   const viewingComments = viewingCommentsAlert ? (comments[viewingCommentsAlert.id] ?? []) : [];
   const viewingConfirmedAlert = activeAlerts.find((a) => a.id === viewingConfirmedId);
@@ -97,6 +115,27 @@ export default function NeighborhoodAlerts() {
           <Text className="mt-2 text-xs text-charcoal/40">
             {mutedCount} alert{mutedCount === 1 ? '' : 's'} hidden from muted categories
           </Text>
+        )}
+
+        {activeAlerts.length > 1 && (
+          <View className="mt-4 flex-row items-center gap-2">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+              Sort
+            </Text>
+            {ALERT_SORTS.map((s) => (
+              <Pressable
+                key={s}
+                onPress={() => setSortBy(s)}
+                className={`rounded-full px-3 py-1 ${sortBy === s ? 'bg-ink' : 'bg-sand'}`}
+              >
+                <Text
+                  className={`text-xs font-medium ${sortBy === s ? 'text-paper' : 'text-charcoal/60'}`}
+                >
+                  {s}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
         )}
 
         <View className="mt-5 gap-3">
