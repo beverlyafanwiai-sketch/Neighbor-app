@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import ForwardSheet, { type ForwardTarget } from '../components/ForwardSheet';
 import MentionText from '../components/MentionText';
 import MentionTextInput from '../components/MentionTextInput';
 import PhotoCarousel from '../components/PhotoCarousel';
@@ -14,7 +15,9 @@ import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
+import { useConversationsStore } from '../store/useConversationsStore';
 import { useDismissedListingsStore } from '../store/useDismissedListingsStore';
+import { useGroupChatStore } from '../store/useGroupChatStore';
 import {
   getEffectiveInterestCount,
   getEffectiveInterestedIds,
@@ -99,6 +102,7 @@ export default function ForSaleBoard() {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentDraft, setEditCommentDraft] = useState('');
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
+  const [forwardingCommentId, setForwardingCommentId] = useState<string | null>(null);
   const savedSearches = useSavedSaleSearchesStore((s) => s.searches);
   const saveSearch = useSavedSaleSearchesStore((s) => s.saveSearch);
   const deleteSearch = useSavedSaleSearchesStore((s) => s.deleteSearch);
@@ -176,6 +180,18 @@ export default function ForSaleBoard() {
         a.id === viewingPinnedCommentId ? -1 : b.id === viewingPinnedCommentId ? 1 : 0
       )
     : viewingComments;
+  const forwardingComment = viewingComments.find((c) => c.id === forwardingCommentId);
+
+  const forwardComment = (target: ForwardTarget) => {
+    if (!forwardingComment) return;
+    const author = forwardingComment.authorId === ME.id ? profile : getUser(forwardingComment.authorId);
+    const senderName = forwardingComment.authorId === ME.id ? 'You' : (author?.name ?? 'Someone');
+    if (target.kind === 'dm') {
+      useConversationsStore.getState().sendMessage(target.id, forwardingComment.text, undefined, senderName);
+    } else {
+      useGroupChatStore.getState().sendMessage(target.id, forwardingComment.text, undefined, senderName);
+    }
+  };
 
   const renderSaleRating = (itemId: string) => {
     if (!(sold[itemId] ?? false)) return null;
@@ -916,6 +932,14 @@ export default function ForSaleBoard() {
         />
       )}
 
+      {forwardingComment && (
+        <ForwardSheet
+          preview={forwardingComment.text}
+          onForward={forwardComment}
+          onClose={() => setForwardingCommentId(null)}
+        />
+      )}
+
       {viewingInterestedItem && (
         <View className="absolute inset-0 items-center justify-end bg-ink/40">
           <Pressable className="absolute inset-0" onPress={() => setViewingInterestedId(null)} />
@@ -1250,6 +1274,12 @@ export default function ForSaleBoard() {
                           onSelect={(type) => setItemCommentReaction(viewingCommentsKey, c.id, type)}
                         />
                       </View>
+                      <Pressable
+                        onPress={() => setForwardingCommentId(c.id)}
+                        className="h-7 w-7 items-center justify-center"
+                      >
+                        <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/30" />
+                      </Pressable>
                       {canPinComments && (
                         <Pressable
                           onPress={() => togglePinComment(viewingCommentsKey!, c.id)}

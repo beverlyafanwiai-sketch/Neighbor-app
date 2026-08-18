@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import ForwardSheet, { type ForwardTarget } from '../components/ForwardSheet';
 import MentionText from '../components/MentionText';
 import MentionTextInput from '../components/MentionTextInput';
 import PhotoCarousel from '../components/PhotoCarousel';
@@ -32,6 +33,8 @@ import {
   useAlertsStore,
 } from '../store/useAlertsStore';
 import { useBlockedStore } from '../store/useBlockedStore';
+import { useConversationsStore } from '../store/useConversationsStore';
+import { useGroupChatStore } from '../store/useGroupChatStore';
 import { useMutedAlertCategoriesStore } from '../store/useMutedAlertCategoriesStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
@@ -85,6 +88,7 @@ export default function NeighborhoodAlerts() {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentDraft, setEditCommentDraft] = useState('');
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
+  const [forwardingCommentId, setForwardingCommentId] = useState<string | null>(null);
   const [viewingConfirmedId, setViewingConfirmedId] = useState<string | null>(null);
   const [managingCategories, setManagingCategories] = useState(false);
   const [extendingId, setExtendingId] = useState<string | null>(null);
@@ -138,6 +142,19 @@ export default function NeighborhoodAlerts() {
         a.id === viewingPinnedCommentId ? -1 : b.id === viewingPinnedCommentId ? 1 : 0
       )
     : viewingComments;
+  const forwardingComment = viewingComments.find((c) => c.id === forwardingCommentId);
+
+  const forwardComment = (target: ForwardTarget) => {
+    if (!forwardingComment) return;
+    const author = forwardingComment.authorId === ME.id ? profile : getUser(forwardingComment.authorId);
+    const senderName = forwardingComment.authorId === ME.id ? 'You' : (author?.name ?? 'Someone');
+    if (target.kind === 'dm') {
+      useConversationsStore.getState().sendMessage(target.id, forwardingComment.text, undefined, senderName);
+    } else {
+      useGroupChatStore.getState().sendMessage(target.id, forwardingComment.text, undefined, senderName);
+    }
+  };
+
   const viewingConfirmedAlert = activeAlerts.find((a) => a.id === viewingConfirmedId);
   const viewingConfirmedIds = viewingConfirmedAlert
     ? getEffectiveConfirmedIds(viewingConfirmedAlert, myConfirmed[viewingConfirmedAlert.id] ?? false)
@@ -488,6 +505,14 @@ export default function NeighborhoodAlerts() {
         />
       )}
 
+      {forwardingComment && (
+        <ForwardSheet
+          preview={forwardingComment.text}
+          onForward={forwardComment}
+          onClose={() => setForwardingCommentId(null)}
+        />
+      )}
+
       {viewingPhotos && (
         <PhotoViewer
           uris={viewingPhotos.uris}
@@ -702,6 +727,12 @@ export default function NeighborhoodAlerts() {
                             onSelect={(type) => setCommentReaction(viewingCommentsAlert.id, c.id, type)}
                           />
                         </View>
+                        <Pressable
+                          onPress={() => setForwardingCommentId(c.id)}
+                          className="h-7 w-7 items-center justify-center"
+                        >
+                          <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/30" />
+                        </Pressable>
                         {canPinComments && (
                           <Pressable
                             onPress={() => togglePinComment(viewingCommentsAlert.id, c.id)}
