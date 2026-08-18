@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,21 +30,37 @@ function formatSavedAgo(updatedAt: number) {
 
 export default function Drafts() {
   const [mode, setMode] = useState<Mode>('Posts');
+  const [query, setQuery] = useState('');
   const profile = useProfileStore((s) => s.profile);
-  const drafts = usePostsStore((s) => s.drafts);
+  const allDrafts = usePostsStore((s) => s.drafts);
   const deleteDraft = usePostsStore((s) => s.deleteDraft);
-  const eventDrafts = useEventsStore((s) => s.drafts);
+  const allEventDrafts = useEventsStore((s) => s.drafts);
   const deleteEventDraft = useEventsStore((s) => s.deleteDraft);
-  const recDrafts = useRecsStore((s) => s.drafts);
+  const allRecDrafts = useRecsStore((s) => s.drafts);
   const deleteRecDraft = useRecsStore((s) => s.deleteDraft);
-  const lendDrafts = useLendStore((s) => s.drafts);
+  const allLendDrafts = useLendStore((s) => s.drafts);
   const deleteLendDraft = useLendStore((s) => s.deleteDraft);
-  const saleDrafts = useSaleStore((s) => s.drafts);
+  const allSaleDrafts = useSaleStore((s) => s.drafts);
   const deleteSaleDraft = useSaleStore((s) => s.deleteDraft);
-  const alertDrafts = useAlertsStore((s) => s.drafts);
+  const allAlertDrafts = useAlertsStore((s) => s.drafts);
   const deleteAlertDraft = useAlertsStore((s) => s.deleteDraft);
-  const groupDrafts = useGroupsStore((s) => s.drafts);
+  const allGroupDrafts = useGroupsStore((s) => s.drafts);
   const deleteGroupDraft = useGroupsStore((s) => s.deleteDraft);
+
+  const q = query.trim().toLowerCase();
+  const matches = (...fields: (string | undefined)[]) =>
+    q.length === 0 || fields.some((f) => (f ?? '').toLowerCase().includes(q));
+
+  const drafts = allDrafts.filter((d) => matches(d.body));
+  const eventDrafts = allEventDrafts.filter((d) => matches(d.title, d.location));
+  const recDrafts = allRecDrafts.filter((d) => matches(d.name, d.category, d.note));
+  const lendDrafts = allLendDrafts.filter((d) => matches(d.title, d.note));
+  const saleDrafts = allSaleDrafts.filter((d) => matches(d.title, d.note));
+  const alertDrafts = allAlertDrafts.filter((d) => {
+    const meta = ALERT_CATEGORIES.find((c) => c.value === d.category);
+    return matches(d.text, meta?.label);
+  });
+  const groupDrafts = allGroupDrafts.filter((d) => matches(d.name, d.description));
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -72,67 +88,113 @@ export default function Drafts() {
         ))}
       </View>
 
+      <View className="px-5 pb-3">
+        <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">
+          <Ionicons name="search" size={18} className="text-charcoal/50" />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search drafts..."
+            placeholderTextColor="#3D3D3D80"
+            className="ml-2 flex-1 text-charcoal"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={() => setQuery('')}>
+              <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
+            </Pressable>
+          )}
+        </View>
+      </View>
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8 pt-2">
         {mode === 'Posts' && drafts.length === 0 && (
           <EmptyState
-            icon="document-text-outline"
+            icon={q.length > 0 ? 'search-outline' : 'document-text-outline'}
             iconColorClassName="text-charcoal/50"
-            title="No drafts yet"
-            subtitle="Unfinished posts you save for later will show up here."
+            title={q.length > 0 ? `No drafts matching "${query.trim()}"` : 'No drafts yet'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Unfinished posts you save for later will show up here.'
+            }
           />
         )}
 
         {mode === 'Events' && eventDrafts.length === 0 && (
           <EmptyState
-            icon="document-text-outline"
+            icon={q.length > 0 ? 'search-outline' : 'document-text-outline'}
             iconColorClassName="text-charcoal/50"
-            title="No event drafts yet"
-            subtitle="Unfinished events you save for later will show up here."
+            title={q.length > 0 ? `No drafts matching "${query.trim()}"` : 'No event drafts yet'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Unfinished events you save for later will show up here.'
+            }
           />
         )}
 
         {mode === 'Recs' && recDrafts.length === 0 && (
           <EmptyState
-            icon="document-text-outline"
+            icon={q.length > 0 ? 'search-outline' : 'document-text-outline'}
             iconColorClassName="text-charcoal/50"
-            title="No rec drafts yet"
-            subtitle="Unfinished recs or asks you save for later will show up here."
+            title={q.length > 0 ? `No drafts matching "${query.trim()}"` : 'No rec drafts yet'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Unfinished recs or asks you save for later will show up here.'
+            }
           />
         )}
 
         {mode === 'Lend' && lendDrafts.length === 0 && (
           <EmptyState
-            icon="document-text-outline"
+            icon={q.length > 0 ? 'search-outline' : 'document-text-outline'}
             iconColorClassName="text-charcoal/50"
-            title="No lend drafts yet"
-            subtitle="Unfinished lend items you save for later will show up here."
+            title={q.length > 0 ? `No drafts matching "${query.trim()}"` : 'No lend drafts yet'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Unfinished lend items you save for later will show up here.'
+            }
           />
         )}
 
         {mode === 'For Sale' && saleDrafts.length === 0 && (
           <EmptyState
-            icon="document-text-outline"
+            icon={q.length > 0 ? 'search-outline' : 'document-text-outline'}
             iconColorClassName="text-charcoal/50"
-            title="No for sale drafts yet"
-            subtitle="Unfinished listings you save for later will show up here."
+            title={q.length > 0 ? `No drafts matching "${query.trim()}"` : 'No for sale drafts yet'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Unfinished listings you save for later will show up here.'
+            }
           />
         )}
 
         {mode === 'Alerts' && alertDrafts.length === 0 && (
           <EmptyState
-            icon="document-text-outline"
+            icon={q.length > 0 ? 'search-outline' : 'document-text-outline'}
             iconColorClassName="text-charcoal/50"
-            title="No alert drafts yet"
-            subtitle="Unfinished alerts you save for later will show up here."
+            title={q.length > 0 ? `No drafts matching "${query.trim()}"` : 'No alert drafts yet'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Unfinished alerts you save for later will show up here.'
+            }
           />
         )}
 
         {mode === 'Groups' && groupDrafts.length === 0 && (
           <EmptyState
-            icon="document-text-outline"
+            icon={q.length > 0 ? 'search-outline' : 'document-text-outline'}
             iconColorClassName="text-charcoal/50"
-            title="No group drafts yet"
-            subtitle="Unfinished circles you save for later will show up here."
+            title={q.length > 0 ? `No drafts matching "${query.trim()}"` : 'No group drafts yet'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Unfinished circles you save for later will show up here.'
+            }
           />
         )}
 
