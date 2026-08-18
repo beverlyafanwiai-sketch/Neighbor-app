@@ -44,6 +44,8 @@ export default function EventDetail() {
   const updateChecklist = useEventsStore((s) => s.updateChecklist);
   const myChecked = useEventChecklistStore((s) => s.checked);
   const toggleChecked = useEventChecklistStore((s) => s.toggle);
+  const checklistNotes = useEventChecklistStore((s) => s.notes);
+  const setChecklistNote = useEventChecklistStore((s) => s.setNote);
   const eventNotes = useEventNotesStore((s) => s.notes);
   const setEventNote = useEventNotesStore((s) => s.setNote);
   const [editingEventNote, setEditingEventNote] = useState(false);
@@ -101,6 +103,8 @@ export default function EventDetail() {
   const [postingUpdate, setPostingUpdate] = useState(false);
   const [editingChecklist, setEditingChecklist] = useState(false);
   const [checklistDraft, setChecklistDraft] = useState<string[]>(['']);
+  const [editingChecklistNoteKey, setEditingChecklistNoteKey] = useState<string | null>(null);
+  const [checklistNoteDraft, setChecklistNoteDraft] = useState('');
   const [checkingIn, setCheckingIn] = useState(false);
   const [editingRsvpNote, setEditingRsvpNote] = useState(false);
   const [rsvpNoteDraft, setRsvpNoteDraft] = useState('');
@@ -484,25 +488,72 @@ export default function EventDetail() {
                   {(event.checklist ?? []).map((item, i) => {
                     const key = checklistItemKey(event.id, i);
                     const checked = myChecked[key] ?? false;
+                    const note = checklistNotes[key];
                     return (
-                      <Pressable
-                        key={i}
-                        onPress={() => toggleChecked(key)}
-                        className="flex-row items-center gap-2.5 rounded-xl bg-sand px-3 py-2.5"
-                      >
-                        <Ionicons
-                          name={checked ? 'checkbox' : 'square-outline'}
-                          size={18}
-                          className={checked ? 'text-sage' : 'text-charcoal/40'}
-                        />
-                        <Text
-                          className={`flex-1 text-sm ${
-                            checked ? 'text-charcoal/40 line-through' : 'text-charcoal'
-                          }`}
+                      <View key={i} className="rounded-xl bg-sand px-3 py-2.5">
+                        <Pressable
+                          onPress={() => toggleChecked(key)}
+                          className="flex-row items-center gap-2.5"
                         >
-                          {item}
-                        </Text>
-                      </Pressable>
+                          <Ionicons
+                            name={checked ? 'checkbox' : 'square-outline'}
+                            size={18}
+                            className={checked ? 'text-sage' : 'text-charcoal/40'}
+                          />
+                          <Text
+                            className={`flex-1 text-sm ${
+                              checked ? 'text-charcoal/40 line-through' : 'text-charcoal'
+                            }`}
+                          >
+                            {item}
+                          </Text>
+                          <Pressable
+                            onPress={(evt) => {
+                              evt.stopPropagation();
+                              setChecklistNoteDraft(note ?? '');
+                              setEditingChecklistNoteKey(key);
+                            }}
+                            className="h-6 w-6 items-center justify-center"
+                          >
+                            <Ionicons
+                              name={note ? 'create-outline' : 'add-circle-outline'}
+                              size={14}
+                              className="text-charcoal/40"
+                            />
+                          </Pressable>
+                        </Pressable>
+                        {editingChecklistNoteKey === key ? (
+                          <View className="mt-2 gap-2">
+                            <TextInput
+                              value={checklistNoteDraft}
+                              onChangeText={setChecklistNoteDraft}
+                              placeholder="e.g. Bringing 2, a veggie tray"
+                              placeholderTextColor="#3D3D3D80"
+                              autoFocus
+                              className="rounded-lg bg-cream px-3 py-2 text-xs text-charcoal"
+                            />
+                            <View className="flex-row justify-end gap-4">
+                              <Pressable onPress={() => setEditingChecklistNoteKey(null)}>
+                                <Text className="text-xs font-medium text-charcoal/60">Cancel</Text>
+                              </Pressable>
+                              <Pressable
+                                onPress={() => {
+                                  setChecklistNote(key, checklistNoteDraft);
+                                  setEditingChecklistNoteKey(null);
+                                }}
+                              >
+                                <Text className="text-xs font-semibold text-terracotta">Save</Text>
+                              </Pressable>
+                            </View>
+                          </View>
+                        ) : (
+                          note && (
+                            <Text className="ml-[26px] mt-0.5 text-xs italic text-charcoal/50">
+                              {note}
+                            </Text>
+                          )
+                        )}
+                      </View>
                     );
                   })}
                   {(!event.checklist || event.checklist.length === 0) && canManage && (
