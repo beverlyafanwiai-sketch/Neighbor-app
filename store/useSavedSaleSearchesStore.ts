@@ -9,6 +9,7 @@ export type SavedSaleSearch = {
   minPrice: string;
   maxPrice: string;
   conditionFilter: string;
+  flexibilityFilter: string;
 };
 
 type SavedSaleSearchesState = {

@@ -119,6 +119,7 @@ export default function ForSaleBoard() {
   const [minPriceFilter, setMinPriceFilter] = useState('');
   const [maxPriceFilter, setMaxPriceFilter] = useState('');
   const [conditionFilter, setConditionFilter] = useState<'All' | SaleCondition>('All');
+  const [flexibilityFilter, setFlexibilityFilter] = useState<'All' | 'Firm' | 'Negotiable'>('All');
   const [savingSearch, setSavingSearch] = useState(false);
   const [renamingSearchId, setRenamingSearchId] = useState<string | null>(null);
   const [searchNameDraft, setSearchNameDraft] = useState('');
@@ -153,7 +154,8 @@ export default function ForSaleBoard() {
     hideSold ||
     minPriceFilter.trim().length > 0 ||
     maxPriceFilter.trim().length > 0 ||
-    conditionFilter !== 'All';
+    conditionFilter !== 'All' ||
+    flexibilityFilter !== 'All';
 
   const applySearch = (search: (typeof savedSearches)[number]) => {
     setQuery(search.query);
@@ -162,6 +164,7 @@ export default function ForSaleBoard() {
     setMinPriceFilter(search.minPrice);
     setMaxPriceFilter(search.maxPrice);
     setConditionFilter(search.conditionFilter as 'All' | SaleCondition);
+    setFlexibilityFilter(search.flexibilityFilter as 'All' | 'Firm' | 'Negotiable');
   };
 
   const minPrice = minPriceFilter.trim() ? parseFloat(minPriceFilter) : undefined;
@@ -175,6 +178,8 @@ export default function ForSaleBoard() {
   };
   const matchesCondition = (i: (typeof items)[number]) =>
     conditionFilter === 'All' || i.condition === conditionFilter;
+  const matchesFlexibility = (i: (typeof items)[number]) =>
+    flexibilityFilter === 'All' || i.priceFlexibility === flexibilityFilter;
 
   const myItems = items.filter((i) => i.ownerId === ME.id && matchesQuery(i));
   const unsortedBoardItems = items.filter(
@@ -185,6 +190,7 @@ export default function ForSaleBoard() {
       matchesQuery(i) &&
       matchesPriceRange(i) &&
       matchesCondition(i) &&
+      matchesFlexibility(i) &&
       (!hideSold || !(sold[i.id] ?? false)) &&
       !(dismissedSaleIds[i.id] ?? false)
   );
@@ -388,6 +394,7 @@ export default function ForSaleBoard() {
                     minPrice: minPriceFilter,
                     maxPrice: maxPriceFilter,
                     conditionFilter,
+                    flexibilityFilter,
                   });
                 }
                 setSavingSearch(false);
@@ -532,6 +539,24 @@ export default function ForSaleBoard() {
                 }`}
               >
                 {c}
+              </Text>
+            </Pressable>
+          ))}
+          <View className="mx-1 w-px bg-charcoal/10" />
+          {(['All', 'Firm', 'Negotiable'] as const).map((f) => (
+            <Pressable
+              key={f}
+              onPress={() => setFlexibilityFilter(f)}
+              className={`rounded-full px-3.5 py-1.5 ${
+                flexibilityFilter === f ? 'bg-sage' : 'bg-cream'
+              }`}
+            >
+              <Text
+                className={`text-xs font-medium ${
+                  flexibilityFilter === f ? 'text-paper' : 'text-charcoal/60'
+                }`}
+              >
+                {f === 'All' ? 'Any price type' : f}
               </Text>
             </Pressable>
           ))}
