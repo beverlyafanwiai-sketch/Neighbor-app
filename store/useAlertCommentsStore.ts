@@ -7,6 +7,7 @@ export type AlertComment = {
   authorId: string;
   text: string;
   time: string;
+  edited?: boolean;
   reactions?: Record<string, ReactionType>;
 };
 
@@ -18,6 +19,7 @@ type AlertCommentsState = {
   comments: Record<string, AlertComment[]>;
   myReactions: Record<string, ReactionType | undefined>;
   addComment: (alertId: string, text: string) => void;
+  updateComment: (alertId: string, commentId: string, text: string) => void;
   deleteComment: (alertId: string, commentId: string) => void;
   tapReaction: (alertId: string, commentId: string) => void;
   setReaction: (alertId: string, commentId: string, type: ReactionType) => void;
@@ -49,6 +51,19 @@ export const useAlertCommentsStore = create<AlertCommentsState>((set) => ({
     };
     set((s) => ({
       comments: { ...s.comments, [alertId]: [...(s.comments[alertId] ?? []), comment] },
+    }));
+  },
+
+  updateComment: (alertId, commentId, text) => {
+    const clean = text.trim();
+    if (!clean) return;
+    set((s) => ({
+      comments: {
+        ...s.comments,
+        [alertId]: (s.comments[alertId] ?? []).map((c) =>
+          c.id === commentId ? { ...c, text: clean, edited: true } : c
+        ),
+      },
     }));
   },
 
