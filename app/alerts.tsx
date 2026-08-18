@@ -32,6 +32,7 @@ import {
   useAlertsStore,
 } from '../store/useAlertsStore';
 import { useMutedAlertCategoriesStore } from '../store/useMutedAlertCategoriesStore';
+import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
 const ALERT_SORTS = ['Expiring soon', 'Newest', 'Most confirmed'] as const;
@@ -84,9 +85,16 @@ export default function NeighborhoodAlerts() {
   const [extendingId, setExtendingId] = useState<string | null>(null);
   const [snoozingId, setSnoozingId] = useState<string | null>(null);
   const [showSnoozed, setShowSnoozed] = useState(false);
-  const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
+  const [viewingPhotos, setViewingPhotos] = useState<{
+    uris: string[];
+    index: number;
+    alertId: string;
+    isMine: boolean;
+  } | null>(null);
   const mutedCategories = useMutedAlertCategoriesStore((s) => s.muted);
   const toggleMutedCategory = useMutedAlertCategoriesStore((s) => s.toggle);
+  const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
+  const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
   const [sortBy, setSortBy] = useState<AlertSort>('Expiring soon');
 
   const allActiveAlerts = getActiveAlerts(allAlerts, now, pinnedAlertId);
@@ -324,7 +332,14 @@ export default function NeighborhoodAlerts() {
                 {alert.imageUris && alert.imageUris.length > 0 && (
                   <PhotoCarousel
                     uris={alert.imageUris}
-                    onPhotoPress={(i) => setViewingPhotos({ uris: alert.imageUris!, index: i })}
+                    onPhotoPress={(i) =>
+                      setViewingPhotos({
+                        uris: alert.imageUris!,
+                        index: i,
+                        alertId: alert.id,
+                        isMine,
+                      })
+                    }
                   />
                 )}
                 {snoozingId === alert.id && (
@@ -451,6 +466,13 @@ export default function NeighborhoodAlerts() {
           uris={viewingPhotos.uris}
           initialIndex={viewingPhotos.index}
           onClose={() => setViewingPhotos(null)}
+          captions={viewingPhotos.uris.map(
+            (_, i) => photoCaptions[photoCaptionKey(viewingPhotos.alertId, i)] ?? ''
+          )}
+          editableIndices={viewingPhotos.uris.map(() => viewingPhotos.isMine)}
+          onCaptionChange={(i, text) =>
+            setPhotoCaption(photoCaptionKey(viewingPhotos.alertId, i), text)
+          }
         />
       )}
 
