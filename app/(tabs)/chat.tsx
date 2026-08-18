@@ -15,8 +15,12 @@ import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { useGroupsStore } from '../../store/useGroupsStore';
 import { usePinnedChatsStore } from '../../store/usePinnedChatsStore';
 
+const SORTS = ['Recent', 'Unread first', 'A-Z'] as const;
+type SortBy = (typeof SORTS)[number];
+
 export default function ChatList() {
   const [query, setQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortBy>('Recent');
   const conversations = useConversationsStore((s) => s.conversations);
   const dmUnread = useConversationsStore((s) => s.unread);
   const dmLastActivity = useConversationsStore((s) => s.lastActivity);
@@ -31,7 +35,16 @@ export default function ChatList() {
     .filter((c) => !blockedIds[c.userId])
     .sort((a, b) => {
       const pinDiff = Number(pinnedIds[b.id] ?? false) - Number(pinnedIds[a.id] ?? false);
-      return pinDiff !== 0 ? pinDiff : (dmLastActivity[b.id] ?? 0) - (dmLastActivity[a.id] ?? 0);
+      if (pinDiff !== 0) return pinDiff;
+      if (sortBy === 'A-Z') {
+        return (getUser(a.userId)?.name ?? '').localeCompare(getUser(b.userId)?.name ?? '');
+      }
+      if (sortBy === 'Unread first') {
+        const unreadDiff =
+          Number((dmUnread[b.id] ?? 0) > 0) - Number((dmUnread[a.id] ?? 0) > 0);
+        if (unreadDiff !== 0) return unreadDiff;
+      }
+      return (dmLastActivity[b.id] ?? 0) - (dmLastActivity[a.id] ?? 0);
     });
   const list = allList.filter(
     (c) =>
@@ -48,7 +61,13 @@ export default function ChatList() {
     .filter((g) => joinedMap[g.id])
     .sort((a, b) => {
       const pinDiff = Number(pinnedIds[b.id] ?? false) - Number(pinnedIds[a.id] ?? false);
-      return pinDiff !== 0 ? pinDiff : (groupLastActivity[b.id] ?? 0) - (groupLastActivity[a.id] ?? 0);
+      if (pinDiff !== 0) return pinDiff;
+      if (sortBy === 'A-Z') return a.name.localeCompare(b.name);
+      if (sortBy === 'Unread first') {
+        const unreadDiff = Number(b.unread > 0) - Number(a.unread > 0);
+        if (unreadDiff !== 0) return unreadDiff;
+      }
+      return (groupLastActivity[b.id] ?? 0) - (groupLastActivity[a.id] ?? 0);
     });
   const myGroups = allMyGroups.filter(
     (g) => !archivedIds[g.id] && (q.length === 0 || g.name.toLowerCase().includes(q))
@@ -103,6 +122,21 @@ export default function ChatList() {
             </Pressable>
           )}
         </View>
+      </View>
+
+      <View className="flex-row items-center gap-2 px-5 pb-3">
+        <Ionicons name="swap-vertical-outline" size={14} className="text-charcoal/40" />
+        {SORTS.map((s) => (
+          <Pressable
+            key={s}
+            onPress={() => setSortBy(s)}
+            className={`rounded-full px-3 py-1.5 ${sortBy === s ? 'bg-sage/20' : 'bg-cream'}`}
+          >
+            <Text className={`text-xs font-medium ${sortBy === s ? 'text-sage' : 'text-charcoal/60'}`}>
+              {s}
+            </Text>
+          </Pressable>
+        ))}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
