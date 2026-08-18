@@ -11,6 +11,7 @@ import { useBlockedStore } from '../store/useBlockedStore';
 import { useFriendsStore } from '../store/useFriendsStore';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../store/useCheckInStore';
 import { useEventsStore } from '../store/useEventsStore';
+import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { getEffectiveHelperCount, useLendStore } from '../store/useLendStore';
 import {
@@ -26,6 +27,7 @@ import { getEffectiveAgreeCount, useRecsStore } from '../store/useRecsStore';
 import { getEffectiveSpots, useRsvpStore } from '../store/useRsvpStore';
 import { getEffectiveInterestCount, useSaleStore } from '../store/useSaleStore';
 import { useSavedEventsStore } from '../store/useSavedEventsStore';
+import { useSavedGroupsStore } from '../store/useSavedGroupsStore';
 import { useSavedLendStore } from '../store/useSavedLendStore';
 import { savedNoteKey, useSavedNotesStore } from '../store/useSavedNotesStore';
 import { useSavedPinsStore } from '../store/useSavedPinsStore';
@@ -34,7 +36,7 @@ import { useSavedSaleStore } from '../store/useSavedSaleStore';
 import { useSavedSearchesStore } from '../store/useSavedSearchesStore';
 
 const ALL_PEOPLE = [...USERS, ...DISCOVER_USERS];
-const MODES = ['Posts', 'Events', 'Recs', 'Lend', 'For Sale'] as const;
+const MODES = ['Posts', 'Events', 'Recs', 'Lend', 'For Sale', 'Groups'] as const;
 type Mode = (typeof MODES)[number];
 
 const SAVED_SORTS = ['Newest', 'A-Z'] as const;
@@ -141,6 +143,11 @@ export default function Saved() {
   const myInterest = useSaleStore((s) => s.myInterest);
   const savedSaleIds = useSavedSaleStore((s) => s.savedIds);
   const toggleSaveSale = useSavedSaleStore((s) => s.toggleSave);
+
+  const groups = useGroupsStore((s) => s.groups);
+  const joinedMap = useGroupsStore((s) => s.joined);
+  const savedGroupIds = useSavedGroupsStore((s) => s.savedIds);
+  const toggleSaveGroup = useSavedGroupsStore((s) => s.toggleSave);
 
   const q = query.trim().toLowerCase();
   const matches = (...fields: (string | undefined)[]) =>
@@ -274,6 +281,15 @@ export default function Saved() {
       (i) => getEffectiveInterestCount(i.id, myInterest[i.id] ?? false)
     ),
     (i) => savedNoteKey('sale', i.id),
+    pinned
+  );
+  const savedGroups = withPinnedFirst(
+    sortItems(
+      groups.filter((g) => (savedGroupIds[g.id] ?? false) && matches(g.name, g.description)),
+      sortBy,
+      (g) => g.name
+    ),
+    (g) => savedNoteKey('group', g.id),
     pinned
   );
 
@@ -633,7 +649,9 @@ export default function Saved() {
             ? savedRecs.length
             : mode === 'Lend'
               ? savedLendItems.length
-              : savedSaleItems.length) > 1 && (
+              : mode === 'For Sale'
+                ? savedSaleItems.length
+                : savedGroups.length) > 1 && (
           <View className="flex-row items-center gap-2 px-5 pb-3">
             <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
               Sort
@@ -738,6 +756,19 @@ export default function Saved() {
                 : hideUnavailable
                   ? 'Turn off "Hide unavailable items" to see everything you saved.'
                   : 'Tap the bookmark on any Borrow & Lend listing to save it for later.'
+            }
+          />
+        )}
+
+        {mode === 'Groups' && savedGroups.length === 0 && (
+          <EmptyState
+            icon={q.length > 0 ? 'search-outline' : 'bookmark-outline'}
+            iconColorClassName="text-charcoal/50"
+            title={q.length > 0 ? `No results for "${query.trim()}"` : 'No saved groups'}
+            subtitle={
+              q.length > 0
+                ? 'Try a different search term.'
+                : 'Tap the bookmark on any group to save it for later.'
             }
           />
         )}
@@ -1108,6 +1139,52 @@ export default function Saved() {
                 </Pressable>
               );
             })}
+          </View>
+        )}
+
+        {mode === 'Groups' && (
+          <View className="gap-3">
+            {savedGroups.map((g) => (
+              <Pressable
+                key={g.id}
+                onPress={() => router.push(`/group/${g.id}`)}
+                className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+              >
+                <View className="h-12 w-12 items-center justify-center rounded-full bg-terracotta">
+                  <Text className="text-lg font-bold text-paper">{g.name.charAt(0)}</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="font-semibold text-charcoal">{g.name}</Text>
+                  <Text className="mt-0.5 text-xs text-charcoal/50">
+                    {memberCountLabel(g.id, joinedMap[g.id] ?? false)}
+                    {joinedMap[g.id] ? ' · Joined' : ''}
+                  </Text>
+                  {renderNoteRow(savedNoteKey('group', g.id), false)}
+                </View>
+                <Pressable
+                  onPress={(evt) => {
+                    evt.stopPropagation();
+                    togglePin(savedNoteKey('group', g.id));
+                  }}
+                  className="h-8 w-8 items-center justify-center"
+                >
+                  <Ionicons
+                    name={pinned[savedNoteKey('group', g.id)] ? 'pin' : 'pin-outline'}
+                    size={17}
+                    className={pinned[savedNoteKey('group', g.id)] ? 'text-terracotta' : 'text-charcoal/40'}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={(evt) => {
+                    evt.stopPropagation();
+                    toggleSaveGroup(g.id);
+                  }}
+                  className="h-8 w-8 items-center justify-center"
+                >
+                  <Ionicons name="bookmark" size={18} className="text-gold" />
+                </Pressable>
+              </Pressable>
+            ))}
           </View>
         )}
       </ScrollView>

@@ -13,6 +13,7 @@ import { getEffectiveMemberCount, memberCountLabel, useGroupsStore } from '../st
 import { useMutedStore } from '../store/useMutedStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { useSavedDiscoverSearchesStore } from '../store/useSavedDiscoverSearchesStore';
+import { useSavedGroupsStore } from '../store/useSavedGroupsStore';
 
 const MODES = ['People', 'Groups'] as const;
 type Mode = (typeof MODES)[number];
@@ -42,6 +43,8 @@ export default function Discover() {
   const allGroups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
+  const savedGroupIds = useSavedGroupsStore((s) => s.savedIds);
+  const toggleSaveGroup = useSavedGroupsStore((s) => s.toggleSave);
   const joinByInviteCode = useGroupsStore((s) => s.joinByInviteCode);
   const [redeemingCode, setRedeemingCode] = useState(false);
   const [inviteCodeInput, setInviteCodeInput] = useState('');
@@ -477,6 +480,19 @@ export default function Discover() {
                       </View>
                     </View>
                   </View>
+                  <Pressable
+                    onPress={(evt) => {
+                      evt.stopPropagation();
+                      toggleSaveGroup(g.id);
+                    }}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons
+                      name={savedGroupIds[g.id] ? 'bookmark' : 'bookmark-outline'}
+                      size={16}
+                      className={savedGroupIds[g.id] ? 'text-gold' : 'text-charcoal/40'}
+                    />
+                  </Pressable>
                   <Pressable
                     onPress={(evt) => {
                       evt.stopPropagation();

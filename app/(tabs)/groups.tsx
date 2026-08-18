@@ -10,6 +10,7 @@ import { getUser } from '../../data/mock';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
+import { useSavedGroupsStore } from '../../store/useSavedGroupsStore';
 
 const GROUP_SORTS = ['Most active', 'A-Z'] as const;
 type GroupSort = (typeof GROUP_SORTS)[number];
@@ -35,6 +36,8 @@ export default function Groups() {
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
   const groupLastActivity = useGroupChatStore((s) => s.lastActivity);
+  const savedGroupIds = useSavedGroupsStore((s) => s.savedIds);
+  const toggleSaveGroup = useSavedGroupsStore((s) => s.toggleSave);
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState<GroupSort>('Most active');
 
@@ -119,7 +122,24 @@ export default function Groups() {
                   <Text className="text-lg font-bold text-paper">{c.name.charAt(0)}</Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="font-semibold text-charcoal">{c.name}</Text>
+                  <View className="flex-row items-center gap-1.5">
+                    <Text className="flex-1 font-semibold text-charcoal" numberOfLines={1}>
+                      {c.name}
+                    </Text>
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        toggleSaveGroup(c.id);
+                      }}
+                      className="h-6 w-6 items-center justify-center"
+                    >
+                      <Ionicons
+                        name={savedGroupIds[c.id] ? 'bookmark' : 'bookmark-outline'}
+                        size={15}
+                        className={savedGroupIds[c.id] ? 'text-gold' : 'text-charcoal/40'}
+                      />
+                    </Pressable>
+                  </View>
                   <View className="mt-1.5 flex-row items-center gap-2">
                     <Text className="text-xs text-charcoal/60">
                       {memberCountLabel(c.id, true)}
@@ -181,6 +201,19 @@ export default function Groups() {
                   <ToneTag tone={g.tone} />
                 </View>
               </View>
+              <Pressable
+                onPress={(evt) => {
+                  evt.stopPropagation();
+                  toggleSaveGroup(g.id);
+                }}
+                className="h-8 w-8 items-center justify-center"
+              >
+                <Ionicons
+                  name={savedGroupIds[g.id] ? 'bookmark' : 'bookmark-outline'}
+                  size={16}
+                  className={savedGroupIds[g.id] ? 'text-gold' : 'text-charcoal/40'}
+                />
+              </Pressable>
               <Pressable
                 onPress={(evt) => {
                   evt.stopPropagation();

@@ -15,6 +15,7 @@ import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { isGroupAdmin, memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
 import { useGroupNotesStore } from '../../store/useGroupNotesStore';
 import { formatMutedUntil, useMutedGroupsStore } from '../../store/useMutedGroupsStore';
+import { useSavedGroupsStore } from '../../store/useSavedGroupsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, useRsvpStore } from '../../store/useRsvpStore';
 
@@ -52,6 +53,8 @@ export default function GroupDetail() {
   const setPhotoCaption = useGroupAlbumStore((s) => s.setCaption);
   const photoTags = useGroupAlbumStore((s) => s.tags);
   const setPhotoTags = useGroupAlbumStore((s) => s.setTags);
+  const savedGroupIds = useSavedGroupsStore((s) => s.savedIds);
+  const toggleSaveGroup = useSavedGroupsStore((s) => s.toggleSave);
   const events = useEventsStore((s) => s.events);
   const goingMap = useRsvpStore((s) => s.going);
   const inviteCode = useGroupsStore((s) => (group ? s.inviteCodes[group.id] : undefined));
@@ -149,8 +152,19 @@ export default function GroupDetail() {
         >
           <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
-        {joined && (
-          <View className="flex-row items-center gap-1.5">
+        <View className="flex-row items-center gap-1.5">
+          <Pressable
+            onPress={() => toggleSaveGroup(group.id)}
+            className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+          >
+            <Ionicons
+              name={savedGroupIds[group.id] ? 'bookmark' : 'bookmark-outline'}
+              size={17}
+              className={savedGroupIds[group.id] ? 'text-gold' : 'text-charcoal'}
+            />
+          </Pressable>
+          {joined && (
+            <>
             <Pressable
               onPress={() => (isMuted ? toggleMutedGroup(group.id) : setChoosingMuteDuration(true))}
               className="h-9 w-9 items-center justify-center rounded-full bg-cream"
@@ -210,8 +224,9 @@ export default function GroupDetail() {
                 <Ionicons name="flag-outline" size={17} className="text-charcoal" />
               </Pressable>
             )}
-          </View>
-        )}
+            </>
+          )}
+        </View>
       </View>
 
       {confirmingDelete && (
