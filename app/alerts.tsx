@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
 import ReactionButton from '../components/ReactionButton';
+import ShareSheet from '../components/ShareSheet';
 import { ALERT_CATEGORIES, ME, getUser } from '../data/mock';
 import { alertCommentKey, useAlertCommentsStore } from '../store/useAlertCommentsStore';
 import {
@@ -48,6 +49,7 @@ export default function NeighborhoodAlerts() {
   const setCommentReaction = useAlertCommentsStore((s) => s.setReaction);
   const profile = useProfileStore((s) => s.profile);
   const [now] = useState(() => Date.now());
+  const [sharingId, setSharingId] = useState<string | null>(null);
   const [viewingCommentsId, setViewingCommentsId] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
   const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
@@ -76,6 +78,7 @@ export default function NeighborhoodAlerts() {
           );
           return pinned ? [pinned, ...sortedRest] : sortedRest;
         })();
+  const sharingAlert = activeAlerts.find((a) => a.id === sharingId);
   const viewingCommentsAlert = activeAlerts.find((a) => a.id === viewingCommentsId);
   const viewingComments = viewingCommentsAlert ? (comments[viewingCommentsAlert.id] ?? []) : [];
   const viewingConfirmedAlert = activeAlerts.find((a) => a.id === viewingConfirmedId);
@@ -174,6 +177,12 @@ export default function NeighborhoodAlerts() {
                   </View>
                   <View className="flex-row gap-1">
                     <Pressable
+                      onPress={() => setSharingId(alert.id)}
+                      className="h-8 w-8 items-center justify-center rounded-full"
+                    >
+                      <Ionicons name="arrow-redo-outline" size={16} className="text-charcoal/50" />
+                    </Pressable>
+                    <Pressable
                       onPress={() => router.push(`/create-alert?duplicateId=${alert.id}`)}
                       className="h-8 w-8 items-center justify-center rounded-full"
                     >
@@ -257,6 +266,15 @@ export default function NeighborhoodAlerts() {
           )}
         </View>
       </ScrollView>
+
+      {sharingAlert && (
+        <ShareSheet
+          title="Share alert"
+          link={`https://neighbor.app/alerts/${sharingAlert.id}`}
+          previewText={`${ALERT_CATEGORIES.find((c) => c.value === sharingAlert.category)?.label ?? 'Alert'}: ${sharingAlert.text}`}
+          onClose={() => setSharingId(null)}
+        />
+      )}
 
       {managingCategories && (
         <View className="absolute inset-0 items-center justify-end bg-ink/40">
