@@ -5,13 +5,13 @@ import {
   Pressable,
   ScrollView,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import MentionTextInput from '../components/MentionTextInput';
 import { ALERT_CATEGORIES, type AlertCategoryValue } from '../data/mock';
 import { useAlertsStore } from '../store/useAlertsStore';
 
@@ -169,11 +169,10 @@ export default function CreateAlert() {
 
             <View>
               <FieldLabel>What's going on?</FieldLabel>
-              <TextInput
+              <MentionTextInput
                 value={text}
                 onChangeText={setText}
-                placeholder="Lost dog near 5th & Elm, water main work on Birch St..."
-                placeholderTextColor="#3D3D3D80"
+                placeholder="Lost dog near 5th & Elm — try @ to mention someone"
                 multiline
                 autoFocus
                 className="min-h-[90px] rounded-2xl bg-cream px-4 py-3 text-base text-charcoal"

@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
+import MentionText from '../components/MentionText';
 import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
@@ -229,7 +230,7 @@ export default function NeighborhoodAlerts() {
                         </View>
                       )}
                     </View>
-                    <Text className="mt-1 text-[15px] leading-5 text-charcoal">{alert.text}</Text>
+                    <MentionText text={alert.text} className="mt-1 text-[15px] leading-5 text-charcoal" />
                     <Text className="mt-2 text-xs text-charcoal/50">
                       {author?.name ?? 'A neighbor'} · {formatPostedAgo(alert.postedAt, now)} ·{' '}
                       {formatExpiresIn(alert.expiresAt, now)}
