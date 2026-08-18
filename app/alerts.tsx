@@ -118,6 +118,18 @@ export default function NeighborhoodAlerts() {
   const [sortBy, setSortBy] = useState<AlertSort>('Expiring soon');
   const [categoryFilter, setCategoryFilter] = useState<'All' | AlertCategoryValue>('All');
   const [onlyFriends, setOnlyFriends] = useState(false);
+  const [query, setQuery] = useState('');
+
+  const q = query.trim().toLowerCase();
+  const matchesQuery = (a: (typeof allAlerts)[number]) => {
+    if (q.length === 0) return true;
+    const meta = ALERT_CATEGORIES.find((c) => c.value === a.category);
+    return (
+      a.text.toLowerCase().includes(q) ||
+      (a.location ?? '').toLowerCase().includes(q) ||
+      (meta?.label ?? '').toLowerCase().includes(q)
+    );
+  };
 
   const visibleAlerts = allAlerts.filter(
     (a) =>
@@ -131,7 +143,8 @@ export default function NeighborhoodAlerts() {
   const snoozedAlerts = unmutedActiveAlerts.filter((a) => snoozedUntil[a.id]);
   const unsortedActiveAlerts = unmutedActiveAlerts
     .filter((a) => !snoozedUntil[a.id])
-    .filter((a) => categoryFilter === 'All' || a.category === categoryFilter);
+    .filter((a) => categoryFilter === 'All' || a.category === categoryFilter)
+    .filter(matchesQuery);
   const activeAlerts =
     sortBy === 'Expiring soon'
       ? unsortedActiveAlerts
@@ -212,6 +225,22 @@ export default function NeighborhoodAlerts() {
             {mutedCount} alert{mutedCount === 1 ? '' : 's'} hidden from muted categories
           </Text>
         )}
+
+        <View className="mt-3 flex-row items-center rounded-full bg-cream px-4 py-2.5">
+          <Ionicons name="search" size={18} className="text-charcoal/50" />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search alerts..."
+            placeholderTextColor="#3D3D3D80"
+            className="ml-2 flex-1 text-charcoal"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={() => setQuery('')}>
+              <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
+            </Pressable>
+          )}
+        </View>
 
         <Pressable
           onPress={() => setOnlyFriends((v) => !v)}
@@ -566,11 +595,19 @@ export default function NeighborhoodAlerts() {
             <EmptyState
               icon="warning-outline"
               iconColorClassName="text-charcoal/50"
-              title={mutedCount > 0 ? 'All active alerts are muted' : 'No active alerts'}
+              title={
+                q.length > 0
+                  ? `No alerts matching "${query.trim()}"`
+                  : mutedCount > 0
+                    ? 'All active alerts are muted'
+                    : 'No active alerts'
+              }
               subtitle={
-                mutedCount > 0
-                  ? 'Unmute a category to see it here, or post one yourself.'
-                  : "Post one if there's something time-sensitive your neighbors should know."
+                q.length > 0
+                  ? undefined
+                  : mutedCount > 0
+                    ? 'Unmute a category to see it here, or post one yourself.'
+                    : "Post one if there's something time-sensitive your neighbors should know."
               }
             />
           )}
