@@ -983,6 +983,9 @@ export type SaleItem = {
   // for a strikethrough "price drop" display. Never overwritten by later
   // drops, so it always reflects the original listing price.
   originalPrice?: string;
+  // Baseline ratings from other neighbors who've bought this item before,
+  // *not including* ME — same "baseline + mine" pattern as event ratings.
+  ratingBaseline?: { userId: string; stars: number; comment: string }[];
 };
 
 export const SALE_ITEMS: SaleItem[] = [

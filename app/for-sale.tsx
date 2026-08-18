@@ -28,6 +28,10 @@ import {
 } from '../store/useItemCommentsStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
+import {
+  getEffectiveSaleRatingSummary,
+  useSaleRatingsStore,
+} from '../store/useSaleRatingsStore';
 import { useSavedSaleStore } from '../store/useSavedSaleStore';
 
 const SALE_SORTS = ['Newest', 'Most interest', 'Price: low to high'] as const;
@@ -74,6 +78,8 @@ export default function ForSaleBoard() {
   const setItemCommentReaction = useItemCommentsStore((s) => s.setReaction);
   const dismissedSaleIds = useDismissedListingsStore((s) => s.dismissedSaleIds);
   const dismissSaleItem = useDismissedListingsStore((s) => s.dismissSaleItem);
+  const mySaleRatings = useSaleRatingsStore((s) => s.myRatings);
+  const rateSaleItem = useSaleRatingsStore((s) => s.rateItem);
 
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -100,6 +106,9 @@ export default function ForSaleBoard() {
   const [confirmingFreeId, setConfirmingFreeId] = useState<string | null>(null);
   const [counteringUserId, setCounteringUserId] = useState<string | null>(null);
   const [counterDraft, setCounterDraft] = useState('');
+  const [ratingItemId, setRatingItemId] = useState<string | null>(null);
+  const [ratingDraftStars, setRatingDraftStars] = useState(0);
+  const [ratingDraftComment, setRatingDraftComment] = useState('');
 
   const q = query.trim().toLowerCase();
   const matchesQuery = (i: (typeof items)[number]) =>
@@ -134,6 +143,88 @@ export default function ForSaleBoard() {
   const viewingCommentsItem = items.find((i) => i.id === viewingCommentsId);
   const viewingCommentsKey = viewingCommentsItem ? itemCommentKey('sale', viewingCommentsItem.id) : null;
   const viewingComments = viewingCommentsKey ? (itemComments[viewingCommentsKey] ?? []) : [];
+
+  const renderSaleRating = (itemId: string) => {
+    if (!(sold[itemId] ?? false)) return null;
+    const myRating = mySaleRatings[itemId];
+    const summary = getEffectiveSaleRatingSummary(itemId, myRating);
+
+    if (ratingItemId === itemId) {
+      return (
+        <View className="mt-3 gap-2 border-t border-charcoal/10 pt-3">
+          <View className="flex-row gap-1.5">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <Pressable key={n} onPress={() => setRatingDraftStars(n)}>
+                <Ionicons
+                  name={n <= ratingDraftStars ? 'star' : 'star-outline'}
+                  size={22}
+                  className="text-gold"
+                />
+              </Pressable>
+            ))}
+          </View>
+          <TextInput
+            value={ratingDraftComment}
+            onChangeText={setRatingDraftComment}
+            placeholder="Add a comment (optional)"
+            placeholderTextColor="#3D3D3D80"
+            multiline
+            className="rounded-xl bg-sand px-3 py-2 text-sm text-charcoal"
+          />
+          <View className="flex-row justify-end gap-4">
+            <Pressable onPress={() => setRatingItemId(null)}>
+              <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+            </Pressable>
+            <Pressable
+              disabled={ratingDraftStars === 0}
+              onPress={() => {
+                rateSaleItem(itemId, ratingDraftStars, ratingDraftComment.trim());
+                setRatingItemId(null);
+              }}
+            >
+              <Text
+                className={`text-sm font-semibold ${
+                  ratingDraftStars === 0 ? 'text-charcoal/30' : 'text-terracotta'
+                }`}
+              >
+                Save
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <Pressable
+        onPress={() => {
+          setRatingItemId(itemId);
+          setRatingDraftStars(myRating?.stars ?? 0);
+          setRatingDraftComment(myRating?.comment ?? '');
+        }}
+        className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3"
+      >
+        <View className="flex-row items-center gap-1.5">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <Ionicons
+              key={n}
+              name={n <= (myRating?.stars ?? Math.round(summary.avg)) ? 'star' : 'star-outline'}
+              size={14}
+              className="text-gold"
+            />
+          ))}
+          <Text className="text-xs text-charcoal/50">
+            {myRating
+              ? 'Your rating'
+              : summary.count > 0
+                ? `${summary.avg.toFixed(1)} (${summary.count})`
+                : 'Rate this sale'}
+          </Text>
+        </View>
+        <Ionicons name={myRating ? 'pencil' : 'chevron-forward'} size={14} className="text-charcoal/40" />
+      </Pressable>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -458,6 +549,7 @@ export default function ForSaleBoard() {
                         )}
                       </>
                     )}
+                    {renderSaleRating(item.id)}
                   </View>
                 );
               })}
@@ -676,6 +768,7 @@ export default function ForSaleBoard() {
                     </View>
                   )
                 )}
+                {renderSaleRating(item.id)}
               </View>
             );
           })}
