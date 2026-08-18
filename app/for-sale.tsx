@@ -32,6 +32,7 @@ import {
   getEffectiveSaleRatingSummary,
   useSaleRatingsStore,
 } from '../store/useSaleRatingsStore';
+import { useSavedSaleSearchesStore } from '../store/useSavedSaleSearchesStore';
 import { useSavedSaleStore } from '../store/useSavedSaleStore';
 
 const SALE_SORTS = ['Newest', 'Most interest', 'Price: low to high'] as const;
@@ -94,9 +95,14 @@ export default function ForSaleBoard() {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentDraft, setEditCommentDraft] = useState('');
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
+  const savedSearches = useSavedSaleSearchesStore((s) => s.searches);
+  const saveSearch = useSavedSaleSearchesStore((s) => s.saveSearch);
+  const deleteSearch = useSavedSaleSearchesStore((s) => s.deleteSearch);
   const [sortBy, setSortBy] = useState<SaleSort>('Newest');
   const [query, setQuery] = useState('');
   const [hideSold, setHideSold] = useState(false);
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [searchNameDraft, setSearchNameDraft] = useState('');
   const [viewingPhotos, setViewingPhotos] = useState<{
     uris: string[];
     index: number;
@@ -119,6 +125,14 @@ export default function ForSaleBoard() {
   const q = query.trim().toLowerCase();
   const matchesQuery = (i: (typeof items)[number]) =>
     q.length === 0 || i.title.toLowerCase().includes(q) || i.note.toLowerCase().includes(q);
+
+  const isSearchModified = query.trim().length > 0 || sortBy !== 'Newest' || hideSold;
+
+  const applySearch = (search: (typeof savedSearches)[number]) => {
+    setQuery(search.query);
+    setSortBy(search.sortBy as SaleSort);
+    setHideSold(search.hideSold);
+  };
 
   const myItems = items.filter((i) => i.ownerId === ME.id && matchesQuery(i));
   const unsortedBoardItems = items.filter(
@@ -272,7 +286,69 @@ export default function ForSaleBoard() {
               <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}
+          {isSearchModified && (
+            <Pressable
+              onPress={() => {
+                setSearchNameDraft('');
+                setSavingSearch(true);
+              }}
+              className="ml-2 h-7 w-7 items-center justify-center"
+            >
+              <Ionicons name="bookmark-outline" size={17} className="text-charcoal/50" />
+            </Pressable>
+          )}
         </View>
+        {savingSearch && (
+          <View className="mt-2 flex-row items-center gap-2 rounded-full bg-cream px-4 py-2">
+            <TextInput
+              value={searchNameDraft}
+              onChangeText={setSearchNameDraft}
+              placeholder="Name this search..."
+              placeholderTextColor="#3D3D3D80"
+              autoFocus
+              className="flex-1 text-sm text-charcoal"
+            />
+            <Pressable onPress={() => setSavingSearch(false)}>
+              <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+            </Pressable>
+            <Pressable
+              disabled={!searchNameDraft.trim()}
+              onPress={() => {
+                saveSearch({ name: searchNameDraft.trim(), query, sortBy, hideSold });
+                setSavingSearch(false);
+              }}
+            >
+              <Text
+                className={`text-xs font-semibold ${
+                  searchNameDraft.trim() ? 'text-terracotta' : 'text-charcoal/30'
+                }`}
+              >
+                Save
+              </Text>
+            </Pressable>
+          </View>
+        )}
+        {savedSearches.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="mt-2 gap-2"
+          >
+            {savedSearches.map((s) => (
+              <Pressable
+                key={s.id}
+                onPress={() => applySearch(s)}
+                className="flex-row items-center gap-1.5 rounded-full bg-cream px-3 py-1.5"
+              >
+                <Ionicons name="bookmark" size={11} className="text-terracotta" />
+                <Text className="text-xs font-medium text-charcoal">{s.name}</Text>
+                <Pressable onPress={() => deleteSearch(s.id)} className="ml-0.5">
+                  <Ionicons name="close" size={12} className="text-charcoal/40" />
+                </Pressable>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-10">

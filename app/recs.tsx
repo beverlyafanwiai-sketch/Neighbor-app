@@ -299,7 +299,7 @@ export default function RecsBoard() {
               <Pressable
                 key={s.id}
                 onPress={() => applySearch(s)}
-                className="flex-row items-center gap-1.5 rounded-full bg-sand px-3 py-1.5"
+                className="flex-row items-center gap-1.5 rounded-full bg-cream px-3 py-1.5"
               >
                 <Ionicons name="bookmark" size={11} className="text-terracotta" />
                 <Text className="text-xs font-medium text-charcoal">{s.name}</Text>
