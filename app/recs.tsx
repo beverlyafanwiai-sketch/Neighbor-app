@@ -23,8 +23,10 @@ import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { useConversationsStore } from '../store/useConversationsStore';
 import { useGroupChatStore } from '../store/useGroupChatStore';
+import { useMutedStore } from '../store/useMutedStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { recCommentKey, useRecCommentsStore } from '../store/useRecCommentsStore';
 import { useRecNotesStore } from '../store/useRecNotesStore';
@@ -41,6 +43,8 @@ type RecsSort = (typeof RECS_SORTS)[number];
 
 export default function RecsBoard() {
   const entries = useRecsStore((s) => s.entries);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const mutedIds = useMutedStore((s) => s.mutedIds);
   const myAgreed = useRecsStore((s) => s.myAgreed);
   const toggleAgree = useRecsStore((s) => s.toggleAgree);
   const deleteEntry = useRecsStore((s) => s.deleteEntry);
@@ -156,7 +160,13 @@ export default function RecsBoard() {
     (e) => e.authorId === ME.id && matchesCategory(e) && matchesKind(e) && matchesQuery(e)
   );
   const filteredBoardEntries = entries.filter(
-    (e) => e.authorId !== ME.id && matchesCategory(e) && matchesKind(e) && matchesQuery(e)
+    (e) =>
+      e.authorId !== ME.id &&
+      !blockedIds[e.authorId] &&
+      !mutedIds[e.authorId] &&
+      matchesCategory(e) &&
+      matchesKind(e) &&
+      matchesQuery(e)
   );
   const boardEntries =
     sortBy === 'Most agreed'

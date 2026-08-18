@@ -13,6 +13,7 @@ import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { useDismissedListingsStore } from '../store/useDismissedListingsStore';
 import {
   itemCommentKey,
@@ -24,6 +25,7 @@ import {
   useLendRatingsStore,
 } from '../store/useLendRatingsStore';
 import { getEffectiveHelperCount, getEffectiveHelperIds, useLendStore } from '../store/useLendStore';
+import { useMutedStore } from '../store/useMutedStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { useSavedLendSearchesStore } from '../store/useSavedLendSearchesStore';
@@ -37,6 +39,8 @@ type KindFilter = (typeof KIND_FILTERS)[number];
 
 export default function LendBoard() {
   const items = useLendStore((s) => s.items);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const mutedIds = useMutedStore((s) => s.mutedIds);
   const status = useLendStore((s) => s.status);
   const borrowerId = useLendStore((s) => s.borrowerId);
   const dueLabel = useLendStore((s) => s.dueLabel);
@@ -129,6 +133,8 @@ export default function LendBoard() {
   const unsortedBoardItems = items.filter(
     (i) =>
       i.ownerId !== ME.id &&
+      !blockedIds[i.ownerId] &&
+      !mutedIds[i.ownerId] &&
       matchesKind(i) &&
       matchesQuery(i) &&
       (!hideUnavailable || ((status[i.id] ?? 'available') === 'available' && !i.unavailableNote)) &&

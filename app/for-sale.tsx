@@ -13,6 +13,7 @@ import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { useDismissedListingsStore } from '../store/useDismissedListingsStore';
 import {
   getEffectiveInterestCount,
@@ -26,6 +27,7 @@ import {
   itemCommentReactionKey,
   useItemCommentsStore,
 } from '../store/useItemCommentsStore';
+import { useMutedStore } from '../store/useMutedStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
 import {
@@ -45,6 +47,8 @@ function parsePrice(price: string) {
 
 export default function ForSaleBoard() {
   const items = useSaleStore((s) => s.items);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const mutedIds = useMutedStore((s) => s.mutedIds);
   const sold = useSaleStore((s) => s.sold);
   const myInterest = useSaleStore((s) => s.myInterest);
   const toggleInterest = useSaleStore((s) => s.toggleInterest);
@@ -138,6 +142,8 @@ export default function ForSaleBoard() {
   const unsortedBoardItems = items.filter(
     (i) =>
       i.ownerId !== ME.id &&
+      !blockedIds[i.ownerId] &&
+      !mutedIds[i.ownerId] &&
       matchesQuery(i) &&
       (!hideSold || !(sold[i.id] ?? false)) &&
       !(dismissedSaleIds[i.id] ?? false)
