@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
 import ReactionButton from '../components/ReactionButton';
+import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { ALERT_CATEGORIES, ME, getUser } from '../data/mock';
 import { alertCommentKey, useAlertCommentsStore } from '../store/useAlertCommentsStore';
@@ -52,6 +53,7 @@ export default function NeighborhoodAlerts() {
   const profile = useProfileStore((s) => s.profile);
   const [now] = useState(() => Date.now());
   const [sharingId, setSharingId] = useState<string | null>(null);
+  const [reportingId, setReportingId] = useState<string | null>(null);
   const [viewingCommentsId, setViewingCommentsId] = useState<string | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
   const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
@@ -195,6 +197,14 @@ export default function NeighborhoodAlerts() {
                     >
                       <Ionicons name="copy-outline" size={16} className="text-charcoal/50" />
                     </Pressable>
+                    {!isMine && (
+                      <Pressable
+                        onPress={() => setReportingId(alert.id)}
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="flag-outline" size={15} className="text-charcoal/50" />
+                      </Pressable>
+                    )}
                   </View>
                   {isMine && (
                     <View className="flex-row gap-1">
@@ -305,6 +315,14 @@ export default function NeighborhoodAlerts() {
           link={`https://neighbor.app/alerts/${sharingAlert.id}`}
           previewText={`${ALERT_CATEGORIES.find((c) => c.value === sharingAlert.category)?.label ?? 'Alert'}: ${sharingAlert.text}`}
           onClose={() => setSharingId(null)}
+        />
+      )}
+
+      {reportingId && (
+        <ReportPostSheet
+          onClose={() => setReportingId(null)}
+          title="Alert options"
+          actionLabel="Report this alert"
         />
       )}
 
