@@ -9,6 +9,7 @@ import EventCalendar from '../../components/EventCalendar';
 import { EVENT_CATEGORIES, ME, getUser, type EventCategory } from '../../data/mock';
 import { getCountdownLabel } from '../../lib/eventCountdown';
 import { useBlockedStore } from '../../store/useBlockedStore';
+import { useDismissedEventsStore } from '../../store/useDismissedEventsStore';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckInStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
@@ -49,6 +50,8 @@ export default function Events() {
   const pinnedEventId = useEventsStore((s) => s.pinnedEventId);
   const pinEvent = useEventsStore((s) => s.pinEvent);
   const unpinEvent = useEventsStore((s) => s.unpinEvent);
+  const dismissedIds = useDismissedEventsStore((s) => s.dismissedIds);
+  const dismissEvent = useDismissedEventsStore((s) => s.dismissEvent);
   const toggleSaveEvent = useSavedEventsStore((s) => s.toggleSave);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
@@ -96,7 +99,9 @@ export default function Events() {
   const hosting = events.filter((e) => e.hostId === ME.id && matches(e));
   const past = events.filter((e) => e.status === 'past' && matches(e));
 
-  let upcoming = events.filter((e) => e.status === 'upcoming' && matches(e));
+  let upcoming = events.filter(
+    (e) => e.status === 'upcoming' && matches(e) && !dismissedIds[e.id]
+  );
   if (onlyOpen) {
     upcoming = upcoming.filter((e) => {
       const { spotsTaken, spotsTotal } = getEffectiveSpots(e.id, goingMap[e.id] ?? false);
@@ -451,6 +456,17 @@ export default function Events() {
                           className={saved ? 'text-gold' : 'text-charcoal/40'}
                         />
                       </Pressable>
+                      {e.hostId !== ME.id && (
+                        <Pressable
+                          onPress={(evt) => {
+                            evt.stopPropagation();
+                            dismissEvent(e.id);
+                          }}
+                          className="h-6 w-6 items-center justify-center"
+                        >
+                          <Ionicons name="close" size={15} className="text-charcoal/40" />
+                        </Pressable>
+                      )}
                     </View>
                     <Text className="mt-0.5 text-xs text-charcoal/60">
                       {e.time} · {e.location}
