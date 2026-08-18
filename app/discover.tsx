@@ -51,10 +51,12 @@ export default function Discover() {
   const [confirmingBlockId, setConfirmingBlockId] = useState<string | null>(null);
   const dismissedIds = useDismissedDiscoverStore((s) => s.dismissedIds);
   const dismiss = useDismissedDiscoverStore((s) => s.dismiss);
+  const dismissedGroupIds = useDismissedDiscoverStore((s) => s.dismissedGroupIds);
+  const dismissGroup = useDismissedDiscoverStore((s) => s.dismissGroup);
   const [menuForId, setMenuForId] = useState<string | null>(null);
   const myTags = useProfileStore((s) => s.profile.tags);
 
-  const discoverGroups = allGroups.filter((g) => !joinedMap[g.id]);
+  const discoverGroups = allGroups.filter((g) => !joinedMap[g.id] && !dismissedGroupIds[g.id]);
   const discoverableUsers = DISCOVER_USERS.filter((u) => !blockedIds[u.id] && !dismissedIds[u.id]);
 
   const people = useMemo(() => {
@@ -367,6 +369,15 @@ export default function Discover() {
                     className="rounded-full bg-ink px-4 py-2"
                   >
                     <Text className="text-xs font-semibold text-paper">Join</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={(evt) => {
+                      evt.stopPropagation();
+                      dismissGroup(g.id);
+                    }}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons name="close" size={16} className="text-charcoal/40" />
                   </Pressable>
                 </Pressable>
               );
