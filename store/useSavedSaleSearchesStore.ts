@@ -10,6 +10,7 @@ export type SavedSaleSearch = {
   maxPrice: string;
   conditionFilter: string;
   flexibilityFilter: string;
+  onlyFriends: boolean;
 };
 
 type SavedSaleSearchesState = {

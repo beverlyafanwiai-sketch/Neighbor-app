@@ -17,6 +17,7 @@ import { getUser, ME, SALE_CONDITIONS, type SaleCondition } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useConversationsStore } from '../store/useConversationsStore';
 import { useDismissedListingsStore } from '../store/useDismissedListingsStore';
+import { useFriendsStore } from '../store/useFriendsStore';
 import { useGroupChatStore } from '../store/useGroupChatStore';
 import {
   getEffectiveInterestCount,
@@ -52,6 +53,7 @@ export default function ForSaleBoard() {
   const items = useSaleStore((s) => s.items);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const friendStatuses = useFriendsStore((s) => s.statuses);
   const sold = useSaleStore((s) => s.sold);
   const myInterest = useSaleStore((s) => s.myInterest);
   const toggleInterest = useSaleStore((s) => s.toggleInterest);
@@ -120,6 +122,7 @@ export default function ForSaleBoard() {
   const [maxPriceFilter, setMaxPriceFilter] = useState('');
   const [conditionFilter, setConditionFilter] = useState<'All' | SaleCondition>('All');
   const [flexibilityFilter, setFlexibilityFilter] = useState<'All' | 'Firm' | 'Negotiable'>('All');
+  const [onlyFriends, setOnlyFriends] = useState(false);
   const [savingSearch, setSavingSearch] = useState(false);
   const [renamingSearchId, setRenamingSearchId] = useState<string | null>(null);
   const [searchNameDraft, setSearchNameDraft] = useState('');
@@ -155,7 +158,8 @@ export default function ForSaleBoard() {
     minPriceFilter.trim().length > 0 ||
     maxPriceFilter.trim().length > 0 ||
     conditionFilter !== 'All' ||
-    flexibilityFilter !== 'All';
+    flexibilityFilter !== 'All' ||
+    onlyFriends;
 
   const applySearch = (search: (typeof savedSearches)[number]) => {
     setQuery(search.query);
@@ -165,6 +169,7 @@ export default function ForSaleBoard() {
     setMaxPriceFilter(search.maxPrice);
     setConditionFilter(search.conditionFilter as 'All' | SaleCondition);
     setFlexibilityFilter(search.flexibilityFilter as 'All' | 'Firm' | 'Negotiable');
+    setOnlyFriends(Boolean(search.onlyFriends));
   };
 
   const minPrice = minPriceFilter.trim() ? parseFloat(minPriceFilter) : undefined;
@@ -187,6 +192,7 @@ export default function ForSaleBoard() {
       i.ownerId !== ME.id &&
       !blockedIds[i.ownerId] &&
       !mutedIds[i.ownerId] &&
+      (!onlyFriends || friendStatuses[i.ownerId] === 'friends') &&
       matchesQuery(i) &&
       matchesPriceRange(i) &&
       matchesCondition(i) &&
@@ -395,6 +401,7 @@ export default function ForSaleBoard() {
                     maxPrice: maxPriceFilter,
                     conditionFilter,
                     flexibilityFilter,
+                    onlyFriends,
                   });
                 }
                 setSavingSearch(false);
@@ -455,17 +462,27 @@ export default function ForSaleBoard() {
           Selling something you don't need? Post it here for neighbors to grab.
         </Text>
 
-        <Pressable
-          onPress={() => setHideSold((h) => !h)}
-          className="mt-3 flex-row items-center gap-2"
-        >
-          <Ionicons
-            name={hideSold ? 'checkbox' : 'square-outline'}
-            size={16}
-            className={hideSold ? 'text-terracotta' : 'text-charcoal/40'}
-          />
-          <Text className="text-xs font-medium text-charcoal/60">Hide sold items</Text>
-        </Pressable>
+        <View className="mt-3 flex-row flex-wrap items-center gap-x-4 gap-y-1.5">
+          <Pressable onPress={() => setHideSold((h) => !h)} className="flex-row items-center gap-2">
+            <Ionicons
+              name={hideSold ? 'checkbox' : 'square-outline'}
+              size={16}
+              className={hideSold ? 'text-terracotta' : 'text-charcoal/40'}
+            />
+            <Text className="text-xs font-medium text-charcoal/60">Hide sold items</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setOnlyFriends((v) => !v)}
+            className="flex-row items-center gap-2"
+          >
+            <Ionicons
+              name={onlyFriends ? 'checkbox' : 'square-outline'}
+              size={16}
+              className={onlyFriends ? 'text-terracotta' : 'text-charcoal/40'}
+            />
+            <Text className="text-xs font-medium text-charcoal/60">Friends only</Text>
+          </Pressable>
+        </View>
 
         <View className="mt-3 flex-row items-center gap-2">
           <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">

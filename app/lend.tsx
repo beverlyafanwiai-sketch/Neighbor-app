@@ -17,6 +17,7 @@ import { getUser, ME } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useConversationsStore } from '../store/useConversationsStore';
 import { useDismissedListingsStore } from '../store/useDismissedListingsStore';
+import { useFriendsStore } from '../store/useFriendsStore';
 import { useGroupChatStore } from '../store/useGroupChatStore';
 import {
   itemCommentKey,
@@ -44,6 +45,7 @@ export default function LendBoard() {
   const items = useLendStore((s) => s.items);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const friendStatuses = useFriendsStore((s) => s.statuses);
   const status = useLendStore((s) => s.status);
   const borrowerId = useLendStore((s) => s.borrowerId);
   const dueLabel = useLendStore((s) => s.dueLabel);
@@ -105,6 +107,7 @@ export default function LendBoard() {
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [query, setQuery] = useState('');
   const [hideUnavailable, setHideUnavailable] = useState(false);
+  const [onlyFriends, setOnlyFriends] = useState(false);
   const [savingSearch, setSavingSearch] = useState(false);
   const [renamingSearchId, setRenamingSearchId] = useState<string | null>(null);
   const [searchNameDraft, setSearchNameDraft] = useState('');
@@ -134,13 +137,18 @@ export default function LendBoard() {
     q.length === 0 || i.title.toLowerCase().includes(q) || i.note.toLowerCase().includes(q);
 
   const isSearchModified =
-    query.trim().length > 0 || sortBy !== 'Newest' || kindFilter !== 'All' || hideUnavailable;
+    query.trim().length > 0 ||
+    sortBy !== 'Newest' ||
+    kindFilter !== 'All' ||
+    hideUnavailable ||
+    onlyFriends;
 
   const applySearch = (search: (typeof savedSearches)[number]) => {
     setQuery(search.query);
     setSortBy(search.sortBy as LendSort);
     setKindFilter(search.kindFilter as KindFilter);
     setHideUnavailable(search.hideUnavailable);
+    setOnlyFriends(Boolean(search.onlyFriends));
   };
 
   const myItems = items.filter((i) => i.ownerId === ME.id && matchesKind(i) && matchesQuery(i));
@@ -149,6 +157,7 @@ export default function LendBoard() {
       i.ownerId !== ME.id &&
       !blockedIds[i.ownerId] &&
       !mutedIds[i.ownerId] &&
+      (!onlyFriends || friendStatuses[i.ownerId] === 'friends') &&
       matchesKind(i) &&
       matchesQuery(i) &&
       (!hideUnavailable || ((status[i.id] ?? 'available') === 'available' && !i.unavailableNote)) &&
@@ -352,6 +361,7 @@ export default function LendBoard() {
                     sortBy,
                     kindFilter,
                     hideUnavailable,
+                    onlyFriends,
                   });
                 }
                 setSavingSearch(false);
@@ -426,17 +436,30 @@ export default function LendBoard() {
           Lend a hand, borrow a tool. No need to own everything when your neighbors already do.
         </Text>
 
-        <Pressable
-          onPress={() => setHideUnavailable((h) => !h)}
-          className="mt-3 flex-row items-center gap-2"
-        >
-          <Ionicons
-            name={hideUnavailable ? 'checkbox' : 'square-outline'}
-            size={16}
-            className={hideUnavailable ? 'text-terracotta' : 'text-charcoal/40'}
-          />
-          <Text className="text-xs font-medium text-charcoal/60">Hide unavailable items</Text>
-        </Pressable>
+        <View className="mt-3 flex-row flex-wrap items-center gap-x-4 gap-y-1.5">
+          <Pressable
+            onPress={() => setHideUnavailable((h) => !h)}
+            className="flex-row items-center gap-2"
+          >
+            <Ionicons
+              name={hideUnavailable ? 'checkbox' : 'square-outline'}
+              size={16}
+              className={hideUnavailable ? 'text-terracotta' : 'text-charcoal/40'}
+            />
+            <Text className="text-xs font-medium text-charcoal/60">Hide unavailable items</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setOnlyFriends((v) => !v)}
+            className="flex-row items-center gap-2"
+          >
+            <Ionicons
+              name={onlyFriends ? 'checkbox' : 'square-outline'}
+              size={16}
+              className={onlyFriends ? 'text-terracotta' : 'text-charcoal/40'}
+            />
+            <Text className="text-xs font-medium text-charcoal/60">Friends only</Text>
+          </Pressable>
+        </View>
 
         {unsortedBoardItems.length > 1 && (
           <View className="mt-4 flex-row items-center gap-2">

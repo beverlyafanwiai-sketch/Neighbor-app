@@ -7,6 +7,7 @@ export type SavedLendSearch = {
   sortBy: string;
   kindFilter: string;
   hideUnavailable: boolean;
+  onlyFriends: boolean;
 };
 
 type SavedLendSearchesState = {
