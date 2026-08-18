@@ -7,6 +7,7 @@ type NotificationsState = {
   notifications: NotificationItem[];
   toast: NotificationItem | null;
   snoozedUntil: Record<string, number>;
+  pinnedId: string | null;
   markRead: (id: string) => void;
   markAllRead: () => void;
   addNotification: (item: Omit<NotificationItem, 'id' | 'read' | 'createdAt'>) => void;
@@ -14,12 +15,14 @@ type NotificationsState = {
   deleteNotification: (id: string) => void;
   snoozeNotification: (id: string, delayMs: number) => void;
   unsnoozeNotification: (id: string) => void;
+  togglePin: (id: string) => void;
 };
 
 export const useNotificationsStore = create<NotificationsState>((set, get) => ({
   notifications: NOTIFICATIONS,
   toast: null,
   snoozedUntil: {},
+  pinnedId: null,
 
   markRead: (id) =>
     set((s) => ({
@@ -48,7 +51,11 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
   deleteNotification: (id) =>
     set((s) => {
       const { [id]: _removed, ...snoozedUntil } = s.snoozedUntil;
-      return { notifications: s.notifications.filter((n) => n.id !== id), snoozedUntil };
+      return {
+        notifications: s.notifications.filter((n) => n.id !== id),
+        snoozedUntil,
+        pinnedId: s.pinnedId === id ? null : s.pinnedId,
+      };
     }),
 
   snoozeNotification: (id, delayMs) => {
@@ -69,4 +76,6 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
       const { [id]: _removed, ...snoozedUntil } = s.snoozedUntil;
       return { snoozedUntil };
     }),
+
+  togglePin: (id) => set((s) => ({ pinnedId: s.pinnedId === id ? null : id })),
 }));

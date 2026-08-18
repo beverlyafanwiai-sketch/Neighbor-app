@@ -44,6 +44,8 @@ export default function Notifications() {
   const snoozedUntil = useNotificationsStore((s) => s.snoozedUntil);
   const snoozeNotification = useNotificationsStore((s) => s.snoozeNotification);
   const unsnoozeNotification = useNotificationsStore((s) => s.unsnoozeNotification);
+  const pinnedId = useNotificationsStore((s) => s.pinnedId);
+  const togglePin = useNotificationsStore((s) => s.togglePin);
   const [snoozingId, setSnoozingId] = useState<string | null>(null);
   const [decliningRequestId, setDecliningRequestId] = useState<string | null>(null);
   const [declineNoteDraft, setDeclineNoteDraft] = useState('');
@@ -62,11 +64,147 @@ export default function Notifications() {
   });
   const activeNotifications = notifications.filter((n) => !snoozedUntil[n.id]);
   const snoozedNotifications = notifications.filter((n) => snoozedUntil[n.id]);
-  const notificationGroups = groupByDay(activeNotifications);
+  const pinnedNotification = activeNotifications.find((n) => n.id === pinnedId);
+  const notificationGroups = groupByDay(activeNotifications.filter((n) => n.id !== pinnedId));
   const hasUnread = notifications.some((n) => !n.read);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const acceptRequest = useFriendsStore((s) => s.acceptRequest);
   const declineRequest = useFriendsStore((s) => s.declineRequest);
+
+  const renderNotification = (n: NotificationItem) => {
+    const actor = n.actorId ? getUser(n.actorId) : undefined;
+    const isPendingRequest =
+      n.type === 'friend_request' &&
+      n.actorId !== undefined &&
+      friendStatuses[n.actorId] === 'pending_in';
+    const isPinned = n.id === pinnedId;
+    return (
+      <View
+        key={n.id}
+        className={`rounded-2xl p-4 ${n.read ? 'bg-cream' : 'bg-cream border border-terracotta/30'}`}
+      >
+        <View className="flex-row items-center gap-2">
+          {actor ? (
+            <Pressable onPress={() => router.push(`/profile/${actor.id}`)}>
+              <Image source={{ uri: actor.avatar }} className="h-11 w-11 rounded-full" />
+            </Pressable>
+          ) : (
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-sage/20">
+              <Ionicons name={TYPE_ICON[n.type]} size={18} className="text-sage" />
+            </View>
+          )}
+          <Pressable
+            onPress={() => {
+              markRead(n.id);
+              goToTarget(n.target);
+            }}
+            className="flex-1 flex-row items-center gap-3 active:opacity-80"
+          >
+            <View className="flex-1">
+              <Text
+                className={`text-[15px] ${n.read ? 'text-charcoal/80' : 'font-semibold text-charcoal'}`}
+              >
+                {n.text}
+              </Text>
+              <Text className="mt-0.5 text-xs text-charcoal/50">{n.time}</Text>
+            </View>
+            {!n.read && <View className="h-2.5 w-2.5 rounded-full bg-terracotta" />}
+          </Pressable>
+          <Pressable
+            onPress={() => togglePin(n.id)}
+            className="h-7 w-7 items-center justify-center rounded-full"
+          >
+            <Ionicons
+              name={isPinned ? 'pin' : 'pin-outline'}
+              size={16}
+              className={isPinned ? 'text-gold' : 'text-charcoal/40'}
+            />
+          </Pressable>
+          <Pressable
+            onPress={() => setSnoozingId(snoozingId === n.id ? null : n.id)}
+            className="h-7 w-7 items-center justify-center rounded-full"
+          >
+            <Ionicons name="time-outline" size={16} className="text-charcoal/40" />
+          </Pressable>
+          <Pressable
+            onPress={() => deleteNotification(n.id)}
+            className="h-7 w-7 items-center justify-center rounded-full"
+          >
+            <Ionicons name="close" size={16} className="text-charcoal/40" />
+          </Pressable>
+        </View>
+
+        {snoozingId === n.id && (
+          <View className="ml-14 mt-3 flex-row flex-wrap gap-2">
+            {SNOOZE_OPTIONS.map((opt) => (
+              <Pressable
+                key={opt.label}
+                onPress={() => {
+                  snoozeNotification(n.id, opt.ms);
+                  setSnoozingId(null);
+                }}
+                className="rounded-full bg-sand px-3 py-1.5"
+              >
+                <Text className="text-xs font-medium text-charcoal/70">{opt.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
+        {isPendingRequest &&
+          (decliningRequestId === n.id ? (
+            <View className="ml-14 mt-3 gap-2">
+              <TextInput
+                value={declineNoteDraft}
+                onChangeText={setDeclineNoteDraft}
+                placeholder="Optional note, e.g. maybe another time"
+                placeholderTextColor="#3D3D3D80"
+                autoFocus
+                className="rounded-xl bg-sand px-3 py-2 text-sm text-charcoal"
+              />
+              <View className="flex-row justify-end gap-4">
+                <Pressable
+                  onPress={() => {
+                    setDecliningRequestId(null);
+                    setDeclineNoteDraft('');
+                  }}
+                >
+                  <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    markRead(n.id);
+                    declineRequest(n.actorId!, declineNoteDraft);
+                    setDecliningRequestId(null);
+                    setDeclineNoteDraft('');
+                  }}
+                >
+                  <Text className="text-sm font-semibold text-terracotta">Decline</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : (
+            <View className="ml-14 mt-3 flex-row gap-2">
+              <Pressable
+                onPress={() => {
+                  markRead(n.id);
+                  acceptRequest(n.actorId!);
+                }}
+                className="rounded-full bg-terracotta px-4 py-1.5"
+              >
+                <Text className="text-xs font-semibold text-paper">Accept</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setDecliningRequestId(n.id)}
+                className="rounded-full bg-sand px-4 py-1.5"
+              >
+                <Text className="text-xs font-semibold text-charcoal">Decline</Text>
+              </Pressable>
+            </View>
+          ))}
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -168,134 +306,23 @@ export default function Notifications() {
               ))}
             </View>
           )}
+          {pinnedNotification && (
+            <View className="gap-3">
+              <View className="flex-row items-center gap-1.5">
+                <Ionicons name="pin" size={12} className="text-gold" />
+                <Text className="text-xs font-semibold uppercase tracking-wide text-gold">
+                  Pinned
+                </Text>
+              </View>
+              {renderNotification(pinnedNotification)}
+            </View>
+          )}
           {notificationGroups.map((group) => (
             <View key={group.label} className="gap-3">
               <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
                 {group.label}
               </Text>
-              {group.items.map((n) => {
-                const actor = n.actorId ? getUser(n.actorId) : undefined;
-                const isPendingRequest =
-                  n.type === 'friend_request' &&
-                  n.actorId !== undefined &&
-                  friendStatuses[n.actorId] === 'pending_in';
-                return (
-                  <View
-                    key={n.id}
-                    className={`rounded-2xl p-4 ${n.read ? 'bg-cream' : 'bg-cream border border-terracotta/30'}`}
-                  >
-                    <View className="flex-row items-center gap-2">
-                      {actor ? (
-                        <Pressable onPress={() => router.push(`/profile/${actor.id}`)}>
-                          <Image source={{ uri: actor.avatar }} className="h-11 w-11 rounded-full" />
-                        </Pressable>
-                      ) : (
-                        <View className="h-11 w-11 items-center justify-center rounded-full bg-sage/20">
-                          <Ionicons name={TYPE_ICON[n.type]} size={18} className="text-sage" />
-                        </View>
-                      )}
-                      <Pressable
-                        onPress={() => {
-                          markRead(n.id);
-                          goToTarget(n.target);
-                        }}
-                        className="flex-1 flex-row items-center gap-3 active:opacity-80"
-                      >
-                        <View className="flex-1">
-                          <Text
-                            className={`text-[15px] ${n.read ? 'text-charcoal/80' : 'font-semibold text-charcoal'}`}
-                          >
-                            {n.text}
-                          </Text>
-                          <Text className="mt-0.5 text-xs text-charcoal/50">{n.time}</Text>
-                        </View>
-                        {!n.read && <View className="h-2.5 w-2.5 rounded-full bg-terracotta" />}
-                      </Pressable>
-                      <Pressable
-                        onPress={() => setSnoozingId(snoozingId === n.id ? null : n.id)}
-                        className="h-7 w-7 items-center justify-center rounded-full"
-                      >
-                        <Ionicons name="time-outline" size={16} className="text-charcoal/40" />
-                      </Pressable>
-                      <Pressable
-                        onPress={() => deleteNotification(n.id)}
-                        className="h-7 w-7 items-center justify-center rounded-full"
-                      >
-                        <Ionicons name="close" size={16} className="text-charcoal/40" />
-                      </Pressable>
-                    </View>
-
-                    {snoozingId === n.id && (
-                      <View className="ml-14 mt-3 flex-row flex-wrap gap-2">
-                        {SNOOZE_OPTIONS.map((opt) => (
-                          <Pressable
-                            key={opt.label}
-                            onPress={() => {
-                              snoozeNotification(n.id, opt.ms);
-                              setSnoozingId(null);
-                            }}
-                            className="rounded-full bg-sand px-3 py-1.5"
-                          >
-                            <Text className="text-xs font-medium text-charcoal/70">{opt.label}</Text>
-                          </Pressable>
-                        ))}
-                      </View>
-                    )}
-
-                    {isPendingRequest &&
-                      (decliningRequestId === n.id ? (
-                        <View className="ml-14 mt-3 gap-2">
-                          <TextInput
-                            value={declineNoteDraft}
-                            onChangeText={setDeclineNoteDraft}
-                            placeholder="Optional note, e.g. maybe another time"
-                            placeholderTextColor="#3D3D3D80"
-                            autoFocus
-                            className="rounded-xl bg-sand px-3 py-2 text-sm text-charcoal"
-                          />
-                          <View className="flex-row justify-end gap-4">
-                            <Pressable
-                              onPress={() => {
-                                setDecliningRequestId(null);
-                                setDeclineNoteDraft('');
-                              }}
-                            >
-                              <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
-                            </Pressable>
-                            <Pressable
-                              onPress={() => {
-                                markRead(n.id);
-                                declineRequest(n.actorId!, declineNoteDraft);
-                                setDecliningRequestId(null);
-                                setDeclineNoteDraft('');
-                              }}
-                            >
-                              <Text className="text-sm font-semibold text-terracotta">Decline</Text>
-                            </Pressable>
-                          </View>
-                        </View>
-                      ) : (
-                        <View className="ml-14 mt-3 flex-row gap-2">
-                          <Pressable
-                            onPress={() => {
-                              markRead(n.id);
-                              acceptRequest(n.actorId!);
-                            }}
-                            className="rounded-full bg-terracotta px-4 py-1.5"
-                          >
-                            <Text className="text-xs font-semibold text-paper">Accept</Text>
-                          </Pressable>
-                          <Pressable
-                            onPress={() => setDecliningRequestId(n.id)}
-                            className="rounded-full bg-sand px-4 py-1.5"
-                          >
-                            <Text className="text-xs font-semibold text-charcoal">Decline</Text>
-                          </Pressable>
-                        </View>
-                      ))}
-                  </View>
-                );
-              })}
+              {group.items.map((n) => renderNotification(n))}
             </View>
           ))}
           {activeNotifications.length === 0 && snoozedNotifications.length === 0 && (
