@@ -34,6 +34,7 @@ import {
 } from '../store/useAlertsStore';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useConversationsStore } from '../store/useConversationsStore';
+import { useFriendsStore } from '../store/useFriendsStore';
 import { useGroupChatStore } from '../store/useGroupChatStore';
 import { useMutedAlertCategoriesStore } from '../store/useMutedAlertCategoriesStore';
 import { useMutedStore } from '../store/useMutedStore';
@@ -111,13 +112,18 @@ export default function NeighborhoodAlerts() {
   const toggleMutedCategory = useMutedAlertCategoriesStore((s) => s.toggle);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const friendStatuses = useFriendsStore((s) => s.statuses);
   const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
   const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
   const [sortBy, setSortBy] = useState<AlertSort>('Expiring soon');
   const [categoryFilter, setCategoryFilter] = useState<'All' | AlertCategoryValue>('All');
+  const [onlyFriends, setOnlyFriends] = useState(false);
 
   const visibleAlerts = allAlerts.filter(
-    (a) => !blockedIds[a.authorId] && !mutedIds[a.authorId]
+    (a) =>
+      !blockedIds[a.authorId] &&
+      !mutedIds[a.authorId] &&
+      (!onlyFriends || a.authorId === ME.id || friendStatuses[a.authorId] === 'friends')
   );
   const allActiveAlerts = getActiveAlerts(visibleAlerts, now, pinnedAlertId);
   const unmutedActiveAlerts = allActiveAlerts.filter((a) => !mutedCategories[a.category]);
@@ -206,6 +212,18 @@ export default function NeighborhoodAlerts() {
             {mutedCount} alert{mutedCount === 1 ? '' : 's'} hidden from muted categories
           </Text>
         )}
+
+        <Pressable
+          onPress={() => setOnlyFriends((v) => !v)}
+          className="mt-2 flex-row items-center gap-2"
+        >
+          <Ionicons
+            name={onlyFriends ? 'checkbox' : 'square-outline'}
+            size={16}
+            className={onlyFriends ? 'text-terracotta' : 'text-charcoal/40'}
+          />
+          <Text className="text-xs font-medium text-charcoal/60">Friends only</Text>
+        </Pressable>
 
         {snoozedAlerts.length > 0 && (
           <Pressable
