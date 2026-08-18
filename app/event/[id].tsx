@@ -93,6 +93,8 @@ export default function EventDetail() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [confirmingCancelOfferId, setConfirmingCancelOfferId] = useState<string | null>(null);
+  const [leavingSeatOfferId, setLeavingSeatOfferId] = useState<string | null>(null);
+  const [leaveSeatNoteDraft, setLeaveSeatNoteDraft] = useState('');
   const [postingUpdate, setPostingUpdate] = useState(false);
   const [editingChecklist, setEditingChecklist] = useState(false);
   const [checklistDraft, setChecklistDraft] = useState<string[]>(['']);
@@ -1217,7 +1219,10 @@ export default function EventDetail() {
                               <Ionicons name="pencil" size={14} className="text-charcoal/50" />
                             </Pressable>
                             <Pressable
-                              onPress={() => leaveSeat(offer.id)}
+                              onPress={() => {
+                                setLeavingSeatOfferId(offer.id);
+                                setLeaveSeatNoteDraft('');
+                              }}
                               className="rounded-full bg-sage/20 px-4 py-1.5"
                             >
                               <Text className="text-xs font-semibold text-sage">
@@ -1273,6 +1278,41 @@ export default function EventDetail() {
                           >
                             <Text className="text-sm font-semibold text-terracotta">
                               {offer.riderIds.includes(ME.id) ? 'Save' : 'Request seat'}
+                            </Text>
+                          </Pressable>
+                        </View>
+                      </View>
+                    )}
+                    {leavingSeatOfferId === offer.id && (
+                      <View className="mt-3 gap-2 border-t border-charcoal/10 pt-3">
+                        <Text className="text-xs text-charcoal/50">
+                          Give up your seat? Let the driver know why (optional).
+                        </Text>
+                        <TextInput
+                          value={leaveSeatNoteDraft}
+                          onChangeText={setLeaveSeatNoteDraft}
+                          placeholder="Optional note, e.g. found another ride"
+                          placeholderTextColor="#3D3D3D80"
+                          className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+                        />
+                        <View className="flex-row justify-end gap-4">
+                          <Pressable
+                            onPress={() => {
+                              setLeavingSeatOfferId(null);
+                              setLeaveSeatNoteDraft('');
+                            }}
+                          >
+                            <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => {
+                              leaveSeat(offer.id, leaveSeatNoteDraft);
+                              setLeavingSeatOfferId(null);
+                              setLeaveSeatNoteDraft('');
+                            }}
+                          >
+                            <Text className="text-sm font-semibold text-terracotta">
+                              Give up seat
                             </Text>
                           </Pressable>
                         </View>
