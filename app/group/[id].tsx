@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import InviteGroupSheet from '../../components/InviteGroupSheet';
 import PhotoViewer from '../../components/PhotoViewer';
 import ReportPostSheet from '../../components/ReportPostSheet';
+import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser } from '../../data/mock';
 import { getGroupPhotos, useGroupAlbumStore } from '../../store/useGroupAlbumStore';
 import { useEventsStore } from '../../store/useEventsStore';
@@ -74,6 +75,7 @@ export default function GroupDetail() {
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [reportingGroup, setReportingGroup] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [viewingPhotoIndex, setViewingPhotoIndex] = useState<number | null>(null);
   const [confirmingRemovePhotoId, setConfirmingRemovePhotoId] = useState<string | null>(null);
   const [confirmingRemoveMemberId, setConfirmingRemoveMemberId] = useState<string | null>(null);
@@ -153,6 +155,12 @@ export default function GroupDetail() {
           <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <View className="flex-row items-center gap-1.5">
+          <Pressable
+            onPress={() => setSharing(true)}
+            className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+          >
+            <Ionicons name="arrow-redo-outline" size={17} className="text-charcoal" />
+          </Pressable>
           <Pressable
             onPress={() => toggleSaveGroup(group.id)}
             className="h-9 w-9 items-center justify-center rounded-full bg-cream"
@@ -629,6 +637,15 @@ export default function GroupDetail() {
           onClose={() => setReportingGroup(false)}
           title="Group options"
           actionLabel="Report this group"
+        />
+      )}
+
+      {sharing && (
+        <ShareSheet
+          title="Share group"
+          link={`https://neighbor.app/group/${group.id}`}
+          previewText={`${group.name} — ${group.description}`}
+          onClose={() => setSharing(false)}
         />
       )}
 
