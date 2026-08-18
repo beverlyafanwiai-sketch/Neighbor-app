@@ -9,6 +9,7 @@ export type RecComment = {
   time: string;
   edited?: boolean;
   reactions?: Record<string, ReactionType>;
+  replyToId?: string;
 };
 
 export function recCommentKey(entryId: string, commentId: string) {
@@ -20,7 +21,7 @@ type RecCommentsState = {
   myReactions: Record<string, ReactionType | undefined>;
   bestAnswerId: Record<string, string | undefined>;
   pinnedCommentId: Record<string, string | undefined>;
-  addComment: (entryId: string, text: string) => void;
+  addComment: (entryId: string, text: string, replyToId?: string) => void;
   updateComment: (entryId: string, commentId: string, text: string) => void;
   deleteComment: (entryId: string, commentId: string) => void;
   tapReaction: (entryId: string, commentId: string) => void;
@@ -48,7 +49,7 @@ export const useRecCommentsStore = create<RecCommentsState>((set) => ({
   bestAnswerId: {},
   pinnedCommentId: {},
 
-  addComment: (entryId, text) => {
+  addComment: (entryId, text, replyToId) => {
     const clean = text.trim();
     if (!clean) return;
     const comment: RecComment = {
@@ -56,6 +57,7 @@ export const useRecCommentsStore = create<RecCommentsState>((set) => ({
       authorId: ME.id,
       text: clean,
       time: 'Just now',
+      replyToId,
     };
     set((s) => ({
       comments: { ...s.comments, [entryId]: [...(s.comments[entryId] ?? []), comment] },
