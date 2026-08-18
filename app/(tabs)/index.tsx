@@ -29,6 +29,7 @@ import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { useGroupsStore } from '../../store/useGroupsStore';
 import { useNotificationsStore } from '../../store/useNotificationsStore';
+import { usePostNotesStore } from '../../store/usePostNotesStore';
 import { getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { useSpotlightStore } from '../../store/useSpotlightStore';
@@ -232,6 +233,10 @@ export default function HomeFeed() {
   const myPollVotes = usePostsStore((s) => s.myPollVotes);
   const votePoll = usePostsStore((s) => s.votePoll);
   const pinnedPostId = usePostsStore((s) => s.pinnedPostId);
+  const postNotes = usePostNotesStore((s) => s.notes);
+  const setPostNote = usePostNotesStore((s) => s.setNote);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [postNoteDraft, setPostNoteDraft] = useState('');
   const [sharingPost, setSharingPost] = useState<Post | null>(null);
   const [reactorsPost, setReactorsPost] = useState<Post | null>(null);
   const [reportingPost, setReportingPost] = useState<Post | null>(null);
@@ -273,6 +278,52 @@ export default function HomeFeed() {
           author.name.toLowerCase().includes(q) || post.body.toLowerCase().includes(q)
       )
     : postsWithAuthor;
+
+  const renderPostNote = (postId: string) => {
+    if (editingNoteId === postId) {
+      return (
+        <View className="mt-2">
+          <TextInput
+            value={postNoteDraft}
+            onChangeText={setPostNoteDraft}
+            placeholder="Only you can see this..."
+            placeholderTextColor="#3D3D3D80"
+            multiline
+            autoFocus
+            className="min-h-[52px] rounded-xl bg-sand px-3 py-2 text-xs text-charcoal"
+          />
+          <View className="mt-2 flex-row justify-end gap-4">
+            <Pressable onPress={() => setEditingNoteId(null)}>
+              <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setPostNote(postId, postNoteDraft);
+                setEditingNoteId(null);
+              }}
+            >
+              <Text className="text-xs font-semibold text-terracotta">Save note</Text>
+            </Pressable>
+          </View>
+        </View>
+      );
+    }
+    const note = postNotes[postId];
+    return (
+      <Pressable
+        onPress={() => {
+          setPostNoteDraft(note ?? '');
+          setEditingNoteId(postId);
+        }}
+        className="mt-2 flex-row items-start gap-1"
+      >
+        <Ionicons name="lock-closed-outline" size={12} className="mt-0.5 text-charcoal/40" />
+        <Text className="flex-1 text-xs italic text-charcoal/50" numberOfLines={2}>
+          {note || 'Add a private note'}
+        </Text>
+      </Pressable>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -681,6 +732,7 @@ export default function HomeFeed() {
                     />
                   </Pressable>
                 </View>
+                {renderPostNote(post.id)}
               </View>
             );
           })}
