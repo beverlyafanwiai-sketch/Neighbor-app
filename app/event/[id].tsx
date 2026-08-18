@@ -29,6 +29,9 @@ import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, getWaitlistPosition, useRsvpStore } from '../../store/useRsvpStore';
 import { useSavedEventsStore } from '../../store/useSavedEventsStore';
 
+const ATTENDEE_SORTS = ['Default', 'A-Z', 'Checked in first'] as const;
+type AttendeeSort = (typeof ATTENDEE_SORTS)[number];
+
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const event = useEventsStore((s) => s.events.find((e) => e.id === id));
@@ -102,6 +105,7 @@ export default function EventDetail() {
   const [editingRsvpNote, setEditingRsvpNote] = useState(false);
   const [rsvpNoteDraft, setRsvpNoteDraft] = useState('');
   const [attendeeQuery, setAttendeeQuery] = useState('');
+  const [attendeeSort, setAttendeeSort] = useState<AttendeeSort>('Default');
   const [checkInNoteDraft, setCheckInNoteDraft] = useState('');
   const [updateDraft, setUpdateDraft] = useState('');
   const [confirmingRemoveRiderId, setConfirmingRemoveRiderId] = useState<string | null>(null);
@@ -153,9 +157,17 @@ export default function EventDetail() {
       ? attendees
       : attendees.filter((a) => a!.name.toLowerCase().includes(attendeeQ));
   const resolveUser = (userId: string) => (userId === ME.id ? profile : getUser(userId));
+  const checkedInIds = new Set(getEffectiveCheckedInIds(event, myCheckedIn));
   const checkedIn = getEffectiveCheckedInIds(event, myCheckedIn)
     .map(resolveUser)
     .filter(Boolean);
+  const sortedAttendees =
+    attendeeSort === 'Default'
+      ? visibleAttendees
+      : [...visibleAttendees].sort((a, b) => {
+          if (attendeeSort === 'A-Z') return a!.name.localeCompare(b!.name);
+          return Number(checkedInIds.has(b!.id)) - Number(checkedInIds.has(a!.id));
+        });
   const eventPhotos = getEventPhotos(event.id, albumPhotos);
   const canAddPhotos = going || canManage;
   const canCheckIn = (going || canManage) && !isCancelled;
@@ -893,13 +905,33 @@ export default function EventDetail() {
             )}
           </View>
         )}
+        {attendees.length > 1 && (
+          <View className="mb-3 flex-row items-center gap-2">
+            <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/40">
+              Sort
+            </Text>
+            {ATTENDEE_SORTS.map((s) => (
+              <Pressable
+                key={s}
+                onPress={() => setAttendeeSort(s)}
+                className={`rounded-full px-3 py-1 ${attendeeSort === s ? 'bg-ink' : 'bg-cream'}`}
+              >
+                <Text
+                  className={`text-xs font-medium ${attendeeSort === s ? 'text-paper' : 'text-charcoal/60'}`}
+                >
+                  {s}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
         {visibleAttendees.length === 0 && (
           <Text className="text-sm text-charcoal/50">
             No attendees match "{attendeeQuery.trim()}".
           </Text>
         )}
         <View className="gap-3">
-          {visibleAttendees.map((a) => {
+          {sortedAttendees.map((a) => {
             const isMe = a!.id === ME.id;
             const isAttendeeHost = a!.id === event.hostId;
             const isAttendeeCoHost = (event.coHostIds ?? []).includes(a!.id);
