@@ -89,6 +89,11 @@ export default function NeighborhoodAlerts() {
   const [editCommentDraft, setEditCommentDraft] = useState('');
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
   const [forwardingCommentId, setForwardingCommentId] = useState<string | null>(null);
+  const [replyingToComment, setReplyingToComment] = useState<{
+    id: string;
+    senderName: string;
+    preview: string;
+  } | null>(null);
   const [viewingConfirmedId, setViewingConfirmedId] = useState<string | null>(null);
   const [managingCategories, setManagingCategories] = useState(false);
   const [extendingId, setExtendingId] = useState<string | null>(null);
@@ -616,6 +621,7 @@ export default function NeighborhoodAlerts() {
               setViewingCommentsId(null);
               setConfirmingDeleteCommentId(null);
               setCommentDraft('');
+              setReplyingToComment(null);
             }}
           />
           <KeyboardAvoidingView
@@ -630,6 +636,7 @@ export default function NeighborhoodAlerts() {
                     setViewingCommentsId(null);
                     setConfirmingDeleteCommentId(null);
                     setCommentDraft('');
+                    setReplyingToComment(null);
                   }}
                   className="h-8 w-8 items-center justify-center rounded-full bg-sand"
                 >
@@ -718,6 +725,23 @@ export default function NeighborhoodAlerts() {
                               {c.edited && ' · edited'}
                             </Text>
                           </View>
+                          {c.replyToId &&
+                            (() => {
+                              const replied = viewingComments.find((rc) => rc.id === c.replyToId);
+                              if (!replied) return null;
+                              const repliedAuthor =
+                                replied.authorId === ME.id ? profile : getUser(replied.authorId);
+                              return (
+                                <View className="mb-1 mt-0.5 max-w-[240px] rounded-lg border-l-2 border-charcoal/25 bg-charcoal/5 px-2 py-1.5">
+                                  <Text className="text-[11px] font-semibold text-charcoal/60">
+                                    {replied.authorId === ME.id ? 'You' : (repliedAuthor?.name ?? 'Someone')}
+                                  </Text>
+                                  <Text className="text-[11px] text-charcoal/50" numberOfLines={1}>
+                                    {replied.text}
+                                  </Text>
+                                </View>
+                              );
+                            })()}
                           <MentionText text={c.text} className="mt-0.5 text-sm leading-5 text-charcoal" />
                           <ReactionButton
                             compact
@@ -727,6 +751,18 @@ export default function NeighborhoodAlerts() {
                             onSelect={(type) => setCommentReaction(viewingCommentsAlert.id, c.id, type)}
                           />
                         </View>
+                        <Pressable
+                          onPress={() =>
+                            setReplyingToComment({
+                              id: c.id,
+                              senderName: isMine ? 'You' : author.name,
+                              preview: c.text,
+                            })
+                          }
+                          className="h-7 w-7 items-center justify-center"
+                        >
+                          <Ionicons name="arrow-undo-outline" size={14} className="text-charcoal/30" />
+                        </Pressable>
                         <Pressable
                           onPress={() => setForwardingCommentId(c.id)}
                           className="h-7 w-7 items-center justify-center"
@@ -777,7 +813,29 @@ export default function NeighborhoodAlerts() {
                   })}
                 </View>
               </ScrollView>
-              <View className="flex-row items-center gap-2 border-t border-charcoal/10 pt-3">
+              {replyingToComment && (
+                <View className="flex-row items-center justify-between gap-2 border-t border-charcoal/10 pt-2">
+                  <View className="flex-1">
+                    <Text className="text-xs text-charcoal/50">
+                      Replying to{' '}
+                      <Text className="font-semibold text-charcoal/70">
+                        {replyingToComment.senderName}
+                      </Text>
+                    </Text>
+                    <Text className="text-xs text-charcoal/50" numberOfLines={1}>
+                      {replyingToComment.preview}
+                    </Text>
+                  </View>
+                  <Pressable onPress={() => setReplyingToComment(null)} className="p-1">
+                    <Ionicons name="close" size={14} className="text-charcoal/50" />
+                  </Pressable>
+                </View>
+              )}
+              <View
+                className={`flex-row items-center gap-2 pt-3 ${
+                  replyingToComment ? '' : 'border-t border-charcoal/10'
+                }`}
+              >
                 <View className="flex-1">
                   <MentionTextInput
                     value={commentDraft}
@@ -791,8 +849,9 @@ export default function NeighborhoodAlerts() {
                 <Pressable
                   disabled={!commentDraft.trim()}
                   onPress={() => {
-                    addComment(viewingCommentsAlert.id, commentDraft);
+                    addComment(viewingCommentsAlert.id, commentDraft, replyingToComment?.id);
                     setCommentDraft('');
+                    setReplyingToComment(null);
                   }}
                   className="h-9 w-9 items-center justify-center rounded-full bg-terracotta"
                   style={{ opacity: commentDraft.trim() ? 1 : 0.4 }}

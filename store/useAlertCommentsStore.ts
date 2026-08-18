@@ -9,6 +9,7 @@ export type AlertComment = {
   time: string;
   edited?: boolean;
   reactions?: Record<string, ReactionType>;
+  replyToId?: string;
 };
 
 export function alertCommentKey(alertId: string, commentId: string) {
@@ -19,7 +20,7 @@ type AlertCommentsState = {
   comments: Record<string, AlertComment[]>;
   myReactions: Record<string, ReactionType | undefined>;
   pinnedCommentId: Record<string, string | undefined>;
-  addComment: (alertId: string, text: string) => void;
+  addComment: (alertId: string, text: string, replyToId?: string) => void;
   updateComment: (alertId: string, commentId: string, text: string) => void;
   deleteComment: (alertId: string, commentId: string) => void;
   tapReaction: (alertId: string, commentId: string) => void;
@@ -43,7 +44,7 @@ export const useAlertCommentsStore = create<AlertCommentsState>((set) => ({
   myReactions: {},
   pinnedCommentId: {},
 
-  addComment: (alertId, text) => {
+  addComment: (alertId, text, replyToId) => {
     const clean = text.trim();
     if (!clean) return;
     const comment: AlertComment = {
@@ -51,6 +52,7 @@ export const useAlertCommentsStore = create<AlertCommentsState>((set) => ({
       authorId: ME.id,
       text: clean,
       time: 'Just now',
+      replyToId,
     };
     set((s) => ({
       comments: { ...s.comments, [alertId]: [...(s.comments[alertId] ?? []), comment] },

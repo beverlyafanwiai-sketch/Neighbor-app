@@ -9,13 +9,14 @@ export type ItemComment = {
   time: string;
   edited?: boolean;
   reactions?: Record<string, ReactionType>;
+  replyToId?: string;
 };
 
 type ItemCommentsState = {
   comments: Record<string, ItemComment[]>;
   myReactions: Record<string, ReactionType | undefined>;
   pinnedCommentId: Record<string, string | undefined>;
-  addComment: (key: string, text: string) => void;
+  addComment: (key: string, text: string, replyToId?: string) => void;
   updateComment: (key: string, commentId: string, text: string) => void;
   deleteComment: (key: string, commentId: string) => void;
   tapReaction: (key: string, commentId: string) => void;
@@ -30,7 +31,7 @@ export const useItemCommentsStore = create<ItemCommentsState>((set) => ({
   myReactions: {},
   pinnedCommentId: {},
 
-  addComment: (key, text) => {
+  addComment: (key, text, replyToId) => {
     const clean = text.trim();
     if (!clean) return;
     const comment: ItemComment = {
@@ -38,6 +39,7 @@ export const useItemCommentsStore = create<ItemCommentsState>((set) => ({
       authorId: ME.id,
       text: clean,
       time: 'Just now',
+      replyToId,
     };
     set((s) => ({
       comments: { ...s.comments, [key]: [...(s.comments[key] ?? []), comment] },
