@@ -72,6 +72,7 @@ export default function RecsBoard() {
   const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
   const savedSearches = useSavedRecSearchesStore((s) => s.searches);
   const saveSearch = useSavedRecSearchesStore((s) => s.saveSearch);
+  const renameSearch = useSavedRecSearchesStore((s) => s.renameSearch);
   const deleteSearch = useSavedRecSearchesStore((s) => s.deleteSearch);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [managingCategories, setManagingCategories] = useState(false);
@@ -80,6 +81,7 @@ export default function RecsBoard() {
   const [query, setQuery] = useState('');
   const [savingSearch, setSavingSearch] = useState(false);
   const [searchNameDraft, setSearchNameDraft] = useState('');
+  const [renamingSearchId, setRenamingSearchId] = useState<string | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [viewingAgreedId, setViewingAgreedId] = useState<string | null>(null);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
@@ -285,30 +287,40 @@ export default function RecsBoard() {
             </Pressable>
           )}
         </View>
-        {savingSearch && (
+        {(savingSearch || renamingSearchId) && (
           <View className="mt-2 flex-row items-center gap-2 rounded-full bg-cream px-4 py-2">
             <TextInput
               value={searchNameDraft}
               onChangeText={setSearchNameDraft}
-              placeholder="Name this search..."
+              placeholder={renamingSearchId ? 'Rename search...' : 'Name this search...'}
               placeholderTextColor="#3D3D3D80"
               autoFocus
               className="flex-1 text-sm text-charcoal"
             />
-            <Pressable onPress={() => setSavingSearch(false)}>
+            <Pressable
+              onPress={() => {
+                setSavingSearch(false);
+                setRenamingSearchId(null);
+              }}
+            >
               <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
             </Pressable>
             <Pressable
               disabled={!searchNameDraft.trim()}
               onPress={() => {
-                saveSearch({
-                  name: searchNameDraft.trim(),
-                  query,
-                  categoryFilter,
-                  kindFilter,
-                  sortBy,
-                });
+                if (renamingSearchId) {
+                  renameSearch(renamingSearchId, searchNameDraft);
+                } else {
+                  saveSearch({
+                    name: searchNameDraft.trim(),
+                    query,
+                    categoryFilter,
+                    kindFilter,
+                    sortBy,
+                  });
+                }
                 setSavingSearch(false);
+                setRenamingSearchId(null);
               }}
             >
               <Text
@@ -335,7 +347,23 @@ export default function RecsBoard() {
               >
                 <Ionicons name="bookmark" size={11} className="text-terracotta" />
                 <Text className="text-xs font-medium text-charcoal">{s.name}</Text>
-                <Pressable onPress={() => deleteSearch(s.id)} className="ml-0.5">
+                <Pressable
+                  onPress={(evt) => {
+                    evt.stopPropagation();
+                    setSearchNameDraft(s.name);
+                    setRenamingSearchId(s.id);
+                  }}
+                  className="ml-0.5"
+                >
+                  <Ionicons name="pencil" size={11} className="text-charcoal/40" />
+                </Pressable>
+                <Pressable
+                  onPress={(evt) => {
+                    evt.stopPropagation();
+                    deleteSearch(s.id);
+                  }}
+                  className="ml-0.5"
+                >
                   <Ionicons name="close" size={12} className="text-charcoal/40" />
                 </Pressable>
               </Pressable>

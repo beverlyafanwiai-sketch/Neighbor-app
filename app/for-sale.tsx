@@ -110,11 +110,13 @@ export default function ForSaleBoard() {
   } | null>(null);
   const savedSearches = useSavedSaleSearchesStore((s) => s.searches);
   const saveSearch = useSavedSaleSearchesStore((s) => s.saveSearch);
+  const renameSearch = useSavedSaleSearchesStore((s) => s.renameSearch);
   const deleteSearch = useSavedSaleSearchesStore((s) => s.deleteSearch);
   const [sortBy, setSortBy] = useState<SaleSort>('Newest');
   const [query, setQuery] = useState('');
   const [hideSold, setHideSold] = useState(false);
   const [savingSearch, setSavingSearch] = useState(false);
+  const [renamingSearchId, setRenamingSearchId] = useState<string | null>(null);
   const [searchNameDraft, setSearchNameDraft] = useState('');
   const [viewingPhotos, setViewingPhotos] = useState<{
     uris: string[];
@@ -325,24 +327,34 @@ export default function ForSaleBoard() {
             </Pressable>
           )}
         </View>
-        {savingSearch && (
+        {(savingSearch || renamingSearchId) && (
           <View className="mt-2 flex-row items-center gap-2 rounded-full bg-cream px-4 py-2">
             <TextInput
               value={searchNameDraft}
               onChangeText={setSearchNameDraft}
-              placeholder="Name this search..."
+              placeholder={renamingSearchId ? 'Rename search...' : 'Name this search...'}
               placeholderTextColor="#3D3D3D80"
               autoFocus
               className="flex-1 text-sm text-charcoal"
             />
-            <Pressable onPress={() => setSavingSearch(false)}>
+            <Pressable
+              onPress={() => {
+                setSavingSearch(false);
+                setRenamingSearchId(null);
+              }}
+            >
               <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
             </Pressable>
             <Pressable
               disabled={!searchNameDraft.trim()}
               onPress={() => {
-                saveSearch({ name: searchNameDraft.trim(), query, sortBy, hideSold });
+                if (renamingSearchId) {
+                  renameSearch(renamingSearchId, searchNameDraft);
+                } else {
+                  saveSearch({ name: searchNameDraft.trim(), query, sortBy, hideSold });
+                }
                 setSavingSearch(false);
+                setRenamingSearchId(null);
               }}
             >
               <Text
@@ -369,7 +381,23 @@ export default function ForSaleBoard() {
               >
                 <Ionicons name="bookmark" size={11} className="text-terracotta" />
                 <Text className="text-xs font-medium text-charcoal">{s.name}</Text>
-                <Pressable onPress={() => deleteSearch(s.id)} className="ml-0.5">
+                <Pressable
+                  onPress={(evt) => {
+                    evt.stopPropagation();
+                    setSearchNameDraft(s.name);
+                    setRenamingSearchId(s.id);
+                  }}
+                  className="ml-0.5"
+                >
+                  <Ionicons name="pencil" size={11} className="text-charcoal/40" />
+                </Pressable>
+                <Pressable
+                  onPress={(evt) => {
+                    evt.stopPropagation();
+                    deleteSearch(s.id);
+                  }}
+                  className="ml-0.5"
+                >
                   <Ionicons name="close" size={12} className="text-charcoal/40" />
                 </Pressable>
               </Pressable>
