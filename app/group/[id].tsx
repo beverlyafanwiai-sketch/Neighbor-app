@@ -50,6 +50,8 @@ export default function GroupDetail() {
   const removePhoto = useGroupAlbumStore((s) => s.removePhoto);
   const photoCaptions = useGroupAlbumStore((s) => s.captions);
   const setPhotoCaption = useGroupAlbumStore((s) => s.setCaption);
+  const photoTags = useGroupAlbumStore((s) => s.tags);
+  const setPhotoTags = useGroupAlbumStore((s) => s.setTags);
   const events = useEventsStore((s) => s.events);
   const goingMap = useRsvpStore((s) => s.going);
   const inviteCode = useGroupsStore((s) => (group ? s.inviteCodes[group.id] : undefined));
@@ -91,6 +93,9 @@ export default function GroupDetail() {
 
   const otherMembers = group.memberIds.map((id) => getUser(id)).filter(Boolean);
   const members = joined ? [profile, ...otherMembers] : otherMembers;
+  const taggableUsers = members
+    .filter((m): m is NonNullable<typeof m> => Boolean(m))
+    .map((m) => ({ id: m.id, name: m.name, avatar: m.avatar }));
   const memberQ = memberQuery.trim().toLowerCase();
   const visibleMembers =
     memberQ.length === 0 ? members : members.filter((m) => m!.name.toLowerCase().includes(memberQ));
@@ -745,6 +750,9 @@ export default function GroupDetail() {
           captions={groupPhotos.map((p) => photoCaptions[p.id] ?? '')}
           editableIndices={groupPhotos.map((p) => p.uploaderId === ME.id)}
           onCaptionChange={(i, text) => setPhotoCaption(groupPhotos[i].id, text)}
+          tags={groupPhotos.map((p) => photoTags[p.id] ?? [])}
+          taggableUsers={taggableUsers}
+          onTagsChange={(i, userIds) => setPhotoTags(groupPhotos[i].id, userIds)}
         />
       )}
 
