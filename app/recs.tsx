@@ -26,6 +26,7 @@ import { getUser, ME } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useConversationsStore } from '../store/useConversationsStore';
 import { useGroupChatStore } from '../store/useGroupChatStore';
+import { useMutedRecCategoriesStore } from '../store/useMutedRecCategoriesStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { recCommentKey, useRecCommentsStore } from '../store/useRecCommentsStore';
@@ -45,6 +46,8 @@ export default function RecsBoard() {
   const entries = useRecsStore((s) => s.entries);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const mutedCategories = useMutedRecCategoriesStore((s) => s.muted);
+  const toggleMutedCategory = useMutedRecCategoriesStore((s) => s.toggle);
   const myAgreed = useRecsStore((s) => s.myAgreed);
   const toggleAgree = useRecsStore((s) => s.toggleAgree);
   const deleteEntry = useRecsStore((s) => s.deleteEntry);
@@ -71,6 +74,7 @@ export default function RecsBoard() {
   const saveSearch = useSavedRecSearchesStore((s) => s.saveSearch);
   const deleteSearch = useSavedRecSearchesStore((s) => s.deleteSearch);
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [managingCategories, setManagingCategories] = useState(false);
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [sortBy, setSortBy] = useState<RecsSort>('Newest');
   const [query, setQuery] = useState('');
@@ -164,14 +168,19 @@ export default function RecsBoard() {
   const myEntries = entries.filter(
     (e) => e.authorId === ME.id && matchesCategory(e) && matchesKind(e) && matchesQuery(e)
   );
-  const filteredBoardEntries = entries.filter(
+  const unmutedCategoryBoardEntries = entries.filter(
     (e) =>
       e.authorId !== ME.id &&
       !blockedIds[e.authorId] &&
       !mutedIds[e.authorId] &&
-      matchesCategory(e) &&
       matchesKind(e) &&
       matchesQuery(e)
+  );
+  const mutedCategoryCount = unmutedCategoryBoardEntries.filter(
+    (e) => mutedCategories[e.category]
+  ).length;
+  const filteredBoardEntries = unmutedCategoryBoardEntries.filter(
+    (e) => !mutedCategories[e.category] && matchesCategory(e)
   );
   const boardEntries =
     sortBy === 'Most agreed'
@@ -238,12 +247,20 @@ export default function RecsBoard() {
           <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">Neighborhood Recs</Text>
-        <Pressable
-          onPress={() => router.push('/create-rec')}
-          className="h-9 w-9 items-center justify-center rounded-full bg-terracotta"
-        >
-          <Ionicons name="add" size={20} className="text-paper" />
-        </Pressable>
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={() => setManagingCategories(true)}
+            className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+          >
+            <Ionicons name="options-outline" size={18} className="text-charcoal" />
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/create-rec')}
+            className="h-9 w-9 items-center justify-center rounded-full bg-terracotta"
+          >
+            <Ionicons name="add" size={20} className="text-paper" />
+          </Pressable>
+        </View>
       </View>
 
       <View className="px-5 pb-3">
@@ -371,6 +388,11 @@ export default function RecsBoard() {
         <Text className="mt-1 text-sm text-charcoal/60">
           Who do you trust? Share a recommendation, or ask when you need one.
         </Text>
+        {mutedCategoryCount > 0 && (
+          <Text className="mt-2 text-xs text-charcoal/40">
+            {mutedCategoryCount} post{mutedCategoryCount === 1 ? '' : 's'} hidden from muted categories
+          </Text>
+        )}
 
         {boardEntries.length > 1 && (
           <View className="mt-4 flex-row items-center gap-2">
@@ -1044,6 +1066,54 @@ export default function RecsBoard() {
           onForward={forwardComment}
           onClose={() => setForwardingCommentId(null)}
         />
+      )}
+
+      {managingCategories && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={() => setManagingCategories(false)} />
+          <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Mute categories</Text>
+              <Pressable
+                onPress={() => setManagingCategories(false)}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+            <Text className="text-xs text-charcoal/50">
+              Muted categories are hidden from the board (your own posts still show).
+            </Text>
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 320 }}>
+              <View className="gap-2">
+                {categories
+                  .filter((c) => c !== 'All')
+                  .map((c) => {
+                    const isMuted = mutedCategories[c] ?? false;
+                    return (
+                      <Pressable
+                        key={c}
+                        onPress={() => toggleMutedCategory(c)}
+                        className="flex-row items-center gap-3 rounded-2xl bg-sand p-3.5"
+                      >
+                        <Text className="flex-1 text-sm font-medium text-charcoal">{c}</Text>
+                        <Ionicons
+                          name={isMuted ? 'notifications-off' : 'notifications-outline'}
+                          size={16}
+                          className={isMuted ? 'text-terracotta' : 'text-charcoal/40'}
+                        />
+                      </Pressable>
+                    );
+                  })}
+                {categories.length <= 1 && (
+                  <Text className="py-4 text-center text-sm text-charcoal/50">
+                    No categories yet.
+                  </Text>
+                )}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
       )}
 
       {viewingPhotos && (
