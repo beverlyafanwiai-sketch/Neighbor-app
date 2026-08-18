@@ -30,17 +30,22 @@ const POLL_DURATION_PRESETS: { label: string; hours: number | null }[] = [
 ];
 
 export default function CreatePost() {
-  const { id: editId, draftId, scheduledId } = useLocalSearchParams<{
+  const { id: editId, duplicateId, draftId, scheduledId } = useLocalSearchParams<{
     id?: string;
+    duplicateId?: string;
     draftId?: string;
     scheduledId?: string;
   }>();
   const existing = usePostsStore((s) => (editId ? s.posts.find((p) => p.id === editId) : undefined));
+  const duplicateSource = usePostsStore((s) =>
+    duplicateId ? s.posts.find((p) => p.id === duplicateId) : undefined
+  );
   const existingDraft = usePostsStore((s) => (draftId ? s.drafts.find((d) => d.id === draftId) : undefined));
   const existingScheduled = usePostsStore((s) =>
     scheduledId ? s.scheduledPosts.find((p) => p.id === scheduledId) : undefined
   );
   const isEditing = Boolean(existing);
+  const isDuplicating = Boolean(duplicateSource) && !isEditing;
   const profile = useProfileStore((s) => s.profile);
   const createPost = usePostsStore((s) => s.createPost);
   const updatePost = usePostsStore((s) => s.updatePost);
@@ -48,9 +53,15 @@ export default function CreatePost() {
   const deleteDraft = usePostsStore((s) => s.deleteDraft);
   const schedulePost = usePostsStore((s) => s.schedulePost);
   const cancelScheduledPost = usePostsStore((s) => s.cancelScheduledPost);
-  const [body, setBody] = useState(existing?.body ?? existingDraft?.body ?? existingScheduled?.body ?? '');
+  const [body, setBody] = useState(
+    existing?.body ?? duplicateSource?.body ?? existingDraft?.body ?? existingScheduled?.body ?? ''
+  );
   const [imageUris, setImageUris] = useState<string[]>(
-    existing?.imageUris ?? existingDraft?.imageUris ?? existingScheduled?.imageUris ?? []
+    existing?.imageUris ??
+      duplicateSource?.imageUris ??
+      existingDraft?.imageUris ??
+      existingScheduled?.imageUris ??
+      []
   );
   const [confirmingClose, setConfirmingClose] = useState(false);
   const [showPollBuilder, setShowPollBuilder] = useState(false);
@@ -137,7 +148,13 @@ export default function CreatePost() {
           <Ionicons name="close" size={20} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">
-          {isEditing ? 'Edit post' : existingScheduled ? 'Edit scheduled post' : 'New post'}
+          {isEditing
+            ? 'Edit post'
+            : existingScheduled
+              ? 'Edit scheduled post'
+              : isDuplicating
+                ? 'Duplicate post'
+                : 'New post'}
         </Text>
         <Pressable
           onPress={save}
@@ -169,6 +186,14 @@ export default function CreatePost() {
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView className="flex-1 px-5 pt-2" keyboardShouldPersistTaps="handled">
+          {isDuplicating && (
+            <View className="mb-3 flex-row items-center gap-2 rounded-2xl bg-gold/15 p-3">
+              <Ionicons name="copy-outline" size={16} className="text-gold" />
+              <Text className="flex-1 text-xs text-charcoal/70">
+                Text copied from your earlier post — give it a fresh look if needed.
+              </Text>
+            </View>
+          )}
           <View className="flex-row items-center gap-3">
             <Image source={{ uri: profile.avatar }} className="h-11 w-11 rounded-full" />
             <Text className="font-semibold text-charcoal">{profile.name}</Text>

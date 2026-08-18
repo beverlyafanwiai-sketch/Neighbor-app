@@ -185,6 +185,12 @@ export default function PostDetail() {
               <Ionicons name="pencil" size={17} className="text-charcoal" />
             </Pressable>
             <Pressable
+              onPress={() => router.push(`/create-post?duplicateId=${post.id}`)}
+              className="h-9 w-9 items-center justify-center rounded-full"
+            >
+              <Ionicons name="copy-outline" size={17} className="text-charcoal" />
+            </Pressable>
+            <Pressable
               onPress={() => setConfirmingDelete(true)}
               className="h-9 w-9 items-center justify-center rounded-full"
             >
