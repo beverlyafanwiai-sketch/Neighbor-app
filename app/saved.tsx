@@ -8,6 +8,7 @@ import EmptyState from '../components/EmptyState';
 import MentionText from '../components/MentionText';
 import { DISCOVER_USERS, ME, USERS } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
+import { useFriendsStore } from '../store/useFriendsStore';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../store/useCheckInStore';
 import { useEventsStore } from '../store/useEventsStore';
 import { useMutedStore } from '../store/useMutedStore';
@@ -93,6 +94,7 @@ export default function Saved() {
   const [hidePast, setHidePast] = useState(false);
   const [eventCategoryFilter, setEventCategoryFilter] = useState('All');
   const [hideResolved, setHideResolved] = useState(false);
+  const [onlyFriends, setOnlyFriends] = useState(false);
   const [editingNoteKey, setEditingNoteKey] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState('');
   const savedNotes = useSavedNotesStore((s) => s.notes);
@@ -102,6 +104,7 @@ export default function Saved() {
   const profile = useProfileStore((s) => s.profile);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const friendStatuses = useFriendsStore((s) => s.statuses);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
   const myReactions = usePostsStore((s) => s.myReactions);
@@ -134,6 +137,8 @@ export default function Saved() {
   const q = query.trim().toLowerCase();
   const matches = (...fields: (string | undefined)[]) =>
     q.length === 0 || fields.some((f) => (f ?? '').toLowerCase().includes(q));
+  const matchesFriends = (authorId?: string) =>
+    !onlyFriends || !authorId || authorId === ME.id || friendStatuses[authorId] === 'friends';
 
   const savedPosts = withPinnedFirst(
     posts.filter(
@@ -141,6 +146,7 @@ export default function Saved() {
         (savedIds[p.id] ?? false) &&
         !blockedIds[p.authorId] &&
         !mutedIds[p.authorId] &&
+        matchesFriends(p.authorId) &&
         matches(p.body)
     ),
     (p) => savedNoteKey('post', p.id),
@@ -149,7 +155,8 @@ export default function Saved() {
   const savedEventEntries = events.filter(
     (e) =>
       (savedEventIds[e.id] ?? false) &&
-      (!e.hostId || (!blockedIds[e.hostId] && !mutedIds[e.hostId]))
+      (!e.hostId || (!blockedIds[e.hostId] && !mutedIds[e.hostId])) &&
+      matchesFriends(e.hostId)
   );
   const eventCategories = [
     'All',
@@ -170,7 +177,11 @@ export default function Saved() {
     pinned
   );
   const savedRecEntries = recEntries.filter(
-    (e) => (savedRecIds[e.id] ?? false) && !blockedIds[e.authorId] && !mutedIds[e.authorId]
+    (e) =>
+      (savedRecIds[e.id] ?? false) &&
+      !blockedIds[e.authorId] &&
+      !mutedIds[e.authorId] &&
+      matchesFriends(e.authorId)
   );
   const recCategories = [
     'All',
@@ -200,6 +211,7 @@ export default function Saved() {
           (savedLendIds[i.id] ?? false) &&
           !blockedIds[i.ownerId] &&
           !mutedIds[i.ownerId] &&
+          matchesFriends(i.ownerId) &&
           matches(i.title, i.note) &&
           (!hideUnavailable || ((lendStatus[i.id] ?? 'available') === 'available' && !i.unavailableNote))
       ),
@@ -218,6 +230,7 @@ export default function Saved() {
           (savedSaleIds[i.id] ?? false) &&
           !blockedIds[i.ownerId] &&
           !mutedIds[i.ownerId] &&
+          matchesFriends(i.ownerId) &&
           matches(i.title, i.note) &&
           (!hideSold || !(sold[i.id] ?? false))
       ),
@@ -338,6 +351,17 @@ export default function Saved() {
             </Pressable>
           )}
         </View>
+        <Pressable
+          onPress={() => setOnlyFriends((v) => !v)}
+          className="mt-2 flex-row items-center gap-2"
+        >
+          <Ionicons
+            name={onlyFriends ? 'checkbox' : 'square-outline'}
+            size={16}
+            className={onlyFriends ? 'text-terracotta' : 'text-charcoal/40'}
+          />
+          <Text className="text-xs font-medium text-charcoal/60">Friends only</Text>
+        </Pressable>
       </View>
 
       {mode === 'Recs' && (
