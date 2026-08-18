@@ -7,6 +7,7 @@ export type SavedRecSearch = {
   categoryFilter: string;
   kindFilter: string;
   sortBy: string;
+  onlyUrgent: boolean;
 };
 
 type SavedRecSearchesState = {

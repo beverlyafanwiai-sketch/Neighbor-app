@@ -76,6 +76,7 @@ export default function RecsBoard() {
   const deleteSearch = useSavedRecSearchesStore((s) => s.deleteSearch);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [managingCategories, setManagingCategories] = useState(false);
+  const [onlyUrgent, setOnlyUrgent] = useState(false);
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [sortBy, setSortBy] = useState<RecsSort>('Newest');
   const [query, setQuery] = useState('');
@@ -146,13 +147,18 @@ export default function RecsBoard() {
   };
 
   const isSearchModified =
-    query.trim().length > 0 || categoryFilter !== 'All' || kindFilter !== 'All' || sortBy !== 'Newest';
+    query.trim().length > 0 ||
+    categoryFilter !== 'All' ||
+    kindFilter !== 'All' ||
+    sortBy !== 'Newest' ||
+    onlyUrgent;
 
   const applySearch = (search: (typeof savedSearches)[number]) => {
     setQuery(search.query);
     setCategoryFilter(search.categoryFilter);
     setKindFilter(search.kindFilter as KindFilter);
     setSortBy(search.sortBy as RecsSort);
+    setOnlyUrgent(Boolean(search.onlyUrgent));
   };
 
   const categories = ['All', ...Array.from(new Set(entries.map((e) => e.category))).sort()];
@@ -160,6 +166,7 @@ export default function RecsBoard() {
     categoryFilter === 'All' || e.category === categoryFilter;
   const matchesKind = (e: (typeof entries)[number]) =>
     kindFilter === 'All' || (kindFilter === 'Recs' ? e.kind === 'rec' : e.kind === 'ask');
+  const matchesUrgent = (e: (typeof entries)[number]) => !onlyUrgent || Boolean(e.urgent);
   const q = query.trim().toLowerCase();
   const matchesQuery = (e: (typeof entries)[number]) =>
     q.length === 0 ||
@@ -168,7 +175,12 @@ export default function RecsBoard() {
     e.note.toLowerCase().includes(q);
 
   const myEntries = entries.filter(
-    (e) => e.authorId === ME.id && matchesCategory(e) && matchesKind(e) && matchesQuery(e)
+    (e) =>
+      e.authorId === ME.id &&
+      matchesCategory(e) &&
+      matchesKind(e) &&
+      matchesUrgent(e) &&
+      matchesQuery(e)
   );
   const unmutedCategoryBoardEntries = entries.filter(
     (e) =>
@@ -176,6 +188,7 @@ export default function RecsBoard() {
       !blockedIds[e.authorId] &&
       !mutedIds[e.authorId] &&
       matchesKind(e) &&
+      matchesUrgent(e) &&
       matchesQuery(e)
   );
   const mutedCategoryCount = unmutedCategoryBoardEntries.filter(
@@ -317,6 +330,7 @@ export default function RecsBoard() {
                     categoryFilter,
                     kindFilter,
                     sortBy,
+                    onlyUrgent,
                   });
                 }
                 setSavingSearch(false);
@@ -385,6 +399,20 @@ export default function RecsBoard() {
           </Pressable>
         ))}
       </View>
+
+      {kindFilter !== 'Recs' && (
+        <Pressable
+          onPress={() => setOnlyUrgent((v) => !v)}
+          className="mb-1 flex-row items-center gap-2 px-5 pb-3"
+        >
+          <Ionicons
+            name={onlyUrgent ? 'checkbox' : 'square-outline'}
+            size={16}
+            className={onlyUrgent ? 'text-terracotta' : 'text-charcoal/40'}
+          />
+          <Text className="text-xs font-medium text-charcoal/60">Urgent asks only</Text>
+        </Pressable>
+      )}
 
       {categories.length > 2 && (
         <ScrollView
