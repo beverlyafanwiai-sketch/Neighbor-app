@@ -25,6 +25,7 @@ import { getEffectiveInterestCount, useSaleStore } from '../store/useSaleStore';
 import { useSavedEventsStore } from '../store/useSavedEventsStore';
 import { useSavedLendStore } from '../store/useSavedLendStore';
 import { savedNoteKey, useSavedNotesStore } from '../store/useSavedNotesStore';
+import { useSavedPinsStore } from '../store/useSavedPinsStore';
 import { useSavedRecsStore } from '../store/useSavedRecsStore';
 import { useSavedSaleStore } from '../store/useSavedSaleStore';
 
@@ -47,6 +48,16 @@ type RecKindFilter = (typeof REC_KIND_FILTERS)[number];
 function parsePrice(price: string) {
   const n = parseFloat(price.replace(/[^0-9.]/g, ''));
   return Number.isNaN(n) ? Infinity : n;
+}
+
+function withPinnedFirst<T>(
+  items: T[],
+  keyOf: (item: T) => string,
+  pinned: Record<string, boolean>
+) {
+  const pinnedItems = items.filter((item) => pinned[keyOf(item)]);
+  const rest = items.filter((item) => !pinned[keyOf(item)]);
+  return [...pinnedItems, ...rest];
 }
 
 function sortItems<T>(
@@ -84,6 +95,8 @@ export default function Saved() {
   const [noteDraft, setNoteDraft] = useState('');
   const savedNotes = useSavedNotesStore((s) => s.notes);
   const setSavedNote = useSavedNotesStore((s) => s.setNote);
+  const pinned = useSavedPinsStore((s) => s.pinned);
+  const togglePin = useSavedPinsStore((s) => s.togglePin);
   const profile = useProfileStore((s) => s.profile);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
@@ -118,63 +131,83 @@ export default function Saved() {
   const matches = (...fields: (string | undefined)[]) =>
     q.length === 0 || fields.some((f) => (f ?? '').toLowerCase().includes(q));
 
-  const savedPosts = posts.filter((p) => (savedIds[p.id] ?? false) && matches(p.body));
+  const savedPosts = withPinnedFirst(
+    posts.filter((p) => (savedIds[p.id] ?? false) && matches(p.body)),
+    (p) => savedNoteKey('post', p.id),
+    pinned
+  );
   const savedEventEntries = events.filter((e) => savedEventIds[e.id] ?? false);
   const eventCategories = [
     'All',
     ...Array.from(new Set(savedEventEntries.map((e) => e.category))).sort(),
   ];
-  const savedEvents = sortItems(
-    savedEventEntries.filter(
-      (e) =>
-        matches(e.title, e.location) &&
-        (!hidePast || e.status !== 'past') &&
-        (eventCategoryFilter === 'All' || e.category === eventCategoryFilter)
+  const savedEvents = withPinnedFirst(
+    sortItems(
+      savedEventEntries.filter(
+        (e) =>
+          matches(e.title, e.location) &&
+          (!hidePast || e.status !== 'past') &&
+          (eventCategoryFilter === 'All' || e.category === eventCategoryFilter)
+      ),
+      sortBy,
+      (e) => e.title
     ),
-    sortBy,
-    (e) => e.title
+    (e) => savedNoteKey('event', e.id),
+    pinned
   );
   const savedRecEntries = recEntries.filter((e) => savedRecIds[e.id] ?? false);
   const recCategories = [
     'All',
     ...Array.from(new Set(savedRecEntries.map((e) => e.category))).sort(),
   ];
-  const savedRecs = sortItems(
-    savedRecEntries.filter(
-      (e) =>
-        matches(e.name, e.category, e.note) &&
-        (recKindFilter === 'All' || (recKindFilter === 'Recs' ? e.kind === 'rec' : e.kind === 'ask')) &&
-        (!hideResolved || !(e.kind === 'ask' && e.resolved)) &&
-        (recCategoryFilter === 'All' || e.category === recCategoryFilter)
+  const savedRecs = withPinnedFirst(
+    sortItems(
+      savedRecEntries.filter(
+        (e) =>
+          matches(e.name, e.category, e.note) &&
+          (recKindFilter === 'All' || (recKindFilter === 'Recs' ? e.kind === 'rec' : e.kind === 'ask')) &&
+          (!hideResolved || !(e.kind === 'ask' && e.resolved)) &&
+          (recCategoryFilter === 'All' || e.category === recCategoryFilter)
+      ),
+      sortBy,
+      (e) => e.name ?? e.category,
+      undefined,
+      (e) => getEffectiveAgreeCount(e.id, myAgreed[e.id] ?? false)
     ),
-    sortBy,
-    (e) => e.name ?? e.category,
-    undefined,
-    (e) => getEffectiveAgreeCount(e.id, myAgreed[e.id] ?? false)
+    (e) => savedNoteKey('rec', e.id),
+    pinned
   );
-  const savedLendItems = sortItems(
-    lendItems.filter(
-      (i) =>
-        (savedLendIds[i.id] ?? false) &&
-        matches(i.title, i.note) &&
-        (!hideUnavailable || ((lendStatus[i.id] ?? 'available') === 'available' && !i.unavailableNote))
+  const savedLendItems = withPinnedFirst(
+    sortItems(
+      lendItems.filter(
+        (i) =>
+          (savedLendIds[i.id] ?? false) &&
+          matches(i.title, i.note) &&
+          (!hideUnavailable || ((lendStatus[i.id] ?? 'available') === 'available' && !i.unavailableNote))
+      ),
+      sortBy,
+      (i) => i.title,
+      undefined,
+      (i) => getEffectiveHelperCount(i.id, myOffers[i.id] ?? false)
     ),
-    sortBy,
-    (i) => i.title,
-    undefined,
-    (i) => getEffectiveHelperCount(i.id, myOffers[i.id] ?? false)
+    (i) => savedNoteKey('lend', i.id),
+    pinned
   );
-  const savedSaleItems = sortItems(
-    saleItems.filter(
-      (i) =>
-        (savedSaleIds[i.id] ?? false) &&
-        matches(i.title, i.note) &&
-        (!hideSold || !(sold[i.id] ?? false))
+  const savedSaleItems = withPinnedFirst(
+    sortItems(
+      saleItems.filter(
+        (i) =>
+          (savedSaleIds[i.id] ?? false) &&
+          matches(i.title, i.note) &&
+          (!hideSold || !(sold[i.id] ?? false))
+      ),
+      sortBy,
+      (i) => i.title,
+      (i) => i.price,
+      (i) => getEffectiveInterestCount(i.id, myInterest[i.id] ?? false)
     ),
-    sortBy,
-    (i) => i.title,
-    (i) => i.price,
-    (i) => getEffectiveInterestCount(i.id, myInterest[i.id] ?? false)
+    (i) => savedNoteKey('sale', i.id),
+    pinned
   );
 
   const renderNoteRow = (key: string, borderTop: boolean) => {
@@ -614,14 +647,28 @@ export default function Saved() {
                       </Text>
                     </View>
                   </View>
-                  <Pressable
-                    onPress={(evt) => {
-                      evt.stopPropagation();
-                      toggleSave(post.id);
-                    }}
-                  >
-                    <Ionicons name="bookmark" size={18} className="text-gold" />
-                  </Pressable>
+                  <View className="flex-row items-center gap-3">
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        togglePin(savedNoteKey('post', post.id));
+                      }}
+                    >
+                      <Ionicons
+                        name={pinned[savedNoteKey('post', post.id)] ? 'pin' : 'pin-outline'}
+                        size={17}
+                        className={pinned[savedNoteKey('post', post.id)] ? 'text-terracotta' : 'text-charcoal/40'}
+                      />
+                    </Pressable>
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        toggleSave(post.id);
+                      }}
+                    >
+                      <Ionicons name="bookmark" size={18} className="text-gold" />
+                    </Pressable>
+                  </View>
                 </View>
               </Pressable>
             );
@@ -651,6 +698,19 @@ export default function Saved() {
                       <Text className="flex-1 font-semibold text-charcoal" numberOfLines={1}>
                         {e.title}
                       </Text>
+                      <Pressable
+                        onPress={(evt) => {
+                          evt.stopPropagation();
+                          togglePin(savedNoteKey('event', e.id));
+                        }}
+                        className="h-6 w-6 items-center justify-center"
+                      >
+                        <Ionicons
+                          name={pinned[savedNoteKey('event', e.id)] ? 'pin' : 'pin-outline'}
+                          size={14}
+                          className={pinned[savedNoteKey('event', e.id)] ? 'text-terracotta' : 'text-charcoal/40'}
+                        />
+                      </Pressable>
                       <Pressable
                         onPress={(evt) => {
                           evt.stopPropagation();
@@ -706,6 +766,19 @@ export default function Saved() {
                     <Pressable
                       onPress={(evt) => {
                         evt.stopPropagation();
+                        togglePin(savedNoteKey('rec', entry.id));
+                      }}
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons
+                        name={pinned[savedNoteKey('rec', entry.id)] ? 'pin' : 'pin-outline'}
+                        size={17}
+                        className={pinned[savedNoteKey('rec', entry.id)] ? 'text-terracotta' : 'text-charcoal/40'}
+                      />
+                    </Pressable>
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
                         toggleSaveRec(entry.id);
                       }}
                       className="h-8 w-8 items-center justify-center"
@@ -754,6 +827,19 @@ export default function Saved() {
                         {item.kind === 'have' ? owner.name : `${owner.name} is looking`}
                       </Text>
                     </View>
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        togglePin(savedNoteKey('lend', item.id));
+                      }}
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons
+                        name={pinned[savedNoteKey('lend', item.id)] ? 'pin' : 'pin-outline'}
+                        size={17}
+                        className={pinned[savedNoteKey('lend', item.id)] ? 'text-terracotta' : 'text-charcoal/40'}
+                      />
+                    </Pressable>
                     <Pressable
                       onPress={(evt) => {
                         evt.stopPropagation();
@@ -808,6 +894,19 @@ export default function Saved() {
                         {item.condition ? ` · ${item.condition}` : ''}
                       </Text>
                     </View>
+                    <Pressable
+                      onPress={(evt) => {
+                        evt.stopPropagation();
+                        togglePin(savedNoteKey('sale', item.id));
+                      }}
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons
+                        name={pinned[savedNoteKey('sale', item.id)] ? 'pin' : 'pin-outline'}
+                        size={17}
+                        className={pinned[savedNoteKey('sale', item.id)] ? 'text-terracotta' : 'text-charcoal/40'}
+                      />
+                    </Pressable>
                     <Pressable
                       onPress={(evt) => {
                         evt.stopPropagation();
