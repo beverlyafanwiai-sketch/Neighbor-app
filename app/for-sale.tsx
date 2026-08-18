@@ -78,6 +78,7 @@ export default function ForSaleBoard() {
   const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SaleSort>('Newest');
   const [query, setQuery] = useState('');
+  const [hideSold, setHideSold] = useState(false);
   const [viewingPhotos, setViewingPhotos] = useState<{
     uris: string[];
     index: number;
@@ -97,7 +98,9 @@ export default function ForSaleBoard() {
     q.length === 0 || i.title.toLowerCase().includes(q) || i.note.toLowerCase().includes(q);
 
   const myItems = items.filter((i) => i.ownerId === ME.id && matchesQuery(i));
-  const unsortedBoardItems = items.filter((i) => i.ownerId !== ME.id && matchesQuery(i));
+  const unsortedBoardItems = items.filter(
+    (i) => i.ownerId !== ME.id && matchesQuery(i) && (!hideSold || !(sold[i.id] ?? false))
+  );
   const boardItems =
     sortBy === 'Most interest'
       ? [...unsortedBoardItems].sort(
@@ -160,6 +163,18 @@ export default function ForSaleBoard() {
         <Text className="mt-1 text-sm text-charcoal/60">
           Selling something you don't need? Post it here for neighbors to grab.
         </Text>
+
+        <Pressable
+          onPress={() => setHideSold((h) => !h)}
+          className="mt-3 flex-row items-center gap-2"
+        >
+          <Ionicons
+            name={hideSold ? 'checkbox' : 'square-outline'}
+            size={16}
+            className={hideSold ? 'text-terracotta' : 'text-charcoal/40'}
+          />
+          <Text className="text-xs font-medium text-charcoal/60">Hide sold items</Text>
+        </Pressable>
 
         {unsortedBoardItems.length > 1 && (
           <View className="mt-4 flex-row items-center gap-2">
@@ -651,11 +666,19 @@ export default function ForSaleBoard() {
             <EmptyState
               icon="pricetags-outline"
               iconColorClassName="text-charcoal/50"
-              title={q.length > 0 ? `No results for "${query.trim()}"` : 'Nothing for sale yet'}
+              title={
+                q.length > 0
+                  ? `No results for "${query.trim()}"`
+                  : hideSold
+                    ? 'No available listings'
+                    : 'Nothing for sale yet'
+              }
               subtitle={
                 q.length > 0
                   ? 'Try a different search term.'
-                  : "Be the first to list something you're ready to part with."
+                  : hideSold
+                    ? 'Turn off "Hide sold items" to see everything.'
+                    : "Be the first to list something you're ready to part with."
               }
             />
           )}

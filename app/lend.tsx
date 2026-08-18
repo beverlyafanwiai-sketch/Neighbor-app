@@ -67,6 +67,7 @@ export default function LendBoard() {
   const [sortBy, setSortBy] = useState<LendSort>('Newest');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [query, setQuery] = useState('');
+  const [hideUnavailable, setHideUnavailable] = useState(false);
   const [viewingPhotos, setViewingPhotos] = useState<{
     uris: string[];
     index: number;
@@ -87,7 +88,11 @@ export default function LendBoard() {
 
   const myItems = items.filter((i) => i.ownerId === ME.id && matchesKind(i) && matchesQuery(i));
   const unsortedBoardItems = items.filter(
-    (i) => i.ownerId !== ME.id && matchesKind(i) && matchesQuery(i)
+    (i) =>
+      i.ownerId !== ME.id &&
+      matchesKind(i) &&
+      matchesQuery(i) &&
+      (!hideUnavailable || ((status[i.id] ?? 'available') === 'available' && !i.unavailableNote))
   );
   const boardItems =
     sortBy === 'A-Z'
@@ -165,6 +170,18 @@ export default function LendBoard() {
         <Text className="mt-1 text-sm text-charcoal/60">
           Lend a hand, borrow a tool. No need to own everything when your neighbors already do.
         </Text>
+
+        <Pressable
+          onPress={() => setHideUnavailable((h) => !h)}
+          className="mt-3 flex-row items-center gap-2"
+        >
+          <Ionicons
+            name={hideUnavailable ? 'checkbox' : 'square-outline'}
+            size={16}
+            className={hideUnavailable ? 'text-terracotta' : 'text-charcoal/40'}
+          />
+          <Text className="text-xs font-medium text-charcoal/60">Hide unavailable items</Text>
+        </Pressable>
 
         {unsortedBoardItems.length > 1 && (
           <View className="mt-4 flex-row items-center gap-2">
@@ -696,16 +713,20 @@ export default function LendBoard() {
               title={
                 q.length > 0
                   ? `No results for "${query.trim()}"`
-                  : kindFilter === 'All'
-                    ? 'Nothing on the board yet'
-                    : `No ${kindFilter.toLowerCase()} items`
+                  : hideUnavailable
+                    ? 'No available items'
+                    : kindFilter === 'All'
+                      ? 'Nothing on the board yet'
+                      : `No ${kindFilter.toLowerCase()} items`
               }
               subtitle={
                 q.length > 0
                   ? 'Try a different search term.'
-                  : kindFilter === 'All'
-                    ? 'Be the first to post something you can lend, or something you need.'
-                    : 'Try a different filter, or clear it.'
+                  : hideUnavailable
+                    ? 'Turn off "Hide unavailable items" to see everything.'
+                    : kindFilter === 'All'
+                      ? 'Be the first to post something you can lend, or something you need.'
+                      : 'Try a different filter, or clear it.'
               }
             />
           )}
