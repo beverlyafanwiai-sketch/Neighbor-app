@@ -20,6 +20,7 @@ import {
 } from '../../store/useEventRatingsStore';
 import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumStore';
 import { checklistItemKey, useEventChecklistStore } from '../../store/useEventChecklistStore';
+import { useEventNotesStore } from '../../store/useEventNotesStore';
 import { useEventUpdatesStore } from '../../store/useEventUpdatesStore';
 import { canManageEvent, useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
@@ -40,6 +41,10 @@ export default function EventDetail() {
   const updateChecklist = useEventsStore((s) => s.updateChecklist);
   const myChecked = useEventChecklistStore((s) => s.checked);
   const toggleChecked = useEventChecklistStore((s) => s.toggle);
+  const eventNotes = useEventNotesStore((s) => s.notes);
+  const setEventNote = useEventNotesStore((s) => s.setNote);
+  const [editingEventNote, setEditingEventNote] = useState(false);
+  const [eventNoteDraft, setEventNoteDraft] = useState('');
   const profile = useProfileStore((s) => s.profile);
   const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
   const waitlisted = useRsvpStore((s) => (event ? (s.waitlisted[event.id] ?? false) : false));
@@ -495,6 +500,57 @@ export default function EventDetail() {
               )}
             </View>
           )}
+
+          <View className="mt-4 rounded-2xl bg-cream p-4">
+            <View className="flex-row items-center gap-1.5">
+              <Ionicons name="lock-closed-outline" size={12} className="text-charcoal/40" />
+              <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                Private note · only you can see this
+              </Text>
+            </View>
+            {editingEventNote ? (
+              <View className="mt-2 gap-2">
+                <TextInput
+                  value={eventNoteDraft}
+                  onChangeText={setEventNoteDraft}
+                  placeholder="e.g. carpool with Theo, bring the good speaker"
+                  placeholderTextColor="#3D3D3D80"
+                  multiline
+                  autoFocus
+                  className="rounded-xl bg-sand px-3 py-2.5 text-sm text-charcoal"
+                />
+                <View className="flex-row justify-end gap-4">
+                  <Pressable onPress={() => setEditingEventNote(false)}>
+                    <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      setEventNote(event.id, eventNoteDraft);
+                      setEditingEventNote(false);
+                    }}
+                  >
+                    <Text className="text-sm font-semibold text-terracotta">Save</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => {
+                  setEventNoteDraft(eventNotes[event.id] ?? '');
+                  setEditingEventNote(true);
+                }}
+                className="mt-1.5"
+              >
+                <Text
+                  className={`text-sm ${
+                    eventNotes[event.id] ? 'text-charcoal' : 'italic text-charcoal/40'
+                  }`}
+                >
+                  {eventNotes[event.id] || 'Add a note'}
+                </Text>
+              </Pressable>
+            )}
+          </View>
 
           {(eventUpdates.length > 0 || canManage) && (
             <View className="mt-4 gap-2">
