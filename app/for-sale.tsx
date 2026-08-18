@@ -90,6 +90,7 @@ export default function ForSaleBoard() {
   const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentDraft, setEditCommentDraft] = useState('');
+  const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SaleSort>('Newest');
   const [query, setQuery] = useState('');
   const [hideSold, setHideSold] = useState(false);
@@ -813,6 +814,14 @@ export default function ForSaleBoard() {
         />
       )}
 
+      {reportingCommentId && (
+        <ReportPostSheet
+          onClose={() => setReportingCommentId(null)}
+          title="Comment options"
+          actionLabel="Report this comment"
+        />
+      )}
+
       {viewingInterestedItem && (
         <View className="absolute inset-0 items-center justify-end bg-ink/40">
           <Pressable className="absolute inset-0" onPress={() => setViewingInterestedId(null)} />
@@ -1115,6 +1124,14 @@ export default function ForSaleBoard() {
                             <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
                           </Pressable>
                         </>
+                      )}
+                      {!isMine && (
+                        <Pressable
+                          onPress={() => setReportingCommentId(c.id)}
+                          className="h-7 w-7 items-center justify-center"
+                        >
+                          <Ionicons name="ellipsis-horizontal" size={15} className="text-charcoal/40" />
+                        </Pressable>
                       )}
                     </View>
                   );

@@ -80,6 +80,7 @@ export default function NeighborhoodAlerts() {
   const [confirmingDeleteCommentId, setConfirmingDeleteCommentId] = useState<string | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editCommentDraft, setEditCommentDraft] = useState('');
+  const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
   const [viewingConfirmedId, setViewingConfirmedId] = useState<string | null>(null);
   const [managingCategories, setManagingCategories] = useState(false);
   const [extendingId, setExtendingId] = useState<string | null>(null);
@@ -461,6 +462,14 @@ export default function NeighborhoodAlerts() {
         />
       )}
 
+      {reportingCommentId && (
+        <ReportPostSheet
+          onClose={() => setReportingCommentId(null)}
+          title="Comment options"
+          actionLabel="Report this comment"
+        />
+      )}
+
       {viewingPhotos && (
         <PhotoViewer
           uris={viewingPhotos.uris}
@@ -684,6 +693,14 @@ export default function NeighborhoodAlerts() {
                               <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
                             </Pressable>
                           </>
+                        )}
+                        {!isMine && (
+                          <Pressable
+                            onPress={() => setReportingCommentId(c.id)}
+                            className="h-7 w-7 items-center justify-center"
+                          >
+                            <Ionicons name="ellipsis-horizontal" size={15} className="text-charcoal/40" />
+                          </Pressable>
                         )}
                       </View>
                     );
