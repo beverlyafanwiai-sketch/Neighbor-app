@@ -31,7 +31,9 @@ import {
   getEffectiveConfirmedIds,
   useAlertsStore,
 } from '../store/useAlertsStore';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { useMutedAlertCategoriesStore } from '../store/useMutedAlertCategoriesStore';
+import { useMutedStore } from '../store/useMutedStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
@@ -96,11 +98,16 @@ export default function NeighborhoodAlerts() {
   } | null>(null);
   const mutedCategories = useMutedAlertCategoriesStore((s) => s.muted);
   const toggleMutedCategory = useMutedAlertCategoriesStore((s) => s.toggle);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const mutedIds = useMutedStore((s) => s.mutedIds);
   const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
   const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
   const [sortBy, setSortBy] = useState<AlertSort>('Expiring soon');
 
-  const allActiveAlerts = getActiveAlerts(allAlerts, now, pinnedAlertId);
+  const visibleAlerts = allAlerts.filter(
+    (a) => !blockedIds[a.authorId] && !mutedIds[a.authorId]
+  );
+  const allActiveAlerts = getActiveAlerts(visibleAlerts, now, pinnedAlertId);
   const unmutedActiveAlerts = allActiveAlerts.filter((a) => !mutedCategories[a.category]);
   const mutedCount = allActiveAlerts.length - unmutedActiveAlerts.length;
   const snoozedAlerts = unmutedActiveAlerts.filter((a) => snoozedUntil[a.id]);
