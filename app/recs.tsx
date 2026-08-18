@@ -55,6 +55,9 @@ export default function RecsBoard() {
   const deleteEntry = useRecsStore((s) => s.deleteEntry);
   const resolveEntry = useRecsStore((s) => s.resolveEntry);
   const reopenEntry = useRecsStore((s) => s.reopenEntry);
+  const pinnedEntryId = useRecsStore((s) => s.pinnedEntryId);
+  const pinEntry = useRecsStore((s) => s.pinEntry);
+  const unpinEntry = useRecsStore((s) => s.unpinEntry);
   const savedIds = useSavedRecsStore((s) => s.savedIds);
   const toggleSave = useSavedRecsStore((s) => s.toggleSave);
   const profile = useProfileStore((s) => s.profile);
@@ -205,14 +208,19 @@ export default function RecsBoard() {
   const filteredBoardEntries = unmutedCategoryBoardEntries.filter(
     (e) => !mutedCategories[e.category] && matchesCategory(e)
   );
-  const boardEntries =
-    sortBy === 'Most agreed'
-      ? [...filteredBoardEntries].sort(
-          (a, b) =>
-            getEffectiveAgreeCount(b.id, myAgreed[b.id] ?? false) -
-            getEffectiveAgreeCount(a.id, myAgreed[a.id] ?? false)
-        )
-      : filteredBoardEntries;
+  const boardEntries = (() => {
+    const pinnedEntry = filteredBoardEntries.find((e) => e.id === pinnedEntryId);
+    const rest = filteredBoardEntries.filter((e) => e.id !== pinnedEntryId);
+    const sortedRest =
+      sortBy === 'Most agreed'
+        ? [...rest].sort(
+            (a, b) =>
+              getEffectiveAgreeCount(b.id, myAgreed[b.id] ?? false) -
+              getEffectiveAgreeCount(a.id, myAgreed[a.id] ?? false)
+          )
+        : rest;
+    return pinnedEntry ? [pinnedEntry, ...sortedRest] : sortedRest;
+  })();
 
   const renderEntryNote = (entryId: string) => {
     if (editingNoteId === entryId) {
@@ -674,6 +682,7 @@ export default function RecsBoard() {
             const count = getEffectiveAgreeCount(entry.id, agreed);
             const isRec = entry.kind === 'rec';
             const saved = savedIds[entry.id] ?? false;
+            const isPinned = entry.id === pinnedEntryId;
 
             return (
               <View key={entry.id} className="rounded-2xl bg-cream p-4">
@@ -683,6 +692,7 @@ export default function RecsBoard() {
                   </View>
                   <View className="flex-1">
                     <View className="flex-row items-center gap-1.5">
+                      {isPinned && <Ionicons name="pin" size={12} className="text-gold" />}
                       <Text className="font-semibold text-charcoal">
                         {isRec ? (entry.name ?? entry.category) : entry.category}
                       </Text>
@@ -701,6 +711,16 @@ export default function RecsBoard() {
                       {isRec ? `Recommended by ${author.name}` : `${author.name} is looking`}
                     </Text>
                   </View>
+                  <Pressable
+                    onPress={() => (isPinned ? unpinEntry() : pinEntry(entry.id))}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons
+                      name={isPinned ? 'pin' : 'pin-outline'}
+                      size={17}
+                      className={isPinned ? 'text-gold' : 'text-charcoal/40'}
+                    />
+                  </Pressable>
                   <Pressable
                     onPress={() => setSharingId(entry.id)}
                     className="h-8 w-8 items-center justify-center"

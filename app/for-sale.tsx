@@ -78,6 +78,9 @@ export default function ForSaleBoard() {
   const reserveNotes = useSaleStore((s) => s.reserveNotes);
   const unreserve = useSaleStore((s) => s.unreserve);
   const deleteItem = useSaleStore((s) => s.deleteItem);
+  const pinnedItemId = useSaleStore((s) => s.pinnedItemId);
+  const pinItem = useSaleStore((s) => s.pinItem);
+  const unpinItem = useSaleStore((s) => s.unpinItem);
   const profile = useProfileStore((s) => s.profile);
   const savedIds = useSavedSaleStore((s) => s.savedIds);
   const toggleSave = useSavedSaleStore((s) => s.toggleSave);
@@ -200,16 +203,21 @@ export default function ForSaleBoard() {
       (!hideSold || !(sold[i.id] ?? false)) &&
       !(dismissedSaleIds[i.id] ?? false)
   );
-  const boardItems =
-    sortBy === 'Most interest'
-      ? [...unsortedBoardItems].sort(
-          (a, b) =>
-            getEffectiveInterestCount(b.id, myInterest[b.id] ?? false) -
-            getEffectiveInterestCount(a.id, myInterest[a.id] ?? false)
-        )
-      : sortBy === 'Price: low to high'
-        ? [...unsortedBoardItems].sort((a, b) => parsePrice(a.price) - parsePrice(b.price))
-        : unsortedBoardItems;
+  const boardItems = (() => {
+    const pinnedItem = unsortedBoardItems.find((i) => i.id === pinnedItemId);
+    const rest = unsortedBoardItems.filter((i) => i.id !== pinnedItemId);
+    const sortedRest =
+      sortBy === 'Most interest'
+        ? [...rest].sort(
+            (a, b) =>
+              getEffectiveInterestCount(b.id, myInterest[b.id] ?? false) -
+              getEffectiveInterestCount(a.id, myInterest[a.id] ?? false)
+          )
+        : sortBy === 'Price: low to high'
+          ? [...rest].sort((a, b) => parsePrice(a.price) - parsePrice(b.price))
+          : rest;
+    return pinnedItem ? [pinnedItem, ...sortedRest] : sortedRest;
+  })();
   const sharingItem = items.find((i) => i.id === sharingId);
   const viewingInterestedItem = items.find((i) => i.id === viewingInterestedId);
   const viewingInterestedIds = viewingInterestedItem
@@ -870,6 +878,7 @@ export default function ForSaleBoard() {
             const isSold = sold[item.id] ?? false;
             const interested = myInterest[item.id] ?? false;
             const interestCount = getEffectiveInterestCount(item.id, interested);
+            const isPinned = item.id === pinnedItemId;
 
             return (
               <View key={item.id} className="rounded-2xl bg-cream p-4">
@@ -878,7 +887,10 @@ export default function ForSaleBoard() {
                     <Text style={{ fontSize: 20 }}>{item.emoji}</Text>
                   </View>
                   <View className="flex-1">
-                    <Text className="font-semibold text-charcoal">{item.title}</Text>
+                    <View className="flex-row items-center gap-1">
+                      {isPinned && <Ionicons name="pin" size={12} className="text-gold" />}
+                      <Text className="font-semibold text-charcoal">{item.title}</Text>
+                    </View>
                     <View className="flex-row items-center gap-1.5">
                       <Text className="text-xs text-charcoal/50">
                         {owner.name} · {item.price}
@@ -926,6 +938,16 @@ export default function ForSaleBoard() {
                       )}
                     </View>
                   </View>
+                  <Pressable
+                    onPress={() => (isPinned ? unpinItem() : pinItem(item.id))}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons
+                      name={isPinned ? 'pin' : 'pin-outline'}
+                      size={17}
+                      className={isPinned ? 'text-gold' : 'text-charcoal/40'}
+                    />
+                  </Pressable>
                   <Pressable
                     onPress={() => setSharingId(item.id)}
                     className="h-8 w-8 items-center justify-center"

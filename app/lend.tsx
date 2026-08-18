@@ -63,6 +63,9 @@ export default function LendBoard() {
   const notifyWhenAvailable = useLendStore((s) => s.notifyWhenAvailable);
   const toggleNotifyWhenAvailable = useLendStore((s) => s.toggleNotifyWhenAvailable);
   const deleteItem = useLendStore((s) => s.deleteItem);
+  const pinnedItemId = useLendStore((s) => s.pinnedItemId);
+  const pinItem = useLendStore((s) => s.pinItem);
+  const unpinItem = useLendStore((s) => s.unpinItem);
   const profile = useProfileStore((s) => s.profile);
   const savedIds = useSavedLendStore((s) => s.savedIds);
   const toggleSave = useSavedLendStore((s) => s.toggleSave);
@@ -163,16 +166,21 @@ export default function LendBoard() {
       (!hideUnavailable || ((status[i.id] ?? 'available') === 'available' && !i.unavailableNote)) &&
       !(dismissedLendIds[i.id] ?? false)
   );
-  const boardItems =
-    sortBy === 'A-Z'
-      ? [...unsortedBoardItems].sort((a, b) => a.title.localeCompare(b.title))
-      : sortBy === 'Most helpers'
-        ? [...unsortedBoardItems].sort(
-            (a, b) =>
-              getEffectiveHelperCount(b.id, myOffers[b.id] ?? false) -
-              getEffectiveHelperCount(a.id, myOffers[a.id] ?? false)
-          )
-        : unsortedBoardItems;
+  const boardItems = (() => {
+    const pinnedItem = unsortedBoardItems.find((i) => i.id === pinnedItemId);
+    const rest = unsortedBoardItems.filter((i) => i.id !== pinnedItemId);
+    const sortedRest =
+      sortBy === 'A-Z'
+        ? [...rest].sort((a, b) => a.title.localeCompare(b.title))
+        : sortBy === 'Most helpers'
+          ? [...rest].sort(
+              (a, b) =>
+                getEffectiveHelperCount(b.id, myOffers[b.id] ?? false) -
+                getEffectiveHelperCount(a.id, myOffers[a.id] ?? false)
+            )
+          : rest;
+    return pinnedItem ? [pinnedItem, ...sortedRest] : sortedRest;
+  })();
   const sharingItem = items.find((i) => i.id === sharingId);
   const viewingHelpersItem = items.find((i) => i.id === viewingHelpersId);
   const viewingHelpersIds = viewingHelpersItem
@@ -770,6 +778,7 @@ export default function LendBoard() {
           {boardItems.map((item) => {
             const owner = getUser(item.ownerId);
             if (!owner) return null;
+            const isPinned = item.id === pinnedItemId;
 
             if (item.kind === 'have') {
               const itemStatus = status[item.id] ?? 'available';
@@ -780,9 +789,22 @@ export default function LendBoard() {
                       <Text style={{ fontSize: 20 }}>{item.emoji}</Text>
                     </View>
                     <View className="flex-1">
-                      <Text className="font-semibold text-charcoal">{item.title}</Text>
+                      <View className="flex-row items-center gap-1">
+                        {isPinned && <Ionicons name="pin" size={12} className="text-gold" />}
+                        <Text className="font-semibold text-charcoal">{item.title}</Text>
+                      </View>
                       <Text className="text-xs text-charcoal/50">{owner.name}</Text>
                     </View>
+                    <Pressable
+                      onPress={() => (isPinned ? unpinItem() : pinItem(item.id))}
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons
+                        name={isPinned ? 'pin' : 'pin-outline'}
+                        size={17}
+                        className={isPinned ? 'text-gold' : 'text-charcoal/40'}
+                      />
+                    </Pressable>
                     <Pressable
                       onPress={() => setSharingId(item.id)}
                       className="h-8 w-8 items-center justify-center"
@@ -953,9 +975,22 @@ export default function LendBoard() {
                     <Text style={{ fontSize: 20 }}>{item.emoji}</Text>
                   </View>
                   <View className="flex-1">
-                    <Text className="font-semibold text-charcoal">{item.title}</Text>
+                    <View className="flex-row items-center gap-1">
+                      {isPinned && <Ionicons name="pin" size={12} className="text-gold" />}
+                      <Text className="font-semibold text-charcoal">{item.title}</Text>
+                    </View>
                     <Text className="text-xs text-charcoal/50">{owner.name} is looking</Text>
                   </View>
+                  <Pressable
+                    onPress={() => (isPinned ? unpinItem() : pinItem(item.id))}
+                    className="h-8 w-8 items-center justify-center"
+                  >
+                    <Ionicons
+                      name={isPinned ? 'pin' : 'pin-outline'}
+                      size={17}
+                      className={isPinned ? 'text-gold' : 'text-charcoal/40'}
+                    />
+                  </Pressable>
                   <Pressable
                     onPress={() => setSharingId(item.id)}
                     className="h-8 w-8 items-center justify-center"

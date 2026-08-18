@@ -34,12 +34,15 @@ type RecsState = {
   entries: RecEntry[];
   myAgreed: Record<string, boolean>;
   drafts: RecDraft[];
+  pinnedEntryId: string | null;
   createEntry: (input: NewRecEntryInput) => string;
   updateEntry: (entryId: string, updates: Partial<NewRecEntryInput>) => void;
   toggleAgree: (entryId: string) => void;
   deleteEntry: (entryId: string) => void;
   resolveEntry: (entryId: string, note?: string) => void;
   reopenEntry: (entryId: string) => void;
+  pinEntry: (entryId: string) => void;
+  unpinEntry: () => void;
   saveDraft: (input: RecDraftInput) => string;
   deleteDraft: (id: string) => void;
 };
@@ -50,6 +53,7 @@ export const useRecsStore = create<RecsState>((set, get) => ({
   entries: REC_ENTRIES,
   myAgreed: {},
   drafts: [],
+  pinnedEntryId: null,
 
   createEntry: (input) => {
     const id = `${input.kind}-${Math.random().toString(36).slice(2, 9)}`;
@@ -104,7 +108,15 @@ export const useRecsStore = create<RecsState>((set, get) => ({
   toggleAgree: (entryId) =>
     set((s) => ({ myAgreed: { ...s.myAgreed, [entryId]: !s.myAgreed[entryId] } })),
 
-  deleteEntry: (entryId) => set((s) => ({ entries: s.entries.filter((e) => e.id !== entryId) })),
+  deleteEntry: (entryId) =>
+    set((s) => ({
+      entries: s.entries.filter((e) => e.id !== entryId),
+      pinnedEntryId: s.pinnedEntryId === entryId ? null : s.pinnedEntryId,
+    })),
+
+  pinEntry: (entryId) => set({ pinnedEntryId: entryId }),
+
+  unpinEntry: () => set({ pinnedEntryId: null }),
 
   resolveEntry: (entryId, note) =>
     set((s) => ({

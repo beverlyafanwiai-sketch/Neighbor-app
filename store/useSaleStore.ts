@@ -53,6 +53,7 @@ type SaleState = {
   reservedForId: Record<string, string>;
   reserveNotes: Record<string, string>;
   drafts: SaleDraft[];
+  pinnedItemId: string | null;
   createItem: (input: NewSaleItemInput) => string;
   updateItem: (itemId: string, updates: Partial<NewSaleItemInput>) => void;
   toggleInterest: (itemId: string) => void;
@@ -68,6 +69,8 @@ type SaleState = {
   reserveFor: (itemId: string, userId: string, note?: string) => void;
   unreserve: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
+  pinItem: (itemId: string) => void;
+  unpinItem: () => void;
   saveDraft: (input: SaleDraftInput) => string;
   deleteDraft: (id: string) => void;
 };
@@ -102,6 +105,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   reservedForId: {},
   reserveNotes: {},
   drafts: [],
+  pinnedItemId: null,
 
   createItem: (input) => {
     const id = `sale-${Math.random().toString(36).slice(2, 9)}`;
@@ -305,7 +309,15 @@ export const useSaleStore = create<SaleState>((set, get) => ({
       items: s.items.map((i) => (i.id === itemId ? { ...i, ...updates } : i)),
     })),
 
-  deleteItem: (itemId) => set((s) => ({ items: s.items.filter((i) => i.id !== itemId) })),
+  deleteItem: (itemId) =>
+    set((s) => ({
+      items: s.items.filter((i) => i.id !== itemId),
+      pinnedItemId: s.pinnedItemId === itemId ? null : s.pinnedItemId,
+    })),
+
+  pinItem: (itemId) => set({ pinnedItemId: itemId }),
+
+  unpinItem: () => set({ pinnedItemId: null }),
 
   saveDraft: (input) => {
     const draftId = input.id ?? `sale-draft-${++saleDraftSeq}`;
