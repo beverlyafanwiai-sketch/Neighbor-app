@@ -44,6 +44,7 @@ type LendState = {
   myOffers: Record<string, boolean>;
   requestNotes: Record<string, string>;
   notifyWhenAvailable: Record<string, boolean>;
+  completedBorrows: Record<string, boolean>;
   drafts: LendDraft[];
   createItem: (input: NewLendItemInput) => string;
   updateItem: (itemId: string, updates: Partial<NewLendItemInput>) => void;
@@ -94,6 +95,7 @@ export const useLendStore = create<LendState>((set, get) => ({
   myOffers: {},
   requestNotes: {},
   notifyWhenAvailable: {},
+  completedBorrows: {},
   drafts: [],
 
   createItem: (input) => {
@@ -199,6 +201,7 @@ export const useLendStore = create<LendState>((set, get) => ({
         borrowerId: { ...s.borrowerId, [itemId]: '' },
         dueLabel: { ...s.dueLabel, [itemId]: '' },
         requestNotes,
+        completedBorrows: { ...s.completedBorrows, [itemId]: true },
       };
     }),
 

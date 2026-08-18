@@ -14,12 +14,16 @@ import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
 import { useDismissedListingsStore } from '../store/useDismissedListingsStore';
-import { getEffectiveHelperCount, getEffectiveHelperIds, useLendStore } from '../store/useLendStore';
 import {
   itemCommentKey,
   itemCommentReactionKey,
   useItemCommentsStore,
 } from '../store/useItemCommentsStore';
+import {
+  getEffectiveLendRatingSummary,
+  useLendRatingsStore,
+} from '../store/useLendRatingsStore';
+import { getEffectiveHelperCount, getEffectiveHelperIds, useLendStore } from '../store/useLendStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { useSavedLendStore } from '../store/useSavedLendStore';
@@ -62,6 +66,9 @@ export default function LendBoard() {
   const setItemCommentReaction = useItemCommentsStore((s) => s.setReaction);
   const dismissedLendIds = useDismissedListingsStore((s) => s.dismissedLendIds);
   const dismissLendItem = useDismissedListingsStore((s) => s.dismissLendItem);
+  const completedBorrows = useLendStore((s) => s.completedBorrows);
+  const myLendRatings = useLendRatingsStore((s) => s.myRatings);
+  const rateLendItem = useLendRatingsStore((s) => s.rateItem);
 
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [sharingId, setSharingId] = useState<string | null>(null);
@@ -87,6 +94,9 @@ export default function LendBoard() {
   const [requestingBorrowId, setRequestingBorrowId] = useState<string | null>(null);
   const [borrowRequestNote, setBorrowRequestNote] = useState('');
   const [dueDays, setDueDays] = useState(5);
+  const [ratingItemId, setRatingItemId] = useState<string | null>(null);
+  const [ratingDraftStars, setRatingDraftStars] = useState(0);
+  const [ratingDraftComment, setRatingDraftComment] = useState('');
 
   const matchesKind = (i: (typeof items)[number]) =>
     kindFilter === 'All' || (kindFilter === 'Have' ? i.kind === 'have' : i.kind === 'want');
@@ -124,6 +134,88 @@ export default function LendBoard() {
   const viewingCommentsItem = items.find((i) => i.id === viewingCommentsId);
   const viewingCommentsKey = viewingCommentsItem ? itemCommentKey('lend', viewingCommentsItem.id) : null;
   const viewingComments = viewingCommentsKey ? (itemComments[viewingCommentsKey] ?? []) : [];
+
+  const renderLendRating = (itemId: string) => {
+    if (!completedBorrows[itemId]) return null;
+    const myRating = myLendRatings[itemId];
+    const summary = getEffectiveLendRatingSummary(itemId, myRating);
+
+    if (ratingItemId === itemId) {
+      return (
+        <View className="mt-3 gap-2 border-t border-charcoal/10 pt-3">
+          <View className="flex-row gap-1.5">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <Pressable key={n} onPress={() => setRatingDraftStars(n)}>
+                <Ionicons
+                  name={n <= ratingDraftStars ? 'star' : 'star-outline'}
+                  size={22}
+                  className="text-gold"
+                />
+              </Pressable>
+            ))}
+          </View>
+          <TextInput
+            value={ratingDraftComment}
+            onChangeText={setRatingDraftComment}
+            placeholder="Add a comment (optional)"
+            placeholderTextColor="#3D3D3D80"
+            multiline
+            className="rounded-xl bg-sand px-3 py-2 text-sm text-charcoal"
+          />
+          <View className="flex-row justify-end gap-4">
+            <Pressable onPress={() => setRatingItemId(null)}>
+              <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+            </Pressable>
+            <Pressable
+              disabled={ratingDraftStars === 0}
+              onPress={() => {
+                rateLendItem(itemId, ratingDraftStars, ratingDraftComment.trim());
+                setRatingItemId(null);
+              }}
+            >
+              <Text
+                className={`text-sm font-semibold ${
+                  ratingDraftStars === 0 ? 'text-charcoal/30' : 'text-terracotta'
+                }`}
+              >
+                Save
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <Pressable
+        onPress={() => {
+          setRatingItemId(itemId);
+          setRatingDraftStars(myRating?.stars ?? 0);
+          setRatingDraftComment(myRating?.comment ?? '');
+        }}
+        className="mt-3 flex-row items-center justify-between border-t border-charcoal/10 pt-3"
+      >
+        <View className="flex-row items-center gap-1.5">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <Ionicons
+              key={n}
+              name={n <= (myRating?.stars ?? Math.round(summary.avg)) ? 'star' : 'star-outline'}
+              size={14}
+              className="text-gold"
+            />
+          ))}
+          <Text className="text-xs text-charcoal/50">
+            {myRating
+              ? 'Your rating'
+              : summary.count > 0
+                ? `${summary.avg.toFixed(1)} (${summary.count})`
+                : 'Rate this item'}
+          </Text>
+        </View>
+        <Ionicons name={myRating ? 'pencil' : 'chevron-forward'} size={14} className="text-charcoal/40" />
+      </Pressable>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -452,6 +544,7 @@ export default function LendBoard() {
                         </Text>
                       </Pressable>
                     )}
+                    {item.kind === 'have' && renderLendRating(item.id)}
                   </View>
                 );
               })}
@@ -636,6 +729,7 @@ export default function LendBoard() {
                       </>
                     )}
                   </View>
+                  {renderLendRating(item.id)}
                 </View>
               );
             }

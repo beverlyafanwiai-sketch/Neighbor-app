@@ -899,6 +899,9 @@ export type LendItem = {
   // simulated after ME asks to be notified.
   unavailableNote?: string;
   pickupLocation?: string;
+  // Baseline ratings from other neighbors who've borrowed this item before,
+  // *not including* ME — same "baseline + mine" pattern as event ratings.
+  ratingBaseline?: { userId: string; stars: number; comment: string }[];
 };
 
 export const LEND_ITEMS: LendItem[] = [
