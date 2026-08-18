@@ -93,6 +93,8 @@ export default function LendBoard() {
     isMine: boolean;
   } | null>(null);
   const [approvingItemId, setApprovingItemId] = useState<string | null>(null);
+  const [decliningRequestItemId, setDecliningRequestItemId] = useState<string | null>(null);
+  const [declineRequestNoteDraft, setDeclineRequestNoteDraft] = useState('');
   const [editingDueDateItemId, setEditingDueDateItemId] = useState<string | null>(null);
   const [requestingBorrowId, setRequestingBorrowId] = useState<string | null>(null);
   const [borrowRequestNote, setBorrowRequestNote] = useState('');
@@ -456,6 +458,36 @@ export default function LendBoard() {
                                 </Pressable>
                               </View>
                             </View>
+                          ) : decliningRequestItemId === item.id ? (
+                            <View className="mt-2 gap-2">
+                              <TextInput
+                                value={declineRequestNoteDraft}
+                                onChangeText={setDeclineRequestNoteDraft}
+                                placeholder="Optional note, e.g. lending it to a neighbor already"
+                                placeholderTextColor="#3D3D3D80"
+                                autoFocus
+                                className="rounded-xl bg-sand px-3 py-2 text-sm text-charcoal"
+                              />
+                              <View className="flex-row justify-end gap-4">
+                                <Pressable
+                                  onPress={() => {
+                                    setDecliningRequestItemId(null);
+                                    setDeclineRequestNoteDraft('');
+                                  }}
+                                >
+                                  <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                                </Pressable>
+                                <Pressable
+                                  onPress={() => {
+                                    declineRequest(item.id, declineRequestNoteDraft);
+                                    setDecliningRequestItemId(null);
+                                    setDeclineRequestNoteDraft('');
+                                  }}
+                                >
+                                  <Text className="text-sm font-semibold text-terracotta">Decline</Text>
+                                </Pressable>
+                              </View>
+                            </View>
                           ) : (
                             <View className="mt-2 flex-row gap-2">
                               <Pressable
@@ -468,7 +500,10 @@ export default function LendBoard() {
                                 <Text className="text-xs font-semibold text-paper">Approve</Text>
                               </Pressable>
                               <Pressable
-                                onPress={() => declineRequest(item.id)}
+                                onPress={() => {
+                                  setDecliningRequestItemId(item.id);
+                                  setDeclineRequestNoteDraft('');
+                                }}
                                 className="rounded-full bg-sand px-4 py-1.5"
                               >
                                 <Text className="text-xs font-semibold text-charcoal">Decline</Text>

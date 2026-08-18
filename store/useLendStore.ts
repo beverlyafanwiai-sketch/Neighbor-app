@@ -43,6 +43,7 @@ type LendState = {
   pendingRequesterId: Record<string, string>;
   myOffers: Record<string, boolean>;
   requestNotes: Record<string, string>;
+  declineRequestNotes: Record<string, string>;
   notifyWhenAvailable: Record<string, boolean>;
   completedBorrows: Record<string, boolean>;
   drafts: LendDraft[];
@@ -51,7 +52,7 @@ type LendState = {
   requestToBorrow: (itemId: string, note?: string) => void;
   cancelRequest: (itemId: string) => void;
   approveRequest: (itemId: string, days?: number) => void;
-  declineRequest: (itemId: string) => void;
+  declineRequest: (itemId: string, note?: string) => void;
   markReturned: (itemId: string) => void;
   updateDueDate: (itemId: string, days: number) => void;
   offerToHelp: (itemId: string) => void;
@@ -94,6 +95,7 @@ export const useLendStore = create<LendState>((set, get) => ({
   pendingRequesterId: {},
   myOffers: {},
   requestNotes: {},
+  declineRequestNotes: {},
   notifyWhenAvailable: {},
   completedBorrows: {},
   drafts: [],
@@ -190,8 +192,13 @@ export const useLendStore = create<LendState>((set, get) => ({
     }));
   },
 
-  declineRequest: (itemId) =>
-    set((s) => ({ pendingRequesterId: { ...s.pendingRequesterId, [itemId]: '' } })),
+  declineRequest: (itemId, note) =>
+    set((s) => ({
+      pendingRequesterId: { ...s.pendingRequesterId, [itemId]: '' },
+      declineRequestNotes: note?.trim()
+        ? { ...s.declineRequestNotes, [itemId]: note.trim() }
+        : s.declineRequestNotes,
+    })),
 
   markReturned: (itemId) =>
     set((s) => {
