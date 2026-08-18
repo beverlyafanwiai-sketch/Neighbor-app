@@ -27,6 +27,7 @@ import { recCommentKey, useRecCommentsStore } from '../store/useRecCommentsStore
 import { useRecNotesStore } from '../store/useRecNotesStore';
 import { getEffectiveAgreeCount, getEffectiveAgreedIds, useRecsStore } from '../store/useRecsStore';
 import { useSavedRecsStore } from '../store/useSavedRecsStore';
+import { useSavedRecSearchesStore } from '../store/useSavedRecSearchesStore';
 import { useProfileStore } from '../store/useProfileStore';
 
 const KIND_FILTERS = ['All', 'Recs', 'Asks'] as const;
@@ -59,10 +60,15 @@ export default function RecsBoard() {
   const togglePinComment = useRecCommentsStore((s) => s.togglePinComment);
   const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
   const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
+  const savedSearches = useSavedRecSearchesStore((s) => s.searches);
+  const saveSearch = useSavedRecSearchesStore((s) => s.saveSearch);
+  const deleteSearch = useSavedRecSearchesStore((s) => s.deleteSearch);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [kindFilter, setKindFilter] = useState<KindFilter>('All');
   const [sortBy, setSortBy] = useState<RecsSort>('Newest');
   const [query, setQuery] = useState('');
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [searchNameDraft, setSearchNameDraft] = useState('');
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [viewingAgreedId, setViewingAgreedId] = useState<string | null>(null);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
@@ -107,6 +113,16 @@ export default function RecsBoard() {
     if (aBest !== bBest) return aBest ? -1 : 1;
     return 0;
   });
+
+  const isSearchModified =
+    query.trim().length > 0 || categoryFilter !== 'All' || kindFilter !== 'All' || sortBy !== 'Newest';
+
+  const applySearch = (search: (typeof savedSearches)[number]) => {
+    setQuery(search.query);
+    setCategoryFilter(search.categoryFilter);
+    setKindFilter(search.kindFilter as KindFilter);
+    setSortBy(search.sortBy as RecsSort);
+  };
 
   const categories = ['All', ...Array.from(new Set(entries.map((e) => e.category))).sort()];
   const matchesCategory = (e: (typeof entries)[number]) =>
@@ -209,7 +225,75 @@ export default function RecsBoard() {
             placeholderTextColor="#3D3D3D80"
             className="ml-2 flex-1 text-charcoal"
           />
+          {isSearchModified && (
+            <Pressable
+              onPress={() => {
+                setSearchNameDraft('');
+                setSavingSearch(true);
+              }}
+              className="h-7 w-7 items-center justify-center"
+            >
+              <Ionicons name="bookmark-outline" size={17} className="text-charcoal/50" />
+            </Pressable>
+          )}
         </View>
+        {savingSearch && (
+          <View className="mt-2 flex-row items-center gap-2 rounded-full bg-cream px-4 py-2">
+            <TextInput
+              value={searchNameDraft}
+              onChangeText={setSearchNameDraft}
+              placeholder="Name this search..."
+              placeholderTextColor="#3D3D3D80"
+              autoFocus
+              className="flex-1 text-sm text-charcoal"
+            />
+            <Pressable onPress={() => setSavingSearch(false)}>
+              <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+            </Pressable>
+            <Pressable
+              disabled={!searchNameDraft.trim()}
+              onPress={() => {
+                saveSearch({
+                  name: searchNameDraft.trim(),
+                  query,
+                  categoryFilter,
+                  kindFilter,
+                  sortBy,
+                });
+                setSavingSearch(false);
+              }}
+            >
+              <Text
+                className={`text-xs font-semibold ${
+                  searchNameDraft.trim() ? 'text-terracotta' : 'text-charcoal/30'
+                }`}
+              >
+                Save
+              </Text>
+            </Pressable>
+          </View>
+        )}
+        {savedSearches.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="mt-2 gap-2"
+          >
+            {savedSearches.map((s) => (
+              <Pressable
+                key={s.id}
+                onPress={() => applySearch(s)}
+                className="flex-row items-center gap-1.5 rounded-full bg-sand px-3 py-1.5"
+              >
+                <Ionicons name="bookmark" size={11} className="text-terracotta" />
+                <Text className="text-xs font-medium text-charcoal">{s.name}</Text>
+                <Pressable onPress={() => deleteSearch(s.id)} className="ml-0.5">
+                  <Ionicons name="close" size={12} className="text-charcoal/40" />
+                </Pressable>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
       </View>
 
       <View className="flex-row gap-2 px-5 pb-3">
