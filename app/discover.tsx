@@ -12,6 +12,7 @@ import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { getEffectiveMemberCount, memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { useProfileStore } from '../store/useProfileStore';
+import { useSavedDiscoverSearchesStore } from '../store/useSavedDiscoverSearchesStore';
 
 const MODES = ['People', 'Groups'] as const;
 type Mode = (typeof MODES)[number];
@@ -57,6 +58,23 @@ export default function Discover() {
   const dismissGroup = useDismissedDiscoverStore((s) => s.dismissGroup);
   const [menuForId, setMenuForId] = useState<string | null>(null);
   const myTags = useProfileStore((s) => s.profile.tags);
+  const savedSearches = useSavedDiscoverSearchesStore((s) => s.searches);
+  const saveSearch = useSavedDiscoverSearchesStore((s) => s.saveSearch);
+  const renameSearch = useSavedDiscoverSearchesStore((s) => s.renameSearch);
+  const deleteSearch = useSavedDiscoverSearchesStore((s) => s.deleteSearch);
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [searchNameDraft, setSearchNameDraft] = useState('');
+  const [renamingSearchId, setRenamingSearchId] = useState<string | null>(null);
+
+  const isSearchModified =
+    query.trim().length > 0 || peopleSort !== 'Suggested' || groupSort !== 'Suggested';
+
+  const applySearch = (search: (typeof savedSearches)[number]) => {
+    setMode(search.mode as Mode);
+    setQuery(search.query);
+    setPeopleSort(search.peopleSort as PeopleSort);
+    setGroupSort(search.groupSort as GroupSort);
+  };
 
   const discoverGroups = allGroups.filter((g) => !joinedMap[g.id] && !dismissedGroupIds[g.id]);
   const discoverableUsers = DISCOVER_USERS.filter(
@@ -133,7 +151,101 @@ export default function Discover() {
             placeholderTextColor="#3D3D3D80"
             className="ml-2 flex-1 text-charcoal"
           />
+          {isSearchModified && (
+            <Pressable
+              onPress={() => {
+                setSearchNameDraft('');
+                setSavingSearch(true);
+              }}
+              className="ml-1 h-7 w-7 items-center justify-center"
+            >
+              <Ionicons name="bookmark-outline" size={17} className="text-charcoal/50" />
+            </Pressable>
+          )}
         </View>
+        {(savingSearch || renamingSearchId) && (
+          <View className="mt-2 flex-row items-center gap-2 rounded-full bg-cream px-4 py-2">
+            <TextInput
+              value={searchNameDraft}
+              onChangeText={setSearchNameDraft}
+              placeholder={renamingSearchId ? 'Rename search...' : 'Name this search...'}
+              placeholderTextColor="#3D3D3D80"
+              autoFocus
+              className="flex-1 text-sm text-charcoal"
+            />
+            <Pressable
+              onPress={() => {
+                setSavingSearch(false);
+                setRenamingSearchId(null);
+              }}
+            >
+              <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+            </Pressable>
+            <Pressable
+              disabled={!searchNameDraft.trim()}
+              onPress={() => {
+                if (renamingSearchId) {
+                  renameSearch(renamingSearchId, searchNameDraft);
+                } else {
+                  saveSearch({
+                    name: searchNameDraft.trim(),
+                    mode,
+                    query,
+                    peopleSort,
+                    groupSort,
+                  });
+                }
+                setSavingSearch(false);
+                setRenamingSearchId(null);
+              }}
+            >
+              <Text
+                className={`text-xs font-semibold ${
+                  searchNameDraft.trim() ? 'text-terracotta' : 'text-charcoal/30'
+                }`}
+              >
+                Save
+              </Text>
+            </Pressable>
+          </View>
+        )}
+        {savedSearches.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerClassName="mt-2 gap-2"
+          >
+            {savedSearches.map((s) => (
+              <Pressable
+                key={s.id}
+                onPress={() => applySearch(s)}
+                className="flex-row items-center gap-1.5 rounded-full bg-cream px-3 py-1.5"
+              >
+                <Ionicons name="bookmark" size={11} className="text-terracotta" />
+                <Text className="text-xs font-medium text-charcoal">{s.name}</Text>
+                <Pressable
+                  onPress={(evt) => {
+                    evt.stopPropagation();
+                    setSearchNameDraft(s.name);
+                    setRenamingSearchId(s.id);
+                  }}
+                  className="ml-0.5"
+                >
+                  <Ionicons name="pencil" size={11} className="text-charcoal/40" />
+                </Pressable>
+                <Pressable
+                  onPress={(evt) => {
+                    evt.stopPropagation();
+                    deleteSearch(s.id);
+                  }}
+                  className="ml-0.5"
+                >
+                  <Ionicons name="close" size={12} className="text-charcoal/40" />
+                </Pressable>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
       </View>
 
       <View className="flex-row gap-2 px-5 pb-3">
