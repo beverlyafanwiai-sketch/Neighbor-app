@@ -34,6 +34,7 @@ import {
 import { useMutedStore } from '../store/useMutedStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
+import { useSaleNotesStore } from '../store/useSaleNotesStore';
 import {
   getEffectiveSaleRatingSummary,
   useSaleRatingsStore,
@@ -81,6 +82,10 @@ export default function ForSaleBoard() {
   const pinnedItemId = useSaleStore((s) => s.pinnedItemId);
   const pinItem = useSaleStore((s) => s.pinItem);
   const unpinItem = useSaleStore((s) => s.unpinItem);
+  const itemNotes = useSaleNotesStore((s) => s.notes);
+  const setItemNote = useSaleNotesStore((s) => s.setNote);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [itemNoteDraft, setItemNoteDraft] = useState('');
   const profile = useProfileStore((s) => s.profile);
   const savedIds = useSavedSaleStore((s) => s.savedIds);
   const toggleSave = useSavedSaleStore((s) => s.toggleSave);
@@ -327,6 +332,52 @@ export default function ForSaleBoard() {
           </Text>
         </View>
         <Ionicons name={myRating ? 'pencil' : 'chevron-forward'} size={14} className="text-charcoal/40" />
+      </Pressable>
+    );
+  };
+
+  const renderItemNote = (itemId: string) => {
+    if (editingNoteId === itemId) {
+      return (
+        <View className="mt-2">
+          <TextInput
+            value={itemNoteDraft}
+            onChangeText={setItemNoteDraft}
+            placeholder="Only you can see this..."
+            placeholderTextColor="#3D3D3D80"
+            multiline
+            autoFocus
+            className="min-h-[52px] rounded-xl bg-sand px-3 py-2 text-xs text-charcoal"
+          />
+          <View className="mt-2 flex-row justify-end gap-4">
+            <Pressable onPress={() => setEditingNoteId(null)}>
+              <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setItemNote(itemId, itemNoteDraft);
+                setEditingNoteId(null);
+              }}
+            >
+              <Text className="text-xs font-semibold text-terracotta">Save note</Text>
+            </Pressable>
+          </View>
+        </View>
+      );
+    }
+    const note = itemNotes[itemId];
+    return (
+      <Pressable
+        onPress={() => {
+          setItemNoteDraft(note ?? '');
+          setEditingNoteId(itemId);
+        }}
+        className="mt-2 flex-row items-start gap-1"
+      >
+        <Ionicons name="lock-closed-outline" size={12} className="mt-0.5 text-charcoal/40" />
+        <Text className="flex-1 text-xs italic text-charcoal/50" numberOfLines={2}>
+          {note || 'Add a private note'}
+        </Text>
       </Pressable>
     );
   };
@@ -860,6 +911,7 @@ export default function ForSaleBoard() {
                       </>
                     )}
                     {renderSaleRating(item.id)}
+                    {renderItemNote(item.id)}
                   </View>
                 );
               })}
@@ -1093,6 +1145,7 @@ export default function ForSaleBoard() {
                   )
                 )}
                 {renderSaleRating(item.id)}
+                {renderItemNote(item.id)}
               </View>
             );
           })}
