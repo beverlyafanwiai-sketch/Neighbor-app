@@ -57,6 +57,7 @@ export default function LendBoard() {
   const markReturned = useLendStore((s) => s.markReturned);
   const updateDueDate = useLendStore((s) => s.updateDueDate);
   const offerToHelp = useLendStore((s) => s.offerToHelp);
+  const helpNotes = useLendStore((s) => s.helpNotes);
   const notifyWhenAvailable = useLendStore((s) => s.notifyWhenAvailable);
   const toggleNotifyWhenAvailable = useLendStore((s) => s.toggleNotifyWhenAvailable);
   const deleteItem = useLendStore((s) => s.deleteItem);
@@ -115,6 +116,8 @@ export default function LendBoard() {
   } | null>(null);
   const [approvingItemId, setApprovingItemId] = useState<string | null>(null);
   const [decliningRequestItemId, setDecliningRequestItemId] = useState<string | null>(null);
+  const [offeringHelpItemId, setOfferingHelpItemId] = useState<string | null>(null);
+  const [helpNoteDraft, setHelpNoteDraft] = useState('');
   const [declineRequestNoteDraft, setDeclineRequestNoteDraft] = useState('');
   const [editingDueDateItemId, setEditingDueDateItemId] = useState<string | null>(null);
   const [requestingBorrowId, setRequestingBorrowId] = useState<string | null>(null);
@@ -993,7 +996,14 @@ export default function LendBoard() {
                     </Text>
                   </Pressable>
                   <Pressable
-                    onPress={() => offerToHelp(item.id)}
+                    onPress={() => {
+                      if (offered) {
+                        offerToHelp(item.id);
+                      } else {
+                        setOfferingHelpItemId(item.id);
+                        setHelpNoteDraft('');
+                      }
+                    }}
                     className={`rounded-full px-4 py-1.5 ${offered ? 'bg-sage/20' : 'bg-ink'}`}
                   >
                     <Text className={`text-xs font-semibold ${offered ? 'text-sage' : 'text-paper'}`}>
@@ -1001,6 +1011,37 @@ export default function LendBoard() {
                     </Text>
                   </Pressable>
                 </View>
+                {offeringHelpItemId === item.id && (
+                  <View className="mt-2 flex-row items-center gap-2">
+                    <TextInput
+                      value={helpNoteDraft}
+                      onChangeText={setHelpNoteDraft}
+                      placeholder="Optional note, e.g. I have a ladder up to 20ft"
+                      placeholderTextColor="#3D3D3D80"
+                      autoFocus
+                      className="flex-1 rounded-full bg-sand px-4 py-2 text-sm text-charcoal"
+                    />
+                    <Pressable
+                      onPress={() => {
+                        setOfferingHelpItemId(null);
+                        setHelpNoteDraft('');
+                      }}
+                      className="px-2 py-2"
+                    >
+                      <Text className="text-xs font-semibold text-charcoal/50">Cancel</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        offerToHelp(item.id, helpNoteDraft);
+                        setOfferingHelpItemId(null);
+                        setHelpNoteDraft('');
+                      }}
+                      className="rounded-full bg-ink px-4 py-2"
+                    >
+                      <Text className="text-xs font-semibold text-paper">Offer</Text>
+                    </Pressable>
+                  </View>
+                )}
               </View>
             );
           })}
@@ -1095,7 +1136,14 @@ export default function LendBoard() {
                       className="flex-row items-center gap-3 rounded-2xl p-2 active:opacity-70"
                     >
                       <Image source={{ uri: person.avatar }} className="h-9 w-9 rounded-full" />
-                      <Text className="font-medium text-charcoal">{isMe ? 'You' : person.name}</Text>
+                      <View className="flex-1">
+                        <Text className="font-medium text-charcoal">{isMe ? 'You' : person.name}</Text>
+                        {isMe && helpNotes[viewingHelpersItem.id] && (
+                          <Text className="text-xs italic text-charcoal/50">
+                            {helpNotes[viewingHelpersItem.id]}
+                          </Text>
+                        )}
+                      </View>
                     </Pressable>
                   );
                 })}

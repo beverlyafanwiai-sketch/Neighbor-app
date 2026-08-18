@@ -44,6 +44,7 @@ type LendState = {
   myOffers: Record<string, boolean>;
   requestNotes: Record<string, string>;
   declineRequestNotes: Record<string, string>;
+  helpNotes: Record<string, string>;
   notifyWhenAvailable: Record<string, boolean>;
   completedBorrows: Record<string, boolean>;
   drafts: LendDraft[];
@@ -55,7 +56,7 @@ type LendState = {
   declineRequest: (itemId: string, note?: string) => void;
   markReturned: (itemId: string) => void;
   updateDueDate: (itemId: string, days: number) => void;
-  offerToHelp: (itemId: string) => void;
+  offerToHelp: (itemId: string, note?: string) => void;
   toggleNotifyWhenAvailable: (itemId: string) => void;
   deleteItem: (itemId: string) => void;
   saveDraft: (input: LendDraftInput) => string;
@@ -96,6 +97,7 @@ export const useLendStore = create<LendState>((set, get) => ({
   myOffers: {},
   requestNotes: {},
   declineRequestNotes: {},
+  helpNotes: {},
   notifyWhenAvailable: {},
   completedBorrows: {},
   drafts: [],
@@ -219,11 +221,17 @@ export const useLendStore = create<LendState>((set, get) => ({
         : s
     ),
 
-  offerToHelp: (itemId) => {
+  offerToHelp: (itemId, note) => {
     const item = get().items.find((i) => i.id === itemId);
     if (!item) return;
     const alreadyOffered = get().myOffers[itemId] ?? false;
-    set((s) => ({ myOffers: { ...s.myOffers, [itemId]: !alreadyOffered } }));
+    set((s) => ({
+      myOffers: { ...s.myOffers, [itemId]: !alreadyOffered },
+      helpNotes:
+        !alreadyOffered && note?.trim()
+          ? { ...s.helpNotes, [itemId]: note.trim() }
+          : s.helpNotes,
+    }));
     if (alreadyOffered) return;
 
     setTimeout(() => {
