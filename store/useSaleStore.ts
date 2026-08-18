@@ -48,6 +48,7 @@ type SaleState = {
   myOffers: Record<string, string>;
   acceptedOffers: Record<string, AcceptedOffer>;
   declinedOffers: Record<string, Record<string, boolean>>;
+  declineNotes: Record<string, Record<string, string>>;
   counterOffers: Record<string, Record<string, string>>;
   reservedForId: Record<string, string>;
   drafts: SaleDraft[];
@@ -57,7 +58,7 @@ type SaleState = {
   makeOffer: (itemId: string, price: string) => void;
   withdrawOffer: (itemId: string) => void;
   acceptOffer: (itemId: string, userId: string) => void;
-  declineOffer: (itemId: string, userId: string) => void;
+  declineOffer: (itemId: string, userId: string, note?: string) => void;
   counterOffer: (itemId: string, userId: string, price: string) => void;
   dropPrice: (itemId: string, newPrice: string) => void;
   markFree: (itemId: string) => void;
@@ -95,6 +96,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   myOffers: {},
   acceptedOffers: {},
   declinedOffers: {},
+  declineNotes: {},
   counterOffers: {},
   reservedForId: {},
   drafts: [],
@@ -187,12 +189,18 @@ export const useSaleStore = create<SaleState>((set, get) => ({
     });
   },
 
-  declineOffer: (itemId, userId) =>
+  declineOffer: (itemId, userId, note) =>
     set((s) => ({
       declinedOffers: {
         ...s.declinedOffers,
         [itemId]: { ...s.declinedOffers[itemId], [userId]: true },
       },
+      declineNotes: note?.trim()
+        ? {
+            ...s.declineNotes,
+            [itemId]: { ...s.declineNotes[itemId], [userId]: note.trim() },
+          }
+        : s.declineNotes,
       counterOffers: {
         ...s.counterOffers,
         [itemId]: { ...s.counterOffers[itemId], [userId]: '' },

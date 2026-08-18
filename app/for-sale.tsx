@@ -54,6 +54,7 @@ export default function ForSaleBoard() {
   const acceptOffer = useSaleStore((s) => s.acceptOffer);
   const declinedOffers = useSaleStore((s) => s.declinedOffers);
   const declineOffer = useSaleStore((s) => s.declineOffer);
+  const declineNotes = useSaleStore((s) => s.declineNotes);
   const counterOffers = useSaleStore((s) => s.counterOffers);
   const counterOffer = useSaleStore((s) => s.counterOffer);
   const dropPrice = useSaleStore((s) => s.dropPrice);
@@ -108,6 +109,8 @@ export default function ForSaleBoard() {
   const [priceDropDraft, setPriceDropDraft] = useState('');
   const [confirmingFreeId, setConfirmingFreeId] = useState<string | null>(null);
   const [counteringUserId, setCounteringUserId] = useState<string | null>(null);
+  const [decliningOfferUserId, setDecliningOfferUserId] = useState<string | null>(null);
+  const [declineOfferNoteDraft, setDeclineOfferNoteDraft] = useState('');
   const [counterDraft, setCounterDraft] = useState('');
   const [ratingItemId, setRatingItemId] = useState<string | null>(null);
   const [ratingDraftStars, setRatingDraftStars] = useState(0);
@@ -886,7 +889,14 @@ export default function ForSaleBoard() {
                                 Offered {offer}
                               </Text>
                             )}
-                            {declined && <Text className="text-xs text-charcoal/40">Declined</Text>}
+                            {declined && (
+                              <Text className="text-xs text-charcoal/40">
+                                Declined
+                                {declineNotes[viewingInterestedItem.id]?.[userId]
+                                  ? `: ${declineNotes[viewingInterestedItem.id][userId]}`
+                                  : ''}
+                              </Text>
+                            )}
                             {countered && (
                               <Text className="text-xs font-semibold text-gold">
                                 You countered: {countered}
@@ -897,7 +907,10 @@ export default function ForSaleBoard() {
                         {canRespond && (
                           <View className="flex-row gap-1.5">
                             <Pressable
-                              onPress={() => declineOffer(viewingInterestedItem.id, userId)}
+                              onPress={() => {
+                                setDecliningOfferUserId(userId);
+                                setDeclineOfferNoteDraft('');
+                              }}
                               className="rounded-full bg-sand px-3 py-1.5"
                             >
                               <Text className="text-xs font-semibold text-charcoal/60">Decline</Text>
@@ -980,6 +993,37 @@ export default function ForSaleBoard() {
                             className="rounded-full bg-gold px-4 py-2"
                           >
                             <Text className="text-xs font-semibold text-charcoal">Send</Text>
+                          </Pressable>
+                        </View>
+                      )}
+                      {decliningOfferUserId === userId && (
+                        <View className="flex-row items-center gap-2">
+                          <TextInput
+                            value={declineOfferNoteDraft}
+                            onChangeText={setDeclineOfferNoteDraft}
+                            placeholder="Optional note, e.g. went with someone else"
+                            placeholderTextColor="#8A8378"
+                            autoFocus
+                            className="flex-1 rounded-full bg-sand px-4 py-2 text-sm text-charcoal"
+                          />
+                          <Pressable
+                            onPress={() => {
+                              setDecliningOfferUserId(null);
+                              setDeclineOfferNoteDraft('');
+                            }}
+                            className="px-2 py-2"
+                          >
+                            <Text className="text-xs font-semibold text-charcoal/50">Cancel</Text>
+                          </Pressable>
+                          <Pressable
+                            onPress={() => {
+                              declineOffer(viewingInterestedItem.id, userId, declineOfferNoteDraft);
+                              setDecliningOfferUserId(null);
+                              setDeclineOfferNoteDraft('');
+                            }}
+                            className="rounded-full bg-terracotta px-4 py-2"
+                          >
+                            <Text className="text-xs font-semibold text-paper">Decline</Text>
                           </Pressable>
                         </View>
                       )}
