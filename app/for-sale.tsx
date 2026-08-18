@@ -13,7 +13,7 @@ import PhotoViewer from '../components/PhotoViewer';
 import ReactionButton from '../components/ReactionButton';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
-import { getUser, ME } from '../data/mock';
+import { getUser, ME, SALE_CONDITIONS, type SaleCondition } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useConversationsStore } from '../store/useConversationsStore';
 import { useDismissedListingsStore } from '../store/useDismissedListingsStore';
@@ -118,6 +118,7 @@ export default function ForSaleBoard() {
   const [hideSold, setHideSold] = useState(false);
   const [minPriceFilter, setMinPriceFilter] = useState('');
   const [maxPriceFilter, setMaxPriceFilter] = useState('');
+  const [conditionFilter, setConditionFilter] = useState<'All' | SaleCondition>('All');
   const [savingSearch, setSavingSearch] = useState(false);
   const [renamingSearchId, setRenamingSearchId] = useState<string | null>(null);
   const [searchNameDraft, setSearchNameDraft] = useState('');
@@ -151,7 +152,8 @@ export default function ForSaleBoard() {
     sortBy !== 'Newest' ||
     hideSold ||
     minPriceFilter.trim().length > 0 ||
-    maxPriceFilter.trim().length > 0;
+    maxPriceFilter.trim().length > 0 ||
+    conditionFilter !== 'All';
 
   const applySearch = (search: (typeof savedSearches)[number]) => {
     setQuery(search.query);
@@ -159,6 +161,7 @@ export default function ForSaleBoard() {
     setHideSold(search.hideSold);
     setMinPriceFilter(search.minPrice);
     setMaxPriceFilter(search.maxPrice);
+    setConditionFilter(search.conditionFilter as 'All' | SaleCondition);
   };
 
   const minPrice = minPriceFilter.trim() ? parseFloat(minPriceFilter) : undefined;
@@ -170,6 +173,8 @@ export default function ForSaleBoard() {
     if (maxPrice !== undefined && price > maxPrice) return false;
     return true;
   };
+  const matchesCondition = (i: (typeof items)[number]) =>
+    conditionFilter === 'All' || i.condition === conditionFilter;
 
   const myItems = items.filter((i) => i.ownerId === ME.id && matchesQuery(i));
   const unsortedBoardItems = items.filter(
@@ -179,6 +184,7 @@ export default function ForSaleBoard() {
       !mutedIds[i.ownerId] &&
       matchesQuery(i) &&
       matchesPriceRange(i) &&
+      matchesCondition(i) &&
       (!hideSold || !(sold[i.id] ?? false)) &&
       !(dismissedSaleIds[i.id] ?? false)
   );
@@ -381,6 +387,7 @@ export default function ForSaleBoard() {
                     hideSold,
                     minPrice: minPriceFilter,
                     maxPrice: maxPriceFilter,
+                    conditionFilter,
                   });
                 }
                 setSavingSearch(false);
@@ -491,6 +498,44 @@ export default function ForSaleBoard() {
             </Pressable>
           )}
         </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="mt-3 gap-2"
+        >
+          <Pressable
+            onPress={() => setConditionFilter('All')}
+            className={`rounded-full px-3.5 py-1.5 ${
+              conditionFilter === 'All' ? 'bg-terracotta' : 'bg-cream'
+            }`}
+          >
+            <Text
+              className={`text-xs font-medium ${
+                conditionFilter === 'All' ? 'text-paper' : 'text-charcoal/60'
+              }`}
+            >
+              Any condition
+            </Text>
+          </Pressable>
+          {SALE_CONDITIONS.map((c) => (
+            <Pressable
+              key={c}
+              onPress={() => setConditionFilter(c)}
+              className={`rounded-full px-3.5 py-1.5 ${
+                conditionFilter === c ? 'bg-terracotta' : 'bg-cream'
+              }`}
+            >
+              <Text
+                className={`text-xs font-medium ${
+                  conditionFilter === c ? 'text-paper' : 'text-charcoal/60'
+                }`}
+              >
+                {c}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
 
         {unsortedBoardItems.length > 1 && (
           <View className="mt-4 flex-row items-center gap-2">

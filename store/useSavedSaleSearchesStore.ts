@@ -8,6 +8,7 @@ export type SavedSaleSearch = {
   hideSold: boolean;
   minPrice: string;
   maxPrice: string;
+  conditionFilter: string;
 };
 
 type SavedSaleSearchesState = {
