@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import EmptyState from '../components/EmptyState';
 import { DISCOVER_USERS, type Tone } from '../data/mock';
 import { useBlockedStore } from '../store/useBlockedStore';
+import { useDismissedDiscoverStore } from '../store/useDismissedDiscoverStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { getEffectiveMemberCount, memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 import { useProfileStore } from '../store/useProfileStore';
@@ -48,10 +49,13 @@ export default function Discover() {
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const toggleBlocked = useBlockedStore((s) => s.toggle);
   const [confirmingBlockId, setConfirmingBlockId] = useState<string | null>(null);
+  const dismissedIds = useDismissedDiscoverStore((s) => s.dismissedIds);
+  const dismiss = useDismissedDiscoverStore((s) => s.dismiss);
+  const [menuForId, setMenuForId] = useState<string | null>(null);
   const myTags = useProfileStore((s) => s.profile.tags);
 
   const discoverGroups = allGroups.filter((g) => !joinedMap[g.id]);
-  const discoverableUsers = DISCOVER_USERS.filter((u) => !blockedIds[u.id]);
+  const discoverableUsers = DISCOVER_USERS.filter((u) => !blockedIds[u.id] && !dismissedIds[u.id]);
 
   const people = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -188,6 +192,41 @@ export default function Discover() {
                 );
               }
 
+              if (menuForId === p.id) {
+                return (
+                  <View key={p.id} className="gap-1 rounded-2xl bg-cream p-2">
+                    <Pressable
+                      onPress={() => {
+                        dismiss(p.id);
+                        setMenuForId(null);
+                      }}
+                      className="flex-row items-center gap-3 rounded-xl px-3 py-2.5 active:bg-sand"
+                    >
+                      <Ionicons name="eye-off-outline" size={17} className="text-charcoal" />
+                      <Text className="text-sm font-medium text-charcoal">
+                        Not interested — hide from Discover
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        setMenuForId(null);
+                        setConfirmingBlockId(p.id);
+                      }}
+                      className="flex-row items-center gap-3 rounded-xl px-3 py-2.5 active:bg-sand"
+                    >
+                      <Ionicons name="ban-outline" size={17} className="text-terracotta" />
+                      <Text className="text-sm font-medium text-terracotta">Block</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => setMenuForId(null)}
+                      className="rounded-xl px-3 py-2.5 active:bg-sand"
+                    >
+                      <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                    </Pressable>
+                  </View>
+                );
+              }
+
               return (
                 <Pressable
                   key={p.id}
@@ -223,7 +262,7 @@ export default function Discover() {
                     <Pressable
                       onPress={(evt) => {
                         evt.stopPropagation();
-                        setConfirmingBlockId(p.id);
+                        setMenuForId(p.id);
                       }}
                       className="h-8 w-8 items-center justify-center"
                     >
