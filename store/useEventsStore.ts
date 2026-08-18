@@ -49,7 +49,7 @@ type EventsState = {
   updateEvent: (id: string, updates: Partial<NewEventInput>) => void;
   updateChecklist: (id: string, items: string[]) => void;
   deleteEvent: (id: string) => void;
-  cancelEvent: (id: string) => void;
+  cancelEvent: (id: string, reason?: string) => void;
   reinstateEvent: (id: string) => void;
   promoteCoHost: (eventId: string, userId: string) => void;
   demoteCoHost: (eventId: string, userId: string) => void;
@@ -157,14 +157,18 @@ export const useEventsStore = create<EventsState>((set, get) => ({
 
   deleteEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
 
-  cancelEvent: (id) =>
+  cancelEvent: (id, reason) =>
     set((s) => ({
-      events: s.events.map((e) => (e.id === id ? { ...e, cancelled: true } : e)),
+      events: s.events.map((e) =>
+        e.id === id ? { ...e, cancelled: true, cancelReason: reason?.trim() || undefined } : e
+      ),
     })),
 
   reinstateEvent: (id) =>
     set((s) => ({
-      events: s.events.map((e) => (e.id === id ? { ...e, cancelled: false } : e)),
+      events: s.events.map((e) =>
+        e.id === id ? { ...e, cancelled: false, cancelReason: undefined } : e
+      ),
     })),
 
   promoteCoHost: (eventId, userId) =>

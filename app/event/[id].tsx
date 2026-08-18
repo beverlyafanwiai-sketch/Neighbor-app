@@ -97,6 +97,7 @@ export default function EventDetail() {
   const rateEvent = useEventRatingsStore((s) => s.rateEvent);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [cancelReasonDraft, setCancelReasonDraft] = useState('');
   const [confirmingCancelOfferId, setConfirmingCancelOfferId] = useState<string | null>(null);
   const [leavingSeatOfferId, setLeavingSeatOfferId] = useState<string | null>(null);
   const [leaveSeatNoteDraft, setLeaveSeatNoteDraft] = useState('');
@@ -193,8 +194,9 @@ export default function EventDetail() {
   };
 
   const confirmCancel = () => {
-    cancelEvent(event.id);
+    cancelEvent(event.id, cancelReasonDraft);
     setConfirmingCancel(false);
+    setCancelReasonDraft('');
   };
 
   const submitOffer = () => {
@@ -355,8 +357,21 @@ export default function EventDetail() {
             Cancel this event? It'll stay visible to neighbors, marked as cancelled, instead of
             disappearing.
           </Text>
+          <TextInput
+            value={cancelReasonDraft}
+            onChangeText={setCancelReasonDraft}
+            placeholder="Optional reason, e.g. weather"
+            placeholderTextColor="#3D3D3D80"
+            className="rounded-xl bg-cream px-3 py-2 text-sm text-charcoal"
+          />
           <View className="flex-row justify-end gap-4">
-            <Pressable onPress={() => setConfirmingCancel(false)} className="rounded-full px-3 py-1.5">
+            <Pressable
+              onPress={() => {
+                setConfirmingCancel(false);
+                setCancelReasonDraft('');
+              }}
+              className="rounded-full px-3 py-1.5"
+            >
               <Text className="text-sm font-medium text-charcoal/60">Keep it</Text>
             </Pressable>
             <Pressable onPress={confirmCancel} className="rounded-full bg-terracotta px-3 py-1.5">
@@ -704,11 +719,16 @@ export default function EventDetail() {
           )}
 
           {isCancelled ? (
-            <View className="mt-5 flex-row items-center justify-center gap-1.5 rounded-full bg-terracotta/15 py-3">
-              <Ionicons name="ban-outline" size={15} className="text-terracotta" />
-              <Text className="text-sm font-semibold text-terracotta">
-                {canManage ? 'You cancelled this event' : 'Cancelled by the host'}
-              </Text>
+            <View className="mt-5 items-center gap-1 rounded-2xl bg-terracotta/15 py-3">
+              <View className="flex-row items-center gap-1.5">
+                <Ionicons name="ban-outline" size={15} className="text-terracotta" />
+                <Text className="text-sm font-semibold text-terracotta">
+                  {canManage ? 'You cancelled this event' : 'Cancelled by the host'}
+                </Text>
+              </View>
+              {event.cancelReason && (
+                <Text className="px-4 text-xs text-terracotta/80">{event.cancelReason}</Text>
+              )}
             </View>
           ) : canManage ? (
             <View className="mt-5 flex-row items-center justify-center gap-1.5 rounded-full bg-gold py-3">
