@@ -107,7 +107,9 @@ export default function CreatePost() {
       showPollBuilder && validPollOptions.length >= 2
         ? {
             options: validPollOptions.map((label, i) => ({ id: `opt-${i}`, label, votes: 0 })),
-            closesAt: pollDurationHours ? Date.now() + pollDurationHours * 60 * 60 * 1000 : undefined,
+            closesAt: pollDurationHours
+              ? (scheduledFor ?? Date.now()) + pollDurationHours * 60 * 60 * 1000
+              : undefined,
           }
         : undefined;
     if (scheduledFor) {
