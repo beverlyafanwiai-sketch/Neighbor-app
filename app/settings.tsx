@@ -92,7 +92,10 @@ export default function Settings() {
   const [passwordMismatch, setPasswordMismatch] = useState(false);
   const [submittingPassword, setSubmittingPassword] = useState(false);
   const [passwordChanged, setPasswordChanged] = useState(false);
+  const [confirmingDeleteAccount, setConfirmingDeleteAccount] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const changePassword = useAuthStore((s) => s.changePassword);
+  const deleteAccount = useAuthStore((s) => s.deleteAccount);
   const authError = useAuthStore((s) => s.error);
   const clearAuthError = useAuthStore((s) => s.clearError);
   const prefs = useSettingsStore((s) => s.notificationPrefs);
@@ -157,6 +160,13 @@ export default function Settings() {
 
   const handleSignOut = async () => {
     await signOut();
+    router.replace('/');
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeletingAccount(true);
+    await deleteAccount();
+    setDeletingAccount(false);
     router.replace('/');
   };
 
@@ -437,6 +447,32 @@ export default function Settings() {
             <Ionicons name="log-out-outline" size={18} className="text-terracotta" />
             <Text className="flex-1 text-sm font-medium text-terracotta">Sign out</Text>
           </Pressable>
+
+          {confirmingDeleteAccount ? (
+            <View className="gap-3 rounded-2xl bg-terracotta/10 p-4">
+              <Text className="text-sm text-charcoal">
+                Delete your account? This removes your profile and can't be undone.
+              </Text>
+              <View className="flex-row justify-end gap-4">
+                <Pressable onPress={() => setConfirmingDeleteAccount(false)}>
+                  <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                </Pressable>
+                <Pressable onPress={handleDeleteAccount} disabled={deletingAccount}>
+                  <Text className="text-sm font-semibold text-terracotta">
+                    {deletingAccount ? 'Deleting...' : 'Delete account'}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => setConfirmingDeleteAccount(true)}
+              className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+            >
+              <Ionicons name="trash-outline" size={18} className="text-terracotta" />
+              <Text className="flex-1 text-sm font-medium text-terracotta">Delete account</Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
 

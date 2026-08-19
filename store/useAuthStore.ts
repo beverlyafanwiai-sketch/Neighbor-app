@@ -20,6 +20,7 @@ type AuthState = {
   signIn: (email: string, password: string) => Promise<boolean>;
   signUp: (email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   clearError: () => void;
 };
@@ -67,6 +68,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    set({ session: null, user: null, password: null });
+  },
+
+  deleteAccount: async () => {
+    await new Promise((resolve) => setTimeout(resolve, MOCK_AUTH_DELAY_MS));
     set({ session: null, user: null, password: null });
   },
 
