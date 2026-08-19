@@ -158,6 +158,8 @@ export default function Discover() {
                 setSearchNameDraft('');
                 setSavingSearch(true);
               }}
+              accessibilityLabel="Save this search"
+              accessibilityRole="button"
               className="ml-1 h-7 w-7 items-center justify-center"
             >
               <Ionicons name="bookmark-outline" size={17} className="text-charcoal/50" />
@@ -230,6 +232,8 @@ export default function Discover() {
                     setSearchNameDraft(s.name);
                     setRenamingSearchId(s.id);
                   }}
+                  accessibilityLabel={`Rename saved search "${s.name}"`}
+                  accessibilityRole="button"
                   className="ml-0.5"
                 >
                   <Ionicons name="pencil" size={11} className="text-charcoal/40" />
@@ -385,6 +389,8 @@ export default function Discover() {
                         evt.stopPropagation();
                         setMenuForId(p.id);
                       }}
+                      accessibilityLabel="More options"
+                      accessibilityRole="button"
                       className="h-8 w-8 items-center justify-center"
                     >
                       <Ionicons name="ellipsis-horizontal" size={16} className="text-charcoal/40" />
@@ -485,6 +491,8 @@ export default function Discover() {
                       evt.stopPropagation();
                       toggleSaveGroup(g.id);
                     }}
+                    accessibilityLabel={savedGroupIds[g.id] ? 'Unsave circle' : 'Save circle'}
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons

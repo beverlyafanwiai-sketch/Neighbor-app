@@ -174,6 +174,8 @@ export default function ProfileView({
         {onBack && (
           <Pressable
             onPress={onBack}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
             className="absolute left-4 top-10 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
           >
             <Ionicons name="chevron-back" size={22} className="text-paper" />
@@ -184,6 +186,8 @@ export default function ProfileView({
             {onRecs && (
               <Pressable
                 onPress={onRecs}
+                accessibilityLabel="Your recs"
+                accessibilityRole="button"
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
               >
                 <Ionicons name="star-outline" size={19} className="text-paper" />
@@ -192,6 +196,8 @@ export default function ProfileView({
             {onSavedPosts && (
               <Pressable
                 onPress={onSavedPosts}
+                accessibilityLabel="Saved posts"
+                accessibilityRole="button"
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
               >
                 <Ionicons name="bookmark-outline" size={19} className="text-paper" />
@@ -199,6 +205,8 @@ export default function ProfileView({
             )}
             <Pressable
               onPress={() => setSharing(true)}
+              accessibilityLabel="Share profile"
+              accessibilityRole="button"
               className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
             >
               <Ionicons name="arrow-redo-outline" size={18} className="text-paper" />
@@ -206,6 +214,8 @@ export default function ProfileView({
             {onSettings && (
               <Pressable
                 onPress={onSettings}
+                accessibilityLabel="Settings"
+                accessibilityRole="button"
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
               >
                 <Ionicons name="settings-outline" size={20} className="text-paper" />
@@ -217,6 +227,8 @@ export default function ProfileView({
           <View className="absolute right-4 top-10 flex-row items-center gap-1.5">
             <Pressable
               onPress={() => setSharing(true)}
+              accessibilityLabel="Share profile"
+              accessibilityRole="button"
               className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
             >
               <Ionicons name="arrow-redo-outline" size={18} className="text-paper" />
@@ -224,6 +236,8 @@ export default function ProfileView({
             {onMoreOptions && (
               <Pressable
                 onPress={onMoreOptions}
+                accessibilityLabel="More options"
+                accessibilityRole="button"
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
               >
                 <Ionicons name="ellipsis-horizontal" size={20} className="text-paper" />
@@ -409,6 +423,8 @@ export default function ProfileView({
                   </Pressable>
                   <Pressable
                     onPress={onMessage}
+                    accessibilityLabel="Message"
+                    accessibilityRole="button"
                     className="items-center justify-center rounded-full bg-cream/20 px-4 py-2.5"
                   >
                     <Ionicons name="chatbubble-outline" size={18} className="text-paper" />
@@ -595,12 +611,16 @@ export default function ProfileView({
                             setEditingNoteId(note.id);
                             setEditNoteDraft(note.text);
                           }}
+                          accessibilityLabel="Edit note"
+                          accessibilityRole="button"
                           className="h-7 w-7 items-center justify-center rounded-full"
                         >
                           <Ionicons name="pencil" size={13} className="text-charcoal/40" />
                         </Pressable>
                         <Pressable
                           onPress={() => setConfirmingDeleteNoteId(note.id)}
+                          accessibilityLabel="Delete note"
+                          accessibilityRole="button"
                           className="h-7 w-7 items-center justify-center rounded-full"
                         >
                           <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
@@ -843,6 +863,8 @@ export default function ProfileView({
                                 setEndorsementNoteEditDraft(myNote ?? '');
                                 setEditingEndorsementSkill(skill);
                               }}
+                              accessibilityLabel={`Edit note for ${skill} endorsement`}
+                              accessibilityRole="button"
                               className="h-7 w-7 items-center justify-center"
                             >
                               <Ionicons name="pencil" size={14} className="text-charcoal/40" />
@@ -996,7 +1018,11 @@ export default function ProfileView({
                   className="ml-2 flex-1 text-sm text-charcoal"
                 />
                 {friendQuery.length > 0 && (
-                  <Pressable onPress={() => setFriendQuery('')}>
+                  <Pressable
+                    onPress={() => setFriendQuery('')}
+                    accessibilityLabel="Clear search"
+                    accessibilityRole="button"
+                  >
                     <Ionicons name="close-circle" size={16} className="text-charcoal/50" />
                   </Pressable>
                 )}

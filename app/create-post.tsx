@@ -286,6 +286,8 @@ export default function CreatePost() {
                   {pollOptions.length > 2 && (
                     <Pressable
                       onPress={() => setPollOptions(pollOptions.filter((_, idx) => idx !== i))}
+                      accessibilityLabel={`Remove option ${i + 1}`}
+                      accessibilityRole="button"
                       className="h-7 w-7 items-center justify-center"
                     >
                       <Ionicons name="remove-circle-outline" size={18} className="text-terracotta" />

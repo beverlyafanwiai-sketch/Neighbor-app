@@ -66,6 +66,8 @@ export default function ReactionButton({
                 onSelect(type);
                 setShowPicker(false);
               }}
+              accessibilityLabel={`React with ${type}`}
+              accessibilityRole="button"
               className="items-center justify-center rounded-full active:bg-sand"
               style={{ height: pickerButtonSize, width: pickerButtonSize }}
             >
@@ -86,6 +88,8 @@ export default function ReactionButton({
           }}
           onLongPress={() => setShowPicker(true)}
           delayLongPress={350}
+          accessibilityLabel={myReaction ? `Reacted ${myReaction}. Double tap to remove` : 'React'}
+          accessibilityRole="button"
         >
           {myReaction ? (
             <Text style={{ fontSize: glyphSize }}>{REACTION_EMOJI[myReaction]}</Text>
@@ -97,7 +101,12 @@ export default function ReactionButton({
             <Ionicons name="heart-outline" size={iconSize} className="text-terracotta" />
           )}
         </Pressable>
-        <Pressable onPress={() => total > 0 && onShowReactors?.()} disabled={total === 0}>
+        <Pressable
+          onPress={() => total > 0 && onShowReactors?.()}
+          disabled={total === 0}
+          accessibilityLabel={total > 0 ? `${total} reactions, view who reacted` : '0 reactions'}
+          accessibilityRole="button"
+        >
           <Text
             className={`${compact ? 'text-xs' : 'text-sm'} ${
               myReaction ? 'font-semibold text-terracotta' : 'text-charcoal/70'

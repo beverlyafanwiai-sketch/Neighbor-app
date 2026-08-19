@@ -66,6 +66,8 @@ export default function Groups() {
         <Text className="text-2xl font-bold text-charcoal">Groups</Text>
         <Pressable
           onPress={() => router.push('/create-group')}
+          accessibilityLabel="Create circle"
+          accessibilityRole="button"
           className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"
         >
           <Ionicons name="add" size={22} className="text-paper" />
@@ -83,7 +85,11 @@ export default function Groups() {
             className="ml-2 flex-1 text-charcoal"
           />
           {query.length > 0 && (
-            <Pressable onPress={() => setQuery('')}>
+            <Pressable
+              onPress={() => setQuery('')}
+              accessibilityLabel="Clear search"
+              accessibilityRole="button"
+            >
               <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}
@@ -211,6 +217,8 @@ export default function Groups() {
                   evt.stopPropagation();
                   toggleSaveGroup(g.id);
                 }}
+                accessibilityLabel={savedGroupIds[g.id] ? 'Unsave circle' : 'Save circle'}
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center"
               >
                 <Ionicons

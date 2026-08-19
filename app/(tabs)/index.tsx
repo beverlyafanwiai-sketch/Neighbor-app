@@ -371,24 +371,32 @@ export default function HomeFeed() {
             <View className="flex-row gap-2">
               <Pressable
                 onPress={() => router.push('/discover')}
+                accessibilityLabel="Discover"
+                accessibilityRole="button"
                 className="h-10 w-10 items-center justify-center rounded-full bg-cream/20"
               >
                 <Ionicons name="compass-outline" size={19} className="text-paper" />
               </Pressable>
               <Pressable
                 onPress={() => router.push('/lend')}
+                accessibilityLabel="Lend & borrow"
+                accessibilityRole="button"
                 className="h-10 w-10 items-center justify-center rounded-full bg-cream/20"
               >
                 <Ionicons name="basket-outline" size={19} className="text-paper" />
               </Pressable>
               <Pressable
                 onPress={() => router.push('/for-sale')}
+                accessibilityLabel="For sale"
+                accessibilityRole="button"
                 className="h-10 w-10 items-center justify-center rounded-full bg-cream/20"
               >
                 <Ionicons name="pricetags-outline" size={19} className="text-paper" />
               </Pressable>
               <Pressable
                 onPress={() => router.push('/notifications')}
+                accessibilityLabel={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+                accessibilityRole="button"
                 className="h-10 w-10 items-center justify-center rounded-full bg-cream/20"
               >
                 <Ionicons name="notifications-outline" size={19} className="text-paper" />
@@ -411,7 +419,11 @@ export default function HomeFeed() {
               className="ml-2 flex-1 text-charcoal"
             />
             {query.length > 0 && (
-              <Pressable onPress={() => setQuery('')}>
+              <Pressable
+                onPress={() => setQuery('')}
+                accessibilityLabel="Clear search"
+                accessibilityRole="button"
+              >
                 <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
               </Pressable>
             )}
@@ -641,6 +653,8 @@ export default function HomeFeed() {
                     <View style={{ position: 'relative' }}>
                       <Pressable
                         onPress={() => setPostMenuId(postMenuId === post.id ? null : post.id)}
+                        accessibilityLabel="Post options"
+                        accessibilityRole="button"
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons name="ellipsis-horizontal" size={18} className="text-charcoal/50" />
@@ -730,6 +744,8 @@ export default function HomeFeed() {
                   </Pressable>
                   <Pressable
                     onPress={() => toggleSave(post.id)}
+                    accessibilityLabel={saved ? 'Unsave post' : 'Save post'}
+                    accessibilityRole="button"
                     className="flex-row items-center justify-center py-1"
                   >
                     <Ionicons

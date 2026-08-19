@@ -119,7 +119,11 @@ export default function ChatList() {
             className="ml-2 flex-1 text-charcoal"
           />
           {query.length > 0 && (
-            <Pressable onPress={() => setQuery('')}>
+            <Pressable
+              onPress={() => setQuery('')}
+              accessibilityLabel="Clear search"
+              accessibilityRole="button"
+            >
               <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}
@@ -174,6 +178,8 @@ export default function ChatList() {
                     e.stopPropagation();
                     togglePin(g.id);
                   }}
+                  accessibilityLabel={pinnedIds[g.id] ? 'Unpin chat' : 'Pin chat'}
+                  accessibilityRole="button"
                   className="h-7 w-7 items-center justify-center"
                 >
                   <Ionicons
@@ -187,6 +193,8 @@ export default function ChatList() {
                     e.stopPropagation();
                     toggleArchive(g.id);
                   }}
+                  accessibilityLabel="Archive chat"
+                  accessibilityRole="button"
                   className="h-7 w-7 items-center justify-center"
                 >
                   <Ionicons name="archive-outline" size={15} className="text-charcoal/30" />
@@ -254,6 +262,8 @@ export default function ChatList() {
                     e.stopPropagation();
                     togglePin(c.id);
                   }}
+                  accessibilityLabel={pinnedIds[c.id] ? 'Unpin chat' : 'Pin chat'}
+                  accessibilityRole="button"
                   className="h-7 w-7 items-center justify-center"
                 >
                   <Ionicons
@@ -267,6 +277,8 @@ export default function ChatList() {
                     e.stopPropagation();
                     toggleArchive(c.id);
                   }}
+                  accessibilityLabel="Archive chat"
+                  accessibilityRole="button"
                   className="h-7 w-7 items-center justify-center"
                 >
                   <Ionicons name="archive-outline" size={15} className="text-charcoal/30" />

@@ -402,7 +402,11 @@ export default function Saved() {
             className="ml-2 flex-1 text-charcoal"
           />
           {query.length > 0 && (
-            <Pressable onPress={() => setQuery('')}>
+            <Pressable
+              onPress={() => setQuery('')}
+              accessibilityLabel="Clear search"
+              accessibilityRole="button"
+            >
               <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}
@@ -412,6 +416,8 @@ export default function Saved() {
                 setSearchNameDraft('');
                 setSavingSearch(true);
               }}
+              accessibilityLabel="Save this search"
+              accessibilityRole="button"
               className="ml-1 h-7 w-7 items-center justify-center"
             >
               <Ionicons name="bookmark-outline" size={17} className="text-charcoal/50" />
@@ -491,6 +497,8 @@ export default function Saved() {
                     setSearchNameDraft(s.name);
                     setRenamingSearchId(s.id);
                   }}
+                  accessibilityLabel={`Rename saved search "${s.name}"`}
+                  accessibilityRole="button"
                   className="ml-0.5"
                 >
                   <Ionicons name="pencil" size={11} className="text-charcoal/40" />
@@ -871,6 +879,8 @@ export default function Saved() {
                         evt.stopPropagation();
                         togglePin(savedNoteKey('post', post.id));
                       }}
+                      accessibilityLabel={pinned[savedNoteKey('post', post.id)] ? 'Unpin' : 'Pin'}
+                      accessibilityRole="button"
                     >
                       <Ionicons
                         name={pinned[savedNoteKey('post', post.id)] ? 'pin' : 'pin-outline'}
@@ -883,6 +893,8 @@ export default function Saved() {
                         evt.stopPropagation();
                         toggleSave(post.id);
                       }}
+                      accessibilityLabel="Unsave"
+                      accessibilityRole="button"
                     >
                       <Ionicons name="bookmark" size={18} className="text-gold" />
                     </Pressable>
@@ -921,6 +933,8 @@ export default function Saved() {
                           evt.stopPropagation();
                           togglePin(savedNoteKey('event', e.id));
                         }}
+                        accessibilityLabel={pinned[savedNoteKey('event', e.id)] ? 'Unpin' : 'Pin'}
+                        accessibilityRole="button"
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons
@@ -934,6 +948,8 @@ export default function Saved() {
                           evt.stopPropagation();
                           toggleSaveEvent(e.id);
                         }}
+                        accessibilityLabel="Unsave event"
+                        accessibilityRole="button"
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons name="bookmark" size={15} className="text-gold" />
@@ -986,6 +1002,8 @@ export default function Saved() {
                         evt.stopPropagation();
                         togglePin(savedNoteKey('rec', entry.id));
                       }}
+                      accessibilityLabel={pinned[savedNoteKey('rec', entry.id)] ? 'Unpin' : 'Pin'}
+                      accessibilityRole="button"
                       className="h-8 w-8 items-center justify-center"
                     >
                       <Ionicons
@@ -999,6 +1017,8 @@ export default function Saved() {
                         evt.stopPropagation();
                         toggleSaveRec(entry.id);
                       }}
+                      accessibilityLabel="Unsave"
+                      accessibilityRole="button"
                       className="h-8 w-8 items-center justify-center"
                     >
                       <Ionicons name="bookmark" size={18} className="text-gold" />
@@ -1050,6 +1070,8 @@ export default function Saved() {
                         evt.stopPropagation();
                         togglePin(savedNoteKey('lend', item.id));
                       }}
+                      accessibilityLabel={pinned[savedNoteKey('lend', item.id)] ? 'Unpin' : 'Pin'}
+                      accessibilityRole="button"
                       className="h-8 w-8 items-center justify-center"
                     >
                       <Ionicons
@@ -1063,6 +1085,8 @@ export default function Saved() {
                         evt.stopPropagation();
                         toggleSaveLend(item.id);
                       }}
+                      accessibilityLabel="Unsave"
+                      accessibilityRole="button"
                       className="h-8 w-8 items-center justify-center"
                     >
                       <Ionicons name="bookmark" size={18} className="text-gold" />
@@ -1117,6 +1141,8 @@ export default function Saved() {
                         evt.stopPropagation();
                         togglePin(savedNoteKey('sale', item.id));
                       }}
+                      accessibilityLabel={pinned[savedNoteKey('sale', item.id)] ? 'Unpin' : 'Pin'}
+                      accessibilityRole="button"
                       className="h-8 w-8 items-center justify-center"
                     >
                       <Ionicons
@@ -1130,6 +1156,8 @@ export default function Saved() {
                         evt.stopPropagation();
                         toggleSaveSale(item.id);
                       }}
+                      accessibilityLabel="Unsave"
+                      accessibilityRole="button"
                       className="h-8 w-8 items-center justify-center"
                     >
                       <Ionicons name="bookmark" size={18} className="text-gold" />
@@ -1174,6 +1202,8 @@ export default function Saved() {
                     evt.stopPropagation();
                     togglePin(savedNoteKey('group', g.id));
                   }}
+                  accessibilityLabel={pinned[savedNoteKey('group', g.id)] ? 'Unpin' : 'Pin'}
+                  accessibilityRole="button"
                   className="h-8 w-8 items-center justify-center"
                 >
                   <Ionicons
@@ -1187,6 +1217,8 @@ export default function Saved() {
                     evt.stopPropagation();
                     toggleSaveGroup(g.id);
                   }}
+                  accessibilityLabel="Unsave circle"
+                  accessibilityRole="button"
                   className="h-8 w-8 items-center justify-center"
                 >
                   <Ionicons name="bookmark" size={18} className="text-gold" />

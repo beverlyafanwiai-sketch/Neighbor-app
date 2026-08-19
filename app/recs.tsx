@@ -287,12 +287,16 @@ export default function RecsBoard() {
         <View className="flex-row items-center gap-2">
           <Pressable
             onPress={() => setManagingCategories(true)}
+            accessibilityLabel="Mute categories"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full bg-cream"
           >
             <Ionicons name="options-outline" size={18} className="text-charcoal" />
           </Pressable>
           <Pressable
             onPress={() => router.push('/create-rec')}
+            accessibilityLabel="Create rec"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full bg-terracotta"
           >
             <Ionicons name="add" size={20} className="text-paper" />
@@ -316,6 +320,8 @@ export default function RecsBoard() {
                 setSearchNameDraft('');
                 setSavingSearch(true);
               }}
+              accessibilityLabel="Save this search"
+              accessibilityRole="button"
               className="h-7 w-7 items-center justify-center"
             >
               <Ionicons name="bookmark-outline" size={17} className="text-charcoal/50" />
@@ -390,6 +396,8 @@ export default function RecsBoard() {
                     setSearchNameDraft(s.name);
                     setRenamingSearchId(s.id);
                   }}
+                  accessibilityLabel={`Rename saved search "${s.name}"`}
+                  accessibilityRole="button"
                   className="ml-0.5"
                 >
                   <Ionicons name="pencil" size={11} className="text-charcoal/40" />
@@ -577,6 +585,8 @@ export default function RecsBoard() {
                               setResolveNoteDraft('');
                             }
                           }}
+                          accessibilityLabel={entry.resolved ? 'Reopen ask' : 'Mark ask resolved'}
+                          accessibilityRole="button"
                           className="h-8 w-8 items-center justify-center rounded-full"
                         >
                           <Ionicons
@@ -588,30 +598,40 @@ export default function RecsBoard() {
                       )}
                       <Pressable
                         onPress={() => setSharingId(entry.id)}
+                        accessibilityLabel="Share"
+                        accessibilityRole="button"
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons name="arrow-redo-outline" size={16} className="text-charcoal/50" />
                       </Pressable>
                       <Pressable
                         onPress={() => setViewingCommentsId(entry.id)}
+                        accessibilityLabel="View comments"
+                        accessibilityRole="button"
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons name="chatbubble-outline" size={15} className="text-charcoal/50" />
                       </Pressable>
                       <Pressable
                         onPress={() => router.push(`/create-rec?id=${entry.id}`)}
+                        accessibilityLabel="Edit"
+                        accessibilityRole="button"
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons name="pencil" size={16} className="text-charcoal/50" />
                       </Pressable>
                       <Pressable
                         onPress={() => router.push(`/create-rec?duplicateId=${entry.id}`)}
+                        accessibilityLabel="Duplicate"
+                        accessibilityRole="button"
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons name="copy-outline" size={16} className="text-charcoal/50" />
                       </Pressable>
                       <Pressable
                         onPress={() => setDeletingEntryId(entry.id)}
+                        accessibilityLabel="Delete"
+                        accessibilityRole="button"
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons name="trash-outline" size={16} className="text-terracotta" />
@@ -721,6 +741,8 @@ export default function RecsBoard() {
                   </View>
                   <Pressable
                     onPress={() => (isPinned ? unpinEntry() : pinEntry(entry.id))}
+                    accessibilityLabel={isPinned ? 'Unpin' : 'Pin'}
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons
@@ -731,18 +753,24 @@ export default function RecsBoard() {
                   </Pressable>
                   <Pressable
                     onPress={() => setSharingId(entry.id)}
+                    accessibilityLabel="Share"
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="arrow-redo-outline" size={18} className="text-charcoal/40" />
                   </Pressable>
                   <Pressable
                     onPress={() => setViewingCommentsId(entry.id)}
+                    accessibilityLabel="View comments"
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="chatbubble-outline" size={17} className="text-charcoal/40" />
                   </Pressable>
                   <Pressable
                     onPress={() => toggleSave(entry.id)}
+                    accessibilityLabel={saved ? 'Unsave' : 'Save'}
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons
@@ -753,6 +781,8 @@ export default function RecsBoard() {
                   </Pressable>
                   <Pressable
                     onPress={() => setReportingId(entry.id)}
+                    accessibilityLabel="Report"
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="flag-outline" size={17} className="text-charcoal/40" />
@@ -1083,12 +1113,16 @@ export default function RecsBoard() {
                               preview: c.text,
                             })
                           }
+                          accessibilityLabel="Reply to comment"
+                          accessibilityRole="button"
                           className="h-7 w-7 items-center justify-center"
                         >
                           <Ionicons name="arrow-undo-outline" size={14} className="text-charcoal/30" />
                         </Pressable>
                         <Pressable
                           onPress={() => setForwardingCommentId(c.id)}
+                          accessibilityLabel="Forward comment"
+                          accessibilityRole="button"
                           className="h-7 w-7 items-center justify-center"
                         >
                           <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/30" />
@@ -1096,6 +1130,8 @@ export default function RecsBoard() {
                         {canPinComments && (
                           <Pressable
                             onPress={() => togglePinComment(viewingCommentsEntry.id, c.id)}
+                            accessibilityLabel={isPinned ? 'Unpin comment' : 'Pin comment'}
+                            accessibilityRole="button"
                             className="h-7 w-7 items-center justify-center"
                           >
                             <Ionicons
@@ -1112,6 +1148,8 @@ export default function RecsBoard() {
                                 ? unmarkBestAnswer(viewingCommentsEntry.id)
                                 : markBestAnswer(viewingCommentsEntry.id, c.id)
                             }
+                            accessibilityLabel={isBest ? 'Unmark best answer' : 'Mark as best answer'}
+                            accessibilityRole="button"
                             className="h-7 w-7 items-center justify-center"
                           >
                             <Ionicons
@@ -1128,12 +1166,16 @@ export default function RecsBoard() {
                                 setEditingCommentId(c.id);
                                 setEditCommentDraft(c.text);
                               }}
+                              accessibilityLabel="Edit comment"
+                              accessibilityRole="button"
                               className="h-7 w-7 items-center justify-center"
                             >
                               <Ionicons name="pencil" size={13} className="text-charcoal/40" />
                             </Pressable>
                             <Pressable
                               onPress={() => setConfirmingDeleteCommentId(c.id)}
+                              accessibilityLabel="Delete comment"
+                              accessibilityRole="button"
                               className="h-7 w-7 items-center justify-center"
                             >
                               <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
@@ -1142,6 +1184,8 @@ export default function RecsBoard() {
                         ) : (
                           <Pressable
                             onPress={() => setReportingCommentId(c.id)}
+                            accessibilityLabel="Comment options"
+                            accessibilityRole="button"
                             className="h-7 w-7 items-center justify-center"
                           >
                             <Ionicons name="ellipsis-horizontal" size={15} className="text-charcoal/40" />

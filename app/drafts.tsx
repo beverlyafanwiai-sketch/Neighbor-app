@@ -101,7 +101,11 @@ export default function Drafts() {
             className="ml-2 flex-1 text-charcoal"
           />
           {query.length > 0 && (
-            <Pressable onPress={() => setQuery('')}>
+            <Pressable
+              onPress={() => setQuery('')}
+              accessibilityLabel="Clear search"
+              accessibilityRole="button"
+            >
               <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}

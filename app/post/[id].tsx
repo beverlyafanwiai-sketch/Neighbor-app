@@ -175,6 +175,8 @@ export default function PostDetail() {
           <View className="flex-row items-center gap-1.5">
             <Pressable
               onPress={() => (isPinned ? unpinPost() : pinPost(post.id))}
+              accessibilityLabel={isPinned ? 'Unpin post' : 'Pin post'}
+              accessibilityRole="button"
               className="h-9 w-9 items-center justify-center rounded-full"
             >
               <Ionicons
@@ -185,18 +187,24 @@ export default function PostDetail() {
             </Pressable>
             <Pressable
               onPress={() => router.push(`/create-post?id=${post.id}`)}
+              accessibilityLabel="Edit post"
+              accessibilityRole="button"
               className="h-9 w-9 items-center justify-center rounded-full"
             >
               <Ionicons name="pencil" size={17} className="text-charcoal" />
             </Pressable>
             <Pressable
               onPress={() => router.push(`/create-post?duplicateId=${post.id}`)}
+              accessibilityLabel="Duplicate post"
+              accessibilityRole="button"
               className="h-9 w-9 items-center justify-center rounded-full"
             >
               <Ionicons name="copy-outline" size={17} className="text-charcoal" />
             </Pressable>
             <Pressable
               onPress={() => setConfirmingDelete(true)}
+              accessibilityLabel="Delete post"
+              accessibilityRole="button"
               className="h-9 w-9 items-center justify-center rounded-full"
             >
               <Ionicons name="trash-outline" size={17} className="text-terracotta" />
@@ -205,6 +213,8 @@ export default function PostDetail() {
         ) : (
           <Pressable
             onPress={() => setReporting(true)}
+            accessibilityLabel="Post options"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full"
           >
             <Ionicons name="ellipsis-horizontal" size={20} className="text-charcoal" />
@@ -455,6 +465,8 @@ export default function PostDetail() {
                 <View className="flex-row items-center gap-1">
                   <Pressable
                     onPress={() => setForwardingCommentId(item.id)}
+                    accessibilityLabel="Forward comment"
+                    accessibilityRole="button"
                     className="h-7 w-7 items-center justify-center rounded-full"
                   >
                     <Ionicons name="arrow-redo-outline" size={13} className="text-charcoal/40" />
@@ -466,6 +478,8 @@ export default function PostDetail() {
                           ? unpinComment(post.id)
                           : pinComment(post.id, item.id)
                       }
+                      accessibilityLabel={pinnedCommentId === item.id ? 'Unpin comment' : 'Pin comment'}
+                      accessibilityRole="button"
                       className="h-7 w-7 items-center justify-center rounded-full"
                     >
                       <Ionicons
@@ -482,12 +496,16 @@ export default function PostDetail() {
                           setEditingCommentId(item.id);
                           setEditDraft(item.text);
                         }}
+                        accessibilityLabel="Edit comment"
+                        accessibilityRole="button"
                         className="h-7 w-7 items-center justify-center rounded-full"
                       >
                         <Ionicons name="pencil" size={13} className="text-charcoal/50" />
                       </Pressable>
                       <Pressable
                         onPress={() => setDeletingCommentId(item.id)}
+                        accessibilityLabel="Delete comment"
+                        accessibilityRole="button"
                         className="h-7 w-7 items-center justify-center rounded-full"
                       >
                         <Ionicons name="trash-outline" size={13} className="text-terracotta" />
@@ -496,6 +514,8 @@ export default function PostDetail() {
                   ) : (
                     <Pressable
                       onPress={() => setReportingCommentId(item.id)}
+                      accessibilityLabel="Comment options"
+                      accessibilityRole="button"
                       className="h-7 w-7 items-center justify-center rounded-full"
                     >
                       <Ionicons name="ellipsis-horizontal" size={15} className="text-charcoal/40" />

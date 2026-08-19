@@ -276,12 +276,16 @@ export default function NeighborhoodAlerts() {
         <View className="flex-row items-center gap-2">
           <Pressable
             onPress={() => setManagingCategories(true)}
+            accessibilityLabel="Mute categories"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full bg-cream"
           >
             <Ionicons name="options-outline" size={18} className="text-charcoal" />
           </Pressable>
           <Pressable
             onPress={() => router.push('/create-alert')}
+            accessibilityLabel="Create alert"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full bg-terracotta"
           >
             <Ionicons name="add" size={20} className="text-paper" />
@@ -310,7 +314,11 @@ export default function NeighborhoodAlerts() {
             className="ml-2 flex-1 text-charcoal"
           />
           {query.length > 0 && (
-            <Pressable onPress={() => setQuery('')}>
+            <Pressable
+              onPress={() => setQuery('')}
+              accessibilityLabel="Clear search"
+              accessibilityRole="button"
+            >
               <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}
@@ -320,6 +328,8 @@ export default function NeighborhoodAlerts() {
                 setSearchNameDraft('');
                 setSavingSearch(true);
               }}
+              accessibilityLabel="Save this search"
+              accessibilityRole="button"
               className="ml-1 h-7 w-7 items-center justify-center"
             >
               <Ionicons name="bookmark-outline" size={17} className="text-charcoal/50" />
@@ -392,6 +402,8 @@ export default function NeighborhoodAlerts() {
                     setSearchNameDraft(s.name);
                     setRenamingSearchId(s.id);
                   }}
+                  accessibilityLabel={`Rename saved search "${s.name}"`}
+                  accessibilityRole="button"
                   className="ml-0.5"
                 >
                   <Ionicons name="pencil" size={11} className="text-charcoal/40" />
@@ -562,18 +574,24 @@ export default function NeighborhoodAlerts() {
                   <View className="flex-row gap-1">
                     <Pressable
                       onPress={() => setSnoozingId(snoozingId === alert.id ? null : alert.id)}
+                      accessibilityLabel="Snooze alert"
+                      accessibilityRole="button"
                       className="h-8 w-8 items-center justify-center rounded-full"
                     >
                       <Ionicons name="time-outline" size={16} className="text-charcoal/50" />
                     </Pressable>
                     <Pressable
                       onPress={() => setSharingId(alert.id)}
+                      accessibilityLabel="Share alert"
+                      accessibilityRole="button"
                       className="h-8 w-8 items-center justify-center rounded-full"
                     >
                       <Ionicons name="arrow-redo-outline" size={16} className="text-charcoal/50" />
                     </Pressable>
                     <Pressable
                       onPress={() => router.push(`/create-alert?duplicateId=${alert.id}`)}
+                      accessibilityLabel="Duplicate alert"
+                      accessibilityRole="button"
                       className="h-8 w-8 items-center justify-center rounded-full"
                     >
                       <Ionicons name="copy-outline" size={16} className="text-charcoal/50" />
@@ -581,6 +599,8 @@ export default function NeighborhoodAlerts() {
                     {!isMine && (
                       <Pressable
                         onPress={() => setReportingId(alert.id)}
+                        accessibilityLabel="Report alert"
+                        accessibilityRole="button"
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons name="flag-outline" size={15} className="text-charcoal/50" />
@@ -592,6 +612,8 @@ export default function NeighborhoodAlerts() {
                       {!alert.resolved && (
                         <Pressable
                           onPress={() => setExtendingId(extendingId === alert.id ? null : alert.id)}
+                          accessibilityLabel="Extend alert"
+                          accessibilityRole="button"
                           className="h-8 w-8 items-center justify-center rounded-full"
                         >
                           <Ionicons name="hourglass-outline" size={16} className="text-charcoal/50" />
@@ -606,6 +628,8 @@ export default function NeighborhoodAlerts() {
                             setResolveNoteDraft('');
                           }
                         }}
+                        accessibilityLabel={alert.resolved ? 'Reopen alert' : 'Mark alert resolved'}
+                        accessibilityRole="button"
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons
@@ -616,6 +640,8 @@ export default function NeighborhoodAlerts() {
                       </Pressable>
                       <Pressable
                         onPress={() => (isPinned ? unpinAlert() : pinAlert(alert.id))}
+                        accessibilityLabel={isPinned ? 'Unpin alert' : 'Pin alert'}
+                        accessibilityRole="button"
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons
@@ -626,12 +652,16 @@ export default function NeighborhoodAlerts() {
                       </Pressable>
                       <Pressable
                         onPress={() => router.push(`/create-alert?editId=${alert.id}`)}
+                        accessibilityLabel="Edit alert"
+                        accessibilityRole="button"
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons name="pencil" size={16} className="text-charcoal/50" />
                       </Pressable>
                       <Pressable
                         onPress={() => deleteAlert(alert.id)}
+                        accessibilityLabel="Delete alert"
+                        accessibilityRole="button"
                         className="h-8 w-8 items-center justify-center rounded-full"
                       >
                         <Ionicons name="trash-outline" size={16} className="text-terracotta" />
@@ -1065,12 +1095,16 @@ export default function NeighborhoodAlerts() {
                               preview: c.text,
                             })
                           }
+                          accessibilityLabel="Reply to comment"
+                          accessibilityRole="button"
                           className="h-7 w-7 items-center justify-center"
                         >
                           <Ionicons name="arrow-undo-outline" size={14} className="text-charcoal/30" />
                         </Pressable>
                         <Pressable
                           onPress={() => setForwardingCommentId(c.id)}
+                          accessibilityLabel="Forward comment"
+                          accessibilityRole="button"
                           className="h-7 w-7 items-center justify-center"
                         >
                           <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/30" />
@@ -1078,6 +1112,8 @@ export default function NeighborhoodAlerts() {
                         {canPinComments && (
                           <Pressable
                             onPress={() => togglePinComment(viewingCommentsAlert.id, c.id)}
+                            accessibilityLabel={isPinned ? 'Unpin comment' : 'Pin comment'}
+                            accessibilityRole="button"
                             className="h-7 w-7 items-center justify-center"
                           >
                             <Ionicons
@@ -1094,12 +1130,16 @@ export default function NeighborhoodAlerts() {
                                 setEditingCommentId(c.id);
                                 setEditCommentDraft(c.text);
                               }}
+                              accessibilityLabel="Edit comment"
+                              accessibilityRole="button"
                               className="h-7 w-7 items-center justify-center"
                             >
                               <Ionicons name="pencil" size={13} className="text-charcoal/40" />
                             </Pressable>
                             <Pressable
                               onPress={() => setConfirmingDeleteCommentId(c.id)}
+                              accessibilityLabel="Delete comment"
+                              accessibilityRole="button"
                               className="h-7 w-7 items-center justify-center"
                             >
                               <Ionicons name="trash-outline" size={14} className="text-charcoal/40" />
@@ -1109,6 +1149,8 @@ export default function NeighborhoodAlerts() {
                         {!isMine && (
                           <Pressable
                             onPress={() => setReportingCommentId(c.id)}
+                            accessibilityLabel="Comment options"
+                            accessibilityRole="button"
                             className="h-7 w-7 items-center justify-center"
                           >
                             <Ionicons name="ellipsis-horizontal" size={15} className="text-charcoal/40" />

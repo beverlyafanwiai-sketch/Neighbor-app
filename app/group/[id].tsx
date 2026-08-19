@@ -159,12 +159,16 @@ export default function GroupDetail() {
         <View className="flex-row items-center gap-1.5">
           <Pressable
             onPress={() => setSharing(true)}
+            accessibilityLabel="Share circle"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full bg-cream"
           >
             <Ionicons name="arrow-redo-outline" size={17} className="text-charcoal" />
           </Pressable>
           <Pressable
             onPress={() => toggleSaveGroup(group.id)}
+            accessibilityLabel={savedGroupIds[group.id] ? 'Unsave circle' : 'Save circle'}
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full bg-cream"
           >
             <Ionicons
@@ -177,6 +181,8 @@ export default function GroupDetail() {
             <>
             <Pressable
               onPress={() => (isMuted ? toggleMutedGroup(group.id) : setChoosingMuteDuration(true))}
+              accessibilityLabel={isMuted ? 'Unmute circle' : 'Mute circle'}
+              accessibilityRole="button"
               className="h-9 w-9 items-center justify-center rounded-full bg-cream"
             >
               <Ionicons
@@ -187,6 +193,8 @@ export default function GroupDetail() {
             </Pressable>
             <Pressable
               onPress={() => setInviting(true)}
+              accessibilityLabel="Invite people"
+              accessibilityRole="button"
               className="h-9 w-9 items-center justify-center rounded-full bg-cream"
             >
               <Ionicons name="person-add-outline" size={17} className="text-charcoal" />
@@ -194,6 +202,8 @@ export default function GroupDetail() {
             {isAdmin && (
               <Pressable
                 onPress={() => router.push(`/create-group?id=${group.id}`)}
+                accessibilityLabel="Edit circle"
+                accessibilityRole="button"
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream"
               >
                 <Ionicons name="pencil" size={17} className="text-charcoal" />
@@ -202,6 +212,8 @@ export default function GroupDetail() {
             {isAdmin && (
               <Pressable
                 onPress={() => router.push(`/create-group?duplicateId=${group.id}`)}
+                accessibilityLabel="Duplicate circle"
+                accessibilityRole="button"
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream"
               >
                 <Ionicons name="copy-outline" size={17} className="text-charcoal" />
@@ -213,6 +225,8 @@ export default function GroupDetail() {
                   setWelcomeDraft(welcomeMessage ?? '');
                   setComposingWelcome(true);
                 }}
+                accessibilityLabel="Edit welcome message"
+                accessibilityRole="button"
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream"
               >
                 <Ionicons name="hand-left-outline" size={17} className="text-charcoal" />
@@ -221,6 +235,8 @@ export default function GroupDetail() {
             {isCreator && (
               <Pressable
                 onPress={() => setConfirmingDelete(true)}
+                accessibilityLabel="Delete circle"
+                accessibilityRole="button"
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream"
               >
                 <Ionicons name="trash-outline" size={17} className="text-terracotta" />
@@ -229,6 +245,8 @@ export default function GroupDetail() {
             {!isCreator && (
               <Pressable
                 onPress={() => setReportingGroup(true)}
+                accessibilityLabel="Report circle"
+                accessibilityRole="button"
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream"
               >
                 <Ionicons name="flag-outline" size={17} className="text-charcoal" />
@@ -452,7 +470,11 @@ export default function GroupDetail() {
               className="ml-2 flex-1 text-sm text-charcoal"
             />
             {memberQuery.length > 0 && (
-              <Pressable onPress={() => setMemberQuery('')}>
+              <Pressable
+                onPress={() => setMemberQuery('')}
+                accessibilityLabel="Clear search"
+                accessibilityRole="button"
+              >
                 <Ionicons name="close-circle" size={16} className="text-charcoal/50" />
               </Pressable>
             )}
@@ -578,6 +600,8 @@ export default function GroupDetail() {
                       e.stopPropagation();
                       setConfirmingRemoveMemberId(m!.id);
                     }}
+                    accessibilityLabel={`Remove ${m!.name} from circle`}
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center rounded-full"
                   >
                     <Ionicons name="person-remove-outline" size={16} className="text-terracotta" />

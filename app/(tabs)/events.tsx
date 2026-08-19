@@ -138,6 +138,8 @@ export default function Events() {
             <View className="flex-row items-center gap-1 rounded-full bg-cream p-1">
               <Pressable
                 onPress={() => setView('list')}
+                accessibilityLabel="List view"
+                accessibilityRole="button"
                 className={`h-8 w-8 items-center justify-center rounded-full ${
                   view === 'list' ? 'bg-ink' : ''
                 }`}
@@ -150,6 +152,8 @@ export default function Events() {
               </Pressable>
               <Pressable
                 onPress={() => setView('calendar')}
+                accessibilityLabel="Calendar view"
+                accessibilityRole="button"
                 className={`h-8 w-8 items-center justify-center rounded-full ${
                   view === 'calendar' ? 'bg-ink' : ''
                 }`}
@@ -165,6 +169,8 @@ export default function Events() {
           {eventDrafts.length > 0 && (
             <Pressable
               onPress={() => router.push('/drafts')}
+              accessibilityLabel="Drafts"
+              accessibilityRole="button"
               className="h-10 w-10 items-center justify-center rounded-full bg-cream"
             >
               <Ionicons name="document-text-outline" size={18} className="text-terracotta" />
@@ -172,6 +178,8 @@ export default function Events() {
           )}
           <Pressable
             onPress={() => router.push('/create-event')}
+            accessibilityLabel="Create event"
+            accessibilityRole="button"
             className="h-10 w-10 items-center justify-center rounded-full bg-terracotta"
           >
             <Ionicons name="add" size={22} className="text-paper" />
@@ -190,7 +198,11 @@ export default function Events() {
             className="ml-2 flex-1 text-charcoal"
           />
           {query.length > 0 && (
-            <Pressable onPress={() => setQuery('')}>
+            <Pressable
+              onPress={() => setQuery('')}
+              accessibilityLabel="Clear search"
+              accessibilityRole="button"
+            >
               <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}
@@ -200,6 +212,8 @@ export default function Events() {
                 setSearchNameDraft('');
                 setSavingSearch(true);
               }}
+              accessibilityLabel="Save this search"
+              accessibilityRole="button"
               className="ml-1 h-7 w-7 items-center justify-center"
             >
               <Ionicons name="bookmark-outline" size={17} className="text-charcoal/50" />
@@ -274,6 +288,8 @@ export default function Events() {
                     setSearchNameDraft(s.name);
                     setRenamingSearchId(s.id);
                   }}
+                  accessibilityLabel={`Rename saved search "${s.name}"`}
+                  accessibilityRole="button"
                   className="ml-0.5"
                 >
                   <Ionicons name="pencil" size={11} className="text-charcoal/40" />
@@ -437,6 +453,8 @@ export default function Events() {
                           evt.stopPropagation();
                           isPinned ? unpinEvent() : pinEvent(e.id);
                         }}
+                        accessibilityLabel={isPinned ? 'Unpin event' : 'Pin event'}
+                        accessibilityRole="button"
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons
@@ -450,6 +468,8 @@ export default function Events() {
                           evt.stopPropagation();
                           toggleSaveEvent(e.id);
                         }}
+                        accessibilityLabel={saved ? 'Unsave event' : 'Save event'}
+                        accessibilityRole="button"
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons

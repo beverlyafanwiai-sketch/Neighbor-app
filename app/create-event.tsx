@@ -355,6 +355,8 @@ export default function CreateEvent() {
               <View className="flex-row items-center gap-3">
                 <Pressable
                   onPress={() => setSpotsTotal((n) => Math.max(2, n - 1))}
+                  accessibilityLabel="Decrease spots"
+                  accessibilityRole="button"
                   className="h-10 w-10 items-center justify-center rounded-full bg-cream"
                 >
                   <Ionicons name="remove" size={18} className="text-charcoal" />
@@ -364,6 +366,8 @@ export default function CreateEvent() {
                 </Text>
                 <Pressable
                   onPress={() => setSpotsTotal((n) => Math.min(30, n + 1))}
+                  accessibilityLabel="Increase spots"
+                  accessibilityRole="button"
                   className="h-10 w-10 items-center justify-center rounded-full bg-cream"
                 >
                   <Ionicons name="add" size={18} className="text-charcoal" />

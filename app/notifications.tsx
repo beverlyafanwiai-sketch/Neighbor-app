@@ -115,6 +115,8 @@ export default function Notifications() {
           </Pressable>
           <Pressable
             onPress={() => togglePin(n.id)}
+            accessibilityLabel={isPinned ? 'Unpin notification' : 'Pin notification'}
+            accessibilityRole="button"
             className="h-7 w-7 items-center justify-center rounded-full"
           >
             <Ionicons
@@ -125,6 +127,8 @@ export default function Notifications() {
           </Pressable>
           <Pressable
             onPress={() => setSnoozingId(snoozingId === n.id ? null : n.id)}
+            accessibilityLabel="Snooze notification"
+            accessibilityRole="button"
             className="h-7 w-7 items-center justify-center rounded-full"
           >
             <Ionicons name="time-outline" size={16} className="text-charcoal/40" />
@@ -277,7 +281,11 @@ export default function Notifications() {
             className="ml-2 flex-1 text-charcoal"
           />
           {query.length > 0 && (
-            <Pressable onPress={() => setQuery('')}>
+            <Pressable
+              onPress={() => setQuery('')}
+              accessibilityLabel="Clear search"
+              accessibilityRole="button"
+            >
               <Ionicons name="close-circle" size={18} className="text-charcoal/50" />
             </Pressable>
           )}

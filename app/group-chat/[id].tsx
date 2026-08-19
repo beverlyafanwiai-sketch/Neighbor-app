@@ -256,6 +256,8 @@ export default function GroupChatThread() {
               setSearchQuery('');
               setHighlightId(null);
             }}
+            accessibilityLabel="Close search"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full"
           >
             <Ionicons name="chevron-back" size={22} className="text-charcoal" />
@@ -277,12 +279,16 @@ export default function GroupChatThread() {
             <>
               <Pressable
                 onPress={() => goToMatch(matchIndex - 1)}
+                accessibilityLabel="Previous match"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full"
               >
                 <Ionicons name="chevron-up" size={18} className="text-charcoal" />
               </Pressable>
               <Pressable
                 onPress={() => goToMatch(matchIndex + 1)}
+                accessibilityLabel="Next match"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full"
               >
                 <Ionicons name="chevron-down" size={18} className="text-charcoal" />
@@ -314,12 +320,16 @@ export default function GroupChatThread() {
           </Pressable>
           <Pressable
             onPress={() => setSearching(true)}
+            accessibilityLabel="Search this conversation"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full"
           >
             <Ionicons name="search-outline" size={20} className="text-charcoal" />
           </Pressable>
           <Pressable
             onPress={() => setShowGallery(true)}
+            accessibilityLabel="Photo gallery"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full"
           >
             <Ionicons name="images-outline" size={20} className="text-charcoal" />
@@ -330,6 +340,8 @@ export default function GroupChatThread() {
                 setAnnouncementDraft(announcement?.text ?? '');
                 setComposingAnnouncement(true);
               }}
+              accessibilityLabel="Post announcement"
+              accessibilityRole="button"
               className="h-9 w-9 items-center justify-center rounded-full"
             >
               <Ionicons name="megaphone-outline" size={20} className="text-charcoal" />
@@ -337,6 +349,8 @@ export default function GroupChatThread() {
           )}
           <Pressable
             onPress={() => setConfirmingLeave(true)}
+            accessibilityLabel="Circle info"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full"
           >
             <Ionicons name="information-circle-outline" size={22} className="text-charcoal" />
@@ -713,6 +727,8 @@ export default function GroupChatThread() {
                           ? unpinMessage(group.id)
                           : pinMessage(group.id, item.id)
                       }
+                      accessibilityLabel={item.id === pinnedMessageId ? 'Unpin message' : 'Pin message'}
+                      accessibilityRole="button"
                       className="h-4 w-4 items-center justify-center"
                     >
                       <Ionicons
@@ -746,6 +762,8 @@ export default function GroupChatThread() {
                               : '📷 Photo',
                         })
                       }
+                      accessibilityLabel="Reply to message"
+                      accessibilityRole="button"
                       className="h-6 w-6 items-center justify-center"
                     >
                       <Ionicons name="arrow-undo-outline" size={14} className="text-charcoal/40" />
@@ -753,6 +771,8 @@ export default function GroupChatThread() {
                     {!item.poll && (
                       <Pressable
                         onPress={() => setForwardingMessage(item)}
+                        accessibilityLabel="Forward message"
+                        accessibilityRole="button"
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/40" />
@@ -761,6 +781,8 @@ export default function GroupChatThread() {
                     {item.text.length > 0 && (
                       <Pressable
                         onPress={() => copyMessage(item.id, item.text)}
+                        accessibilityLabel={copiedMessageId === item.id ? 'Copied' : 'Copy message'}
+                        accessibilityRole="button"
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons
@@ -776,6 +798,8 @@ export default function GroupChatThread() {
                           setEditingMessageId(item.id);
                           setEditDraft(item.text);
                         }}
+                        accessibilityLabel="Edit message"
+                        accessibilityRole="button"
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons name="pencil" size={13} className="text-charcoal/40" />
@@ -783,6 +807,8 @@ export default function GroupChatThread() {
                     ) : !isMe ? (
                       <Pressable
                         onPress={() => setReportingMessageId(item.id)}
+                        accessibilityLabel="Message options"
+                        accessibilityRole="button"
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons name="ellipsis-horizontal" size={14} className="text-charcoal/40" />
@@ -859,12 +885,16 @@ export default function GroupChatThread() {
         >
           <Pressable
             onPress={pickImage}
+            accessibilityLabel="Add photo"
+            accessibilityRole="button"
             className="h-10 w-10 items-center justify-center rounded-full bg-sand"
           >
             <Ionicons name="image-outline" size={19} className="text-sage" />
           </Pressable>
           <Pressable
             onPress={() => setCreatingPoll(true)}
+            accessibilityLabel="Create poll"
+            accessibilityRole="button"
             className="h-10 w-10 items-center justify-center rounded-full bg-sand"
           >
             <Ionicons name="stats-chart-outline" size={18} className="text-sage" />
@@ -1044,6 +1074,8 @@ export default function GroupChatThread() {
                   {pollOptions.length > 2 && (
                     <Pressable
                       onPress={() => setPollOptions((opts) => opts.filter((_, oi) => oi !== i))}
+                      accessibilityLabel={`Remove option ${i + 1}`}
+                      accessibilityRole="button"
                       className="h-8 w-8 items-center justify-center rounded-full"
                     >
                       <Ionicons name="close-circle" size={18} className="text-charcoal/30" />

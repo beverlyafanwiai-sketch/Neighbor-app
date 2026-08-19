@@ -286,6 +286,8 @@ export default function EventDetail() {
         <View className="flex-row items-center gap-1.5">
           <Pressable
             onPress={() => toggleSaveEvent(event.id)}
+            accessibilityLabel={saved ? 'Unsave event' : 'Save event'}
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full bg-cream"
           >
             <Ionicons
@@ -299,6 +301,8 @@ export default function EventDetail() {
               {!isPast && (
                 <Pressable
                   onPress={() => router.push(`/create-event?id=${event.id}`)}
+                  accessibilityLabel="Edit event"
+                  accessibilityRole="button"
                   className="h-9 w-9 items-center justify-center rounded-full bg-cream"
                 >
                   <Ionicons name="pencil" size={17} className="text-charcoal" />
@@ -306,6 +310,8 @@ export default function EventDetail() {
               )}
               <Pressable
                 onPress={() => router.push(`/create-event?duplicateId=${event.id}`)}
+                accessibilityLabel="Duplicate event"
+                accessibilityRole="button"
                 className="h-9 w-9 items-center justify-center rounded-full bg-cream"
               >
                 <Ionicons name="copy-outline" size={17} className="text-charcoal" />
@@ -314,6 +320,8 @@ export default function EventDetail() {
                 (isCancelled ? (
                   <Pressable
                     onPress={() => reinstateEvent(event.id)}
+                    accessibilityLabel="Reinstate event"
+                    accessibilityRole="button"
                     className="h-9 w-9 items-center justify-center rounded-full bg-cream"
                   >
                     <Ionicons name="arrow-undo-outline" size={17} className="text-sage" />
@@ -321,6 +329,8 @@ export default function EventDetail() {
                 ) : (
                   <Pressable
                     onPress={() => setConfirmingCancel(true)}
+                    accessibilityLabel="Cancel event"
+                    accessibilityRole="button"
                     className="h-9 w-9 items-center justify-center rounded-full bg-cream"
                   >
                     <Ionicons name="ban-outline" size={17} className="text-terracotta" />
@@ -331,6 +341,8 @@ export default function EventDetail() {
           {isHost && (
             <Pressable
               onPress={() => setConfirmingDelete(true)}
+              accessibilityLabel="Delete event"
+              accessibilityRole="button"
               className="h-9 w-9 items-center justify-center rounded-full bg-cream"
             >
               <Ionicons name="trash-outline" size={17} className="text-terracotta" />
@@ -445,6 +457,8 @@ export default function EventDetail() {
                       );
                       setEditingChecklist(true);
                     }}
+                    accessibilityLabel="Edit checklist"
+                    accessibilityRole="button"
                   >
                     <Ionicons name="pencil" size={14} className="text-charcoal/50" />
                   </Pressable>
@@ -471,6 +485,8 @@ export default function EventDetail() {
                           onPress={() =>
                             setChecklistDraft((prev) => prev.filter((_, vi) => vi !== i))
                           }
+                          accessibilityLabel={`Remove item ${i + 1}`}
+                          accessibilityRole="button"
                         >
                           <Ionicons name="remove-circle-outline" size={18} className="text-terracotta" />
                         </Pressable>
@@ -973,7 +989,11 @@ export default function EventDetail() {
               className="ml-2 flex-1 text-sm text-charcoal"
             />
             {attendeeQuery.length > 0 && (
-              <Pressable onPress={() => setAttendeeQuery('')}>
+              <Pressable
+                onPress={() => setAttendeeQuery('')}
+                accessibilityLabel="Clear search"
+                accessibilityRole="button"
+              >
                 <Ionicons name="close-circle" size={16} className="text-charcoal/50" />
               </Pressable>
             )}
@@ -1275,6 +1295,8 @@ export default function EventDetail() {
                                   setConfirmingRemoveRiderId(riderId);
                                   setRemoveRiderNoteDraft('');
                                 }}
+                                accessibilityLabel={`Remove ${rider.name} from carpool`}
+                                accessibilityRole="button"
                                 className="h-7 w-7 items-center justify-center"
                               >
                                 <Ionicons
@@ -1362,6 +1384,8 @@ export default function EventDetail() {
                                 setRequestingSeatOfferId(offer.id);
                                 setSeatRequestNote(offer.riderNotes?.[ME.id] ?? '');
                               }}
+                              accessibilityLabel="Edit ride note"
+                              accessibilityRole="button"
                               className="h-7 w-7 items-center justify-center"
                             >
                               <Ionicons name="pencil" size={14} className="text-charcoal/50" />

@@ -226,6 +226,8 @@ export default function ChatThread() {
               setSearchQuery('');
               setHighlightId(null);
             }}
+            accessibilityLabel="Close search"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full"
           >
             <Ionicons name="chevron-back" size={22} className="text-charcoal" />
@@ -247,12 +249,16 @@ export default function ChatThread() {
             <>
               <Pressable
                 onPress={() => goToMatch(matchIndex - 1)}
+                accessibilityLabel="Previous match"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full"
               >
                 <Ionicons name="chevron-up" size={18} className="text-charcoal" />
               </Pressable>
               <Pressable
                 onPress={() => goToMatch(matchIndex + 1)}
+                accessibilityLabel="Next match"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full"
               >
                 <Ionicons name="chevron-down" size={18} className="text-charcoal" />
@@ -291,18 +297,24 @@ export default function ChatThread() {
           </Pressable>
           <Pressable
             onPress={() => setSearching(true)}
+            accessibilityLabel="Search this conversation"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full"
           >
             <Ionicons name="search-outline" size={20} className="text-charcoal" />
           </Pressable>
           <Pressable
             onPress={() => setShowGallery(true)}
+            accessibilityLabel="Photo gallery"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full"
           >
             <Ionicons name="images-outline" size={20} className="text-charcoal" />
           </Pressable>
           <Pressable
             onPress={() => setShowActions(true)}
+            accessibilityLabel="Conversation options"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full"
           >
             <Ionicons name="ellipsis-horizontal" size={20} className="text-charcoal" />
@@ -515,12 +527,16 @@ export default function ChatThread() {
                           preview: item.text.length > 0 ? item.text : '📷 Photo',
                         })
                       }
+                      accessibilityLabel="Reply to message"
+                      accessibilityRole="button"
                       className="h-6 w-6 items-center justify-center"
                     >
                       <Ionicons name="arrow-undo-outline" size={14} className="text-charcoal/40" />
                     </Pressable>
                     <Pressable
                       onPress={() => setForwardingMessage(item)}
+                      accessibilityLabel="Forward message"
+                      accessibilityRole="button"
                       className="h-6 w-6 items-center justify-center"
                     >
                       <Ionicons name="arrow-redo-outline" size={14} className="text-charcoal/40" />
@@ -528,6 +544,8 @@ export default function ChatThread() {
                     {item.text.length > 0 && (
                       <Pressable
                         onPress={() => copyMessage(item.id, item.text)}
+                        accessibilityLabel={copiedMessageId === item.id ? 'Copied' : 'Copy message'}
+                        accessibilityRole="button"
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons
@@ -543,6 +561,8 @@ export default function ChatThread() {
                           setEditingMessageId(item.id);
                           setEditDraft(item.text);
                         }}
+                        accessibilityLabel="Edit message"
+                        accessibilityRole="button"
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons name="pencil" size={13} className="text-charcoal/40" />
@@ -550,6 +570,8 @@ export default function ChatThread() {
                     ) : (
                       <Pressable
                         onPress={() => setReportingMessageId(item.id)}
+                        accessibilityLabel="Message options"
+                        accessibilityRole="button"
                         className="h-6 w-6 items-center justify-center"
                       >
                         <Ionicons name="ellipsis-horizontal" size={14} className="text-charcoal/40" />
