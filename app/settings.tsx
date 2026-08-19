@@ -536,6 +536,11 @@ export default function Settings() {
             </Pressable>
           )}
         </View>
+
+        <View className="mt-10 items-center gap-1 pb-4">
+          <Text className="text-xs font-semibold text-charcoal/40">Neighbor</Text>
+          <Text className="text-[11px] text-charcoal/30">Version 1.0.0</Text>
+        </View>
       </ScrollView>
 
       {sendingFeedback && (
