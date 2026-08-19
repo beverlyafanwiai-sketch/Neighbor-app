@@ -13,6 +13,7 @@ import { useDismissedEventsStore } from '../../store/useDismissedEventsStore';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckInStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
+import { isEventVisible, useGroupsStore } from '../../store/useGroupsStore';
 import { useMutedStore } from '../../store/useMutedStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, getWaitlistPosition, useRsvpStore } from '../../store/useRsvpStore';
@@ -38,6 +39,7 @@ export default function Events() {
   const profile = useProfileStore((s) => s.profile);
   const events = useEventsStore((s) => s.events);
   const eventDrafts = useEventsStore((s) => s.drafts);
+  const joinedGroups = useGroupsStore((s) => s.joined);
   const goingMap = useRsvpStore((s) => s.going);
   const waitlistMap = useRsvpStore((s) => s.waitlisted);
   const toggleRsvp = useRsvpStore((s) => s.toggle);
@@ -97,10 +99,16 @@ export default function Events() {
 
   const hostingTotal = events.filter((e) => e.hostId === ME.id).length;
   const hosting = events.filter((e) => e.hostId === ME.id && matches(e));
-  const past = events.filter((e) => e.status === 'past' && matches(e));
+  const past = events.filter(
+    (e) => e.status === 'past' && matches(e) && isEventVisible(e.hostGroupId, joinedGroups)
+  );
 
   let upcoming = events.filter(
-    (e) => e.status === 'upcoming' && matches(e) && !dismissedIds[e.id]
+    (e) =>
+      e.status === 'upcoming' &&
+      matches(e) &&
+      !dismissedIds[e.id] &&
+      isEventVisible(e.hostGroupId, joinedGroups)
   );
   if (onlyOpen) {
     upcoming = upcoming.filter((e) => {

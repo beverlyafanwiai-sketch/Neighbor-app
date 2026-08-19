@@ -29,7 +29,7 @@ import { useHiddenPostsStore } from '../../store/useHiddenPostsStore';
 import { useMutedStore } from '../../store/useMutedStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
-import { useGroupsStore } from '../../store/useGroupsStore';
+import { isEventVisible, useGroupsStore } from '../../store/useGroupsStore';
 import { useNotificationsStore } from '../../store/useNotificationsStore';
 import { usePostNotesStore } from '../../store/usePostNotesStore';
 import { getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
@@ -111,21 +111,22 @@ function LeftRail({ profile }: { profile: User }) {
 function RightRail() {
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
-  const events = useEventsStore((s) => s.events)
-    .filter((e) => e.status === 'upcoming')
-    .filter((e) => !e.hostId || (!blockedIds[e.hostId] && !mutedIds[e.hostId]))
-    .slice(0, 3);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const myAvailable = useAvailabilityStore((s) => s.myAvailable);
   const dismissedGroupIds = useDismissedDiscoverStore((s) => s.dismissedGroupIds);
+  const events = useEventsStore((s) => s.events)
+    .filter((e) => e.status === 'upcoming')
+    .filter((e) => !e.hostId || (!blockedIds[e.hostId] && !mutedIds[e.hostId]))
+    .filter((e) => isEventVisible(e.hostGroupId, joinedMap))
+    .slice(0, 3);
 
   const friends = [...USERS, ...DISCOVER_USERS]
     .filter((u) => friendStatuses[u.id] === 'friends')
     .slice(0, 5);
   const suggestedGroups = groups
-    .filter((g) => !joinedMap[g.id] && !dismissedGroupIds[g.id])
+    .filter((g) => !joinedMap[g.id] && !dismissedGroupIds[g.id] && g.privacy !== 'private')
     .slice(0, 3);
 
   return (

@@ -12,7 +12,7 @@ import { useConversationsStore } from '../store/useConversationsStore';
 import { useEventsStore } from '../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { useGroupChatStore } from '../store/useGroupChatStore';
-import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
+import { isEventVisible, memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 import { useLendStore } from '../store/useLendStore';
 import {
   getEffectiveReactions,
@@ -110,9 +110,10 @@ export default function Search() {
       ? []
       : events.filter(
           (e) =>
-            e.title.toLowerCase().includes(q) ||
-            e.location.toLowerCase().includes(q) ||
-            e.description.toLowerCase().includes(q)
+            (e.title.toLowerCase().includes(q) ||
+              e.location.toLowerCase().includes(q) ||
+              e.description.toLowerCase().includes(q)) &&
+            isEventVisible(e.hostGroupId, joinedMap)
         );
 
   type MessageMatch = {

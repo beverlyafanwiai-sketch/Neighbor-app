@@ -285,3 +285,15 @@ export function memberCountLabel(groupId: string, joined: boolean) {
   const count = getEffectiveMemberCount(groupId, joined);
   return `${count} member${count === 1 ? '' : 's'}`;
 }
+
+// Events hosted by a private circle should be as hidden as the circle itself
+// — invisible to anyone who hasn't joined, everywhere events are browsed.
+export function isEventVisible(
+  hostGroupId: string | undefined,
+  joinedGroups: Record<string, boolean>
+): boolean {
+  if (!hostGroupId) return true;
+  const group = getGroup(hostGroupId);
+  if (!group || group.privacy !== 'private') return true;
+  return joinedGroups[hostGroupId] ?? false;
+}

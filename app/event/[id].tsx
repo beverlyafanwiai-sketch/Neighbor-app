@@ -24,6 +24,7 @@ import { useEventNotesStore } from '../../store/useEventNotesStore';
 import { useEventUpdatesStore } from '../../store/useEventUpdatesStore';
 import { canManageEvent, useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
+import { getGroup } from '../../store/useGroupsStore';
 import { useMutedEventsStore } from '../../store/useMutedEventsStore';
 import { useProfileStore } from '../../store/useProfileStore';
 import { getEffectiveSpots, getWaitlistPosition, useRsvpStore } from '../../store/useRsvpStore';
@@ -428,7 +429,12 @@ export default function EventDetail() {
               <Text className="mt-0.5 text-sm text-charcoal/60">
                 {event.time} · {event.location}
               </Text>
-              <Text className="mt-0.5 text-xs text-sage">{event.hostLabel}</Text>
+              <View className="mt-0.5 flex-row items-center gap-1">
+                <Text className="text-xs text-sage">{event.hostLabel}</Text>
+                {event.hostGroupId && getGroup(event.hostGroupId)?.privacy === 'private' && (
+                  <Ionicons name="lock-closed-outline" size={11} className="text-charcoal/40" />
+                )}
+              </View>
             </View>
           </View>
 

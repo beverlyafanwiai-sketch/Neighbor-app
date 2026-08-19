@@ -11,7 +11,7 @@ import { useBlockedStore } from '../store/useBlockedStore';
 import { useFriendsStore } from '../store/useFriendsStore';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../store/useCheckInStore';
 import { useEventsStore } from '../store/useEventsStore';
-import { memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
+import { isEventVisible, memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { getEffectiveHelperCount, useLendStore } from '../store/useLendStore';
 import {
@@ -217,7 +217,8 @@ export default function Saved() {
     (e) =>
       (savedEventIds[e.id] ?? false) &&
       (!e.hostId || (!blockedIds[e.hostId] && !mutedIds[e.hostId])) &&
-      matchesFriends(e.hostId)
+      matchesFriends(e.hostId) &&
+      isEventVisible(e.hostGroupId, joinedMap)
   );
   const eventCategories = [
     'All',
