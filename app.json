@@ -39,6 +39,12 @@
           "photosPermission": "Neighbor uses your photos to let you attach a picture to a post."
         }
       ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Neighbor uses your location to set your neighborhood and cross streets on your profile."
+        }
+      ],
       "expo-sharing"
     ],
     "experiments": {

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import LocationPicker from '../components/LocationPicker';
 import type { VerificationBadge } from '../data/mock';
 import { useProfileStore } from '../store/useProfileStore';
 
@@ -305,26 +306,14 @@ export default function EditProfile() {
 
           <SectionHeading>Neighborhood</SectionHeading>
           <View className="gap-4">
-            <View>
-              <FieldLabel>Neighborhood</FieldLabel>
-              <TextInput
-                value={neighborhood}
-                onChangeText={setNeighborhood}
-                placeholder="Maple Hill, Riverside, Old Town..."
-                placeholderTextColor="#3D3D3D80"
-                className="rounded-2xl bg-sand px-4 py-3 text-base text-charcoal"
-              />
-            </View>
-            <View>
-              <FieldLabel>Cross streets</FieldLabel>
-              <TextInput
-                value={crossStreets}
-                onChangeText={setCrossStreets}
-                placeholder="e.g. 5th & Sycamore"
-                placeholderTextColor="#3D3D3D80"
-                className="rounded-2xl bg-sand px-4 py-3 text-base text-charcoal"
-              />
-            </View>
+            <LocationPicker
+              neighborhood={neighborhood}
+              crossStreets={crossStreets}
+              onLocationSet={(nextNeighborhood, nextCrossStreets) => {
+                setNeighborhood(nextNeighborhood);
+                setCrossStreets(nextCrossStreets);
+              }}
+            />
             <View>
               <FieldLabel>Time in the area</FieldLabel>
               <TextInput

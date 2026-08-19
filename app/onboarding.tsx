@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import LocationPicker from '../components/LocationPicker';
 import type { VerificationBadge } from '../data/mock';
 import { useProfileStore } from '../store/useProfileStore';
 
@@ -344,27 +345,14 @@ export default function Onboarding() {
 
               {step === 2 && (
                 <View className="gap-4 pt-2">
-                  <View>
-                    <FieldLabel>Neighborhood</FieldLabel>
-                    <TextInput
-                      value={neighborhood}
-                      onChangeText={setNeighborhood}
-                      placeholder="Maple Hill, Riverside, Old Town..."
-                      placeholderTextColor="#3D3D3D80"
-                      className="rounded-2xl border border-charcoal/10 bg-sand/70 px-4 py-3.5 text-base text-charcoal"
-                    />
-                  </View>
-
-                  <View>
-                    <FieldLabel>Cross streets (optional)</FieldLabel>
-                    <TextInput
-                      value={crossStreets}
-                      onChangeText={setCrossStreets}
-                      placeholder="e.g. 5th & Sycamore"
-                      placeholderTextColor="#3D3D3D80"
-                      className="rounded-2xl border border-charcoal/10 bg-sand/70 px-4 py-3.5 text-base text-charcoal"
-                    />
-                  </View>
+                  <LocationPicker
+                    neighborhood={neighborhood}
+                    crossStreets={crossStreets}
+                    onLocationSet={(nextNeighborhood, nextCrossStreets) => {
+                      setNeighborhood(nextNeighborhood);
+                      setCrossStreets(nextCrossStreets);
+                    }}
+                  />
 
                   <View>
                     <FieldLabel>Time in the area (optional)</FieldLabel>
