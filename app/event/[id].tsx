@@ -502,7 +502,7 @@ export default function EventDetail() {
               ) : (
                 <View className="gap-1.5">
                   {(event.checklist ?? []).map((item, i) => {
-                    const key = checklistItemKey(event.id, i);
+                    const key = checklistItemKey(event.id, item);
                     const checked = myChecked[key] ?? false;
                     const note = checklistNotes[key];
                     return (

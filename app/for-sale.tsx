@@ -1468,11 +1468,11 @@ export default function ForSaleBoard() {
           initialIndex={viewingPhotos.index}
           onClose={() => setViewingPhotos(null)}
           captions={viewingPhotos.uris.map(
-            (_, i) => photoCaptions[photoCaptionKey(viewingPhotos.itemId, i)] ?? ''
+            (uri) => photoCaptions[photoCaptionKey(viewingPhotos.itemId, uri)] ?? ''
           )}
           editableIndices={viewingPhotos.uris.map(() => viewingPhotos.isMine)}
           onCaptionChange={(i, text) =>
-            setPhotoCaption(photoCaptionKey(viewingPhotos.itemId, i), text)
+            setPhotoCaption(photoCaptionKey(viewingPhotos.itemId, viewingPhotos.uris[i]), text)
           }
         />
       )}

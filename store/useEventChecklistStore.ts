@@ -16,6 +16,9 @@ export const useEventChecklistStore = create<EventChecklistState>((set) => ({
   setNote: (key, note) => set((s) => ({ notes: { ...s.notes, [key]: note.trim() } })),
 }));
 
-export function checklistItemKey(eventId: string, index: number) {
-  return `${eventId}:${index}`;
+// Keyed by item text rather than index — if the host reorders or removes
+// an earlier item, index-based keys would silently reattach someone's
+// checked state and note to a different item.
+export function checklistItemKey(eventId: string, itemText: string) {
+  return `${eventId}:${itemText}`;
 }

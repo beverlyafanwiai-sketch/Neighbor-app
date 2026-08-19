@@ -820,11 +820,11 @@ export default function NeighborhoodAlerts() {
           initialIndex={viewingPhotos.index}
           onClose={() => setViewingPhotos(null)}
           captions={viewingPhotos.uris.map(
-            (_, i) => photoCaptions[photoCaptionKey(viewingPhotos.alertId, i)] ?? ''
+            (uri) => photoCaptions[photoCaptionKey(viewingPhotos.alertId, uri)] ?? ''
           )}
           editableIndices={viewingPhotos.uris.map(() => viewingPhotos.isMine)}
           onCaptionChange={(i, text) =>
-            setPhotoCaption(photoCaptionKey(viewingPhotos.alertId, i), text)
+            setPhotoCaption(photoCaptionKey(viewingPhotos.alertId, viewingPhotos.uris[i]), text)
           }
         />
       )}

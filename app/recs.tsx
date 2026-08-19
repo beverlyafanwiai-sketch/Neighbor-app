@@ -1263,11 +1263,11 @@ export default function RecsBoard() {
           initialIndex={viewingPhotos.index}
           onClose={() => setViewingPhotos(null)}
           captions={viewingPhotos.uris.map(
-            (_, i) => photoCaptions[photoCaptionKey(viewingPhotos.entryId, i)] ?? ''
+            (uri) => photoCaptions[photoCaptionKey(viewingPhotos.entryId, uri)] ?? ''
           )}
           editableIndices={viewingPhotos.uris.map(() => viewingPhotos.isMine)}
           onCaptionChange={(i, text) =>
-            setPhotoCaption(photoCaptionKey(viewingPhotos.entryId, i), text)
+            setPhotoCaption(photoCaptionKey(viewingPhotos.entryId, viewingPhotos.uris[i]), text)
           }
         />
       )}
