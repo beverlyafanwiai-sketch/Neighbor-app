@@ -9,6 +9,7 @@ import { PARK_FRIENDS_SVG } from '../../assets/illustrations/park-friends';
 import EmptyState from '../../components/EmptyState';
 import { ME, getUser } from '../../data/mock';
 import { useArchivedChatsStore } from '../../store/useArchivedChatsStore';
+import { isAvailable, useAvailabilityStore } from '../../store/useAvailabilityStore';
 import { useBlockedStore } from '../../store/useBlockedStore';
 import { useConversationsStore } from '../../store/useConversationsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
@@ -28,6 +29,7 @@ export default function ChatList() {
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const pinnedIds = usePinnedChatsStore((s) => s.pinnedIds);
   const togglePin = usePinnedChatsStore((s) => s.togglePin);
+  const myAvailable = useAvailabilityStore((s) => s.myAvailable);
   const archivedIds = useArchivedChatsStore((s) => s.archivedIds);
   const toggleArchive = useArchivedChatsStore((s) => s.toggleArchive);
   const q = query.trim().toLowerCase();
@@ -229,7 +231,12 @@ export default function ChatList() {
                 onPress={() => router.push(`/chat/${c.id}`)}
                 className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
               >
-                <Image source={{ uri: user.avatar }} className="h-12 w-12 rounded-full" />
+                <View>
+                  <Image source={{ uri: user.avatar }} className="h-12 w-12 rounded-full" />
+                  {isAvailable(user, myAvailable) && (
+                    <View className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-cream bg-sage" />
+                  )}
+                </View>
                 <View className="flex-1">
                   <View className="flex-row items-center gap-1">
                     {pinnedIds[c.id] && <Ionicons name="pin" size={12} className="text-gold" />}

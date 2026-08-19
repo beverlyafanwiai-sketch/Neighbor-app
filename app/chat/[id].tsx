@@ -26,6 +26,7 @@ import ReactionButton from '../../components/ReactionButton';
 import ReactorsSheet from '../../components/ReactorsSheet';
 import ReportPostSheet from '../../components/ReportPostSheet';
 import { getUser, type Message } from '../../data/mock';
+import { getAvailableNote, isAvailable, useAvailabilityStore } from '../../store/useAvailabilityStore';
 import { useBlockedStore } from '../../store/useBlockedStore';
 import { messageKey, useConversationsStore } from '../../store/useConversationsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
@@ -47,6 +48,8 @@ export default function ChatThread() {
   const pinMessage = useConversationsStore((s) => s.pinMessage);
   const unpinMessage = useConversationsStore((s) => s.unpinMessage);
   const user = conversation ? getUser(conversation.userId) : undefined;
+  const myAvailable = useAvailabilityStore((s) => s.myAvailable);
+  const myAvailableNote = useAvailabilityStore((s) => s.myAvailableNote);
   const isBlocked = useBlockedStore((s) => (user ? (s.blockedIds[user.id] ?? false) : false));
   const toggleBlocked = useBlockedStore((s) => s.toggle);
   const isMuted = useMutedStore((s) => (user ? (s.mutedIds[user.id] ?? false) : false));
@@ -269,10 +272,19 @@ export default function ChatThread() {
             onPress={() => router.push(`/profile/${user.id}`)}
             className="flex-1 flex-row items-center gap-3"
           >
-            <Image source={{ uri: user.avatar }} className="h-10 w-10 rounded-full" />
+            <View>
+              <Image source={{ uri: user.avatar }} className="h-10 w-10 rounded-full" />
+              {isAvailable(user, myAvailable) && (
+                <View className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-cream bg-sage" />
+              )}
+            </View>
             <View className="flex-1">
               <Text className="text-base font-semibold text-charcoal">{user.name}</Text>
-              <Text className="text-xs text-sage">Active now</Text>
+              {isAvailable(user, myAvailable) && (
+                <Text className="text-xs text-sage" numberOfLines={1}>
+                  Available{getAvailableNote(user, myAvailableNote) ? ` · ${getAvailableNote(user, myAvailableNote)}` : ''}
+                </Text>
+              )}
             </View>
           </Pressable>
           <Pressable
