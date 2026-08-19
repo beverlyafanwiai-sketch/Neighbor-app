@@ -40,6 +40,7 @@ export default function Notifications() {
   const allNotifications = useNotificationsStore((s) => s.notifications);
   const markRead = useNotificationsStore((s) => s.markRead);
   const markAllRead = useNotificationsStore((s) => s.markAllRead);
+  const clearAll = useNotificationsStore((s) => s.clearAll);
   const deleteNotification = useNotificationsStore((s) => s.deleteNotification);
   const snoozedUntil = useNotificationsStore((s) => s.snoozedUntil);
   const snoozeNotification = useNotificationsStore((s) => s.snoozeNotification);
@@ -50,6 +51,7 @@ export default function Notifications() {
   const [decliningRequestId, setDecliningRequestId] = useState<string | null>(null);
   const [declineNoteDraft, setDeclineNoteDraft] = useState('');
   const [showSnoozed, setShowSnoozed] = useState(false);
+  const [confirmingClearAll, setConfirmingClearAll] = useState(false);
   const mutedIds = useMutedStore((s) => s.mutedIds);
   const unmuted = allNotifications.filter((n) => !n.actorId || !mutedIds[n.actorId]);
   const [typeFilter, setTypeFilter] = useState<NotificationItem['type'] | 'All'>('All');
@@ -223,14 +225,42 @@ export default function Notifications() {
           <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
         <Text className="text-base font-bold text-charcoal">Notifications</Text>
-        {hasUnread ? (
-          <Pressable onPress={markAllRead}>
-            <Text className="text-sm font-medium text-terracotta">Mark all read</Text>
-          </Pressable>
+        {hasUnread || allNotifications.length > 0 ? (
+          <View className="flex-row items-center gap-3">
+            {hasUnread && (
+              <Pressable onPress={markAllRead}>
+                <Text className="text-sm font-medium text-terracotta">Mark all read</Text>
+              </Pressable>
+            )}
+            {allNotifications.length > 0 && (
+              <Pressable onPress={() => setConfirmingClearAll(true)}>
+                <Text className="text-sm font-medium text-charcoal/50">Clear all</Text>
+              </Pressable>
+            )}
+          </View>
         ) : (
           <View className="w-9" />
         )}
       </View>
+
+      {confirmingClearAll && (
+        <View className="flex-row items-center gap-3 bg-terracotta/10 px-4 py-3">
+          <Text className="flex-1 text-sm text-charcoal">
+            Clear all notifications? This can't be undone.
+          </Text>
+          <Pressable onPress={() => setConfirmingClearAll(false)}>
+            <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              clearAll();
+              setConfirmingClearAll(false);
+            }}
+          >
+            <Text className="text-sm font-semibold text-terracotta">Clear</Text>
+          </Pressable>
+        </View>
+      )}
 
       <View className="px-5 pb-3">
         <View className="flex-row items-center rounded-full bg-cream px-4 py-2.5">

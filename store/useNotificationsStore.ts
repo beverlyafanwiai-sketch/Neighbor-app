@@ -10,6 +10,7 @@ type NotificationsState = {
   pinnedId: string | null;
   markRead: (id: string) => void;
   markAllRead: () => void;
+  clearAll: () => void;
   addNotification: (item: Omit<NotificationItem, 'id' | 'read' | 'createdAt'>) => void;
   dismissToast: () => void;
   deleteNotification: (id: string) => void;
@@ -31,6 +32,8 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
 
   markAllRead: () =>
     set((s) => ({ notifications: s.notifications.map((n) => ({ ...n, read: true })) })),
+
+  clearAll: () => set({ notifications: [], snoozedUntil: {}, pinnedId: null }),
 
   addNotification: (item) => {
     const notification: NotificationItem = {
