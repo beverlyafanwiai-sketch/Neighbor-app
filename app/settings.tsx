@@ -13,6 +13,7 @@ import { useDismissedEventsStore } from '../store/useDismissedEventsStore';
 import { useDismissedListingsStore } from '../store/useDismissedListingsStore';
 import { useDismissedRecsStore } from '../store/useDismissedRecsStore';
 import { useGroupsStore } from '../store/useGroupsStore';
+import { useHiddenPostsStore } from '../store/useHiddenPostsStore';
 import { formatMutedUntil, useMutedGroupsStore } from '../store/useMutedGroupsStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { useSettingsStore, type NotificationPrefs } from '../store/useSettingsStore';
@@ -107,7 +108,10 @@ export default function Settings() {
   const dismissedDiscoverGroupIds = useDismissedDiscoverStore((s) => s.dismissedGroupIds);
   const resetPeopleDismissed = useDismissedDiscoverStore((s) => s.resetPeople);
   const resetDiscoverGroupsDismissed = useDismissedDiscoverStore((s) => s.resetGroups);
+  const hiddenPostIds = useHiddenPostsStore((s) => s.hiddenIds);
+  const resetHiddenPosts = useHiddenPostsStore((s) => s.reset);
   const dismissedRows = [
+    { label: 'Hidden posts', count: countDismissed(hiddenPostIds), onReset: resetHiddenPosts },
     { label: 'For Sale', count: countDismissed(dismissedSaleIds), onReset: resetSaleDismissed },
     { label: 'Lend', count: countDismissed(dismissedLendIds), onReset: resetLendDismissed },
     { label: 'Recs', count: countDismissed(dismissedRecIds), onReset: resetRecsDismissed },
