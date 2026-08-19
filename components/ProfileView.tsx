@@ -13,6 +13,7 @@ import {
   getSharedGroups,
 } from '../lib/trust';
 import { getAvailableNote, isAvailable, useAvailabilityStore } from '../store/useAvailabilityStore';
+import { useCheckInStore } from '../store/useCheckInStore';
 import { getEndorsementGroups, useEndorsementsStore } from '../store/useEndorsementsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { useGroupsStore } from '../store/useGroupsStore';
@@ -147,14 +148,15 @@ export default function ProfileView({
     string | null
   >(null);
 
+  const myCheckIns = useCheckInStore((s) => s.myCheckIns);
   const myFriendIds = Object.keys(friendStatuses).filter((id) => friendStatuses[id] === 'friends');
   const myJoinedGroupIds = Object.keys(joinedGroups).filter((id) => joinedGroups[id]);
   const trustLine = isMe
-    ? formatOwnTrustLine(myFriendIds.length, myJoinedGroupIds.length)
-    : formatMutualTrustLine(user, myFriendIds, ME.id, myJoinedGroupIds);
+    ? formatOwnTrustLine(myFriendIds.length, myJoinedGroupIds.length, myCheckIns)
+    : formatMutualTrustLine(user, myFriendIds, ME.id, myJoinedGroupIds, myCheckIns);
   const sharedGroups = isMe ? [] : getSharedGroups(user.id, myJoinedGroupIds);
   const mutualFriends = isMe ? [] : getMutualFriends(user, myFriendIds, ME.id);
-  const eventsTogether = isMe ? [] : getEventsAttendedTogether(user.id);
+  const eventsTogether = isMe ? [] : getEventsAttendedTogether(user.id, myCheckIns);
   const hasConnections =
     mutualFriends.length > 0 || sharedGroups.length > 0 || eventsTogether.length > 0;
   const friendQ = friendQuery.trim().toLowerCase();
