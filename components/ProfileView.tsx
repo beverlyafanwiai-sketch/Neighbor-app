@@ -11,6 +11,7 @@ import {
   getEventsAttendedTogether,
   getMutualFriends,
   getSharedGroups,
+  getSharedTags,
 } from '../lib/trust';
 import { getAvailableNote, isAvailable, useAvailabilityStore } from '../store/useAvailabilityStore';
 import { useCheckInStore } from '../store/useCheckInStore';
@@ -19,6 +20,7 @@ import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { useGroupsStore } from '../store/useGroupsStore';
 import { usePostsStore } from '../store/usePostsStore';
 import { useProfileNotesStore } from '../store/useProfileNotesStore';
+import { useProfileStore } from '../store/useProfileStore';
 import { getWelcomeNotes, useWelcomeNotesStore } from '../store/useWelcomeNotesStore';
 import EmptyState from './EmptyState';
 import ReactionButton from './ReactionButton';
@@ -149,6 +151,8 @@ export default function ProfileView({
   >(null);
 
   const myCheckIns = useCheckInStore((s) => s.myCheckIns);
+  const myProfile = useProfileStore((s) => s.profile);
+  const sharedInterests = isMe ? [] : getSharedTags(user.tags, myProfile.tags);
   const myFriendIds = Object.keys(friendStatuses).filter((id) => friendStatuses[id] === 'friends');
   const myJoinedGroupIds = Object.keys(joinedGroups).filter((id) => joinedGroups[id]);
   const trustLine = isMe
@@ -696,6 +700,15 @@ export default function ProfileView({
                 Interests
               </Text>
               <Text className="mt-1 text-charcoal">{user.interests}</Text>
+              {sharedInterests.length > 0 && (
+                <View className="mt-2 flex-row flex-wrap gap-1.5">
+                  {sharedInterests.map((tag) => (
+                    <View key={tag} className="rounded-full bg-sage/20 px-2.5 py-1">
+                      <Text className="text-xs font-semibold text-sage">✓ {tag}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
             <View className="rounded-2xl bg-sand p-4">
               <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">

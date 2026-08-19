@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
 import { DISCOVER_USERS, type Tone } from '../data/mock';
+import { getSharedTags } from '../lib/trust';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useDismissedDiscoverStore } from '../store/useDismissedDiscoverStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
@@ -29,11 +30,6 @@ const TONE_STYLE: Record<Tone, { bg: string; text: string }> = {
   Structured: { bg: 'bg-terracotta/15', text: 'text-terracotta' },
   'Activity-focused': { bg: 'bg-gold/20', text: 'text-gold' },
 };
-
-function sharedTags(tags: string[], myTags: string[]) {
-  const mine = new Set(myTags);
-  return tags.filter((t) => mine.has(t));
-}
 
 export default function Discover() {
   const [mode, setMode] = useState<Mode>('People');
@@ -287,7 +283,7 @@ export default function Discover() {
         {mode === 'People' && (
           <View className="gap-3">
             {people.map((p) => {
-              const shared = sharedTags(p.tags, myTags);
+              const shared = getSharedTags(p.tags, myTags);
               const status = friendStatuses[p.id] ?? 'none';
 
               if (confirmingBlockId === p.id) {

@@ -19,6 +19,7 @@ import ReactorsSheet from '../../components/ReactorsSheet';
 import ReportPostSheet from '../../components/ReportPostSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { DISCOVER_USERS, ME, USERS, type Post, type User } from '../../data/mock';
+import { getSharedTags } from '../../lib/trust';
 import { getActiveAlerts, useAlertsStore } from '../../store/useAlertsStore';
 import { useMutedAlertCategoriesStore } from '../../store/useMutedAlertCategoriesStore';
 import { isAvailable, useAvailabilityStore } from '../../store/useAvailabilityStore';
@@ -41,11 +42,6 @@ const HERO_IMAGES = [
   require('../../assets/images/resort-friends.jpg'),
   require('../../assets/images/onboarding-cafe.jpg'),
 ];
-
-function sharedTags(tags: string[], myTags: string[]) {
-  const mine = new Set(myTags);
-  return tags.filter((t) => mine.has(t));
-}
 
 function goToProfile(userId: string) {
   if (userId === ME.id) {
@@ -264,7 +260,7 @@ export default function HomeFeed() {
     (u) => friendStatuses[u.id] !== 'friends' && !blockedIds[u.id] && !mutedIds[u.id]
   );
   const spotlight = spotlightPool.length > 0 ? spotlightPool[spotlightIndex % spotlightPool.length] : undefined;
-  const spotlightShared = spotlight ? sharedTags(spotlight.tags, profile.tags) : [];
+  const spotlightShared = spotlight ? getSharedTags(spotlight.tags, profile.tags) : [];
   const spotlightStatus = spotlight ? (friendStatuses[spotlight.id] ?? 'none') : 'none';
 
   const postsWithAuthor = posts

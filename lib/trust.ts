@@ -11,6 +11,11 @@ export function getMutualFriends(profileUser: User, viewerFriendIds: string[], v
     .filter((u): u is User => Boolean(u));
 }
 
+export function getSharedTags(userTags: string[], viewerTags: string[]) {
+  const mine = new Set(viewerTags);
+  return userTags.filter((t) => mine.has(t));
+}
+
 export function getSharedGroups(profileUserId: string, viewerJoinedGroupIds: string[]) {
   return GROUPS.filter(
     (g) => g.memberIds.includes(profileUserId) && viewerJoinedGroupIds.includes(g.id)
