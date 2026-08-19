@@ -70,6 +70,7 @@ export default function Notifications() {
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const acceptRequest = useFriendsStore((s) => s.acceptRequest);
   const declineRequest = useFriendsStore((s) => s.declineRequest);
+  const friendRequestNotes = useFriendsStore((s) => s.requestNotes);
 
   const renderNotification = (n: NotificationItem) => {
     const actor = n.actorId ? getUser(n.actorId) : undefined;
@@ -149,6 +150,12 @@ export default function Notifications() {
               </Pressable>
             ))}
           </View>
+        )}
+
+        {isPendingRequest && friendRequestNotes[n.actorId!] && (
+          <Text className="ml-14 mt-2 text-sm italic text-charcoal/60">
+            "{friendRequestNotes[n.actorId!]}"
+          </Text>
         )}
 
         {isPendingRequest &&
