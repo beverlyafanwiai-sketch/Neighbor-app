@@ -12,6 +12,7 @@ type EndorsementsState = {
   endorsements: Record<string, Endorsement[]>;
   addEndorsement: (targetUserId: string, skill: string, note?: string) => void;
   removeEndorsement: (targetUserId: string, skill: string) => void;
+  updateEndorsementNote: (targetUserId: string, skill: string, note: string) => void;
 };
 
 const SEED: Record<string, Endorsement[]> = {
@@ -52,6 +53,18 @@ export const useEndorsementsStore = create<EndorsementsState>((set) => ({
         ...s.endorsements,
         [targetUserId]: (s.endorsements[targetUserId] ?? []).filter(
           (e) => !(e.endorserId === ME.id && e.skill === skill)
+        ),
+      },
+    })),
+
+  updateEndorsementNote: (targetUserId, skill, note) =>
+    set((s) => ({
+      endorsements: {
+        ...s.endorsements,
+        [targetUserId]: (s.endorsements[targetUserId] ?? []).map((e) =>
+          e.endorserId === ME.id && e.skill === skill
+            ? { ...e, note: note.trim() || undefined }
+            : e
         ),
       },
     })),

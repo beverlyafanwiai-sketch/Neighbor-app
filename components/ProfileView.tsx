@@ -131,10 +131,13 @@ export default function ProfileView({
   const endorsements = useEndorsementsStore((s) => s.endorsements);
   const addEndorsement = useEndorsementsStore((s) => s.addEndorsement);
   const removeEndorsement = useEndorsementsStore((s) => s.removeEndorsement);
+  const updateEndorsementNote = useEndorsementsStore((s) => s.updateEndorsementNote);
   const endorsementGroups = getEndorsementGroups(user.id, endorsements);
   const [composingEndorsement, setComposingEndorsement] = useState(false);
   const [endorsementDraft, setEndorsementDraft] = useState('');
   const [endorsementNoteDraft, setEndorsementNoteDraft] = useState('');
+  const [editingEndorsementSkill, setEditingEndorsementSkill] = useState<string | null>(null);
+  const [endorsementNoteEditDraft, setEndorsementNoteEditDraft] = useState('');
   const [confirmingUnfriend, setConfirmingUnfriend] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [viewingConnections, setViewingConnections] = useState(false);
@@ -774,22 +777,70 @@ export default function ProfileView({
                       );
                     }
 
+                    if (editingEndorsementSkill === skill) {
+                      return (
+                        <View key={skill} className="gap-2 rounded-xl bg-cream px-3 py-2.5">
+                          <Text className="text-sm font-medium text-charcoal">{skill}</Text>
+                          <TextInput
+                            value={endorsementNoteEditDraft}
+                            onChangeText={setEndorsementNoteEditDraft}
+                            placeholder="Add a note (optional)"
+                            placeholderTextColor="#3D3D3D80"
+                            autoFocus
+                            className="rounded-lg bg-sand px-3 py-2 text-xs text-charcoal"
+                          />
+                          <View className="flex-row justify-end gap-4">
+                            <Pressable onPress={() => setEditingEndorsementSkill(null)}>
+                              <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => {
+                                updateEndorsementNote(user.id, skill, endorsementNoteEditDraft);
+                                setEditingEndorsementSkill(null);
+                              }}
+                            >
+                              <Text className="text-xs font-semibold text-terracotta">Save</Text>
+                            </Pressable>
+                          </View>
+                        </View>
+                      );
+                    }
+
                     return (
-                      <Pressable
+                      <View
                         key={skill}
-                        disabled={!mine}
-                        onPress={() => setConfirmingRemoveEndorsementSkill(skill)}
-                        className="rounded-xl bg-cream px-3 py-2.5"
+                        className="flex-row items-center gap-2 rounded-xl bg-cream px-3 py-2.5"
                       >
-                        <Text className="text-sm font-medium text-charcoal">
-                          {skill}
-                          <Text className="text-charcoal/50"> · {entries.length}</Text>
-                        </Text>
-                        <Text className="mt-0.5 text-xs text-charcoal/50">— {names}</Text>
-                        {myNote && (
-                          <Text className="mt-1 text-xs italic text-charcoal/60">"{myNote}"</Text>
+                        <View className="flex-1">
+                          <Text className="text-sm font-medium text-charcoal">
+                            {skill}
+                            <Text className="text-charcoal/50"> · {entries.length}</Text>
+                          </Text>
+                          <Text className="mt-0.5 text-xs text-charcoal/50">— {names}</Text>
+                          {myNote && (
+                            <Text className="mt-1 text-xs italic text-charcoal/60">"{myNote}"</Text>
+                          )}
+                        </View>
+                        {mine && (
+                          <>
+                            <Pressable
+                              onPress={() => {
+                                setEndorsementNoteEditDraft(myNote ?? '');
+                                setEditingEndorsementSkill(skill);
+                              }}
+                              className="h-7 w-7 items-center justify-center"
+                            >
+                              <Ionicons name="pencil" size={14} className="text-charcoal/40" />
+                            </Pressable>
+                            <Pressable
+                              onPress={() => setConfirmingRemoveEndorsementSkill(skill)}
+                              className="h-7 w-7 items-center justify-center"
+                            >
+                              <Ionicons name="close" size={16} className="text-charcoal/40" />
+                            </Pressable>
+                          </>
                         )}
-                      </Pressable>
+                      </View>
                     );
                   })}
                 </View>
