@@ -50,6 +50,10 @@ function parsePrice(price: string) {
   return Number.isNaN(n) ? Infinity : n;
 }
 
+function effectivePrice(price: string) {
+  return isFreeItem(price) ? 0 : parsePrice(price);
+}
+
 export default function ForSaleBoard() {
   const items = useSaleStore((s) => s.items);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
@@ -184,7 +188,7 @@ export default function ForSaleBoard() {
   const maxPrice = maxPriceFilter.trim() ? parseFloat(maxPriceFilter) : undefined;
   const matchesPriceRange = (i: (typeof items)[number]) => {
     if (minPrice === undefined && maxPrice === undefined) return true;
-    const price = isFreeItem(i.price) ? 0 : parsePrice(i.price);
+    const price = effectivePrice(i.price);
     if (minPrice !== undefined && price < minPrice) return false;
     if (maxPrice !== undefined && price > maxPrice) return false;
     return true;
@@ -219,7 +223,7 @@ export default function ForSaleBoard() {
               getEffectiveInterestCount(a.id, myInterest[a.id] ?? false)
           )
         : sortBy === 'Price: low to high'
-          ? [...rest].sort((a, b) => parsePrice(a.price) - parsePrice(b.price))
+          ? [...rest].sort((a, b) => effectivePrice(a.price) - effectivePrice(b.price))
           : rest;
     return pinnedItem ? [pinnedItem, ...sortedRest] : sortedRest;
   })();

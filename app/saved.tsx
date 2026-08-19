@@ -25,7 +25,7 @@ import {
 import { useProfileStore } from '../store/useProfileStore';
 import { getEffectiveAgreeCount, useRecsStore } from '../store/useRecsStore';
 import { getEffectiveSpots, useRsvpStore } from '../store/useRsvpStore';
-import { getEffectiveInterestCount, useSaleStore } from '../store/useSaleStore';
+import { getEffectiveInterestCount, isFreeItem, useSaleStore } from '../store/useSaleStore';
 import { useSavedEventsStore } from '../store/useSavedEventsStore';
 import { useSavedGroupsStore } from '../store/useSavedGroupsStore';
 import { useSavedLendStore } from '../store/useSavedLendStore';
@@ -56,6 +56,10 @@ function parsePrice(price: string) {
   return Number.isNaN(n) ? Infinity : n;
 }
 
+function effectivePrice(price: string) {
+  return isFreeItem(price) ? 0 : parsePrice(price);
+}
+
 function withPinnedFirst<T>(
   items: T[],
   keyOf: (item: T) => string,
@@ -75,7 +79,7 @@ function sortItems<T>(
 ) {
   if (sortBy === 'A-Z') return [...items].sort((a, b) => titleOf(a).localeCompare(titleOf(b)));
   if (sortBy === 'Price: low to high' && priceOf) {
-    return [...items].sort((a, b) => parsePrice(priceOf(a)) - parsePrice(priceOf(b)));
+    return [...items].sort((a, b) => effectivePrice(priceOf(a)) - effectivePrice(priceOf(b)));
   }
   if (
     (sortBy === 'Most agreed' || sortBy === 'Most helpers' || sortBy === 'Most interest') &&
