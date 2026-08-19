@@ -170,7 +170,17 @@ export default function ProfileView({
   return (
     <>
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1 bg-cream">
-      <View className="items-center rounded-b-[36px] bg-terracotta pb-8 pt-10">
+      <View className="items-center overflow-hidden rounded-b-[36px] bg-terracotta pb-8 pt-10">
+        {user.coverImageUri && (
+          <>
+            <Image
+              source={{ uri: user.coverImageUri }}
+              className="absolute inset-0 h-full w-full"
+              resizeMode="cover"
+            />
+            <View className="absolute inset-0 bg-ink/45" />
+          </>
+        )}
         {onBack && (
           <Pressable
             onPress={onBack}

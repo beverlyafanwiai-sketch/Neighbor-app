@@ -14,6 +14,7 @@ export type User = {
   pronouns?: string;
   link?: string;
   avatar: string;
+  coverImageUri?: string;
   tagline: string;
   bio: string;
   interests: string;

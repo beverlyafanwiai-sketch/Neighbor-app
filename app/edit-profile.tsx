@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import CoverPhotoPicker from '../components/CoverPhotoPicker';
 import LocationPicker from '../components/LocationPicker';
 import type { VerificationBadge } from '../data/mock';
 import { useProfileStore } from '../store/useProfileStore';
@@ -63,6 +64,7 @@ export default function EditProfile() {
   const updatePrompt = useProfileStore((s) => s.updatePrompt);
 
   const [avatar, setAvatar] = useState(profile.avatar);
+  const [coverImageUri, setCoverImageUri] = useState(profile.coverImageUri);
   const [name, setName] = useState(profile.name);
   const [pronouns, setPronouns] = useState(profile.pronouns ?? '');
   const [link, setLink] = useState(profile.link ?? '');
@@ -83,6 +85,7 @@ export default function EditProfile() {
 
   const hasUnsavedChanges =
     avatar !== profile.avatar ||
+    coverImageUri !== profile.coverImageUri ||
     name !== profile.name ||
     pronouns !== (profile.pronouns ?? '') ||
     link !== (profile.link ?? '') ||
@@ -111,6 +114,7 @@ export default function EditProfile() {
   const save = () => {
     updateProfile({
       avatar,
+      coverImageUri,
       name: name.trim(),
       pronouns: pronouns.trim() || undefined,
       link: link.trim() || undefined,
@@ -195,6 +199,10 @@ export default function EditProfile() {
           </ScrollView>
 
           <View className="mt-6 gap-4">
+            <View>
+              <FieldLabel>Cover photo</FieldLabel>
+              <CoverPhotoPicker imageUri={coverImageUri} onChange={setCoverImageUri} />
+            </View>
             <View>
               <FieldLabel>Name</FieldLabel>
               <TextInput

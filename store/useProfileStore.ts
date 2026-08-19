@@ -8,6 +8,7 @@ type EditableFields = Pick<
   | 'pronouns'
   | 'link'
   | 'avatar'
+  | 'coverImageUri'
   | 'tagline'
   | 'bio'
   | 'interests'
