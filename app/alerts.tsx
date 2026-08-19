@@ -24,6 +24,7 @@ import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { ALERT_CATEGORIES, ME, getUser, type AlertCategoryValue } from '../data/mock';
 import { alertCommentKey, useAlertCommentsStore } from '../store/useAlertCommentsStore';
+import { containsMutedWord, useMutedWordsStore } from '../store/useMutedWordsStore';
 import { useAlertNotesStore } from '../store/useAlertNotesStore';
 import {
   formatExpiresIn,
@@ -73,6 +74,7 @@ export default function NeighborhoodAlerts() {
   const snoozeAlert = useAlertsStore((s) => s.snoozeAlert);
   const unsnoozeAlert = useAlertsStore((s) => s.unsnoozeAlert);
   const comments = useAlertCommentsStore((s) => s.comments);
+  const mutedWords = useMutedWordsStore((s) => s.words);
   const addComment = useAlertCommentsStore((s) => s.addComment);
   const updateComment = useAlertCommentsStore((s) => s.updateComment);
   const deleteComment = useAlertCommentsStore((s) => s.deleteComment);
@@ -188,7 +190,9 @@ export default function NeighborhoodAlerts() {
   const sharingAlert = activeAlerts.find((a) => a.id === sharingId);
   const reportingAlert = activeAlerts.find((a) => a.id === reportingId);
   const viewingCommentsAlert = activeAlerts.find((a) => a.id === viewingCommentsId);
-  const viewingComments = viewingCommentsAlert ? (comments[viewingCommentsAlert.id] ?? []) : [];
+  const viewingComments = (viewingCommentsAlert ? (comments[viewingCommentsAlert.id] ?? []) : []).filter(
+    (c) => !containsMutedWord(c.text, mutedWords)
+  );
   const viewingPinnedCommentId = viewingCommentsAlert
     ? pinnedCommentIds[viewingCommentsAlert.id]
     : undefined;

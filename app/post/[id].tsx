@@ -26,6 +26,7 @@ import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser, type CommentItem } from '../../data/mock';
 import { useConversationsStore } from '../../store/useConversationsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
+import { containsMutedWord, useMutedWordsStore } from '../../store/useMutedWordsStore';
 import {
   commentKey,
   getEffectiveReactions,
@@ -55,7 +56,11 @@ export default function PostDetail() {
   const setCommentReaction = usePostsStore((s) => s.setCommentReaction);
   const saved = usePostsStore((s) => (post ? (s.savedIds[post.id] ?? false) : false));
   const toggleSave = usePostsStore((s) => s.toggleSave);
-  const comments = usePostsStore((s) => (post ? (s.comments[post.id] ?? EMPTY_COMMENTS) : EMPTY_COMMENTS));
+  const rawComments = usePostsStore((s) =>
+    post ? (s.comments[post.id] ?? EMPTY_COMMENTS) : EMPTY_COMMENTS
+  );
+  const mutedWords = useMutedWordsStore((s) => s.words);
+  const comments = rawComments.filter((c) => !containsMutedWord(c.text, mutedWords));
   const myPollVote = usePostsStore((s) => (post ? s.myPollVotes[post.id] : undefined));
   const votePoll = usePostsStore((s) => s.votePoll);
   const closePoll = usePostsStore((s) => s.closePoll);

@@ -30,6 +30,7 @@ import { useFriendsStore } from '../store/useFriendsStore';
 import { useGroupChatStore } from '../store/useGroupChatStore';
 import { useMutedRecCategoriesStore } from '../store/useMutedRecCategoriesStore';
 import { useMutedStore } from '../store/useMutedStore';
+import { containsMutedWord, useMutedWordsStore } from '../store/useMutedWordsStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { recCommentKey, useRecCommentsStore } from '../store/useRecCommentsStore';
 import { useRecNotesStore } from '../store/useRecNotesStore';
@@ -48,6 +49,7 @@ export default function RecsBoard() {
   const entries = useRecsStore((s) => s.entries);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const mutedWords = useMutedWordsStore((s) => s.words);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const mutedCategories = useMutedRecCategoriesStore((s) => s.muted);
   const toggleMutedCategory = useMutedRecCategoriesStore((s) => s.toggle);
@@ -135,7 +137,9 @@ export default function RecsBoard() {
     ? pinnedCommentIds[viewingCommentsEntry.id]
     : undefined;
   const canPinComments = viewingCommentsEntry?.authorId === ME.id;
-  const viewingComments = viewingCommentsEntry ? (comments[viewingCommentsEntry.id] ?? []) : [];
+  const viewingComments = (viewingCommentsEntry ? (comments[viewingCommentsEntry.id] ?? []) : []).filter(
+    (c) => !containsMutedWord(c.text, mutedWords)
+  );
   const sortedViewingComments = [...viewingComments].sort((a, b) => {
     const aPinned = a.id === viewingPinnedCommentId;
     const bPinned = b.id === viewingPinnedCommentId;

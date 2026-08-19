@@ -32,6 +32,7 @@ import {
   useItemCommentsStore,
 } from '../store/useItemCommentsStore';
 import { useMutedStore } from '../store/useMutedStore';
+import { containsMutedWord, useMutedWordsStore } from '../store/useMutedWordsStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { useSaleNotesStore } from '../store/useSaleNotesStore';
@@ -58,6 +59,7 @@ export default function ForSaleBoard() {
   const items = useSaleStore((s) => s.items);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const mutedWords = useMutedWordsStore((s) => s.words);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const sold = useSaleStore((s) => s.sold);
   const myInterest = useSaleStore((s) => s.myInterest);
@@ -238,7 +240,9 @@ export default function ForSaleBoard() {
     : [];
   const viewingCommentsItem = items.find((i) => i.id === viewingCommentsId);
   const viewingCommentsKey = viewingCommentsItem ? itemCommentKey('sale', viewingCommentsItem.id) : null;
-  const viewingComments = viewingCommentsKey ? (itemComments[viewingCommentsKey] ?? []) : [];
+  const viewingComments = (viewingCommentsKey ? (itemComments[viewingCommentsKey] ?? []) : []).filter(
+    (c) => !containsMutedWord(c.text, mutedWords)
+  );
   const viewingPinnedCommentId = viewingCommentsKey ? pinnedCommentIds[viewingCommentsKey] : undefined;
   const canPinComments = viewingCommentsItem?.ownerId === ME.id;
   const sortedViewingComments = viewingPinnedCommentId

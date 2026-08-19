@@ -31,6 +31,7 @@ import {
 import { getEffectiveHelperCount, getEffectiveHelperIds, useLendStore } from '../store/useLendStore';
 import { useLendNotesStore } from '../store/useLendNotesStore';
 import { useMutedStore } from '../store/useMutedStore';
+import { containsMutedWord, useMutedWordsStore } from '../store/useMutedWordsStore';
 import { photoCaptionKey, usePhotoCaptionsStore } from '../store/usePhotoCaptionsStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { useSavedLendSearchesStore } from '../store/useSavedLendSearchesStore';
@@ -46,6 +47,7 @@ export default function LendBoard() {
   const items = useLendStore((s) => s.items);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const mutedWords = useMutedWordsStore((s) => s.words);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const status = useLendStore((s) => s.status);
   const borrowerId = useLendStore((s) => s.borrowerId);
@@ -199,7 +201,9 @@ export default function LendBoard() {
     : [];
   const viewingCommentsItem = items.find((i) => i.id === viewingCommentsId);
   const viewingCommentsKey = viewingCommentsItem ? itemCommentKey('lend', viewingCommentsItem.id) : null;
-  const viewingComments = viewingCommentsKey ? (itemComments[viewingCommentsKey] ?? []) : [];
+  const viewingComments = (viewingCommentsKey ? (itemComments[viewingCommentsKey] ?? []) : []).filter(
+    (c) => !containsMutedWord(c.text, mutedWords)
+  );
   const viewingPinnedCommentId = viewingCommentsKey ? pinnedCommentIds[viewingCommentsKey] : undefined;
   const canPinComments = viewingCommentsItem?.ownerId === ME.id;
   const sortedViewingComments = viewingPinnedCommentId
