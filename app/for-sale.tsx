@@ -931,6 +931,7 @@ export default function ForSaleBoard() {
             const interested = myInterest[item.id] ?? false;
             const interestCount = getEffectiveInterestCount(item.id, interested);
             const isPinned = item.id === pinnedItemId;
+            const myCounterOffer = counterOffers[item.id]?.[ME.id];
 
             return (
               <View key={item.id} className="rounded-2xl bg-cream p-4">
@@ -1090,6 +1091,21 @@ export default function ForSaleBoard() {
                   )}
                 </View>
 
+                {!isSold && myCounterOffer && offeringId !== item.id && (
+                  <View className="mt-3 flex-row items-center justify-between rounded-xl bg-gold/15 px-3 py-2">
+                    <Text className="flex-1 text-xs font-semibold text-gold">
+                      Seller countered: {myCounterOffer}
+                    </Text>
+                    <Pressable
+                      onPress={() => {
+                        makeOffer(item.id, myCounterOffer);
+                      }}
+                      className="rounded-full bg-gold px-3 py-1"
+                    >
+                      <Text className="text-xs font-semibold text-charcoal">Accept</Text>
+                    </Pressable>
+                  </View>
+                )}
                 {!isSold && offeringId === item.id ? (
                   <View className="mt-3 flex-row items-center gap-2 border-t border-charcoal/10 pt-3">
                     <TextInput
@@ -1127,7 +1143,7 @@ export default function ForSaleBoard() {
                       <Pressable
                         onPress={() => {
                           setOfferingId(item.id);
-                          setOfferDraft(myOffers[item.id] ?? '');
+                          setOfferDraft(myOffers[item.id] ?? myCounterOffer ?? '');
                         }}
                       >
                         <Text className="text-xs font-semibold text-terracotta">
