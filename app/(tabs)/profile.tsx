@@ -24,6 +24,7 @@ export default function Profile() {
         onSettings={() => router.push('/settings')}
         onSavedPosts={() => router.push('/saved')}
         onRecs={() => router.push('/recs')}
+        onFriendRequests={() => router.push('/friend-requests')}
         onPhotoPress={(postId) => router.push(`/post/${postId}`)}
         onCreatePost={() => router.push('/create-post')}
       />

@@ -72,6 +72,7 @@ type Props = {
   onMoreOptions?: () => void;
   onSavedPosts?: () => void;
   onRecs?: () => void;
+  onFriendRequests?: () => void;
   onPhotoPress?: (postId: string) => void;
   onCreatePost?: () => void;
   onGroupPress?: (groupId: string) => void;
@@ -90,6 +91,7 @@ export default function ProfileView({
   onMoreOptions,
   onSavedPosts,
   onRecs,
+  onFriendRequests,
   onPhotoPress,
   onCreatePost,
   onGroupPress,
@@ -106,6 +108,9 @@ export default function ProfileView({
   const [availableNoteDraft, setAvailableNoteDraft] = useState('');
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const friendStatus = friendStatuses[user.id] ?? 'none';
+  const pendingRequestCount = Object.values(friendStatuses).filter(
+    (status) => status === 'pending_in'
+  ).length;
   const respondFriend = useFriendsStore((s) => s.respond);
   const sendFriendRequest = useFriendsStore((s) => s.sendRequest);
   const friendRequestNotes = useFriendsStore((s) => s.requestNotes);
@@ -193,6 +198,28 @@ export default function ProfileView({
         )}
         {isMe && (
           <View className="absolute right-4 top-10 flex-row items-center gap-1.5">
+            {onFriendRequests && (
+              <Pressable
+                onPress={onFriendRequests}
+                accessibilityLabel={
+                  pendingRequestCount > 0
+                    ? `Friend requests, ${pendingRequestCount} pending`
+                    : 'Friend requests'
+                }
+                accessibilityRole="button"
+                className="h-9 w-9 items-center justify-center rounded-full bg-cream/20"
+                style={{ position: 'relative' }}
+              >
+                <Ionicons name="person-add-outline" size={18} className="text-paper" />
+                {pendingRequestCount > 0 && (
+                  <View className="absolute -right-0.5 -top-0.5 h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1">
+                    <Text className="text-[10px] font-bold text-charcoal">
+                      {pendingRequestCount}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            )}
             {onRecs && (
               <Pressable
                 onPress={onRecs}
