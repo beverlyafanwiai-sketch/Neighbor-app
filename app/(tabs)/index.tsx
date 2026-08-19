@@ -27,6 +27,7 @@ import { useBlockedStore } from '../../store/useBlockedStore';
 import { useDismissedDiscoverStore } from '../../store/useDismissedDiscoverStore';
 import { useHiddenPostsStore } from '../../store/useHiddenPostsStore';
 import { useMutedStore } from '../../store/useMutedStore';
+import { containsMutedWord, useMutedWordsStore } from '../../store/useMutedWordsStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { isEventVisible, useGroupsStore } from '../../store/useGroupsStore';
@@ -245,6 +246,7 @@ export default function HomeFeed() {
   const [reactorsPost, setReactorsPost] = useState<Post | null>(null);
   const [reportingPost, setReportingPost] = useState<Post | null>(null);
   const hiddenPostIds = useHiddenPostsStore((s) => s.hiddenIds);
+  const mutedWords = useMutedWordsStore((s) => s.words);
   const hidePost = useHiddenPostsStore((s) => s.hide);
   const [postMenuId, setPostMenuId] = useState<string | null>(null);
   const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
@@ -265,7 +267,13 @@ export default function HomeFeed() {
   const spotlightStatus = spotlight ? (friendStatuses[spotlight.id] ?? 'none') : 'none';
 
   const postsWithAuthor = posts
-    .filter((post) => !blockedIds[post.authorId] && !mutedIds[post.authorId] && !hiddenPostIds[post.id])
+    .filter(
+      (post) =>
+        !blockedIds[post.authorId] &&
+        !mutedIds[post.authorId] &&
+        !hiddenPostIds[post.id] &&
+        !containsMutedWord(post.body, mutedWords)
+    )
     .map((post) => ({
       post,
       author: post.authorId === ME.id ? profile : USERS.find((u) => u.id === post.authorId),

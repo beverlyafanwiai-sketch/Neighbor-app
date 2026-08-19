@@ -14,6 +14,7 @@ import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { useGroupChatStore } from '../store/useGroupChatStore';
 import { isEventVisible, memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 import { useLendStore } from '../store/useLendStore';
+import { containsMutedWord, useMutedWordsStore } from '../store/useMutedWordsStore';
 import {
   getEffectiveReactions,
   getEffectiveReplies,
@@ -59,6 +60,7 @@ export default function Search() {
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const mutedWords = useMutedWordsStore((s) => s.words);
 
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
@@ -81,6 +83,7 @@ export default function Search() {
       ? []
       : posts.filter((p) => {
           if (blockedIds[p.authorId]) return false;
+          if (containsMutedWord(p.body, mutedWords)) return false;
           const author = p.authorId === ME.id ? profile : ALL_PEOPLE.find((u) => u.id === p.authorId);
           return (
             p.body.toLowerCase().includes(q) || (author?.name.toLowerCase().includes(q) ?? false)

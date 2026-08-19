@@ -19,6 +19,7 @@ import { useGroupsStore } from '../store/useGroupsStore';
 import { useHiddenPostsStore } from '../store/useHiddenPostsStore';
 import { formatMutedUntil, useMutedGroupsStore } from '../store/useMutedGroupsStore';
 import { useMutedStore } from '../store/useMutedStore';
+import { useMutedWordsStore } from '../store/useMutedWordsStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { useSettingsStore, type NotificationPrefs } from '../store/useSettingsStore';
 import { useThemeStore, type ThemePreference } from '../store/useThemeStore';
@@ -128,6 +129,10 @@ export default function Settings() {
   const mutedUntil = useMutedGroupsStore((s) => s.mutedUntil);
   const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
   const mutedGroups = groups.filter((g) => (mutedUntil[g.id] ?? 0) > Date.now());
+  const mutedWords = useMutedWordsStore((s) => s.words);
+  const addMutedWord = useMutedWordsStore((s) => s.addWord);
+  const removeMutedWord = useMutedWordsStore((s) => s.removeWord);
+  const [mutedWordDraft, setMutedWordDraft] = useState('');
   const dismissedSaleIds = useDismissedListingsStore((s) => s.dismissedSaleIds);
   const dismissedLendIds = useDismissedListingsStore((s) => s.dismissedLendIds);
   const resetSaleDismissed = useDismissedListingsStore((s) => s.resetSale);
@@ -372,6 +377,64 @@ export default function Settings() {
             ))
           )}
         </View>
+
+        <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+          Muted words
+        </Text>
+        <Text className="mb-3 text-xs text-charcoal/50">
+          Posts containing these words or phrases are hidden from your home feed and search
+          results.
+        </Text>
+        <View className="flex-row items-center gap-2 rounded-full bg-cream px-4 py-2.5">
+          <TextInput
+            value={mutedWordDraft}
+            onChangeText={setMutedWordDraft}
+            onSubmitEditing={() => {
+              addMutedWord(mutedWordDraft);
+              setMutedWordDraft('');
+            }}
+            placeholder="Add a word or phrase..."
+            placeholderTextColor="#3D3D3D80"
+            returnKeyType="done"
+            className="flex-1 text-sm text-charcoal"
+          />
+          <Pressable
+            disabled={!mutedWordDraft.trim()}
+            onPress={() => {
+              addMutedWord(mutedWordDraft);
+              setMutedWordDraft('');
+            }}
+            accessibilityLabel="Add muted word"
+            accessibilityRole="button"
+          >
+            <Text
+              className={`text-xs font-semibold ${
+                mutedWordDraft.trim() ? 'text-terracotta' : 'text-charcoal/30'
+              }`}
+            >
+              Add
+            </Text>
+          </Pressable>
+        </View>
+        {mutedWords.length > 0 && (
+          <View className="mt-3 flex-row flex-wrap gap-2">
+            {mutedWords.map((word) => (
+              <View
+                key={word}
+                className="flex-row items-center gap-1.5 rounded-full bg-cream px-3 py-1.5"
+              >
+                <Text className="text-xs font-medium text-charcoal">{word}</Text>
+                <Pressable
+                  onPress={() => removeMutedWord(word)}
+                  accessibilityLabel={`Remove muted word "${word}"`}
+                  accessibilityRole="button"
+                >
+                  <Ionicons name="close" size={12} className="text-charcoal/40" />
+                </Pressable>
+              </View>
+            ))}
+          </View>
+        )}
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
           Blocked accounts
