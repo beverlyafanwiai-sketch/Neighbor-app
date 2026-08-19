@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useColorScheme } from 'nativewind';
 
+import ShareSheet from '../components/ShareSheet';
 import { getUser } from '../data/mock';
 import { exportMyData } from '../lib/exportData';
 import { useAuthStore } from '../store/useAuthStore';
@@ -94,6 +95,7 @@ export default function Settings() {
   const [passwordMismatch, setPasswordMismatch] = useState(false);
   const [submittingPassword, setSubmittingPassword] = useState(false);
   const [passwordChanged, setPasswordChanged] = useState(false);
+  const [invitingNeighbors, setInvitingNeighbors] = useState(false);
   const [confirmingDeleteAccount, setConfirmingDeleteAccount] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const changePassword = useAuthStore((s) => s.changePassword);
@@ -424,6 +426,15 @@ export default function Settings() {
         </Text>
         <View className="gap-3">
           <Pressable
+            onPress={() => setInvitingNeighbors(true)}
+            className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+          >
+            <Ionicons name="person-add-outline" size={18} className="text-charcoal" />
+            <Text className="flex-1 text-sm font-medium text-charcoal">Invite neighbors</Text>
+            <Ionicons name="chevron-forward" size={16} className="text-charcoal/50" />
+          </Pressable>
+
+          <Pressable
             onPress={() => {
               setFeedbackCategory(null);
               setFeedbackDraft('');
@@ -632,6 +643,15 @@ export default function Settings() {
             )}
           </View>
         </View>
+      )}
+
+      {invitingNeighbors && (
+        <ShareSheet
+          title="Invite neighbors"
+          link="https://neighbor.app/join"
+          previewText={`${profile.name} invited you to join Neighbor — a warm way to meet the people on your block.`}
+          onClose={() => setInvitingNeighbors(false)}
+        />
       )}
     </SafeAreaView>
   );
