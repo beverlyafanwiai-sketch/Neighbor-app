@@ -428,6 +428,15 @@ export default function Settings() {
         </Text>
         <View className="gap-3">
           <Pressable
+            onPress={() => router.push('/help')}
+            className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+          >
+            <Ionicons name="help-circle-outline" size={18} className="text-charcoal" />
+            <Text className="flex-1 text-sm font-medium text-charcoal">Help Center</Text>
+            <Ionicons name="chevron-forward" size={16} className="text-charcoal/50" />
+          </Pressable>
+
+          <Pressable
             onPress={() => setInvitingNeighbors(true)}
             className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
           >
