@@ -1,4 +1,5 @@
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -33,6 +34,12 @@ const QUIET_HOURS_PRESETS = [
   { label: '9 PM – 7 AM', startHour: 21, endHour: 7 },
   { label: '10 PM – 7 AM', startHour: 22, endHour: 7 },
   { label: '11 PM – 8 AM', startHour: 23, endHour: 8 },
+] as const;
+
+const FEEDBACK_CATEGORIES = [
+  { value: 'bug', label: 'Something\'s broken' },
+  { value: 'idea', label: 'Feature idea' },
+  { value: 'other', label: 'Something else' },
 ] as const;
 
 function formatHour(hour: number) {
@@ -72,6 +79,12 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
 }
 
 export default function Settings() {
+  const [sendingFeedback, setSendingFeedback] = useState(false);
+  const [feedbackCategory, setFeedbackCategory] = useState<
+    (typeof FEEDBACK_CATEGORIES)[number] | null
+  >(null);
+  const [feedbackDraft, setFeedbackDraft] = useState('');
+  const [feedbackSent, setFeedbackSent] = useState(false);
   const prefs = useSettingsStore((s) => s.notificationPrefs);
   const togglePref = useSettingsStore((s) => s.toggleNotificationPref);
   const quietHours = useSettingsStore((s) => s.quietHours);
@@ -347,6 +360,25 @@ export default function Settings() {
         </View>
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+          Support
+        </Text>
+        <View className="gap-3">
+          <Pressable
+            onPress={() => {
+              setFeedbackCategory(null);
+              setFeedbackDraft('');
+              setFeedbackSent(false);
+              setSendingFeedback(true);
+            }}
+            className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+          >
+            <Ionicons name="chatbox-ellipses-outline" size={18} className="text-charcoal" />
+            <Text className="flex-1 text-sm font-medium text-charcoal">Send feedback</Text>
+            <Ionicons name="chevron-forward" size={16} className="text-charcoal/50" />
+          </Pressable>
+        </View>
+
+        <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
           Account
         </Text>
         <View className="gap-3">
@@ -368,6 +400,73 @@ export default function Settings() {
           </Pressable>
         </View>
       </ScrollView>
+
+      {sendingFeedback && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={() => setSendingFeedback(false)} />
+          <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Send feedback</Text>
+              <Pressable
+                onPress={() => setSendingFeedback(false)}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+
+            {feedbackSent ? (
+              <View className="rounded-2xl bg-sage/15 p-4">
+                <Text className="text-sm text-sage">
+                  Thanks — we've received your feedback and will take a look.
+                </Text>
+              </View>
+            ) : feedbackCategory ? (
+              <View className="gap-3">
+                <Pressable
+                  onPress={() => setFeedbackCategory(null)}
+                  className="flex-row items-center gap-1.5 self-start"
+                >
+                  <Ionicons name="chevron-back" size={14} className="text-charcoal/50" />
+                  <Text className="text-xs font-medium text-charcoal/50">
+                    {feedbackCategory.label}
+                  </Text>
+                </Pressable>
+                <TextInput
+                  value={feedbackDraft}
+                  onChangeText={setFeedbackDraft}
+                  placeholder="Tell us more (optional)..."
+                  placeholderTextColor="#3D3D3D80"
+                  multiline
+                  autoFocus
+                  className="min-h-[80px] rounded-2xl bg-sand px-4 py-3 text-sm text-charcoal"
+                />
+                <Pressable
+                  onPress={() => setFeedbackSent(true)}
+                  className="items-center rounded-2xl bg-terracotta p-3.5"
+                >
+                  <Text className="text-sm font-semibold text-paper">Submit feedback</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View className="gap-2">
+                <Text className="text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+                  What's this about?
+                </Text>
+                {FEEDBACK_CATEGORIES.map((category) => (
+                  <Pressable
+                    key={category.value}
+                    onPress={() => setFeedbackCategory(category)}
+                    className="rounded-2xl bg-sand p-4 active:opacity-80"
+                  >
+                    <Text className="text-sm font-medium text-charcoal">{category.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
