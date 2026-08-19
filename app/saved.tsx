@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
@@ -92,6 +92,7 @@ function sortItems<T>(
 }
 
 export default function Saved() {
+  const { collectionId: initialCollectionId } = useLocalSearchParams<{ collectionId?: string }>();
   const [mode, setMode] = useState<Mode>('Posts');
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState<SavedSort>('Newest');
@@ -105,7 +106,9 @@ export default function Saved() {
   const [onlyFriends, setOnlyFriends] = useState(false);
   const [editingNoteKey, setEditingNoteKey] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState('');
-  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(
+    initialCollectionId ?? null
+  );
   const [managingCollectionsKey, setManagingCollectionsKey] = useState<string | null>(null);
   const [creatingCollection, setCreatingCollection] = useState(false);
   const [newCollectionDraft, setNewCollectionDraft] = useState('');
@@ -422,7 +425,15 @@ export default function Saved() {
         >
           <Ionicons name="chevron-back" size={22} className="text-charcoal" />
         </Pressable>
-        <Text className="text-base font-bold text-charcoal">Saved</Text>
+        <Text className="flex-1 text-base font-bold text-charcoal">Saved</Text>
+        <Pressable
+          onPress={() => router.push('/saved-collections')}
+          accessibilityLabel="Manage collections"
+          accessibilityRole="button"
+          className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+        >
+          <Ionicons name="folder-outline" size={18} className="text-charcoal" />
+        </Pressable>
       </View>
 
       <View className="flex-row gap-2 px-5 pb-3">
