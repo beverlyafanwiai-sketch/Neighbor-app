@@ -5,7 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ProfileView from '../../components/ProfileView';
-import { ME, USERS, getUser, type User } from '../../data/mock';
+import { ME, getUser, type User } from '../../data/mock';
 import { useBlockedStore } from '../../store/useBlockedStore';
 import { useConversationsStore } from '../../store/useConversationsStore';
 import { useMutedStore } from '../../store/useMutedStore';
@@ -36,7 +36,9 @@ export default function OtherProfile() {
     );
   }
 
-  const friends = [profile, ...USERS].filter((u): u is User => u.id !== user.id).slice(0, 4);
+  const friends = (user.friendIds ?? [])
+    .map((friendId) => (friendId === ME.id ? profile : getUser(friendId)))
+    .filter((u): u is User => Boolean(u));
 
   const goToFriend = (friend: User) => {
     if (friend.id === ME.id) {
