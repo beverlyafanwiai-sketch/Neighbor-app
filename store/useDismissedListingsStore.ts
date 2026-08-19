@@ -5,6 +5,8 @@ type DismissedListingsState = {
   dismissSaleItem: (itemId: string) => void;
   dismissedLendIds: Record<string, boolean>;
   dismissLendItem: (itemId: string) => void;
+  resetSale: () => void;
+  resetLend: () => void;
 };
 
 export const useDismissedListingsStore = create<DismissedListingsState>((set) => ({
@@ -16,4 +18,8 @@ export const useDismissedListingsStore = create<DismissedListingsState>((set) =>
 
   dismissLendItem: (itemId) =>
     set((s) => ({ dismissedLendIds: { ...s.dismissedLendIds, [itemId]: true } })),
+
+  resetSale: () => set({ dismissedSaleIds: {} }),
+
+  resetLend: () => set({ dismissedLendIds: {} }),
 }));

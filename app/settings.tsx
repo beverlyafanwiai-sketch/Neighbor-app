@@ -8,11 +8,19 @@ import { useColorScheme } from 'nativewind';
 import { getUser } from '../data/mock';
 import { useAuthStore } from '../store/useAuthStore';
 import { useBlockedStore } from '../store/useBlockedStore';
+import { useDismissedDiscoverStore } from '../store/useDismissedDiscoverStore';
+import { useDismissedEventsStore } from '../store/useDismissedEventsStore';
+import { useDismissedListingsStore } from '../store/useDismissedListingsStore';
+import { useDismissedRecsStore } from '../store/useDismissedRecsStore';
 import { useGroupsStore } from '../store/useGroupsStore';
 import { formatMutedUntil, useMutedGroupsStore } from '../store/useMutedGroupsStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { useSettingsStore, type NotificationPrefs } from '../store/useSettingsStore';
 import { useThemeStore, type ThemePreference } from '../store/useThemeStore';
+
+function countDismissed(ids: Record<string, boolean>) {
+  return Object.values(ids).filter(Boolean).length;
+}
 
 const APPEARANCE_OPTIONS: { value: ThemePreference; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { value: 'light', label: 'Light', icon: 'sunny-outline' },
@@ -87,6 +95,30 @@ export default function Settings() {
   const mutedUntil = useMutedGroupsStore((s) => s.mutedUntil);
   const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
   const mutedGroups = groups.filter((g) => (mutedUntil[g.id] ?? 0) > Date.now());
+  const dismissedSaleIds = useDismissedListingsStore((s) => s.dismissedSaleIds);
+  const dismissedLendIds = useDismissedListingsStore((s) => s.dismissedLendIds);
+  const resetSaleDismissed = useDismissedListingsStore((s) => s.resetSale);
+  const resetLendDismissed = useDismissedListingsStore((s) => s.resetLend);
+  const dismissedRecIds = useDismissedRecsStore((s) => s.dismissedIds);
+  const resetRecsDismissed = useDismissedRecsStore((s) => s.reset);
+  const dismissedEventIds = useDismissedEventsStore((s) => s.dismissedIds);
+  const resetEventsDismissed = useDismissedEventsStore((s) => s.reset);
+  const dismissedPeopleIds = useDismissedDiscoverStore((s) => s.dismissedIds);
+  const dismissedDiscoverGroupIds = useDismissedDiscoverStore((s) => s.dismissedGroupIds);
+  const resetPeopleDismissed = useDismissedDiscoverStore((s) => s.resetPeople);
+  const resetDiscoverGroupsDismissed = useDismissedDiscoverStore((s) => s.resetGroups);
+  const dismissedRows = [
+    { label: 'For Sale', count: countDismissed(dismissedSaleIds), onReset: resetSaleDismissed },
+    { label: 'Lend', count: countDismissed(dismissedLendIds), onReset: resetLendDismissed },
+    { label: 'Recs', count: countDismissed(dismissedRecIds), onReset: resetRecsDismissed },
+    { label: 'Events', count: countDismissed(dismissedEventIds), onReset: resetEventsDismissed },
+    { label: 'Discover · People', count: countDismissed(dismissedPeopleIds), onReset: resetPeopleDismissed },
+    {
+      label: 'Discover · Groups',
+      count: countDismissed(dismissedDiscoverGroupIds),
+      onReset: resetDiscoverGroupsDismissed,
+    },
+  ];
   const themePreference = useThemeStore((s) => s.preference);
   const setThemePreference = useThemeStore((s) => s.setPreference);
   const { setColorScheme } = useColorScheme();
@@ -282,6 +314,31 @@ export default function Settings() {
                 </Pressable>
               </View>
             ))
+          )}
+        </View>
+
+        <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+          Dismissed items
+        </Text>
+        <View className="gap-3">
+          {dismissedRows.every((r) => r.count === 0) ? (
+            <Text className="text-sm text-charcoal/50">You haven't dismissed anything.</Text>
+          ) : (
+            dismissedRows
+              .filter((r) => r.count > 0)
+              .map((r) => (
+                <View
+                  key={r.label}
+                  className="flex-row items-center gap-3 rounded-2xl bg-cream p-4"
+                >
+                  <Text className="flex-1 text-sm font-medium text-charcoal">
+                    {r.label} · {r.count} dismissed
+                  </Text>
+                  <Pressable onPress={r.onReset} className="rounded-full bg-sand px-4 py-2">
+                    <Text className="text-xs font-semibold text-charcoal">Reset</Text>
+                  </Pressable>
+                </View>
+              ))
           )}
         </View>
 

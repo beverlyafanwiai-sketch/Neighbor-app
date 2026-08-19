@@ -5,6 +5,8 @@ type DismissedDiscoverState = {
   dismiss: (userId: string) => void;
   dismissedGroupIds: Record<string, boolean>;
   dismissGroup: (groupId: string) => void;
+  resetPeople: () => void;
+  resetGroups: () => void;
 };
 
 export const useDismissedDiscoverStore = create<DismissedDiscoverState>((set) => ({
@@ -15,4 +17,8 @@ export const useDismissedDiscoverStore = create<DismissedDiscoverState>((set) =>
 
   dismissGroup: (groupId) =>
     set((s) => ({ dismissedGroupIds: { ...s.dismissedGroupIds, [groupId]: true } })),
+
+  resetPeople: () => set({ dismissedIds: {} }),
+
+  resetGroups: () => set({ dismissedGroupIds: {} }),
 }));
