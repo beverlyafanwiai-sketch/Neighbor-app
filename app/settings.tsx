@@ -85,6 +85,16 @@ export default function Settings() {
   >(null);
   const [feedbackDraft, setFeedbackDraft] = useState('');
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [currentPasswordDraft, setCurrentPasswordDraft] = useState('');
+  const [newPasswordDraft, setNewPasswordDraft] = useState('');
+  const [confirmPasswordDraft, setConfirmPasswordDraft] = useState('');
+  const [passwordMismatch, setPasswordMismatch] = useState(false);
+  const [submittingPassword, setSubmittingPassword] = useState(false);
+  const [passwordChanged, setPasswordChanged] = useState(false);
+  const changePassword = useAuthStore((s) => s.changePassword);
+  const authError = useAuthStore((s) => s.error);
+  const clearAuthError = useAuthStore((s) => s.clearError);
   const prefs = useSettingsStore((s) => s.notificationPrefs);
   const togglePref = useSettingsStore((s) => s.toggleNotificationPref);
   const quietHours = useSettingsStore((s) => s.quietHours);
@@ -148,6 +158,18 @@ export default function Settings() {
   const handleSignOut = async () => {
     await signOut();
     router.replace('/');
+  };
+
+  const handleChangePassword = async () => {
+    if (newPasswordDraft !== confirmPasswordDraft) {
+      setPasswordMismatch(true);
+      return;
+    }
+    setPasswordMismatch(false);
+    setSubmittingPassword(true);
+    const ok = await changePassword(currentPasswordDraft, newPasswordDraft);
+    setSubmittingPassword(false);
+    if (ok) setPasswordChanged(true);
   };
 
   return (
@@ -392,6 +414,23 @@ export default function Settings() {
           </Pressable>
 
           <Pressable
+            onPress={() => {
+              clearAuthError();
+              setCurrentPasswordDraft('');
+              setNewPasswordDraft('');
+              setConfirmPasswordDraft('');
+              setPasswordMismatch(false);
+              setPasswordChanged(false);
+              setChangingPassword(true);
+            }}
+            className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+          >
+            <Ionicons name="key-outline" size={18} className="text-charcoal" />
+            <Text className="flex-1 text-sm font-medium text-charcoal">Change password</Text>
+            <Ionicons name="chevron-forward" size={16} className="text-charcoal/50" />
+          </Pressable>
+
+          <Pressable
             onPress={handleSignOut}
             className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
           >
@@ -462,6 +501,69 @@ export default function Settings() {
                     <Text className="text-sm font-medium text-charcoal">{category.label}</Text>
                   </Pressable>
                 ))}
+              </View>
+            )}
+          </View>
+        </View>
+      )}
+
+      {changingPassword && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={() => setChangingPassword(false)} />
+          <View className="w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Change password</Text>
+              <Pressable
+                onPress={() => setChangingPassword(false)}
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+
+            {passwordChanged ? (
+              <View className="rounded-2xl bg-sage/15 p-4">
+                <Text className="text-sm text-sage">Your password has been updated.</Text>
+              </View>
+            ) : (
+              <View className="gap-3">
+                <TextInput
+                  value={currentPasswordDraft}
+                  onChangeText={setCurrentPasswordDraft}
+                  placeholder="Current password"
+                  placeholderTextColor="#3D3D3D80"
+                  secureTextEntry
+                  className="rounded-2xl bg-sand px-4 py-3 text-sm text-charcoal"
+                />
+                <TextInput
+                  value={newPasswordDraft}
+                  onChangeText={setNewPasswordDraft}
+                  placeholder="New password"
+                  placeholderTextColor="#3D3D3D80"
+                  secureTextEntry
+                  className="rounded-2xl bg-sand px-4 py-3 text-sm text-charcoal"
+                />
+                <TextInput
+                  value={confirmPasswordDraft}
+                  onChangeText={setConfirmPasswordDraft}
+                  placeholder="Confirm new password"
+                  placeholderTextColor="#3D3D3D80"
+                  secureTextEntry
+                  className="rounded-2xl bg-sand px-4 py-3 text-sm text-charcoal"
+                />
+                {passwordMismatch && (
+                  <Text className="text-xs text-terracotta">Passwords don't match.</Text>
+                )}
+                {authError && <Text className="text-xs text-terracotta">{authError}</Text>}
+                <Pressable
+                  onPress={handleChangePassword}
+                  disabled={submittingPassword}
+                  className="items-center rounded-2xl bg-terracotta p-3.5 disabled:opacity-60"
+                >
+                  <Text className="text-sm font-semibold text-paper">
+                    {submittingPassword ? 'Updating...' : 'Update password'}
+                  </Text>
+                </Pressable>
               </View>
             )}
           </View>
