@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { COMMENTS, ME, POSTS, type CommentItem, type Poll, type Post, type ReactionType } from '../data/mock';
 import { findMentionedUsers } from '../lib/mentions';
+import { useGettingStartedStore } from './useGettingStartedStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useProfileStore } from './useProfileStore';
 import { useSettingsStore } from './useSettingsStore';
@@ -115,6 +116,7 @@ export const usePostsStore = create<PostsState>((set, get) => ({
     };
     set((s) => ({ posts: [post, ...s.posts] }));
     notifyMentions(body, post.id, 'post');
+    useGettingStartedStore.getState().markPosted();
   },
 
   updatePost: (id, updates) =>
@@ -269,8 +271,10 @@ export const usePostsStore = create<PostsState>((set, get) => ({
     }));
   },
 
-  toggleSave: (postId) =>
-    set((s) => ({ savedIds: { ...s.savedIds, [postId]: !s.savedIds[postId] } })),
+  toggleSave: (postId) => {
+    set((s) => ({ savedIds: { ...s.savedIds, [postId]: !s.savedIds[postId] } }));
+    if (get().savedIds[postId]) useGettingStartedStore.getState().markSaved();
+  },
 
   addComment: (postId, text, parentId) => {
     const comment: CommentItem = {

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { EVENTS } from '../data/mock';
 import { useEventsStore } from './useEventsStore';
+import { useGettingStartedStore } from './useGettingStartedStore';
 import { useMutedEventsStore } from './useMutedEventsStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
@@ -50,6 +51,7 @@ export const useRsvpStore = create<RsvpState>((set, get) => ({
       // Going and Maybe are mutually exclusive.
       maybe: currentlyGoing ? s.maybe : { ...s.maybe, [eventId]: false },
     }));
+    if (!currentlyGoing) useGettingStartedStore.getState().markRsvped();
   },
 
   toggleMaybe: (eventId) =>

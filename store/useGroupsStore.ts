@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { GROUPS, ME, USERS, type Group, type Tone } from '../data/mock';
+import { useGettingStartedStore } from './useGettingStartedStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
@@ -101,8 +102,10 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
   welcomeMessages: {},
   drafts: [],
 
-  toggle: (groupId) =>
-    set((s) => ({ joined: { ...s.joined, [groupId]: !s.joined[groupId] } })),
+  toggle: (groupId) => {
+    set((s) => ({ joined: { ...s.joined, [groupId]: !s.joined[groupId] } }));
+    if (get().joined[groupId]) useGettingStartedStore.getState().markJoinedCircle();
+  },
 
   createGroup: (input) => {
     const id = `${slugify(input.name)}-${Math.random().toString(36).slice(2, 7)}`;

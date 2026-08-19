@@ -10,6 +10,7 @@ import { COFFEE_FRIENDS_SVG } from '../../assets/illustrations/coffee-friends';
 import { PARK_FRIENDS_SVG } from '../../assets/illustrations/park-friends';
 import BackgroundSlideshow from '../../components/BackgroundSlideshow';
 import EmptyState from '../../components/EmptyState';
+import GettingStartedChecklist from '../../components/GettingStartedChecklist';
 import MentionText from '../../components/MentionText';
 import PhotoCarousel from '../../components/PhotoCarousel';
 import PhotoViewer from '../../components/PhotoViewer';
@@ -447,6 +448,7 @@ export default function HomeFeed() {
         <View className={isWide ? 'w-full max-w-xl' : 'w-full'}>
         {!q && (
           <>
+            <GettingStartedChecklist />
             {activeAlerts.length > 0 && (
               <Pressable
                 onPress={() => router.push('/alerts')}
