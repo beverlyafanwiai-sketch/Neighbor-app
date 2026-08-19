@@ -26,6 +26,7 @@ import { useProfileStore } from '../store/useProfileStore';
 import { getEffectiveAgreeCount, useRecsStore } from '../store/useRecsStore';
 import { getEffectiveSpots, useRsvpStore } from '../store/useRsvpStore';
 import { getEffectiveInterestCount, isFreeItem, useSaleStore } from '../store/useSaleStore';
+import { useSavedCollectionsStore } from '../store/useSavedCollectionsStore';
 import { useSavedEventsStore } from '../store/useSavedEventsStore';
 import { useSavedGroupsStore } from '../store/useSavedGroupsStore';
 import { useSavedLendStore } from '../store/useSavedLendStore';
@@ -104,6 +105,12 @@ export default function Saved() {
   const [onlyFriends, setOnlyFriends] = useState(false);
   const [editingNoteKey, setEditingNoteKey] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState('');
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
+  const [managingCollectionsKey, setManagingCollectionsKey] = useState<string | null>(null);
+  const [creatingCollection, setCreatingCollection] = useState(false);
+  const [newCollectionDraft, setNewCollectionDraft] = useState('');
+  const [renamingCollectionId, setRenamingCollectionId] = useState<string | null>(null);
+  const [renameCollectionDraft, setRenameCollectionDraft] = useState('');
   const savedSearches = useSavedSearchesStore((s) => s.searches);
   const saveSearch = useSavedSearchesStore((s) => s.saveSearch);
   const renameSearch = useSavedSearchesStore((s) => s.renameSearch);
@@ -115,6 +122,14 @@ export default function Saved() {
   const setSavedNote = useSavedNotesStore((s) => s.setNote);
   const pinned = useSavedPinsStore((s) => s.pinned);
   const togglePin = useSavedPinsStore((s) => s.togglePin);
+  const collections = useSavedCollectionsStore((s) => s.collections);
+  const itemCollectionIds = useSavedCollectionsStore((s) => s.itemCollectionIds);
+  const createCollection = useSavedCollectionsStore((s) => s.createCollection);
+  const renameCollection = useSavedCollectionsStore((s) => s.renameCollection);
+  const deleteCollection = useSavedCollectionsStore((s) => s.deleteCollection);
+  const toggleItemInCollection = useSavedCollectionsStore((s) => s.toggleItemInCollection);
+  const matchesCollection = (key: string) =>
+    !selectedCollectionId || (itemCollectionIds[key] ?? []).includes(selectedCollectionId);
   const profile = useProfileStore((s) => s.profile);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
@@ -192,7 +207,8 @@ export default function Saved() {
         !blockedIds[p.authorId] &&
         !mutedIds[p.authorId] &&
         matchesFriends(p.authorId) &&
-        matches(p.body)
+        matches(p.body) &&
+        matchesCollection(savedNoteKey('post', p.id))
     ),
     (p) => savedNoteKey('post', p.id),
     pinned
@@ -213,7 +229,8 @@ export default function Saved() {
         (e) =>
           matches(e.title, e.location) &&
           (!hidePast || e.status !== 'past') &&
-          (eventCategoryFilter === 'All' || e.category === eventCategoryFilter)
+          (eventCategoryFilter === 'All' || e.category === eventCategoryFilter) &&
+          matchesCollection(savedNoteKey('event', e.id))
       ),
       sortBy,
       (e) => e.title
@@ -239,7 +256,8 @@ export default function Saved() {
           matches(e.name, e.category, e.note) &&
           (recKindFilter === 'All' || (recKindFilter === 'Recs' ? e.kind === 'rec' : e.kind === 'ask')) &&
           (!hideResolved || !(e.kind === 'ask' && e.resolved)) &&
-          (recCategoryFilter === 'All' || e.category === recCategoryFilter)
+          (recCategoryFilter === 'All' || e.category === recCategoryFilter) &&
+          matchesCollection(savedNoteKey('rec', e.id))
       ),
       sortBy,
       (e) => e.name ?? e.category,
@@ -258,7 +276,8 @@ export default function Saved() {
           !mutedIds[i.ownerId] &&
           matchesFriends(i.ownerId) &&
           matches(i.title, i.note) &&
-          (!hideUnavailable || ((lendStatus[i.id] ?? 'available') === 'available' && !i.unavailableNote))
+          (!hideUnavailable || ((lendStatus[i.id] ?? 'available') === 'available' && !i.unavailableNote)) &&
+          matchesCollection(savedNoteKey('lend', i.id))
       ),
       sortBy,
       (i) => i.title,
@@ -277,7 +296,8 @@ export default function Saved() {
           !mutedIds[i.ownerId] &&
           matchesFriends(i.ownerId) &&
           matches(i.title, i.note) &&
-          (!hideSold || !(sold[i.id] ?? false))
+          (!hideSold || !(sold[i.id] ?? false)) &&
+          matchesCollection(savedNoteKey('sale', i.id))
       ),
       sortBy,
       (i) => i.title,
@@ -289,7 +309,12 @@ export default function Saved() {
   );
   const savedGroups = withPinnedFirst(
     sortItems(
-      groups.filter((g) => (savedGroupIds[g.id] ?? false) && matches(g.name, g.description)),
+      groups.filter(
+        (g) =>
+          (savedGroupIds[g.id] ?? false) &&
+          matches(g.name, g.description) &&
+          matchesCollection(savedNoteKey('group', g.id))
+      ),
       sortBy,
       (g) => g.name
     ),
@@ -350,6 +375,37 @@ export default function Saved() {
         <Text className="flex-1 text-xs italic text-charcoal/50" numberOfLines={2}>
           {note || 'Add a personal note'}
         </Text>
+      </Pressable>
+    );
+  };
+
+  const renderCollectionsRow = (key: string, borderTop: boolean) => {
+    const ids = itemCollectionIds[key] ?? [];
+    const itemCollections = collections.filter((c) => ids.includes(c.id));
+    return (
+      <Pressable
+        onPress={(evt) => {
+          evt.stopPropagation();
+          setManagingCollectionsKey(key);
+        }}
+        accessibilityLabel={itemCollections.length > 0 ? 'Edit collections' : 'Add to collection'}
+        accessibilityRole="button"
+        className={`mt-2 flex-row flex-wrap items-center gap-1.5 ${borderTop ? 'border-t border-charcoal/10 pt-2' : ''}`}
+      >
+        <Ionicons
+          name={itemCollections.length > 0 ? 'folder' : 'folder-outline'}
+          size={13}
+          className={itemCollections.length > 0 ? 'text-sage' : 'text-charcoal/40'}
+        />
+        {itemCollections.length > 0 ? (
+          itemCollections.map((c) => (
+            <View key={c.id} className="rounded-full bg-sage/15 px-2 py-0.5">
+              <Text className="text-[10px] font-semibold text-sage">{c.name}</Text>
+            </View>
+          ))
+        ) : (
+          <Text className="text-xs italic text-charcoal/50">Add to collection</Text>
+        )}
       </Pressable>
     );
   };
@@ -530,6 +586,45 @@ export default function Saved() {
           <Text className="text-xs font-medium text-charcoal/60">Friends only</Text>
         </Pressable>
       </View>
+
+      {collections.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerClassName="items-center gap-2 px-5 pb-3"
+        >
+          <Pressable
+            onPress={() => setSelectedCollectionId(null)}
+            className={`rounded-full px-3.5 py-1.5 ${selectedCollectionId === null ? 'bg-sage' : 'bg-cream'}`}
+          >
+            <Text
+              className={`text-xs font-medium ${selectedCollectionId === null ? 'text-paper' : 'text-charcoal/60'}`}
+            >
+              All saved
+            </Text>
+          </Pressable>
+          {collections.map((c) => (
+            <Pressable
+              key={c.id}
+              onPress={() => setSelectedCollectionId(c.id)}
+              className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-1.5 ${
+                selectedCollectionId === c.id ? 'bg-sage' : 'bg-cream'
+              }`}
+            >
+              <Ionicons
+                name="folder"
+                size={13}
+                className={selectedCollectionId === c.id ? 'text-paper' : 'text-charcoal/50'}
+              />
+              <Text
+                className={`text-xs font-medium ${selectedCollectionId === c.id ? 'text-paper' : 'text-charcoal/60'}`}
+              >
+                {c.name}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      )}
 
       {mode === 'Recs' && (
         <View className="flex-row items-center gap-2 px-5 pb-3">
@@ -900,6 +995,7 @@ export default function Saved() {
                     </Pressable>
                   </View>
                 </View>
+                {renderCollectionsRow(savedNoteKey('post', post.id), true)}
               </Pressable>
             );
           })}
@@ -964,6 +1060,7 @@ export default function Saved() {
                         : `${spotsTaken}/${spotsTotal} spots${going ? ' · Going' : isHost ? ' · Hosting' : ''}`}
                     </Text>
                     {renderNoteRow(savedNoteKey('event', e.id), false)}
+                    {renderCollectionsRow(savedNoteKey('event', e.id), false)}
                   </View>
                 </Pressable>
               );
@@ -1035,6 +1132,7 @@ export default function Saved() {
                         : `${count} neighbor${count === 1 ? '' : 's'} can help`}
                   </Text>
                   {renderNoteRow(savedNoteKey('rec', entry.id), false)}
+                  {renderCollectionsRow(savedNoteKey('rec', entry.id), false)}
                 </Pressable>
               );
             })}
@@ -1105,6 +1203,7 @@ export default function Saved() {
                         : `${helperCount} neighbor${helperCount === 1 ? '' : 's'} can help`}
                   </Text>
                   {renderNoteRow(savedNoteKey('lend', item.id), false)}
+                  {renderCollectionsRow(savedNoteKey('lend', item.id), false)}
                 </Pressable>
               );
             })}
@@ -1172,6 +1271,7 @@ export default function Saved() {
                         : `${interestCount} neighbor${interestCount === 1 ? '' : 's'} interested`}
                   </Text>
                   {renderNoteRow(savedNoteKey('sale', item.id), false)}
+                  {renderCollectionsRow(savedNoteKey('sale', item.id), false)}
                 </Pressable>
               );
             })}
@@ -1196,6 +1296,7 @@ export default function Saved() {
                     {joinedMap[g.id] ? ' · Joined' : ''}
                   </Text>
                   {renderNoteRow(savedNoteKey('group', g.id), false)}
+                  {renderCollectionsRow(savedNoteKey('group', g.id), false)}
                 </View>
                 <Pressable
                   onPress={(evt) => {
@@ -1228,6 +1329,181 @@ export default function Saved() {
           </View>
         )}
       </ScrollView>
+
+      {managingCollectionsKey && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable
+            className="absolute inset-0"
+            onPress={() => {
+              setManagingCollectionsKey(null);
+              setCreatingCollection(false);
+              setNewCollectionDraft('');
+              setRenamingCollectionId(null);
+            }}
+          />
+          <View className="max-h-[70%] w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Add to collection</Text>
+              <Pressable
+                onPress={() => {
+                  setManagingCollectionsKey(null);
+                  setCreatingCollection(false);
+                  setNewCollectionDraft('');
+                  setRenamingCollectionId(null);
+                }}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View className="gap-2">
+                {collections.map((c) => {
+                  const inCollection = (itemCollectionIds[managingCollectionsKey] ?? []).includes(
+                    c.id
+                  );
+                  if (renamingCollectionId === c.id) {
+                    return (
+                      <View
+                        key={c.id}
+                        className="flex-row items-center gap-2 rounded-2xl bg-sand p-3"
+                      >
+                        <TextInput
+                          value={renameCollectionDraft}
+                          onChangeText={setRenameCollectionDraft}
+                          autoFocus
+                          className="flex-1 text-sm text-charcoal"
+                        />
+                        <Pressable
+                          onPress={() => setRenamingCollectionId(null)}
+                          accessibilityLabel="Cancel rename"
+                          accessibilityRole="button"
+                        >
+                          <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => {
+                            renameCollection(c.id, renameCollectionDraft);
+                            setRenamingCollectionId(null);
+                          }}
+                          accessibilityLabel="Save collection name"
+                          accessibilityRole="button"
+                        >
+                          <Text className="text-xs font-semibold text-terracotta">Save</Text>
+                        </Pressable>
+                      </View>
+                    );
+                  }
+                  return (
+                    <View
+                      key={c.id}
+                      className="flex-row items-center gap-2 rounded-2xl bg-sand p-3.5"
+                    >
+                      <Pressable
+                        onPress={() => toggleItemInCollection(managingCollectionsKey, c.id)}
+                        accessibilityLabel={
+                          inCollection ? `Remove from ${c.name}` : `Add to ${c.name}`
+                        }
+                        accessibilityRole="button"
+                        className="flex-1 flex-row items-center gap-3"
+                      >
+                        <Ionicons
+                          name={inCollection ? 'checkbox' : 'square-outline'}
+                          size={18}
+                          className={inCollection ? 'text-terracotta' : 'text-charcoal/40'}
+                        />
+                        <Text className="flex-1 text-sm font-medium text-charcoal">{c.name}</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          setRenamingCollectionId(c.id);
+                          setRenameCollectionDraft(c.name);
+                        }}
+                        accessibilityLabel={`Rename collection "${c.name}"`}
+                        accessibilityRole="button"
+                        className="h-7 w-7 items-center justify-center"
+                      >
+                        <Ionicons name="pencil" size={14} className="text-charcoal/40" />
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          deleteCollection(c.id);
+                          if (selectedCollectionId === c.id) setSelectedCollectionId(null);
+                        }}
+                        accessibilityLabel={`Delete collection "${c.name}"`}
+                        accessibilityRole="button"
+                        className="h-7 w-7 items-center justify-center"
+                      >
+                        <Ionicons name="trash-outline" size={14} className="text-terracotta" />
+                      </Pressable>
+                    </View>
+                  );
+                })}
+                {collections.length === 0 && !creatingCollection && (
+                  <Text className="px-1 text-sm text-charcoal/50">
+                    You don't have any collections yet.
+                  </Text>
+                )}
+              </View>
+            </ScrollView>
+
+            {creatingCollection ? (
+              <View className="flex-row items-center gap-2 rounded-2xl bg-sand p-3.5">
+                <TextInput
+                  value={newCollectionDraft}
+                  onChangeText={setNewCollectionDraft}
+                  placeholder="Collection name..."
+                  placeholderTextColor="#3D3D3D80"
+                  autoFocus
+                  className="flex-1 text-sm text-charcoal"
+                />
+                <Pressable
+                  onPress={() => {
+                    setCreatingCollection(false);
+                    setNewCollectionDraft('');
+                  }}
+                  accessibilityLabel="Cancel new collection"
+                  accessibilityRole="button"
+                >
+                  <Text className="text-xs font-medium text-charcoal/50">Cancel</Text>
+                </Pressable>
+                <Pressable
+                  disabled={!newCollectionDraft.trim()}
+                  onPress={() => {
+                    const id = createCollection(newCollectionDraft);
+                    if (id) toggleItemInCollection(managingCollectionsKey, id);
+                    setCreatingCollection(false);
+                    setNewCollectionDraft('');
+                  }}
+                  accessibilityLabel="Create collection"
+                  accessibilityRole="button"
+                >
+                  <Text
+                    className={`text-xs font-semibold ${
+                      newCollectionDraft.trim() ? 'text-terracotta' : 'text-charcoal/30'
+                    }`}
+                  >
+                    Create
+                  </Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => setCreatingCollection(true)}
+                accessibilityLabel="New collection"
+                accessibilityRole="button"
+                className="flex-row items-center justify-center gap-1.5 rounded-2xl bg-sand py-3"
+              >
+                <Ionicons name="add-circle-outline" size={16} className="text-terracotta" />
+                <Text className="text-sm font-semibold text-terracotta">New collection</Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
