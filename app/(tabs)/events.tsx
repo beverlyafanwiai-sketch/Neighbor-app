@@ -340,6 +340,8 @@ export default function Events() {
           <Pressable
             key={c}
             onPress={() => setCategoryFilter(c)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: categoryFilter === c }}
             className={`rounded-full px-3.5 py-1.5 ${
               categoryFilter === c ? 'bg-terracotta' : 'bg-cream'
             }`}
@@ -412,6 +414,8 @@ export default function Events() {
               <Pressable
                 key={s.value}
                 onPress={() => setSortBy(s.value)}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: sortBy === s.value }}
                 className={`rounded-full px-3.5 py-1.5 ${
                   sortBy === s.value ? 'bg-ink' : 'bg-cream'
                 }`}

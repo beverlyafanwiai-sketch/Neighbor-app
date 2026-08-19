@@ -429,6 +429,8 @@ export default function RecsBoard() {
           <Pressable
             key={k}
             onPress={() => setKindFilter(k)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: kindFilter === k }}
             className={`rounded-full px-4 py-2 ${kindFilter === k ? 'bg-ink' : 'bg-cream'}`}
           >
             <Text className={`text-sm font-medium ${kindFilter === k ? 'text-paper' : 'text-charcoal/60'}`}>
@@ -479,6 +481,8 @@ export default function RecsBoard() {
             <Pressable
               key={c}
               onPress={() => setCategoryFilter(c)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: categoryFilter === c }}
               className={`rounded-full px-3.5 py-1.5 ${
                 categoryFilter === c ? 'bg-terracotta' : 'bg-cream'
               }`}
@@ -514,6 +518,8 @@ export default function RecsBoard() {
               <Pressable
                 key={s}
                 onPress={() => setSortBy(s)}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: sortBy === s }}
                 className={`rounded-full px-3 py-1 ${sortBy === s ? 'bg-ink' : 'bg-sand'}`}
               >
                 <Text

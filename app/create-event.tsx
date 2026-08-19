@@ -299,6 +299,8 @@ export default function CreateEvent() {
                   <Pressable
                     key={c}
                     onPress={() => setCategory(c)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: category === c }}
                     className={`rounded-full px-3.5 py-1.5 ${
                       category === c ? 'bg-terracotta' : 'bg-cream'
                     }`}
@@ -322,6 +324,8 @@ export default function CreateEvent() {
                   <Pressable
                     key={opt.label}
                     onPress={() => setRecurrence(opt.value)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: recurrence === opt.value }}
                     className={`rounded-full px-3.5 py-1.5 ${
                       recurrence === opt.value ? 'bg-terracotta' : 'bg-cream'
                     }`}

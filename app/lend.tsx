@@ -234,7 +234,13 @@ export default function LendBoard() {
         <View className="mt-3 gap-2 border-t border-charcoal/10 pt-3">
           <View className="flex-row gap-1.5">
             {[1, 2, 3, 4, 5].map((n) => (
-              <Pressable key={n} onPress={() => setRatingDraftStars(n)}>
+              <Pressable
+                key={n}
+                onPress={() => setRatingDraftStars(n)}
+                accessibilityLabel={`Rate ${n} star${n === 1 ? '' : 's'}`}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: n === ratingDraftStars }}
+              >
                 <Ionicons
                   name={n <= ratingDraftStars ? 'star' : 'star-outline'}
                   size={22}
@@ -502,6 +508,8 @@ export default function LendBoard() {
           <Pressable
             key={k}
             onPress={() => setKindFilter(k)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: kindFilter === k }}
             className={`rounded-full px-4 py-2 ${kindFilter === k ? 'bg-ink' : 'bg-cream'}`}
           >
             <Text className={`text-sm font-medium ${kindFilter === k ? 'text-paper' : 'text-charcoal/60'}`}>
@@ -554,6 +562,8 @@ export default function LendBoard() {
               <Pressable
                 key={s}
                 onPress={() => setSortBy(s)}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: sortBy === s }}
                 className={`rounded-full px-3 py-1 ${sortBy === s ? 'bg-ink' : 'bg-sand'}`}
               >
                 <Text
@@ -686,6 +696,8 @@ export default function LendBoard() {
                                   <Pressable
                                     key={d}
                                     onPress={() => setDueDays(d)}
+                                    accessibilityRole="radio"
+                                    accessibilityState={{ checked: dueDays === d }}
                                     className={`rounded-full px-3 py-1.5 ${
                                       dueDays === d ? 'bg-terracotta' : 'bg-sand'
                                     }`}
@@ -789,6 +801,8 @@ export default function LendBoard() {
                                 <Pressable
                                   key={d}
                                   onPress={() => setDueDays(d)}
+                                  accessibilityRole="radio"
+                                  accessibilityState={{ checked: dueDays === d }}
                                   className={`rounded-full px-3 py-1.5 ${
                                     dueDays === d ? 'bg-terracotta' : 'bg-sand'
                                   }`}

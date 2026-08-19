@@ -206,6 +206,8 @@ export default function CreateRec() {
               <Pressable
                 key={k.value}
                 onPress={() => setKind(k.value)}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: kind === k.value }}
                 className={`flex-row items-center justify-between rounded-2xl px-4 py-3 ${
                   kind === k.value ? 'bg-terracotta' : 'bg-cream'
                 }`}
@@ -281,6 +283,8 @@ export default function CreateRec() {
                       <Pressable
                         key={e}
                         onPress={() => setEmoji(e)}
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: emoji === e }}
                         className={`h-11 w-11 items-center justify-center rounded-xl ${
                           emoji === e ? 'bg-terracotta/20' : 'bg-cream'
                         }`}

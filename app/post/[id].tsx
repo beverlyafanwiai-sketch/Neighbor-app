@@ -356,6 +356,8 @@ export default function PostDetail() {
                     <Pressable
                       key={opt.value}
                       onPress={() => setCommentSort(opt.value)}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: commentSort === opt.value }}
                       className={`rounded-full px-3 py-1 ${
                         commentSort === opt.value ? 'bg-ink' : 'bg-sand'
                       }`}

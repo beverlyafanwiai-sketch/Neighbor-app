@@ -267,6 +267,8 @@ export default function CreateSaleItem() {
                       <Pressable
                         key={e}
                         onPress={() => setEmoji(e)}
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: emoji === e }}
                         className={`h-11 w-11 items-center justify-center rounded-xl ${
                           emoji === e ? 'bg-terracotta/20' : 'bg-cream'
                         }`}
@@ -308,6 +310,8 @@ export default function CreateSaleItem() {
                   <Pressable
                     key={c}
                     onPress={() => setCondition(condition === c ? undefined : c)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: condition === c }}
                     className={`rounded-full px-3 py-2 ${condition === c ? 'bg-terracotta' : 'bg-cream'}`}
                   >
                     <Text
@@ -327,6 +331,8 @@ export default function CreateSaleItem() {
                   <Pressable
                     key={f}
                     onPress={() => setPriceFlexibility(priceFlexibility === f ? undefined : f)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: priceFlexibility === f }}
                     className={`rounded-full px-3 py-2 ${
                       priceFlexibility === f ? 'bg-terracotta' : 'bg-cream'
                     }`}

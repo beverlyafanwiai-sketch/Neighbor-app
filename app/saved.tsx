@@ -611,6 +611,8 @@ export default function Saved() {
         >
           <Pressable
             onPress={() => setSelectedCollectionId(null)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: selectedCollectionId === null }}
             className={`rounded-full px-3.5 py-1.5 ${selectedCollectionId === null ? 'bg-sage' : 'bg-cream'}`}
           >
             <Text
@@ -623,6 +625,8 @@ export default function Saved() {
             <Pressable
               key={c.id}
               onPress={() => setSelectedCollectionId(c.id)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: selectedCollectionId === c.id }}
               className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-1.5 ${
                 selectedCollectionId === c.id ? 'bg-sage' : 'bg-cream'
               }`}
@@ -651,6 +655,8 @@ export default function Saved() {
             <Pressable
               key={k}
               onPress={() => setRecKindFilter(k)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: recKindFilter === k }}
               className={`rounded-full px-3 py-1 ${recKindFilter === k ? 'bg-ink' : 'bg-cream'}`}
             >
               <Text
@@ -676,6 +682,8 @@ export default function Saved() {
             <Pressable
               key={c}
               onPress={() => setRecCategoryFilter(c)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: recCategoryFilter === c }}
               className={`rounded-full px-3 py-1 ${recCategoryFilter === c ? 'bg-ink' : 'bg-cream'}`}
             >
               <Text
@@ -749,6 +757,8 @@ export default function Saved() {
             <Pressable
               key={c}
               onPress={() => setEventCategoryFilter(c)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: eventCategoryFilter === c }}
               className={`rounded-full px-3 py-1 ${eventCategoryFilter === c ? 'bg-ink' : 'bg-cream'}`}
             >
               <Text
@@ -802,6 +812,8 @@ export default function Saved() {
               <Pressable
                 key={s}
                 onPress={() => setSortBy(s)}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: sortBy === s }}
                 className={`rounded-full px-3 py-1 ${sortBy === s ? 'bg-ink' : 'bg-cream'}`}
               >
                 <Text

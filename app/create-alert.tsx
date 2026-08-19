@@ -195,6 +195,8 @@ export default function CreateAlert() {
                   <Pressable
                     key={c.value}
                     onPress={() => setCategory(c.value)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: category === c.value }}
                     className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-1.5 ${
                       category === c.value ? 'bg-terracotta' : 'bg-cream'
                     }`}
@@ -231,6 +233,8 @@ export default function CreateAlert() {
                   <Pressable
                     key={opt.hours}
                     onPress={() => setDurationHours(opt.hours)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: durationHours === opt.hours }}
                     className={`rounded-full px-3.5 py-1.5 ${
                       durationHours === opt.hours ? 'bg-terracotta' : 'bg-cream'
                     }`}

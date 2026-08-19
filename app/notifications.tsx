@@ -300,6 +300,8 @@ export default function Notifications() {
         >
           <Pressable
             onPress={() => setTypeFilter('All')}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: typeFilter === 'All' }}
             className={`rounded-full px-3 py-1.5 ${typeFilter === 'All' ? 'bg-ink' : 'bg-cream'}`}
           >
             <Text
@@ -312,6 +314,8 @@ export default function Notifications() {
             <Pressable
               key={t}
               onPress={() => setTypeFilter(t)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: typeFilter === t }}
               className={`rounded-full px-3 py-1.5 ${typeFilter === t ? 'bg-ink' : 'bg-cream'}`}
             >
               <Text

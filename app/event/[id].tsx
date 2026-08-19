@@ -1016,6 +1016,8 @@ export default function EventDetail() {
               <Pressable
                 key={s}
                 onPress={() => setAttendeeSort(s)}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: attendeeSort === s }}
                 className={`rounded-full px-3 py-1 ${attendeeSort === s ? 'bg-ink' : 'bg-cream'}`}
               >
                 <Text
@@ -1131,7 +1133,13 @@ export default function EventDetail() {
                 <View className="gap-3">
                   <View className="flex-row gap-1.5">
                     {[1, 2, 3, 4, 5].map((n) => (
-                      <Pressable key={n} onPress={() => setRatingDraftStars(n)}>
+                      <Pressable
+                        key={n}
+                        onPress={() => setRatingDraftStars(n)}
+                        accessibilityLabel={`Rate ${n} star${n === 1 ? '' : 's'}`}
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: n === ratingDraftStars }}
+                      >
                         <Ionicons
                           name={n <= ratingDraftStars ? 'star' : 'star-outline'}
                           size={28}
@@ -1517,6 +1525,8 @@ export default function EventDetail() {
                             key={n}
                             disabled={tooFew}
                             onPress={() => setOfferSeats(n)}
+                            accessibilityRole="radio"
+                            accessibilityState={{ checked: offerSeats === n, disabled: tooFew }}
                             className={`h-9 w-9 items-center justify-center rounded-full ${
                               offerSeats === n ? 'bg-terracotta' : 'bg-sand'
                             } ${tooFew ? 'opacity-30' : ''}`}

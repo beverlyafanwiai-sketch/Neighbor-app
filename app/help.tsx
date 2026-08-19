@@ -244,6 +244,8 @@ export default function HelpCenter() {
           <Pressable
             key={c}
             onPress={() => setCategory(c)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: category === c }}
             className={`rounded-full px-3.5 py-1.5 ${category === c ? 'bg-terracotta' : 'bg-cream'}`}
           >
             <Text

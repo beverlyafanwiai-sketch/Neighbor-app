@@ -209,6 +209,8 @@ export default function CreateGroup() {
                   <Pressable
                     key={t.value}
                     onPress={() => setTone(t.value)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: tone === t.value }}
                     className={`flex-row items-center justify-between rounded-2xl px-4 py-3 ${
                       tone === t.value ? 'bg-terracotta' : 'bg-cream'
                     }`}
@@ -240,6 +242,8 @@ export default function CreateGroup() {
               <View className="gap-2">
                 <Pressable
                   onPress={() => setPrivacy('public')}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: privacy === 'public' }}
                   className={`flex-row items-center justify-between rounded-2xl px-4 py-3 ${
                     privacy === 'public' ? 'bg-terracotta' : 'bg-cream'
                   }`}
@@ -273,6 +277,8 @@ export default function CreateGroup() {
                 </Pressable>
                 <Pressable
                   onPress={() => setPrivacy('private')}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: privacy === 'private' }}
                   className={`flex-row items-center justify-between rounded-2xl px-4 py-3 ${
                     privacy === 'private' ? 'bg-terracotta' : 'bg-cream'
                   }`}

@@ -136,6 +136,8 @@ export default function ChatList() {
           <Pressable
             key={s}
             onPress={() => setSortBy(s)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: sortBy === s }}
             className={`rounded-full px-3 py-1.5 ${sortBy === s ? 'bg-sage/20' : 'bg-cream'}`}
           >
             <Text className={`text-xs font-medium ${sortBy === s ? 'text-sage' : 'text-charcoal/60'}`}>

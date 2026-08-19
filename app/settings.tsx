@@ -231,6 +231,8 @@ export default function Settings() {
             <Pressable
               key={opt.value}
               onPress={() => chooseAppearance(opt.value)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: themePreference === opt.value }}
               className={`flex-row items-center gap-3 rounded-2xl p-4 ${
                 themePreference === opt.value ? 'bg-terracotta' : 'bg-cream'
               }`}
@@ -297,6 +299,8 @@ export default function Settings() {
                   <Pressable
                     key={p.label}
                     onPress={() => setQuietHoursRange(p.startHour, p.endHour)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: active }}
                     className={`rounded-full px-3 py-1.5 ${active ? 'bg-ink' : 'bg-cream'}`}
                   >
                     <Text

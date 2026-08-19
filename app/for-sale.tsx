@@ -273,7 +273,13 @@ export default function ForSaleBoard() {
         <View className="mt-3 gap-2 border-t border-charcoal/10 pt-3">
           <View className="flex-row gap-1.5">
             {[1, 2, 3, 4, 5].map((n) => (
-              <Pressable key={n} onPress={() => setRatingDraftStars(n)}>
+              <Pressable
+                key={n}
+                onPress={() => setRatingDraftStars(n)}
+                accessibilityLabel={`Rate ${n} star${n === 1 ? '' : 's'}`}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: n === ratingDraftStars }}
+              >
                 <Ionicons
                   name={n <= ratingDraftStars ? 'star' : 'star-outline'}
                   size={22}
@@ -621,6 +627,8 @@ export default function ForSaleBoard() {
         >
           <Pressable
             onPress={() => setConditionFilter('All')}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: conditionFilter === 'All' }}
             className={`rounded-full px-3.5 py-1.5 ${
               conditionFilter === 'All' ? 'bg-terracotta' : 'bg-cream'
             }`}
@@ -637,6 +645,8 @@ export default function ForSaleBoard() {
             <Pressable
               key={c}
               onPress={() => setConditionFilter(c)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: conditionFilter === c }}
               className={`rounded-full px-3.5 py-1.5 ${
                 conditionFilter === c ? 'bg-terracotta' : 'bg-cream'
               }`}
@@ -655,6 +665,8 @@ export default function ForSaleBoard() {
             <Pressable
               key={f}
               onPress={() => setFlexibilityFilter(f)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: flexibilityFilter === f }}
               className={`rounded-full px-3.5 py-1.5 ${
                 flexibilityFilter === f ? 'bg-sage' : 'bg-cream'
               }`}
@@ -679,6 +691,8 @@ export default function ForSaleBoard() {
               <Pressable
                 key={s}
                 onPress={() => setSortBy(s)}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: sortBy === s }}
                 className={`rounded-full px-3 py-1 ${sortBy === s ? 'bg-ink' : 'bg-sand'}`}
               >
                 <Text

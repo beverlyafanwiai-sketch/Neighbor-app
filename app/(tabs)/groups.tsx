@@ -107,6 +107,8 @@ export default function Groups() {
                 <Pressable
                   key={s}
                   onPress={() => setSortBy(s)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: sortBy === s }}
                   className={`rounded-full px-3 py-1 ${sortBy === s ? 'bg-ink' : 'bg-cream'}`}
                 >
                   <Text

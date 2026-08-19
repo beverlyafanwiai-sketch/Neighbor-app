@@ -488,6 +488,8 @@ export default function NeighborhoodAlerts() {
         >
           <Pressable
             onPress={() => setCategoryFilter('All')}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: categoryFilter === 'All' }}
             className={`rounded-full px-3.5 py-1.5 ${
               categoryFilter === 'All' ? 'bg-terracotta' : 'bg-cream'
             }`}
@@ -504,6 +506,8 @@ export default function NeighborhoodAlerts() {
             <Pressable
               key={c.value}
               onPress={() => setCategoryFilter(c.value)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: categoryFilter === c.value }}
               className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-1.5 ${
                 categoryFilter === c.value ? 'bg-terracotta' : 'bg-cream'
               }`}
@@ -529,6 +533,8 @@ export default function NeighborhoodAlerts() {
               <Pressable
                 key={s}
                 onPress={() => setSortBy(s)}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: sortBy === s }}
                 className={`rounded-full px-3 py-1 ${sortBy === s ? 'bg-ink' : 'bg-sand'}`}
               >
                 <Text
@@ -915,6 +921,8 @@ export default function NeighborhoodAlerts() {
                   <Pressable
                     key={c.value}
                     onPress={() => toggleMutedCategory(c.value)}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: isMuted }}
                     className="flex-row items-center gap-3 rounded-2xl bg-sand p-3.5"
                   >
                     <Text style={{ fontSize: 18 }}>{c.emoji}</Text>
