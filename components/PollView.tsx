@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import type { Poll } from '../data/mock';
@@ -8,6 +9,10 @@ type Props = {
   poll: Poll;
   myVote?: string;
   onVote: (optionId: string) => void;
+  isAuthor?: boolean;
+  onClose?: () => void;
+  onReopen?: () => void;
+  onAddOption?: (text: string) => void;
 };
 
 function formatClosesIn(closesAt: number) {
@@ -18,9 +23,19 @@ function formatClosesIn(closesAt: number) {
   return `Closes in ${Math.round(diffHours / 24)}d`;
 }
 
-export default function PollView({ poll, myVote, onVote }: Props) {
+export default function PollView({
+  poll,
+  myVote,
+  onVote,
+  isAuthor,
+  onClose,
+  onReopen,
+  onAddOption,
+}: Props) {
   const { results, total } = getEffectivePollResults(poll, myVote);
   const closed = isPollClosed(poll);
+  const [addingOption, setAddingOption] = useState(false);
+  const [optionDraft, setOptionDraft] = useState('');
 
   return (
     <View className="mt-3 gap-2">
@@ -57,12 +72,65 @@ export default function PollView({ poll, myVote, onVote }: Props) {
           </Pressable>
         );
       })}
-      <Text className="text-xs text-charcoal/50">
-        {total} vote{total === 1 ? '' : 's'}
-        {closed
-          ? ' · Poll closed'
-          : ` · Tap to ${myVote ? 'change your vote' : 'vote'}${poll.closesAt ? ` · ${formatClosesIn(poll.closesAt)}` : ''}`}
-      </Text>
+      {isAuthor && onAddOption && !closed && (
+        addingOption ? (
+          <View className="flex-row items-center gap-1.5">
+            <TextInput
+              value={optionDraft}
+              onChangeText={setOptionDraft}
+              placeholder="New option..."
+              placeholderTextColor="#3D3D3D80"
+              autoFocus
+              className="flex-1 rounded-lg bg-sand px-2.5 py-1.5 text-xs text-charcoal"
+            />
+            <Pressable
+              onPress={() => {
+                setAddingOption(false);
+                setOptionDraft('');
+              }}
+            >
+              <Text className="text-[11px] font-medium text-charcoal/50">Cancel</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                if (!optionDraft.trim()) return;
+                onAddOption(optionDraft);
+                setAddingOption(false);
+                setOptionDraft('');
+              }}
+            >
+              <Text className="text-[11px] font-semibold text-terracotta">Add</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable onPress={() => setAddingOption(true)}>
+            <Text className="text-[11px] font-semibold text-charcoal/50">+ Add an option</Text>
+          </Pressable>
+        )
+      )}
+      <View className="flex-row items-center justify-between">
+        <Text className="text-xs text-charcoal/50">
+          {total} vote{total === 1 ? '' : 's'}
+          {closed
+            ? ' · Poll closed'
+            : ` · Tap to ${myVote ? 'change your vote' : 'vote'}${poll.closesAt ? ` · ${formatClosesIn(poll.closesAt)}` : ''}`}
+        </Text>
+        {isAuthor && (onClose || onReopen) && (
+          closed ? (
+            onReopen && (
+              <Pressable onPress={onReopen}>
+                <Text className="text-[11px] font-semibold text-terracotta">Reopen poll</Text>
+              </Pressable>
+            )
+          ) : (
+            onClose && (
+              <Pressable onPress={onClose}>
+                <Text className="text-[11px] font-semibold text-charcoal/50">Close poll</Text>
+              </Pressable>
+            )
+          )
+        )}
+      </View>
     </View>
   );
 }

@@ -58,6 +58,9 @@ export default function PostDetail() {
   const comments = usePostsStore((s) => (post ? (s.comments[post.id] ?? EMPTY_COMMENTS) : EMPTY_COMMENTS));
   const myPollVote = usePostsStore((s) => (post ? s.myPollVotes[post.id] : undefined));
   const votePoll = usePostsStore((s) => s.votePoll);
+  const closePoll = usePostsStore((s) => s.closePoll);
+  const reopenPoll = usePostsStore((s) => s.reopenPoll);
+  const addPollOption = usePostsStore((s) => s.addPollOption);
   const addComment = usePostsStore((s) => s.addComment);
   const updateComment = usePostsStore((s) => s.updateComment);
   const deleteComment = usePostsStore((s) => s.deleteComment);
@@ -263,7 +266,15 @@ export default function PostDetail() {
               )}
 
               {post.poll && (
-                <PollView poll={post.poll} myVote={myPollVote} onVote={(optionId) => votePoll(post.id, optionId)} />
+                <PollView
+                  poll={post.poll}
+                  myVote={myPollVote}
+                  onVote={(optionId) => votePoll(post.id, optionId)}
+                  isAuthor={isAuthor}
+                  onClose={() => closePoll(post.id)}
+                  onReopen={() => reopenPoll(post.id)}
+                  onAddOption={(text) => addPollOption(post.id, text)}
+                />
               )}
 
               <View className="flex-row items-center justify-between border-t border-charcoal/10 pt-3">

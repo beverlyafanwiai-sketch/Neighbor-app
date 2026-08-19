@@ -236,6 +236,9 @@ export default function HomeFeed() {
   const myAvailable = useAvailabilityStore((s) => s.myAvailable);
   const myPollVotes = usePostsStore((s) => s.myPollVotes);
   const votePoll = usePostsStore((s) => s.votePoll);
+  const closePoll = usePostsStore((s) => s.closePoll);
+  const reopenPoll = usePostsStore((s) => s.reopenPoll);
+  const addPollOption = usePostsStore((s) => s.addPollOption);
   const pinnedPostId = usePostsStore((s) => s.pinnedPostId);
   const postNotes = usePostNotesStore((s) => s.notes);
   const setPostNote = usePostNotesStore((s) => s.setNote);
@@ -697,6 +700,10 @@ export default function HomeFeed() {
                     poll={post.poll}
                     myVote={myPollVotes[post.id]}
                     onVote={(optionId) => votePoll(post.id, optionId)}
+                    isAuthor={author.id === ME.id}
+                    onClose={() => closePoll(post.id)}
+                    onReopen={() => reopenPoll(post.id)}
+                    onAddOption={(text) => addPollOption(post.id, text)}
                   />
                 )}
 

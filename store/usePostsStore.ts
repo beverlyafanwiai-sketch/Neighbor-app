@@ -71,6 +71,9 @@ type PostsState = {
   pinPost: (id: string) => void;
   unpinPost: () => void;
   votePoll: (postId: string, optionId: string) => void;
+  closePoll: (postId: string) => void;
+  reopenPoll: (postId: string) => void;
+  addPollOption: (postId: string, text: string) => void;
   saveDraft: (input: { id?: string; body: string; imageUris?: string[] }) => string;
   deleteDraft: (id: string) => void;
   schedulePost: (input: { id?: string; body: string; imageUris?: string[]; poll?: Poll; scheduledFor: number }) => string;
@@ -138,6 +141,41 @@ export const usePostsStore = create<PostsState>((set, get) => ({
         ...s.myPollVotes,
         [postId]: s.myPollVotes[postId] === optionId ? '' : optionId,
       },
+    }));
+  },
+
+  closePoll: (postId) =>
+    set((s) => ({
+      posts: s.posts.map((p) =>
+        p.id === postId && p.poll ? { ...p, poll: { ...p.poll, closesAt: Date.now() } } : p
+      ),
+    })),
+
+  reopenPoll: (postId) =>
+    set((s) => ({
+      posts: s.posts.map((p) =>
+        p.id === postId && p.poll ? { ...p, poll: { ...p.poll, closesAt: undefined } } : p
+      ),
+    })),
+
+  addPollOption: (postId, text) => {
+    const clean = text.trim();
+    if (!clean) return;
+    set((s) => ({
+      posts: s.posts.map((p) =>
+        p.id === postId && p.poll
+          ? {
+              ...p,
+              poll: {
+                ...p.poll,
+                options: [
+                  ...p.poll.options,
+                  { id: `opt-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, label: clean, votes: 0 },
+                ],
+              },
+            }
+          : p
+      ),
     }));
   },
 
