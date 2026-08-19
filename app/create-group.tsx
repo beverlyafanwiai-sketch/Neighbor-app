@@ -60,6 +60,9 @@ export default function CreateGroup() {
   const [coverImageUri, setCoverImageUri] = useState(
     existing?.coverImageUri ?? duplicateSource?.coverImageUri ?? existingDraft?.coverImageUri
   );
+  const [privacy, setPrivacy] = useState<'public' | 'private'>(
+    existing?.privacy ?? duplicateSource?.privacy ?? existingDraft?.privacy ?? 'public'
+  );
   const [confirmingClose, setConfirmingClose] = useState(false);
 
   const canSave = name.trim() && description.trim();
@@ -73,6 +76,7 @@ export default function CreateGroup() {
         description: description.trim(),
         tone,
         coverImageUri,
+        privacy,
       });
       router.replace(`/group/${existing.id}`);
       return;
@@ -82,6 +86,7 @@ export default function CreateGroup() {
       description: description.trim(),
       tone,
       coverImageUri,
+      privacy,
     });
     if (draftId) deleteDraft(draftId);
     router.replace(`/group/${id}`);
@@ -107,6 +112,7 @@ export default function CreateGroup() {
       description: description.trim(),
       tone,
       coverImageUri,
+      privacy,
     });
     router.back();
   };
@@ -226,6 +232,78 @@ export default function CreateGroup() {
                     {tone === t.value && <Ionicons name="checkmark-circle" size={20} className="text-paper" />}
                   </Pressable>
                 ))}
+              </View>
+            </View>
+
+            <View>
+              <FieldLabel>Privacy</FieldLabel>
+              <View className="gap-2">
+                <Pressable
+                  onPress={() => setPrivacy('public')}
+                  className={`flex-row items-center justify-between rounded-2xl px-4 py-3 ${
+                    privacy === 'public' ? 'bg-terracotta' : 'bg-cream'
+                  }`}
+                >
+                  <View className="flex-1 flex-row items-center gap-3">
+                    <Ionicons
+                      name="globe-outline"
+                      size={18}
+                      className={privacy === 'public' ? 'text-paper' : 'text-charcoal'}
+                    />
+                    <View className="flex-1">
+                      <Text
+                        className={`text-sm font-semibold ${
+                          privacy === 'public' ? 'text-paper' : 'text-charcoal'
+                        }`}
+                      >
+                        Public
+                      </Text>
+                      <Text
+                        className={`mt-0.5 text-xs ${
+                          privacy === 'public' ? 'text-paper/80' : 'text-charcoal/50'
+                        }`}
+                      >
+                        Anyone browsing Discover can find and join this circle
+                      </Text>
+                    </View>
+                  </View>
+                  {privacy === 'public' && (
+                    <Ionicons name="checkmark-circle" size={20} className="text-paper" />
+                  )}
+                </Pressable>
+                <Pressable
+                  onPress={() => setPrivacy('private')}
+                  className={`flex-row items-center justify-between rounded-2xl px-4 py-3 ${
+                    privacy === 'private' ? 'bg-terracotta' : 'bg-cream'
+                  }`}
+                >
+                  <View className="flex-1 flex-row items-center gap-3">
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={18}
+                      className={privacy === 'private' ? 'text-paper' : 'text-charcoal'}
+                    />
+                    <View className="flex-1">
+                      <Text
+                        className={`text-sm font-semibold ${
+                          privacy === 'private' ? 'text-paper' : 'text-charcoal'
+                        }`}
+                      >
+                        Private
+                      </Text>
+                      <Text
+                        className={`mt-0.5 text-xs ${
+                          privacy === 'private' ? 'text-paper/80' : 'text-charcoal/50'
+                        }`}
+                      >
+                        Hidden from Discover — people can only join with an invite code
+                      </Text>
+                    </View>
+                  </View>
+                  {privacy === 'private' && (
+                    <Ionicons name="checkmark-circle" size={20} className="text-paper" />
+                  )}
+                </Pressable>
               </View>
             </View>
           </View>

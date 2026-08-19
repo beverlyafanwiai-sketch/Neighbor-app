@@ -75,7 +75,9 @@ export default function Discover() {
     setGroupSort(search.groupSort as GroupSort);
   };
 
-  const discoverGroups = allGroups.filter((g) => !joinedMap[g.id] && !dismissedGroupIds[g.id]);
+  const discoverGroups = allGroups.filter(
+    (g) => !joinedMap[g.id] && !dismissedGroupIds[g.id] && g.privacy !== 'private'
+  );
   const discoverableUsers = DISCOVER_USERS.filter(
     (u) => !blockedIds[u.id] && !mutedIds[u.id] && !dismissedIds[u.id]
   );

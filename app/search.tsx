@@ -100,7 +100,9 @@ export default function Search() {
     q.length === 0
       ? []
       : groups.filter(
-          (g) => g.name.toLowerCase().includes(q) || g.description.toLowerCase().includes(q)
+          (g) =>
+            (g.name.toLowerCase().includes(q) || g.description.toLowerCase().includes(q)) &&
+            (g.privacy !== 'private' || (joinedMap[g.id] ?? false))
         );
 
   const matchedEvents =

@@ -57,7 +57,7 @@ export default function Groups() {
       : (groupLastActivity[b.id] ?? 0) - (groupLastActivity[a.id] ?? 0)
   );
   const discover = groups.filter(
-    (g) => !joinedMap[g.id] && !dismissedGroupIds[g.id] && matches(g)
+    (g) => !joinedMap[g.id] && !dismissedGroupIds[g.id] && g.privacy !== 'private' && matches(g)
   );
 
   return (

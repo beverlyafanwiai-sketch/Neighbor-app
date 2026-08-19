@@ -11,9 +11,13 @@ export type NewGroupInput = {
   description: string;
   tone: Tone;
   coverImageUri?: string;
+  privacy: 'public' | 'private';
 };
 
-export type GroupEdits = Pick<Group, 'name' | 'description' | 'tone' | 'coverImageUri'>;
+export type GroupEdits = Pick<
+  Group,
+  'name' | 'description' | 'tone' | 'coverImageUri' | 'privacy'
+>;
 
 export type GroupDraft = {
   id: string;
@@ -21,6 +25,7 @@ export type GroupDraft = {
   description: string;
   tone: Tone;
   coverImageUri?: string;
+  privacy: 'public' | 'private';
   updatedAt: number;
 };
 
@@ -113,6 +118,7 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
       joined: true,
       createdBy: ME.id,
       coverImageUri: input.coverImageUri,
+      privacy: input.privacy,
     };
     set((s) => ({
       groups: [group, ...s.groups],

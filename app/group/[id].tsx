@@ -38,6 +38,7 @@ export default function GroupDetail() {
   const profile = useProfileStore((s) => s.profile);
   const joined = useGroupsStore((s) => (group ? (s.joined[group.id] ?? false) : false));
   const toggleJoin = useGroupsStore((s) => s.toggle);
+  const joinByInviteCode = useGroupsStore((s) => s.joinByInviteCode);
   const deleteGroup = useGroupsStore((s) => s.deleteGroup);
   const promoteCoAdmin = useGroupsStore((s) => s.promoteCoAdmin);
   const demoteCoAdmin = useGroupsStore((s) => s.demoteCoAdmin);
@@ -67,6 +68,9 @@ export default function GroupDetail() {
   const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
   const muteGroupFor = useMutedGroupsStore((s) => s.muteFor);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [redeemingCode, setRedeemingCode] = useState(false);
+  const [inviteCodeInput, setInviteCodeInput] = useState('');
+  const [inviteError, setInviteError] = useState(false);
   const groupNotes = useGroupNotesStore((s) => s.notes);
   const setGroupNote = useGroupNotesStore((s) => s.setNote);
   const [editingGroupNote, setEditingGroupNote] = useState(false);
@@ -128,6 +132,18 @@ export default function GroupDetail() {
 
   const join = () => {
     toggleJoin(group.id);
+    if (welcomeMessage) setShowingWelcome(true);
+  };
+
+  const redeemCode = () => {
+    const groupId = joinByInviteCode(inviteCodeInput);
+    if (!groupId || groupId !== group.id) {
+      setInviteError(true);
+      return;
+    }
+    setRedeemingCode(false);
+    setInviteCodeInput('');
+    setInviteError(false);
     if (welcomeMessage) setShowingWelcome(true);
   };
 
@@ -305,6 +321,12 @@ export default function GroupDetail() {
             <View className={`rounded-full px-2.5 py-1 ${toneStyle.bg}`}>
               <Text className={`text-xs font-semibold ${toneStyle.text}`}>{group.tone}</Text>
             </View>
+            {group.privacy === 'private' && (
+              <View className="flex-row items-center gap-1 rounded-full bg-charcoal/10 px-2.5 py-1">
+                <Ionicons name="lock-closed-outline" size={11} className="text-charcoal/60" />
+                <Text className="text-xs font-semibold text-charcoal/60">Private</Text>
+              </View>
+            )}
             {isMuted && (
               <View className="flex-row items-center gap-1 rounded-full bg-charcoal/10 px-2.5 py-1">
                 <Ionicons name="notifications-off" size={11} className="text-charcoal/60" />
@@ -318,25 +340,74 @@ export default function GroupDetail() {
             {group.description}
           </Text>
 
-          <View className="mt-5 flex-row gap-3">
-            <Pressable
-              onPress={() => (joined ? setConfirmingLeave(true) : join())}
-              className={`rounded-full px-6 py-3 ${joined ? 'bg-sand' : 'bg-ink'}`}
-            >
-              <Text className={`text-sm font-semibold ${joined ? 'text-charcoal' : 'text-paper'}`}>
-                {joined ? 'Leave circle' : 'Join group'}
-              </Text>
-            </Pressable>
-            {joined && (
+          {!joined && group.privacy === 'private' ? (
+            redeemingCode ? (
+              <View className="mt-5 w-full gap-2">
+                <TextInput
+                  value={inviteCodeInput}
+                  onChangeText={(text) => {
+                    setInviteCodeInput(text.toUpperCase());
+                    setInviteError(false);
+                  }}
+                  placeholder="Enter invite code"
+                  placeholderTextColor="#3D3D3D80"
+                  autoCapitalize="characters"
+                  className="rounded-2xl bg-sand px-4 py-3 text-center text-base font-semibold tracking-widest text-charcoal"
+                />
+                {inviteError && (
+                  <Text className="text-center text-xs text-terracotta">
+                    That code doesn't match this circle — double check and try again.
+                  </Text>
+                )}
+                <View className="flex-row justify-center gap-4">
+                  <Pressable
+                    onPress={() => {
+                      setRedeemingCode(false);
+                      setInviteCodeInput('');
+                      setInviteError(false);
+                    }}
+                  >
+                    <Text className="text-sm font-medium text-charcoal/60">Cancel</Text>
+                  </Pressable>
+                  <Pressable onPress={redeemCode}>
+                    <Text className="text-sm font-semibold text-terracotta">Join</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <View className="mt-5 items-center gap-2">
+                <Text className="text-center text-xs text-charcoal/50">
+                  This circle is private. Ask a member for an invite code to join.
+                </Text>
+                <Pressable
+                  onPress={() => setRedeemingCode(true)}
+                  className="rounded-full bg-ink px-6 py-3"
+                >
+                  <Text className="text-sm font-semibold text-paper">Enter invite code</Text>
+                </Pressable>
+              </View>
+            )
+          ) : (
+            <View className="mt-5 flex-row gap-3">
               <Pressable
-                onPress={() => router.push(`/group-chat/${group.id}`)}
-                className="flex-row items-center gap-1.5 rounded-full bg-terracotta px-6 py-3"
+                onPress={() => (joined ? setConfirmingLeave(true) : join())}
+                className={`rounded-full px-6 py-3 ${joined ? 'bg-sand' : 'bg-ink'}`}
               >
-                <Ionicons name="chatbubbles-outline" size={16} className="text-paper" />
-                <Text className="text-sm font-semibold text-paper">Group chat</Text>
+                <Text className={`text-sm font-semibold ${joined ? 'text-charcoal' : 'text-paper'}`}>
+                  {joined ? 'Leave circle' : 'Join group'}
+                </Text>
               </Pressable>
-            )}
-          </View>
+              {joined && (
+                <Pressable
+                  onPress={() => router.push(`/group-chat/${group.id}`)}
+                  className="flex-row items-center gap-1.5 rounded-full bg-terracotta px-6 py-3"
+                >
+                  <Ionicons name="chatbubbles-outline" size={16} className="text-paper" />
+                  <Text className="text-sm font-semibold text-paper">Group chat</Text>
+                </Pressable>
+              )}
+            </View>
+          )}
         </View>
 
         {pinnedMessage && pinnedSender && (

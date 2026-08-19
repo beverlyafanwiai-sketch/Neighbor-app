@@ -393,6 +393,9 @@ export type Group = {
   createdBy?: string;
   coAdminIds?: string[];
   coverImageUri?: string;
+  // Absent/'public' circles are browsable in Discover. 'private' circles are
+  // only joinable via invite code and never show up in Discover browse or search.
+  privacy?: 'public' | 'private';
 };
 
 export const GROUPS: Group[] = [
@@ -459,6 +462,7 @@ export const GROUPS: Group[] = [
     tag: 'Interest',
     memberIds: ['priya', 'sam'],
     joined: false,
+    privacy: 'private',
   },
   {
     id: 'sunday-supper',
