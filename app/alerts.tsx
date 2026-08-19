@@ -280,6 +280,14 @@ export default function NeighborhoodAlerts() {
         <Text className="text-base font-bold text-charcoal">Neighborhood Alerts</Text>
         <View className="flex-row items-center gap-2">
           <Pressable
+            onPress={() => router.push('/alert-archive')}
+            accessibilityLabel="Alert archive"
+            accessibilityRole="button"
+            className="h-9 w-9 items-center justify-center rounded-full bg-cream"
+          >
+            <Ionicons name="time-outline" size={18} className="text-charcoal" />
+          </Pressable>
+          <Pressable
             onPress={() => setManagingCategories(true)}
             accessibilityLabel="Mute categories"
             accessibilityRole="button"

@@ -189,6 +189,10 @@ export function getActiveAlerts(
     });
 }
 
+export function getExpiredAlerts(alerts: NeighborhoodAlert[], now: number) {
+  return alerts.filter((a) => a.expiresAt <= now).sort((a, b) => b.expiresAt - a.expiresAt);
+}
+
 function formatDuration(ms: number): string {
   const hours = Math.round(ms / (60 * 60 * 1000));
   if (hours < 1) return 'less than 1h';
