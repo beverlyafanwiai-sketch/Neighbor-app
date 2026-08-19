@@ -738,6 +738,9 @@ export default function GroupDetail() {
           onClose={() => setReportingGroup(false)}
           title="Group options"
           actionLabel="Report this group"
+          category="Circle"
+          subject={`Circle: ${group.name}`}
+          route={`/group/${group.id}`}
         />
       )}
 

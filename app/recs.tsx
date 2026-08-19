@@ -122,6 +122,7 @@ export default function RecsBoard() {
   } | null>(null);
 
   const sharingEntry = entries.find((e) => e.id === sharingId);
+  const reportingEntry = entries.find((e) => e.id === reportingId);
   const viewingAgreedEntry = entries.find((e) => e.id === viewingAgreedId);
   const viewingAgreedIds = viewingAgreedEntry
     ? getEffectiveAgreedIds(viewingAgreedEntry.id, myAgreed[viewingAgreedEntry.id] ?? false)
@@ -904,6 +905,13 @@ export default function RecsBoard() {
           onClose={() => setReportingId(null)}
           title="Post options"
           actionLabel="Report this post"
+          category={reportingEntry?.kind === 'ask' ? 'Ask' : 'Rec'}
+          subject={
+            reportingEntry
+              ? `${reportingEntry.kind === 'ask' ? 'Ask' : 'Rec'}: ${reportingEntry.name ?? reportingEntry.category}`
+              : 'Rec'
+          }
+          route="/recs"
         />
       )}
 
@@ -1257,6 +1265,15 @@ export default function RecsBoard() {
           onClose={() => setReportingCommentId(null)}
           title="Comment options"
           actionLabel="Report this comment"
+          category="Comment"
+          subject={`Comment by ${
+            (() => {
+              const c = viewingComments.find((c) => c.id === reportingCommentId);
+              const author = c ? (c.authorId === ME.id ? profile : getUser(c.authorId)) : undefined;
+              return author?.name ?? 'a neighbor';
+            })()
+          }`}
+          route="/recs"
         />
       )}
 

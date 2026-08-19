@@ -711,6 +711,9 @@ export default function ChatThread() {
           onClose={() => setReportingMessageId(null)}
           title="Message options"
           actionLabel="Report this message"
+          category="Message"
+          subject={`Message from ${user?.name ?? 'a neighbor'}`}
+          route={`/chat/${id}`}
         />
       )}
 

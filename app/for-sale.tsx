@@ -228,6 +228,7 @@ export default function ForSaleBoard() {
     return pinnedItem ? [pinnedItem, ...sortedRest] : sortedRest;
   })();
   const sharingItem = items.find((i) => i.id === sharingId);
+  const reportingItem = items.find((i) => i.id === reportingId);
   const viewingInterestedItem = items.find((i) => i.id === viewingInterestedId);
   const viewingInterestedIds = viewingInterestedItem
     ? getEffectiveInterestedIds(
@@ -1245,6 +1246,9 @@ export default function ForSaleBoard() {
           onClose={() => setReportingId(null)}
           title="Post options"
           actionLabel="Report this post"
+          category="Listing"
+          subject={reportingItem ? `Listing: ${reportingItem.title}` : 'Listing'}
+          route="/for-sale"
         />
       )}
 
@@ -1253,6 +1257,15 @@ export default function ForSaleBoard() {
           onClose={() => setReportingCommentId(null)}
           title="Comment options"
           actionLabel="Report this comment"
+          category="Comment"
+          subject={`Comment by ${
+            (() => {
+              const c = viewingComments.find((c) => c.id === reportingCommentId);
+              const author = c ? (c.authorId === ME.id ? profile : getUser(c.authorId)) : undefined;
+              return author?.name ?? 'a neighbor';
+            })()
+          }`}
+          route="/for-sale"
         />
       )}
 

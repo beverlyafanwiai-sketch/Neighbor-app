@@ -189,6 +189,7 @@ export default function LendBoard() {
     return pinnedItem ? [pinnedItem, ...sortedRest] : sortedRest;
   })();
   const sharingItem = items.find((i) => i.id === sharingId);
+  const reportingItem = items.find((i) => i.id === reportingId);
   const viewingHelpersItem = items.find((i) => i.id === viewingHelpersId);
   const viewingHelpersIds = viewingHelpersItem
     ? getEffectiveHelperIds(
@@ -1251,6 +1252,9 @@ export default function LendBoard() {
           onClose={() => setReportingId(null)}
           title="Post options"
           actionLabel="Report this post"
+          category="Listing"
+          subject={reportingItem ? `Listing: ${reportingItem.title}` : 'Listing'}
+          route="/lend"
         />
       )}
 
@@ -1259,6 +1263,15 @@ export default function LendBoard() {
           onClose={() => setReportingCommentId(null)}
           title="Comment options"
           actionLabel="Report this comment"
+          category="Comment"
+          subject={`Comment by ${
+            (() => {
+              const c = viewingComments.find((c) => c.id === reportingCommentId);
+              const author = c ? (c.authorId === ME.id ? profile : getUser(c.authorId)) : undefined;
+              return author?.name ?? 'a neighbor';
+            })()
+          }`}
+          route="/lend"
         />
       )}
 

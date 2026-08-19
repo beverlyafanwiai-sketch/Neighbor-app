@@ -186,6 +186,7 @@ export default function NeighborhoodAlerts() {
           return pinned ? [pinned, ...sortedRest] : sortedRest;
         })();
   const sharingAlert = activeAlerts.find((a) => a.id === sharingId);
+  const reportingAlert = activeAlerts.find((a) => a.id === reportingId);
   const viewingCommentsAlert = activeAlerts.find((a) => a.id === viewingCommentsId);
   const viewingComments = viewingCommentsAlert ? (comments[viewingCommentsAlert.id] ?? []) : [];
   const viewingPinnedCommentId = viewingCommentsAlert
@@ -829,6 +830,9 @@ export default function NeighborhoodAlerts() {
           onClose={() => setReportingId(null)}
           title="Alert options"
           actionLabel="Report this alert"
+          category="Alert"
+          subject={reportingAlert ? `Alert: ${reportingAlert.text.slice(0, 60)}` : 'Alert'}
+          route="/alerts"
         />
       )}
 
@@ -837,6 +841,15 @@ export default function NeighborhoodAlerts() {
           onClose={() => setReportingCommentId(null)}
           title="Comment options"
           actionLabel="Report this comment"
+          category="Comment"
+          subject={`Comment by ${
+            (() => {
+              const c = viewingComments.find((c) => c.id === reportingCommentId);
+              const author = c ? (c.authorId === ME.id ? profile : getUser(c.authorId)) : undefined;
+              return author?.name ?? 'a neighbor';
+            })()
+          }`}
+          route="/alerts"
         />
       )}
 

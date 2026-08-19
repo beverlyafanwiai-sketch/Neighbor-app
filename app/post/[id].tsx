@@ -607,13 +607,26 @@ export default function PostDetail() {
         />
       )}
 
-      {reporting && <ReportPostSheet onClose={() => setReporting(false)} />}
+      {reporting && post && (
+        <ReportPostSheet
+          onClose={() => setReporting(false)}
+          category="Post"
+          subject={`Post by ${author?.name ?? 'a neighbor'}`}
+          route={`/post/${post.id}`}
+        />
+      )}
 
       {reportingCommentId && (
         <ReportPostSheet
           onClose={() => setReportingCommentId(null)}
           title="Comment options"
           actionLabel="Report this comment"
+          category="Comment"
+          subject={`Comment by ${
+            resolveUser(comments.find((c) => c.id === reportingCommentId)?.authorId ?? '')?.name ??
+            'a neighbor'
+          }`}
+          route={post ? `/post/${post.id}` : undefined}
         />
       )}
 

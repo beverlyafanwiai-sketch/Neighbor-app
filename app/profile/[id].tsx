@@ -10,6 +10,7 @@ import { useBlockedStore } from '../../store/useBlockedStore';
 import { useConversationsStore } from '../../store/useConversationsStore';
 import { useMutedStore } from '../../store/useMutedStore';
 import { useProfileStore } from '../../store/useProfileStore';
+import { useReportsStore } from '../../store/useReportsStore';
 
 export default function OtherProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,6 +25,7 @@ export default function OtherProfile() {
   const [showActions, setShowActions] = useState(false);
   const [confirmingBlock, setConfirmingBlock] = useState(false);
   const [reported, setReported] = useState(false);
+  const addReport = useReportsStore((s) => s.addReport);
 
   if (!user) {
     return (
@@ -155,7 +157,15 @@ export default function OtherProfile() {
               </View>
             ) : (
               <Pressable
-                onPress={() => setReported(true)}
+                onPress={() => {
+                  addReport({
+                    category: 'Profile',
+                    subject: `Profile: ${user.name}`,
+                    reason: 'Reported from profile',
+                    route: `/profile/${user.id}`,
+                  });
+                  setReported(true);
+                }}
                 className="flex-row items-center gap-3 rounded-2xl bg-sand p-4 active:opacity-80"
               >
                 <Ionicons name="flag-outline" size={20} className="text-charcoal" />

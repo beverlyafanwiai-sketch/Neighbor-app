@@ -944,6 +944,15 @@ export default function GroupChatThread() {
           onClose={() => setReportingMessageId(null)}
           title="Message options"
           actionLabel="Report this message"
+          category="Message"
+          subject={`Message in ${group.name} from ${
+            (() => {
+              const m = messages.find((m) => m.id === reportingMessageId);
+              const sender = m ? (m.senderId === ME.id ? ME : getUser(m.senderId)) : undefined;
+              return sender?.name ?? 'a neighbor';
+            })()
+          }`}
+          route={`/group-chat/${group.id}`}
         />
       )}
 

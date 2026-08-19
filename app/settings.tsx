@@ -436,6 +436,15 @@ export default function Settings() {
           </View>
         )}
 
+        <Pressable
+          onPress={() => router.push('/my-reports')}
+          className="mt-8 flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+        >
+          <Ionicons name="flag-outline" size={18} className="text-charcoal" />
+          <Text className="flex-1 text-sm font-medium text-charcoal">My Reports</Text>
+          <Ionicons name="chevron-forward" size={16} className="text-charcoal/50" />
+        </Pressable>
+
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
           Blocked accounts
         </Text>

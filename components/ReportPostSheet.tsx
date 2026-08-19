@@ -2,10 +2,15 @@ import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useReportsStore } from '../store/useReportsStore';
+
 type Props = {
   onClose: () => void;
   title?: string;
   actionLabel?: string;
+  category: string;
+  subject: string;
+  route?: string;
 };
 
 const REPORT_REASONS = [
@@ -19,11 +24,27 @@ export default function ReportPostSheet({
   onClose,
   title = 'Post options',
   actionLabel = 'Report this post',
+  category,
+  subject,
+  route,
 }: Props) {
+  const addReport = useReportsStore((s) => s.addReport);
   const [reported, setReported] = useState(false);
   const [choosingReason, setChoosingReason] = useState(false);
   const [selectedReason, setSelectedReason] = useState<(typeof REPORT_REASONS)[number] | null>(null);
   const [detailsDraft, setDetailsDraft] = useState('');
+
+  const submit = () => {
+    if (!selectedReason) return;
+    addReport({
+      category,
+      subject,
+      reason: selectedReason.label,
+      details: detailsDraft.trim() || undefined,
+      route,
+    });
+    setReported(true);
+  };
 
   return (
     <View className="absolute inset-0 items-center justify-end bg-ink/40">
@@ -65,7 +86,7 @@ export default function ReportPostSheet({
               className="min-h-[80px] rounded-2xl bg-sand px-4 py-3 text-sm text-charcoal"
             />
             <Pressable
-              onPress={() => setReported(true)}
+              onPress={submit}
               className="items-center rounded-2xl bg-terracotta p-3.5"
             >
               <Text className="text-sm font-semibold text-paper">Submit report</Text>

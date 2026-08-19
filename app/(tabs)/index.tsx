@@ -816,7 +816,19 @@ export default function HomeFeed() {
         />
       )}
 
-      {reportingPost && <ReportPostSheet onClose={() => setReportingPost(null)} />}
+      {reportingPost && (
+        <ReportPostSheet
+          onClose={() => setReportingPost(null)}
+          category="Post"
+          subject={`Post by ${
+            (reportingPost.authorId === ME.id
+              ? profile
+              : USERS.find((u) => u.id === reportingPost.authorId)
+            )?.name ?? 'a neighbor'
+          }`}
+          route={`/post/${reportingPost.id}`}
+        />
+      )}
 
       {viewingPhotos && (
         <PhotoViewer
