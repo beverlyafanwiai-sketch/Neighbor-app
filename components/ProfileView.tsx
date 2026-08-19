@@ -47,7 +47,7 @@ const VERIFICATION_META: Record<
   },
 };
 
-const CONVERSATION_STARTER_META: {
+export const CONVERSATION_STARTER_META: {
   key: keyof User['conversationStarters'];
   label: string;
   icon: keyof typeof Ionicons.glyphMap;

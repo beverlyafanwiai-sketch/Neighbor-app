@@ -19,6 +19,7 @@ import { SvgXml } from 'react-native-svg';
 import { CONVERSATION_SVG } from '../../assets/illustrations/conversation';
 import ChatMediaGallery from '../../components/ChatMediaGallery';
 import ForwardSheet, { type ForwardTarget } from '../../components/ForwardSheet';
+import { CONVERSATION_STARTER_META } from '../../components/ProfileView';
 import MentionText from '../../components/MentionText';
 import MentionTextInput from '../../components/MentionTextInput';
 import ReactionButton from '../../components/ReactionButton';
@@ -341,6 +342,28 @@ export default function ChatThread() {
               <Text className="mt-2 text-xs text-charcoal/50">
                 This is the beginning of your conversation with {user.name}
               </Text>
+              {messages.length === 0 && (
+                <View className="mt-4 w-full gap-2">
+                  {CONVERSATION_STARTER_META.filter(
+                    (m) => user.conversationStarters[m.key].length > 0
+                  ).map((m) => (
+                    <View
+                      key={m.key}
+                      className="flex-row items-start gap-2.5 rounded-2xl bg-cream p-3"
+                    >
+                      <Ionicons name={m.icon} size={15} className="mt-0.5 text-terracotta" />
+                      <View className="flex-1">
+                        <Text className="text-[11px] font-semibold uppercase tracking-wide text-charcoal/40">
+                          {m.label}
+                        </Text>
+                        <Text className="mt-0.5 text-xs text-charcoal/70">
+                          {user.conversationStarters[m.key]}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
           }
           renderItem={({ item, index }) => {
