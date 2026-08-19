@@ -322,6 +322,8 @@ export default function PostDetail() {
                   {isAuthor && (
                     <Pressable
                       onPress={() => unpinComment(post.id)}
+                      accessibilityLabel="Unpin comment"
+                      accessibilityRole="button"
                       className="h-7 w-7 items-center justify-center"
                     >
                       <Ionicons name="close" size={15} className="text-charcoal/50" />
@@ -515,7 +517,12 @@ export default function PostDetail() {
             <Text className="text-xs text-charcoal/50">
               Replying to <Text className="font-semibold text-charcoal/70">{replyingTo.name}</Text>
             </Text>
-            <Pressable onPress={() => setReplyingTo(null)} className="p-1">
+            <Pressable
+              onPress={() => setReplyingTo(null)}
+              accessibilityLabel="Cancel reply"
+              accessibilityRole="button"
+              className="p-1"
+            >
               <Ionicons name="close" size={14} className="text-charcoal/50" />
             </Pressable>
           </View>

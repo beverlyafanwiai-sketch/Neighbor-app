@@ -33,6 +33,8 @@ export default function ReportPostSheet({
           <Text className="text-base font-bold text-charcoal">{title}</Text>
           <Pressable
             onPress={onClose}
+            accessibilityLabel="Close"
+            accessibilityRole="button"
             className="h-8 w-8 items-center justify-center rounded-full bg-sand"
           >
             <Ionicons name="close" size={16} className="text-charcoal" />

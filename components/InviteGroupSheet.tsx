@@ -44,6 +44,8 @@ export default function InviteGroupSheet({ groupName, code, onClose, isAdmin, on
           <Text className="text-base font-bold text-charcoal">Invite to {groupName}</Text>
           <Pressable
             onPress={onClose}
+            accessibilityLabel="Close"
+            accessibilityRole="button"
             className="h-8 w-8 items-center justify-center rounded-full bg-sand"
           >
             <Ionicons name="close" size={16} className="text-charcoal" />

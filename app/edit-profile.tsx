@@ -146,6 +146,8 @@ export default function EditProfile() {
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
           onPress={close}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
           className="h-9 w-9 items-center justify-center rounded-full bg-sand"
         >
           <Ionicons name="close" size={20} className="text-charcoal" />

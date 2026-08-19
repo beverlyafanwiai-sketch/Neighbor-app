@@ -145,6 +145,8 @@ export default function CreatePost() {
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
           onPress={close}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
@@ -238,6 +240,8 @@ export default function CreatePost() {
                   <Image source={{ uri }} className="h-full w-full rounded-2xl bg-cream" />
                   <Pressable
                     onPress={() => removeImage(uri)}
+                    accessibilityLabel="Remove photo"
+                    accessibilityRole="button"
                     className="absolute right-1.5 top-1.5 h-7 w-7 items-center justify-center rounded-full bg-ink/60"
                   >
                     <Ionicons name="close" size={14} className="text-paper" />
@@ -259,6 +263,8 @@ export default function CreatePost() {
                     setPollOptions(['', '']);
                     setPollDurationHours(null);
                   }}
+                  accessibilityLabel="Remove poll"
+                  accessibilityRole="button"
                   className="h-6 w-6 items-center justify-center"
                 >
                   <Ionicons name="close" size={16} className="text-charcoal/50" />
@@ -361,6 +367,8 @@ export default function CreatePost() {
               <Text className="text-base font-bold text-charcoal">When should this post go live?</Text>
               <Pressable
                 onPress={() => setShowSchedulePicker(false)}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full bg-sand"
               >
                 <Ionicons name="close" size={16} className="text-charcoal" />

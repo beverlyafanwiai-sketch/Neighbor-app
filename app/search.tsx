@@ -260,6 +260,8 @@ export default function Search() {
                       evt.stopPropagation();
                       removeRecentSearch(rq);
                     }}
+                    accessibilityLabel={`Remove "${rq}" from recent searches`}
+                    accessibilityRole="button"
                     className="h-6 w-6 items-center justify-center"
                   >
                     <Ionicons name="close" size={14} className="text-charcoal/40" />

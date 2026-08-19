@@ -49,6 +49,8 @@ export default function NotificationToast() {
         </Text>
         <Pressable
           onPress={dismissToast}
+          accessibilityLabel="Dismiss notification"
+          accessibilityRole="button"
           className="h-6 w-6 items-center justify-center rounded-full bg-cream/15"
         >
           <Ionicons name="close" size={13} className="text-paper" />

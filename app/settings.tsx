@@ -553,6 +553,8 @@ export default function Settings() {
               <Text className="text-base font-bold text-charcoal">Send feedback</Text>
               <Pressable
                 onPress={() => setSendingFeedback(false)}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full bg-sand"
               >
                 <Ionicons name="close" size={16} className="text-charcoal" />
@@ -620,6 +622,8 @@ export default function Settings() {
               <Text className="text-base font-bold text-charcoal">Change password</Text>
               <Pressable
                 onPress={() => setChangingPassword(false)}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full bg-sand"
               >
                 <Ionicons name="close" size={16} className="text-charcoal" />

@@ -33,6 +33,8 @@ export default function ReactorsSheet({ reactions, myReaction, onClose, onPerson
           <Text className="text-base font-bold text-charcoal">Reactions</Text>
           <Pressable
             onPress={onClose}
+            accessibilityLabel="Close"
+            accessibilityRole="button"
             className="h-8 w-8 items-center justify-center rounded-full bg-sand"
           >
             <Ionicons name="close" size={16} className="text-charcoal" />

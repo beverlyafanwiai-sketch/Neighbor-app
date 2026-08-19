@@ -239,6 +239,8 @@ export default function Discover() {
                     evt.stopPropagation();
                     deleteSearch(s.id);
                   }}
+                  accessibilityLabel={`Delete saved search "${s.name}"`}
+                  accessibilityRole="button"
                   className="ml-0.5"
                 >
                   <Ionicons name="close" size={12} className="text-charcoal/40" />
@@ -505,6 +507,8 @@ export default function Discover() {
                       evt.stopPropagation();
                       dismissGroup(g.id);
                     }}
+                    accessibilityLabel="Not interested"
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="close" size={16} className="text-charcoal/40" />

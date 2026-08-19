@@ -401,6 +401,8 @@ export default function NeighborhoodAlerts() {
                     evt.stopPropagation();
                     deleteSearch(s.id);
                   }}
+                  accessibilityLabel={`Delete saved search "${s.name}"`}
+                  accessibilityRole="button"
                   className="ml-0.5"
                 >
                   <Ionicons name="close" size={12} className="text-charcoal/40" />
@@ -839,6 +841,8 @@ export default function NeighborhoodAlerts() {
               <Text className="text-base font-bold text-charcoal">Mute categories</Text>
               <Pressable
                 onPress={() => setManagingCategories(false)}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full bg-sand"
               >
                 <Ionicons name="close" size={16} className="text-charcoal" />
@@ -879,6 +883,8 @@ export default function NeighborhoodAlerts() {
               <Text className="text-base font-bold text-charcoal">Still happening</Text>
               <Pressable
                 onPress={() => setViewingConfirmedId(null)}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full bg-sand"
               >
                 <Ionicons name="close" size={16} className="text-charcoal" />
@@ -936,6 +942,8 @@ export default function NeighborhoodAlerts() {
                     setCommentDraft('');
                     setReplyingToComment(null);
                   }}
+                  accessibilityLabel="Close"
+                  accessibilityRole="button"
                   className="h-8 w-8 items-center justify-center rounded-full bg-sand"
                 >
                   <Ionicons name="close" size={16} className="text-charcoal" />
@@ -1124,7 +1132,12 @@ export default function NeighborhoodAlerts() {
                       {replyingToComment.preview}
                     </Text>
                   </View>
-                  <Pressable onPress={() => setReplyingToComment(null)} className="p-1">
+                  <Pressable
+                    onPress={() => setReplyingToComment(null)}
+                    accessibilityLabel="Cancel reply"
+                    accessibilityRole="button"
+                    className="p-1"
+                  >
                     <Ionicons name="close" size={14} className="text-charcoal/50" />
                   </Pressable>
                 </View>

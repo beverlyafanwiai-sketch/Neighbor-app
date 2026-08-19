@@ -1046,6 +1046,8 @@ export default function EventDetail() {
                           evt.stopPropagation();
                           demoteCoHost(event.id, a!.id);
                         }}
+                        accessibilityLabel="Remove co-host"
+                        accessibilityRole="button"
                         className="h-7 w-7 items-center justify-center rounded-full bg-sand"
                       >
                         <Ionicons name="close" size={14} className="text-charcoal/60" />
@@ -1581,6 +1583,8 @@ export default function EventDetail() {
                             </Pressable>
                             <Pressable
                               onPress={() => cancelRideRequest(event.id)}
+                              accessibilityLabel="Cancel ride request"
+                              accessibilityRole="button"
                               className="h-7 w-7 items-center justify-center rounded-full"
                             >
                               <Ionicons name="close" size={14} className="text-charcoal/50" />
@@ -1656,6 +1660,8 @@ export default function EventDetail() {
                   {photo.uploaderId === ME.id && (
                     <Pressable
                       onPress={() => setConfirmingRemovePhotoId(photo.id)}
+                      accessibilityLabel="Remove photo"
+                      accessibilityRole="button"
                       className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-ink/60"
                     >
                       <Ionicons name="close" size={12} className="text-paper" />
@@ -1784,6 +1790,8 @@ export default function EventDetail() {
               <Text className="text-base font-bold text-charcoal">Ratings & reviews</Text>
               <Pressable
                 onPress={() => setViewingRatings(false)}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full bg-sand"
               >
                 <Ionicons name="close" size={16} className="text-charcoal" />

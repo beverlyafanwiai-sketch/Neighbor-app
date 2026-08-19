@@ -849,6 +849,8 @@ export default function ProfileView({
                             </Pressable>
                             <Pressable
                               onPress={() => setConfirmingRemoveEndorsementSkill(skill)}
+                              accessibilityLabel={`Remove endorsement for ${skill}`}
+                              accessibilityRole="button"
                               className="h-7 w-7 items-center justify-center"
                             >
                               <Ionicons name="close" size={16} className="text-charcoal/40" />
@@ -1035,6 +1037,8 @@ export default function ProfileView({
             <Text className="text-base font-bold text-charcoal">Mutual connections</Text>
             <Pressable
               onPress={() => setViewingConnections(false)}
+              accessibilityLabel="Close"
+              accessibilityRole="button"
               className="h-8 w-8 items-center justify-center rounded-full bg-sand"
             >
               <Ionicons name="close" size={16} className="text-charcoal" />
@@ -1124,6 +1128,8 @@ export default function ProfileView({
             </Text>
             <Pressable
               onPress={() => setViewingBadge(null)}
+              accessibilityLabel="Close"
+              accessibilityRole="button"
               className="h-8 w-8 items-center justify-center rounded-full bg-sand"
             >
               <Ionicons name="close" size={16} className="text-charcoal" />

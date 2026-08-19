@@ -500,6 +500,8 @@ export default function Saved() {
                     evt.stopPropagation();
                     deleteSearch(s.id);
                   }}
+                  accessibilityLabel={`Delete saved search "${s.name}"`}
+                  accessibilityRole="button"
                   className="ml-0.5"
                 >
                   <Ionicons name="close" size={12} className="text-charcoal/40" />

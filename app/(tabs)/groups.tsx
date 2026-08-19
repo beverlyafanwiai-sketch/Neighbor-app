@@ -233,6 +233,8 @@ export default function Groups() {
                   evt.stopPropagation();
                   dismissGroup(g.id);
                 }}
+                accessibilityLabel="Not interested"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center"
               >
                 <Ionicons name="close" size={16} className="text-charcoal/40" />

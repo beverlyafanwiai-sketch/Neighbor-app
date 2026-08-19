@@ -30,6 +30,8 @@ export default function CoverPhotoPicker({ imageUri, onChange }: Props) {
         />
         <Pressable
           onPress={() => onChange(undefined)}
+          accessibilityLabel="Remove cover photo"
+          accessibilityRole="button"
           className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-ink/60"
         >
           <Ionicons name="close" size={16} className="text-paper" />

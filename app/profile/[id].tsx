@@ -87,6 +87,8 @@ export default function OtherProfile() {
               <Text className="text-base font-bold text-charcoal">{user.name}</Text>
               <Pressable
                 onPress={closeActions}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full bg-sand"
               >
                 <Ionicons name="close" size={16} className="text-charcoal" />

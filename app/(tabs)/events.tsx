@@ -283,6 +283,8 @@ export default function Events() {
                     evt.stopPropagation();
                     deleteSearch(s.id);
                   }}
+                  accessibilityLabel={`Delete saved search "${s.name}"`}
+                  accessibilityRole="button"
                   className="ml-0.5"
                 >
                   <Ionicons name="close" size={12} className="text-charcoal/40" />
@@ -462,6 +464,8 @@ export default function Events() {
                             evt.stopPropagation();
                             dismissEvent(e.id);
                           }}
+                          accessibilityLabel="Not interested"
+                          accessibilityRole="button"
                           className="h-6 w-6 items-center justify-center"
                         >
                           <Ionicons name="close" size={15} className="text-charcoal/40" />

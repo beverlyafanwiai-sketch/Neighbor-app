@@ -78,6 +78,8 @@ export default function PhotoViewer({
         <View className="flex-row items-center justify-between px-4 pb-3 pt-12">
           <Pressable
             onPress={onClose}
+            accessibilityLabel="Close"
+            accessibilityRole="button"
             className="h-9 w-9 items-center justify-center rounded-full bg-cream/15"
           >
             <Ionicons name="close" size={22} className="text-paper" />

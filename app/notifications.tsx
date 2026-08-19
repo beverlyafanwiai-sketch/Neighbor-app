@@ -131,6 +131,8 @@ export default function Notifications() {
           </Pressable>
           <Pressable
             onPress={() => deleteNotification(n.id)}
+            accessibilityLabel="Delete notification"
+            accessibilityRole="button"
             className="h-7 w-7 items-center justify-center rounded-full"
           >
             <Ionicons name="close" size={16} className="text-charcoal/40" />

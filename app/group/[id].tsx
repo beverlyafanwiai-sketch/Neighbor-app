@@ -539,6 +539,8 @@ export default function GroupDetail() {
                             e.stopPropagation();
                             demoteCoAdmin(group.id, m!.id);
                           }}
+                          accessibilityLabel="Remove co-admin"
+                          accessibilityRole="button"
                           className="h-7 w-7 items-center justify-center rounded-full bg-sand"
                         >
                           <Ionicons name="close" size={14} className="text-charcoal/60" />
@@ -600,6 +602,8 @@ export default function GroupDetail() {
                   {photo.uploaderId === ME.id && (
                     <Pressable
                       onPress={() => setConfirmingRemovePhotoId(photo.id)}
+                      accessibilityLabel="Remove photo"
+                      accessibilityRole="button"
                       className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-ink/60"
                     >
                       <Ionicons name="close" size={12} className="text-paper" />
@@ -659,6 +663,8 @@ export default function GroupDetail() {
               <Text className="text-base font-bold text-charcoal">Mute this circle</Text>
               <Pressable
                 onPress={() => setChoosingMuteDuration(false)}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full bg-sand"
               >
                 <Ionicons name="close" size={16} className="text-charcoal" />
@@ -706,6 +712,8 @@ export default function GroupDetail() {
                   setComposingWelcome(false);
                   setWelcomeDraft('');
                 }}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full bg-sand"
               >
                 <Ionicons name="close" size={16} className="text-charcoal" />

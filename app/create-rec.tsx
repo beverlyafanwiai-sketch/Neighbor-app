@@ -154,6 +154,8 @@ export default function CreateRec() {
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
           onPress={close}
+          accessibilityLabel="Close"
+          accessibilityRole="button"
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
           <Ionicons name="close" size={20} className="text-charcoal" />
@@ -236,6 +238,8 @@ export default function CreateRec() {
                   <Image source={{ uri }} className="h-full w-full rounded-2xl bg-cream" />
                   <Pressable
                     onPress={() => removeImage(uri)}
+                    accessibilityLabel="Remove photo"
+                    accessibilityRole="button"
                     className="absolute right-1.5 top-1.5 h-7 w-7 items-center justify-center rounded-full bg-ink/60"
                   >
                     <Ionicons name="close" size={14} className="text-paper" />

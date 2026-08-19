@@ -326,6 +326,8 @@ export default function ChatThread() {
           </View>
           <Pressable
             onPress={() => unpinMessage(id)}
+            accessibilityLabel="Unpin message"
+            accessibilityRole="button"
             className="h-7 w-7 items-center justify-center rounded-full"
           >
             <Ionicons name="close" size={15} className="text-charcoal/50" />
@@ -600,6 +602,8 @@ export default function ChatThread() {
               <Image source={{ uri: imageUri }} className="h-16 w-16 rounded-xl" />
               <Pressable
                 onPress={() => setImageUri(undefined)}
+                accessibilityLabel="Remove photo"
+                accessibilityRole="button"
                 className="absolute -right-1.5 -top-1.5 h-5 w-5 items-center justify-center rounded-full bg-ink/70"
               >
                 <Ionicons name="close" size={11} className="text-paper" />
@@ -618,7 +622,12 @@ export default function ChatThread() {
                 {replyingTo.preview}
               </Text>
             </View>
-            <Pressable onPress={() => setReplyingTo(null)} className="p-1">
+            <Pressable
+              onPress={() => setReplyingTo(null)}
+              accessibilityLabel="Cancel reply"
+              accessibilityRole="button"
+              className="p-1"
+            >
               <Ionicons name="close" size={14} className="text-charcoal/50" />
             </Pressable>
           </View>
@@ -700,6 +709,8 @@ export default function ChatThread() {
               <Text className="text-base font-bold text-charcoal">{user.name}</Text>
               <Pressable
                 onPress={closeActions}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
                 className="h-8 w-8 items-center justify-center rounded-full bg-sand"
               >
                 <Ionicons name="close" size={16} className="text-charcoal" />
