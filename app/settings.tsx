@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useColorScheme } from 'nativewind';
 
 import { getUser } from '../data/mock';
+import { exportMyData } from '../lib/exportData';
 import { useAuthStore } from '../store/useAuthStore';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useDismissedDiscoverStore } from '../store/useDismissedDiscoverStore';
@@ -17,6 +18,7 @@ import { useGroupsStore } from '../store/useGroupsStore';
 import { useHiddenPostsStore } from '../store/useHiddenPostsStore';
 import { formatMutedUntil, useMutedGroupsStore } from '../store/useMutedGroupsStore';
 import { useMutedStore } from '../store/useMutedStore';
+import { useProfileStore } from '../store/useProfileStore';
 import { useSettingsStore, type NotificationPrefs } from '../store/useSettingsStore';
 import { useThemeStore, type ThemePreference } from '../store/useThemeStore';
 
@@ -96,6 +98,8 @@ export default function Settings() {
   const [deletingAccount, setDeletingAccount] = useState(false);
   const changePassword = useAuthStore((s) => s.changePassword);
   const deleteAccount = useAuthStore((s) => s.deleteAccount);
+  const profile = useProfileStore((s) => s.profile);
+  const [exportingData, setExportingData] = useState(false);
   const authError = useAuthStore((s) => s.error);
   const clearAuthError = useAuthStore((s) => s.clearError);
   const prefs = useSettingsStore((s) => s.notificationPrefs);
@@ -161,6 +165,12 @@ export default function Settings() {
   const handleSignOut = async () => {
     await signOut();
     router.replace('/');
+  };
+
+  const handleExportData = async () => {
+    setExportingData(true);
+    await exportMyData(profile);
+    setExportingData(false);
   };
 
   const handleDeleteAccount = async () => {
@@ -282,14 +292,32 @@ export default function Settings() {
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
           Privacy
         </Text>
-        <View className="flex-row items-center gap-3 rounded-2xl bg-cream p-4">
-          <View className="flex-1">
-            <Text className="text-sm font-medium text-charcoal">Read receipts</Text>
-            <Text className="mt-0.5 text-xs text-charcoal/50">
-              Let others see when you've read their group messages
-            </Text>
+        <View className="gap-3">
+          <View className="flex-row items-center gap-3 rounded-2xl bg-cream p-4">
+            <View className="flex-1">
+              <Text className="text-sm font-medium text-charcoal">Read receipts</Text>
+              <Text className="mt-0.5 text-xs text-charcoal/50">
+                Let others see when you've read their group messages
+              </Text>
+            </View>
+            <Toggle on={readReceipts} onToggle={toggleReadReceipts} />
           </View>
-          <Toggle on={readReceipts} onToggle={toggleReadReceipts} />
+
+          <Pressable
+            onPress={handleExportData}
+            disabled={exportingData}
+            className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80 disabled:opacity-60"
+          >
+            <Ionicons name="download-outline" size={18} className="text-charcoal" />
+            <View className="flex-1">
+              <Text className="text-sm font-medium text-charcoal">
+                {exportingData ? 'Preparing export...' : 'Export my data'}
+              </Text>
+              <Text className="mt-0.5 text-xs text-charcoal/50">
+                Download your profile as a JSON file
+              </Text>
+            </View>
+          </Pressable>
         </View>
 
         <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
