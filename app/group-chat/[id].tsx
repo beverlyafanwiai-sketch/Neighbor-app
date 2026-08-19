@@ -361,10 +361,15 @@ export default function GroupChatThread() {
       {announcement && (
         <View className="flex-row items-start gap-2.5 border-b border-charcoal/10 bg-terracotta/10 px-4 py-2.5">
           <Ionicons name="megaphone" size={14} className="mt-0.5 text-terracotta" />
-          <View className="flex-1">
-            <Text className="text-xs font-semibold text-terracotta">Announcement</Text>
+          <Pressable
+            onPress={() => router.push(`/group-announcement-history?groupId=${group.id}`)}
+            className="flex-1"
+          >
+            <Text className="text-xs font-semibold text-terracotta">
+              Announcement · View past
+            </Text>
             <Text className="text-sm text-charcoal">{announcement.text}</Text>
-          </View>
+          </Pressable>
           {isAdmin && (
             <Pressable
               onPress={() => clearAnnouncement(group.id)}

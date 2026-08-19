@@ -33,6 +33,7 @@ export type GroupDraft = {
 type GroupDraftInput = Omit<GroupDraft, 'updatedAt' | 'id'> & { id?: string };
 
 export type GroupAnnouncement = {
+  id: string;
   text: string;
   authorId: string;
   postedAt: number;
@@ -43,6 +44,7 @@ type GroupsState = {
   joined: Record<string, boolean>;
   inviteCodes: Record<string, string>;
   announcements: Record<string, GroupAnnouncement | undefined>;
+  announcementHistory: Record<string, GroupAnnouncement[]>;
   welcomeMessages: Record<string, string | undefined>;
   drafts: GroupDraft[];
   toggle: (groupId: string) => void;
@@ -99,6 +101,7 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
   joined: initialJoined,
   inviteCodes: initialInviteCodes,
   announcements: {},
+  announcementHistory: {},
   welcomeMessages: {},
   drafts: [],
 
@@ -245,10 +248,17 @@ export const useGroupsStore = create<GroupsState>((set, get) => ({
   postAnnouncement: (groupId, text) => {
     const clean = text.trim();
     if (!clean) return;
+    const announcement: GroupAnnouncement = {
+      id: `announcement-${Date.now()}`,
+      text: clean,
+      authorId: ME.id,
+      postedAt: Date.now(),
+    };
     set((s) => ({
-      announcements: {
-        ...s.announcements,
-        [groupId]: { text: clean, authorId: ME.id, postedAt: Date.now() },
+      announcements: { ...s.announcements, [groupId]: announcement },
+      announcementHistory: {
+        ...s.announcementHistory,
+        [groupId]: [announcement, ...(s.announcementHistory[groupId] ?? [])],
       },
     }));
   },

@@ -44,6 +44,7 @@ export default function GroupDetail() {
   const demoteCoAdmin = useGroupsStore((s) => s.demoteCoAdmin);
   const transferOwnership = useGroupsStore((s) => s.transferOwnership);
   const removeMember = useGroupsStore((s) => s.removeMember);
+  const announcementHistory = useGroupsStore((s) => (group ? (s.announcementHistory[group.id] ?? []) : []));
   const pinnedMessageId = useGroupChatStore((s) => (group ? s.pinnedMessageId[group.id] : undefined));
   const pinnedMessage = useGroupChatStore((s) =>
     group ? (s.messages[group.id] ?? []).find((m) => m.id === pinnedMessageId) : undefined
@@ -424,6 +425,19 @@ export default function GroupDetail() {
                 {pinnedMessage.text || 'Photo'}
               </Text>
             </View>
+          </Pressable>
+        )}
+
+        {joined && announcementHistory.length > 0 && (
+          <Pressable
+            onPress={() => router.push(`/group-announcement-history?groupId=${group.id}`)}
+            className="mt-4 flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+          >
+            <Ionicons name="megaphone-outline" size={16} className="text-charcoal" />
+            <Text className="flex-1 text-sm font-medium text-charcoal">
+              Announcements ({announcementHistory.length})
+            </Text>
+            <Ionicons name="chevron-forward" size={16} className="text-charcoal/50" />
           </Pressable>
         )}
 
