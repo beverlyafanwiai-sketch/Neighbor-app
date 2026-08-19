@@ -44,6 +44,7 @@ type LendState = {
   myOffers: Record<string, boolean>;
   requestNotes: Record<string, string>;
   declineRequestNotes: Record<string, string>;
+  declinedRequesterId: Record<string, string>;
   helpNotes: Record<string, string>;
   notifyWhenAvailable: Record<string, boolean>;
   completedBorrows: Record<string, boolean>;
@@ -100,6 +101,7 @@ export const useLendStore = create<LendState>((set, get) => ({
   myOffers: {},
   requestNotes: {},
   declineRequestNotes: {},
+  declinedRequesterId: {},
   helpNotes: {},
   notifyWhenAvailable: {},
   completedBorrows: {},
@@ -201,6 +203,9 @@ export const useLendStore = create<LendState>((set, get) => ({
   declineRequest: (itemId, note) =>
     set((s) => ({
       pendingRequesterId: { ...s.pendingRequesterId, [itemId]: '' },
+      declinedRequesterId: s.pendingRequesterId[itemId]
+        ? { ...s.declinedRequesterId, [itemId]: s.pendingRequesterId[itemId] }
+        : s.declinedRequesterId,
       declineRequestNotes: note?.trim()
         ? { ...s.declineRequestNotes, [itemId]: note.trim() }
         : s.declineRequestNotes,

@@ -57,6 +57,8 @@ export default function LendBoard() {
   const requestNotes = useLendStore((s) => s.requestNotes);
   const approveRequest = useLendStore((s) => s.approveRequest);
   const declineRequest = useLendStore((s) => s.declineRequest);
+  const declineRequestNotes = useLendStore((s) => s.declineRequestNotes);
+  const declinedRequesterId = useLendStore((s) => s.declinedRequesterId);
   const markReturned = useLendStore((s) => s.markReturned);
   const updateDueDate = useLendStore((s) => s.updateDueDate);
   const offerToHelp = useLendStore((s) => s.offerToHelp);
@@ -552,6 +554,9 @@ export default function LendBoard() {
                 const requesterId = pendingRequesterId[item.id];
                 const requester = requesterId ? getUser(requesterId) : undefined;
                 const borrower = borrowerId[item.id] ? getUser(borrowerId[item.id]) : undefined;
+                const declinedRequester = declinedRequesterId[item.id]
+                  ? getUser(declinedRequesterId[item.id])
+                  : undefined;
                 const helperCount = getEffectiveHelperCount(item.id, false);
 
                 if (deletingItemId === item.id) {
@@ -734,6 +739,13 @@ export default function LendBoard() {
                               </Pressable>
                             </View>
                           )}
+                        </View>
+                      ) : declinedRequester ? (
+                        <View className="mt-3 border-t border-charcoal/10 pt-3">
+                          <Text className="text-xs text-charcoal/50">
+                            You declined {declinedRequester.name}'s request
+                            {declineRequestNotes[item.id] ? `: ${declineRequestNotes[item.id]}` : ''}
+                          </Text>
                         </View>
                       ) : itemStatus === 'lent' && borrower ? (
                         editingDueDateItemId === item.id ? (
