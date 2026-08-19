@@ -66,12 +66,21 @@ const NOTIFICATION_ROWS: { key: keyof NotificationPrefs; label: string; descript
   { key: 'carpoolUpdates', label: 'Carpool', description: 'Seat requests and offer changes on events you carpool to' },
 ];
 
-function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
+function Toggle({
+  on,
+  onToggle,
+  label,
+}: {
+  on: boolean;
+  onToggle: () => void;
+  label: string;
+}) {
   return (
     <Pressable
       onPress={onToggle}
       accessibilityRole="switch"
       accessibilityState={{ checked: on }}
+      accessibilityLabel={label}
       className={`h-6 w-11 justify-center rounded-full p-0.5 ${on ? 'bg-terracotta' : 'bg-ink/15'}`}
     >
       <View
@@ -255,7 +264,11 @@ export default function Settings() {
                 <Text className="text-sm font-medium text-charcoal">{row.label}</Text>
                 <Text className="mt-0.5 text-xs text-charcoal/50">{row.description}</Text>
               </View>
-              <Toggle on={prefs[row.key]} onToggle={() => togglePref(row.key)} />
+              <Toggle
+                on={prefs[row.key]}
+                onToggle={() => togglePref(row.key)}
+                label={row.label}
+              />
             </View>
           ))}
         </View>
@@ -273,7 +286,7 @@ export default function Settings() {
                   : 'Silence notification pop-ups during set hours'}
               </Text>
             </View>
-            <Toggle on={quietHours.enabled} onToggle={toggleQuietHours} />
+            <Toggle on={quietHours.enabled} onToggle={toggleQuietHours} label="Quiet hours" />
           </View>
           {quietHours.enabled && (
             <View className="flex-row flex-wrap gap-2 px-1">
@@ -309,7 +322,7 @@ export default function Settings() {
                 Let others see when you've read their group messages
               </Text>
             </View>
-            <Toggle on={readReceipts} onToggle={toggleReadReceipts} />
+            <Toggle on={readReceipts} onToggle={toggleReadReceipts} label="Read receipts" />
           </View>
 
           <Pressable

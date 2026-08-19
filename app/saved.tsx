@@ -588,6 +588,8 @@ export default function Saved() {
         )}
         <Pressable
           onPress={() => setOnlyFriends((v) => !v)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: onlyFriends }}
           className="mt-2 flex-row items-center gap-2"
         >
           <Ionicons
@@ -687,6 +689,8 @@ export default function Saved() {
       {mode === 'Recs' && recKindFilter !== 'Recs' && (
         <Pressable
           onPress={() => setHideResolved((h) => !h)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: hideResolved }}
           className="flex-row items-center gap-2 px-5 pb-3"
         >
           <Ionicons
@@ -701,6 +705,8 @@ export default function Saved() {
       {mode === 'For Sale' && (
         <Pressable
           onPress={() => setHideSold((h) => !h)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: hideSold }}
           className="flex-row items-center gap-2 px-5 pb-3"
         >
           <Ionicons
@@ -715,6 +721,8 @@ export default function Saved() {
       {mode === 'Lend' && (
         <Pressable
           onPress={() => setHideUnavailable((h) => !h)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: hideUnavailable }}
           className="flex-row items-center gap-2 px-5 pb-3"
         >
           <Ionicons
@@ -754,6 +762,8 @@ export default function Saved() {
       {mode === 'Events' && (
         <Pressable
           onPress={() => setHidePast((h) => !h)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: hidePast }}
           className="flex-row items-center gap-2 px-5 pb-3"
         >
           <Ionicons
@@ -1416,10 +1426,9 @@ export default function Saved() {
                     >
                       <Pressable
                         onPress={() => toggleItemInCollection(managingCollectionsKey, c.id)}
-                        accessibilityLabel={
-                          inCollection ? `Remove from ${c.name}` : `Add to ${c.name}`
-                        }
-                        accessibilityRole="button"
+                        accessibilityLabel={c.name}
+                        accessibilityRole="checkbox"
+                        accessibilityState={{ checked: inCollection }}
                         className="flex-1 flex-row items-center gap-3"
                       >
                         <Ionicons

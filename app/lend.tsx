@@ -519,6 +519,8 @@ export default function LendBoard() {
         <View className="mt-3 flex-row flex-wrap items-center gap-x-4 gap-y-1.5">
           <Pressable
             onPress={() => setHideUnavailable((h) => !h)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: hideUnavailable }}
             className="flex-row items-center gap-2"
           >
             <Ionicons
@@ -530,6 +532,8 @@ export default function LendBoard() {
           </Pressable>
           <Pressable
             onPress={() => setOnlyFriends((v) => !v)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: onlyFriends }}
             className="flex-row items-center gap-2"
           >
             <Ionicons

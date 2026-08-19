@@ -358,6 +358,8 @@ export default function Events() {
           <View className="flex-row gap-2 px-5">
             <Pressable
               onPress={() => setOnlyOpen((v) => !v)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: onlyOpen }}
               className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-1.5 ${
                 onlyOpen ? 'bg-sage/20' : 'bg-cream'
               }`}
@@ -369,6 +371,8 @@ export default function Events() {
             </Pressable>
             <Pressable
               onPress={() => setOnlyGoing((v) => !v)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: onlyGoing }}
               className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-1.5 ${
                 onlyGoing ? 'bg-sage/20' : 'bg-cream'
               }`}
@@ -380,6 +384,8 @@ export default function Events() {
             </Pressable>
             <Pressable
               onPress={() => setOnlyFriends((v) => !v)}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: onlyFriends }}
               className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-1.5 ${
                 onlyFriends ? 'bg-sage/20' : 'bg-cream'
               }`}

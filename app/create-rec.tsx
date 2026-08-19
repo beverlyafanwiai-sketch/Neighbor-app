@@ -336,6 +336,8 @@ export default function CreateRec() {
             {kind === 'ask' && (
               <Pressable
                 onPress={() => setUrgent((u) => !u)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: urgent }}
                 className="flex-row items-center gap-2.5 rounded-2xl bg-cream px-4 py-3"
               >
                 <Ionicons

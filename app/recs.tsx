@@ -442,6 +442,8 @@ export default function RecsBoard() {
         {kindFilter !== 'Recs' && (
           <Pressable
             onPress={() => setOnlyUrgent((v) => !v)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: onlyUrgent }}
             className="flex-row items-center gap-2"
           >
             <Ionicons
@@ -454,6 +456,8 @@ export default function RecsBoard() {
         )}
         <Pressable
           onPress={() => setOnlyFriends((v) => !v)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: onlyFriends }}
           className="flex-row items-center gap-2"
         >
           <Ionicons

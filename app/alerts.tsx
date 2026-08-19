@@ -439,6 +439,8 @@ export default function NeighborhoodAlerts() {
 
         <Pressable
           onPress={() => setOnlyFriends((v) => !v)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: onlyFriends }}
           className="mt-2 flex-row items-center gap-2"
         >
           <Ionicons

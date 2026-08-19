@@ -533,6 +533,8 @@ export default function EventDetail() {
                       <View key={i} className="rounded-xl bg-sand px-3 py-2.5">
                         <Pressable
                           onPress={() => toggleChecked(key)}
+                          accessibilityRole="checkbox"
+                          accessibilityState={{ checked }}
                           className="flex-row items-center gap-2.5"
                         >
                           <Ionicons

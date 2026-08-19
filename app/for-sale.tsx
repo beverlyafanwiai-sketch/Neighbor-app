@@ -545,7 +545,12 @@ export default function ForSaleBoard() {
         </Text>
 
         <View className="mt-3 flex-row flex-wrap items-center gap-x-4 gap-y-1.5">
-          <Pressable onPress={() => setHideSold((h) => !h)} className="flex-row items-center gap-2">
+          <Pressable
+            onPress={() => setHideSold((h) => !h)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: hideSold }}
+            className="flex-row items-center gap-2"
+          >
             <Ionicons
               name={hideSold ? 'checkbox' : 'square-outline'}
               size={16}
@@ -555,6 +560,8 @@ export default function ForSaleBoard() {
           </Pressable>
           <Pressable
             onPress={() => setOnlyFriends((v) => !v)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: onlyFriends }}
             className="flex-row items-center gap-2"
           >
             <Ionicons
