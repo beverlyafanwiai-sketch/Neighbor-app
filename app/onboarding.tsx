@@ -210,6 +210,8 @@ export default function Onboarding() {
               {step > 0 && (
                 <Pressable
                   onPress={back}
+                  accessibilityLabel="Go back"
+                  accessibilityRole="button"
                   className="mb-4 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
                 >
                   <Ionicons name="chevron-back" size={20} className="text-paper" />

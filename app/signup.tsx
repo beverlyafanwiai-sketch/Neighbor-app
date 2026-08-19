@@ -68,6 +68,8 @@ export default function Signup() {
 
       <Pressable
         onPress={() => router.back()}
+        accessibilityLabel="Go back"
+        accessibilityRole="button"
         className="z-10 ml-4 mt-2 h-9 w-9 items-center justify-center rounded-full bg-cream/20"
       >
         <Ionicons name="chevron-back" size={22} className="text-paper" />

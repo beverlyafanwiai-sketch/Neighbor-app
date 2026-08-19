@@ -20,6 +20,8 @@ export default function ScheduledPosts() {
       <View className="flex-row items-center gap-3 px-4 py-3">
         <Pressable
           onPress={() => router.back()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
           <Ionicons name="chevron-back" size={22} className="text-charcoal" />

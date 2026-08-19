@@ -352,6 +352,8 @@ export default function LendBoard() {
       <View className="flex-row items-center justify-between px-4 py-3">
         <Pressable
           onPress={() => router.back()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
           className="h-9 w-9 items-center justify-center rounded-full bg-cream"
         >
           <Ionicons name="chevron-back" size={22} className="text-charcoal" />
