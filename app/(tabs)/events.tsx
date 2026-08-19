@@ -324,6 +324,8 @@ export default function Events() {
           <Pressable
             key={t}
             onPress={() => setTab(t)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: tab === t }}
             className={`rounded-full px-4 py-2 ${tab === t ? 'bg-ink' : 'bg-cream'}`}
           >
             <Text className={`text-sm font-medium ${tab === t ? 'text-paper' : 'text-charcoal/60'}`}>

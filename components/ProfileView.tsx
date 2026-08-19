@@ -716,7 +716,13 @@ export default function ProfileView({
 
       <View className="flex-row justify-around border-b border-charcoal/10 bg-cream px-2 pt-3">
         {TABS.map((t) => (
-          <Pressable key={t} onPress={() => setTab(t)} className="items-center pb-3">
+          <Pressable
+            key={t}
+            onPress={() => setTab(t)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: tab === t }}
+            className="items-center pb-3"
+          >
             <Text
               className={`text-[15px] ${
                 tab === t ? 'font-semibold text-terracotta' : 'text-charcoal/60'

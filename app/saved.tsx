@@ -450,6 +450,8 @@ export default function Saved() {
               if (m !== 'Recs' && sortBy === 'Most agreed') setSortBy('Newest');
               if (m !== 'Lend' && sortBy === 'Most helpers') setSortBy('Newest');
             }}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: mode === m }}
             className={`rounded-full px-4 py-2 ${mode === m ? 'bg-ink' : 'bg-cream'}`}
           >
             <Text className={`text-sm font-medium ${mode === m ? 'text-paper' : 'text-charcoal/60'}`}>
