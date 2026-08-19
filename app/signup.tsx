@@ -136,6 +136,18 @@ export default function Signup() {
             )}
           </Pressable>
 
+          <Text className="mt-5 text-center text-xs leading-5 text-sand/80">
+            By creating an account, you agree to our{' '}
+            <Text onPress={() => router.push('/terms')} className="underline text-sand">
+              Terms of Service
+            </Text>{' '}
+            and{' '}
+            <Text onPress={() => router.push('/privacy-policy')} className="underline text-sand">
+              Privacy Policy
+            </Text>
+            .
+          </Text>
+
           <Pressable onPress={() => router.back()} className="mt-6 items-center">
             <Text className="text-sm text-sand underline">Already have an account? Log in</Text>
           </Pressable>
