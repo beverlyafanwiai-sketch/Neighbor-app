@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
 import { DISCOVER_USERS, USERS, type User } from '../data/mock';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { useFriendsStore } from '../store/useFriendsStore';
 
 const ALL_PEOPLE: User[] = [...USERS, ...DISCOVER_USERS];
@@ -16,11 +17,12 @@ export default function FriendRequests() {
   const acceptRequest = useFriendsStore((s) => s.acceptRequest);
   const declineRequest = useFriendsStore((s) => s.declineRequest);
   const cancelRequest = useFriendsStore((s) => s.cancelRequest);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
   const [decliningId, setDecliningId] = useState<string | null>(null);
   const [declineNoteDraft, setDeclineNoteDraft] = useState('');
 
-  const incoming = ALL_PEOPLE.filter((u) => statuses[u.id] === 'pending_in');
-  const sent = ALL_PEOPLE.filter((u) => statuses[u.id] === 'pending_out');
+  const incoming = ALL_PEOPLE.filter((u) => statuses[u.id] === 'pending_in' && !blockedIds[u.id]);
+  const sent = ALL_PEOPLE.filter((u) => statuses[u.id] === 'pending_out' && !blockedIds[u.id]);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
