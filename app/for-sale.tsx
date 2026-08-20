@@ -93,6 +93,7 @@ export default function ForSaleBoard() {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [itemNoteDraft, setItemNoteDraft] = useState('');
   const profile = useProfileStore((s) => s.profile);
+  const getOrCreateConversation = useConversationsStore((s) => s.getOrCreate);
   const savedIds = useSavedSaleStore((s) => s.savedIds);
   const toggleSave = useSavedSaleStore((s) => s.toggleSave);
   const itemComments = useItemCommentsStore((s) => s.comments);
@@ -1075,6 +1076,16 @@ export default function ForSaleBoard() {
                   >
                     <Ionicons name="chatbubble-outline" size={18} className="text-charcoal/40" />
                   </Pressable>
+                  {item.ownerId !== ME.id && (
+                    <Pressable
+                      onPress={() => router.push(`/chat/${getOrCreateConversation(item.ownerId)}`)}
+                      accessibilityLabel={`Message ${owner.name}`}
+                      accessibilityRole="button"
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons name="mail-outline" size={18} className="text-charcoal/40" />
+                    </Pressable>
+                  )}
                   <Pressable
                     onPress={() => toggleSave(item.id)}
                     accessibilityLabel={savedIds[item.id] ? 'Unsave listing' : 'Save listing'}

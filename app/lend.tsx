@@ -76,6 +76,7 @@ export default function LendBoard() {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [itemNoteDraft, setItemNoteDraft] = useState('');
   const profile = useProfileStore((s) => s.profile);
+  const getOrCreateConversation = useConversationsStore((s) => s.getOrCreate);
   const savedIds = useSavedLendStore((s) => s.savedIds);
   const toggleSave = useSavedLendStore((s) => s.toggleSave);
   const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
@@ -936,6 +937,16 @@ export default function LendBoard() {
                     >
                       <Ionicons name="chatbubble-outline" size={18} className="text-charcoal/40" />
                     </Pressable>
+                    {item.ownerId !== ME.id && (
+                      <Pressable
+                        onPress={() => router.push(`/chat/${getOrCreateConversation(item.ownerId)}`)}
+                        accessibilityLabel={`Message ${owner.name}`}
+                        accessibilityRole="button"
+                        className="h-8 w-8 items-center justify-center"
+                      >
+                        <Ionicons name="mail-outline" size={18} className="text-charcoal/40" />
+                      </Pressable>
+                    )}
                     <Pressable
                       onPress={() => toggleSave(item.id)}
                       accessibilityLabel={savedIds[item.id] ? 'Unsave listing' : 'Save listing'}
@@ -1109,6 +1120,8 @@ export default function LendBoard() {
                   </View>
                   <Pressable
                     onPress={() => (isPinned ? unpinItem() : pinItem(item.id))}
+                    accessibilityLabel={isPinned ? 'Unpin listing' : 'Pin listing'}
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons
@@ -1119,18 +1132,34 @@ export default function LendBoard() {
                   </Pressable>
                   <Pressable
                     onPress={() => setSharingId(item.id)}
+                    accessibilityLabel="Share listing"
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="arrow-redo-outline" size={18} className="text-charcoal/40" />
                   </Pressable>
                   <Pressable
                     onPress={() => setViewingCommentsId(item.id)}
+                    accessibilityLabel="View comments"
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="chatbubble-outline" size={18} className="text-charcoal/40" />
                   </Pressable>
+                  {item.ownerId !== ME.id && (
+                    <Pressable
+                      onPress={() => router.push(`/chat/${getOrCreateConversation(item.ownerId)}`)}
+                      accessibilityLabel={`Message ${owner.name}`}
+                      accessibilityRole="button"
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons name="mail-outline" size={18} className="text-charcoal/40" />
+                    </Pressable>
+                  )}
                   <Pressable
                     onPress={() => toggleSave(item.id)}
+                    accessibilityLabel={savedIds[item.id] ? 'Unsave listing' : 'Save listing'}
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons
@@ -1141,6 +1170,8 @@ export default function LendBoard() {
                   </Pressable>
                   <Pressable
                     onPress={() => setReportingId(item.id)}
+                    accessibilityLabel="Report listing"
+                    accessibilityRole="button"
                     className="h-8 w-8 items-center justify-center"
                   >
                     <Ionicons name="flag-outline" size={17} className="text-charcoal/40" />
