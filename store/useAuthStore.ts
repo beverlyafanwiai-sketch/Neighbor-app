@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import { useProfileStore } from './useProfileStore';
+
 export type MockUser = {
   id: string;
   email: string;
@@ -73,6 +75,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   deleteAccount: async () => {
     await new Promise((resolve) => setTimeout(resolve, MOCK_AUTH_DELAY_MS));
+    useProfileStore.getState().resetProfile();
     set({ session: null, user: null, password: null });
   },
 
