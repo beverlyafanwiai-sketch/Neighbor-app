@@ -135,8 +135,9 @@ export const useConversationsStore = create<ConversationsState>((set, get) => ({
         text: CANNED_REPLIES[convo.messages.length % CANNED_REPLIES.length],
         time: 'Just now',
       };
+      const readReceiptsOn = useSettingsStore.getState().readReceipts;
       const seenMessages = convo.messages.map((m) =>
-        m.from === 'me' ? { ...m, seen: true } : m
+        m.from === 'me' && readReceiptsOn ? { ...m, seen: true } : m
       );
       set((s) => ({
         conversations: {

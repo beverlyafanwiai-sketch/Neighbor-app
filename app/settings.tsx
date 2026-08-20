@@ -323,7 +323,7 @@ export default function Settings() {
             <View className="flex-1">
               <Text className="text-sm font-medium text-charcoal">Read receipts</Text>
               <Text className="mt-0.5 text-xs text-charcoal/50">
-                Let others see when you've read their group messages
+                Let others see when you've read their messages
               </Text>
             </View>
             <Toggle on={readReceipts} onToggle={toggleReadReceipts} label="Read receipts" />
