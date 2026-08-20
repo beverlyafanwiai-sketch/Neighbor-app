@@ -11,6 +11,7 @@ import MentionTextInput from '../components/MentionTextInput';
 import PhotoCarousel from '../components/PhotoCarousel';
 import PhotoViewer from '../components/PhotoViewer';
 import ReactionButton from '../components/ReactionButton';
+import ReactorsSheet from '../components/ReactorsSheet';
 import ReportPostSheet from '../components/ReportPostSheet';
 import ShareSheet from '../components/ShareSheet';
 import { getUser, ME } from '../data/mock';
@@ -107,6 +108,7 @@ export default function LendBoard() {
   const [editCommentDraft, setEditCommentDraft] = useState('');
   const [reportingCommentId, setReportingCommentId] = useState<string | null>(null);
   const [forwardingCommentId, setForwardingCommentId] = useState<string | null>(null);
+  const [reactorsForCommentId, setReactorsForCommentId] = useState<string | null>(null);
   const [replyingToComment, setReplyingToComment] = useState<{
     id: string;
     senderName: string;
@@ -213,6 +215,7 @@ export default function LendBoard() {
       )
     : viewingComments;
   const forwardingComment = viewingComments.find((c) => c.id === forwardingCommentId);
+  const reactorsForComment = viewingComments.find((c) => c.id === reactorsForCommentId);
 
   const forwardComment = (target: ForwardTarget) => {
     if (!forwardingComment) return;
@@ -1336,6 +1339,20 @@ export default function LendBoard() {
         />
       )}
 
+      {viewingCommentsKey && reactorsForComment && (
+        <ReactorsSheet
+          reactions={reactorsForComment.reactions}
+          myReaction={
+            myItemCommentReactions[itemCommentReactionKey(viewingCommentsKey, reactorsForComment.id)]
+          }
+          onClose={() => setReactorsForCommentId(null)}
+          onPersonPress={(userId) => {
+            setReactorsForCommentId(null);
+            router.push(`/profile/${userId}`);
+          }}
+        />
+      )}
+
       {viewingHelpersItem && (
         <View className="absolute inset-0 items-center justify-end bg-ink/40">
           <Pressable className="absolute inset-0" onPress={() => setViewingHelpersId(null)} />
@@ -1536,6 +1553,7 @@ export default function LendBoard() {
                           }
                           onTap={() => tapItemCommentReaction(viewingCommentsKey, c.id)}
                           onSelect={(type) => setItemCommentReaction(viewingCommentsKey, c.id, type)}
+                          onShowReactors={() => setReactorsForCommentId(c.id)}
                         />
                       </View>
                       <Pressable
