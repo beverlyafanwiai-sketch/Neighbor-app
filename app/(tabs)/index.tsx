@@ -214,8 +214,12 @@ export default function HomeFeed() {
   const stories = [{ ...profile, isYou: true }, ...USERS];
   const [query, setQuery] = useState('');
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
   const unreadCount = useNotificationsStore(
-    (s) => s.notifications.filter((n) => !n.read && (!n.actorId || !mutedIds[n.actorId])).length
+    (s) =>
+      s.notifications.filter(
+        (n) => !n.read && (!n.actorId || (!mutedIds[n.actorId] && !blockedIds[n.actorId]))
+      ).length
   );
   const posts = usePostsStore((s) => s.posts);
   const draftCount = usePostsStore((s) => s.drafts.length);
@@ -251,7 +255,6 @@ export default function HomeFeed() {
   const hidePost = useHiddenPostsStore((s) => s.hide);
   const [postMenuId, setPostMenuId] = useState<string | null>(null);
   const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
-  const blockedIds = useBlockedStore((s) => s.blockedIds);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
   const spotlightIndex = useSpotlightStore((s) => s.index);

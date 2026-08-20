@@ -13,13 +13,16 @@ export default function TabsLayout() {
   const isDark = colorScheme === 'dark';
 
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
   const notifUnread = useNotificationsStore(
-    (s) => s.notifications.filter((n) => !n.read && (!n.actorId || !mutedIds[n.actorId])).length
+    (s) =>
+      s.notifications.filter(
+        (n) => !n.read && (!n.actorId || (!mutedIds[n.actorId] && !blockedIds[n.actorId]))
+      ).length
   );
 
   const conversations = useConversationsStore((s) => s.conversations);
   const dmUnread = useConversationsStore((s) => s.unread);
-  const blockedIds = useBlockedStore((s) => s.blockedIds);
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const chatUnread =
