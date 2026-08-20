@@ -18,6 +18,7 @@ export default function OtherProfile() {
   const profile = useProfileStore((s) => s.profile);
   const getOrCreateConversation = useConversationsStore((s) => s.getOrCreate);
   const isBlocked = useBlockedStore((s) => (user ? (s.blockedIds[user.id] ?? false) : false));
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
   const toggleBlocked = useBlockedStore((s) => s.toggle);
   const isMuted = useMutedStore((s) => (user ? (s.mutedIds[user.id] ?? false) : false));
   const toggleMuted = useMutedStore((s) => s.toggle);
@@ -39,6 +40,7 @@ export default function OtherProfile() {
   }
 
   const friends = (user.friendIds ?? [])
+    .filter((friendId) => !blockedIds[friendId])
     .map((friendId) => (friendId === ME.id ? profile : getUser(friendId)))
     .filter((u): u is User => Boolean(u));
 
