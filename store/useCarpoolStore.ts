@@ -7,6 +7,7 @@ import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
 const INBOUND_SEAT_REQUEST_DELAY_MS = 4000;
+const INBOUND_RIDE_OFFER_DELAY_MS = 4500;
 
 export type CarpoolOffer = {
   id: string;
@@ -186,13 +187,66 @@ export const useCarpoolStore = create<CarpoolState>((set, get) => ({
     }));
   },
 
-  requestRide: (eventId, note) =>
+  requestRide: (eventId, note) => {
     set((s) => ({
       requests: [
         ...s.requests.filter((r) => !(r.eventId === eventId && r.riderId === ME.id)),
         { id: `carpool-req-${Date.now()}`, eventId, riderId: ME.id, note },
       ],
-    })),
+    }));
+
+    setTimeout(() => {
+      const stillRequesting = get().requests.some(
+        (r) => r.eventId === eventId && r.riderId === ME.id
+      );
+      if (!stillRequesting) return;
+      const alreadyRiding = get().offers.some(
+        (o) => o.eventId === eventId && o.riderIds.includes(ME.id)
+      );
+      if (alreadyRiding) return;
+
+      const openOffer = get().offers.find(
+        (o) => o.eventId === eventId && o.driverId !== ME.id && o.riderIds.length < o.seats
+      );
+      const driver = openOffer
+        ? getUser(openOffer.driverId)
+        : getUser(['maya', 'theo', 'priya', 'sam', 'nia'].find((uid) => uid !== ME.id)!);
+      if (!driver) return;
+
+      set((s) => ({
+        offers: openOffer
+          ? s.offers.map((o) =>
+              o.id === openOffer.id ? { ...o, riderIds: [...o.riderIds, ME.id] } : o
+            )
+          : [
+              ...s.offers,
+              {
+                id: `carpool-${Date.now()}`,
+                eventId,
+                driverId: driver.id,
+                seats: 1,
+                note: '',
+                riderIds: [ME.id],
+              },
+            ],
+        requests: s.requests.filter((r) => !(r.eventId === eventId && r.riderId === ME.id)),
+      }));
+
+      if (
+        useSettingsStore.getState().notificationPrefs.carpoolUpdates &&
+        !useMutedEventsStore.getState().mutedEventIds[eventId]
+      ) {
+        const event = useEventsStore.getState().getEvent(eventId);
+        useNotificationsStore.getState().addNotification({
+          type: 'carpool',
+          actorId: driver.id,
+          text: `${driver.name} offered you a seat to ${event?.title ?? 'the event'}`,
+          time: 'Just now',
+          target: { kind: 'event', id: eventId },
+        });
+      }
+    }, INBOUND_RIDE_OFFER_DELAY_MS);
+  },
 
   updateRequest: (eventId, note) =>
     set((s) => ({
