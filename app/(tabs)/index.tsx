@@ -33,6 +33,7 @@ import { useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { isEventVisible, useGroupsStore } from '../../store/useGroupsStore';
 import { useNotificationsStore } from '../../store/useNotificationsStore';
+import { photoCaptionKey, usePhotoCaptionsStore } from '../../store/usePhotoCaptionsStore';
 import { usePostNotesStore } from '../../store/usePostNotesStore';
 import { getEffectiveReplies, usePostsStore } from '../../store/usePostsStore';
 import { useProfileStore } from '../../store/useProfileStore';
@@ -252,9 +253,16 @@ export default function HomeFeed() {
   const [reportingPost, setReportingPost] = useState<Post | null>(null);
   const hiddenPostIds = useHiddenPostsStore((s) => s.hiddenIds);
   const mutedWords = useMutedWordsStore((s) => s.words);
+  const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
+  const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
   const hidePost = useHiddenPostsStore((s) => s.hide);
   const [postMenuId, setPostMenuId] = useState<string | null>(null);
-  const [viewingPhotos, setViewingPhotos] = useState<{ uris: string[]; index: number } | null>(null);
+  const [viewingPhotos, setViewingPhotos] = useState<{
+    uris: string[];
+    index: number;
+    postId: string;
+    isMine: boolean;
+  } | null>(null);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
   const spotlightIndex = useSpotlightStore((s) => s.index);
@@ -718,7 +726,14 @@ export default function HomeFeed() {
                 {post.imageUris && post.imageUris.length > 0 && (
                   <PhotoCarousel
                     uris={post.imageUris}
-                    onPhotoPress={(i) => setViewingPhotos({ uris: post.imageUris!, index: i })}
+                    onPhotoPress={(i) =>
+                      setViewingPhotos({
+                        uris: post.imageUris!,
+                        index: i,
+                        postId: post.id,
+                        isMine: post.authorId === ME.id,
+                      })
+                    }
                   />
                 )}
                 {post.poll && (
@@ -842,6 +857,13 @@ export default function HomeFeed() {
           uris={viewingPhotos.uris}
           initialIndex={viewingPhotos.index}
           onClose={() => setViewingPhotos(null)}
+          captions={viewingPhotos.uris.map(
+            (uri) => photoCaptions[photoCaptionKey(viewingPhotos.postId, uri)] ?? ''
+          )}
+          editableIndices={viewingPhotos.uris.map(() => viewingPhotos.isMine)}
+          onCaptionChange={(i, text) =>
+            setPhotoCaption(photoCaptionKey(viewingPhotos.postId, viewingPhotos.uris[i]), text)
+          }
         />
       )}
     </SafeAreaView>

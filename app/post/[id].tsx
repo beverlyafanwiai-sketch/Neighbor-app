@@ -28,6 +28,7 @@ import { useBlockedStore } from '../../store/useBlockedStore';
 import { useConversationsStore } from '../../store/useConversationsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { containsMutedWord, useMutedWordsStore } from '../../store/useMutedWordsStore';
+import { photoCaptionKey, usePhotoCaptionsStore } from '../../store/usePhotoCaptionsStore';
 import {
   commentKey,
   getEffectiveReactions,
@@ -65,6 +66,8 @@ export default function PostDetail() {
   const comments = rawComments.filter(
     (c) => !containsMutedWord(c.text, mutedWords) && !blockedIds[c.authorId]
   );
+  const photoCaptions = usePhotoCaptionsStore((s) => s.captions);
+  const setPhotoCaption = usePhotoCaptionsStore((s) => s.setCaption);
   const myPollVote = usePostsStore((s) => (post ? s.myPollVotes[post.id] : undefined));
   const votePoll = usePostsStore((s) => s.votePoll);
   const closePoll = usePostsStore((s) => s.closePoll);
@@ -597,6 +600,11 @@ export default function PostDetail() {
           uris={post.imageUris}
           initialIndex={viewingPhotoIndex}
           onClose={() => setViewingPhotoIndex(null)}
+          captions={post.imageUris.map((uri) => photoCaptions[photoCaptionKey(post.id, uri)] ?? '')}
+          editableIndices={post.imageUris.map(() => post.authorId === ME.id)}
+          onCaptionChange={(i, text) =>
+            setPhotoCaption(photoCaptionKey(post.id, post.imageUris![i]), text)
+          }
         />
       )}
 
