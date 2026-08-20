@@ -65,6 +65,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     await new Promise((resolve) => setTimeout(resolve, MOCK_AUTH_DELAY_MS));
     const user: MockUser = { id: `user-${email.toLowerCase()}`, email };
+    // A new account should start onboarding from a blank profile, not
+    // whatever's left in the store from a previous session's seed data.
+    useProfileStore.getState().resetProfile();
     set({ session: { user }, user, password });
     return true;
   },
