@@ -6,8 +6,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CoverPhotoPicker from '../components/CoverPhotoPicker';
 import LocationPicker from '../components/LocationPicker';
-import type { VerificationBadge } from '../data/mock';
+import type { Prompt, VerificationBadge } from '../data/mock';
 import { useProfileStore } from '../store/useProfileStore';
+
+const MAX_PROMPTS = 3;
+
+const PROMPT_QUESTIONS = [
+  'How I recharge',
+  'A belief I hold that not everyone agrees with',
+  'What I’m looking for',
+  'The way to my heart is',
+  'I’m weirdly competitive about',
+  'A skill I’m proud of',
+  'My go-to comfort food',
+  'You’ll find me on weekends',
+  'A cause I care about',
+  'The best local secret I know',
+  'My ideal neighbor hangout',
+  'Something I’m currently learning',
+];
 
 const AVATAR_OPTIONS = [47, 1, 3, 4, 6, 7, 8, 10].map((n) => `https://i.pravatar.cc/300?img=${n}`);
 
@@ -61,7 +78,7 @@ function SectionHeading({ children }: { children: string }) {
 export default function EditProfile() {
   const profile = useProfileStore((s) => s.profile);
   const updateProfile = useProfileStore((s) => s.updateProfile);
-  const updatePrompt = useProfileStore((s) => s.updatePrompt);
+  const setPrompts = useProfileStore((s) => s.setPrompts);
 
   const [avatar, setAvatar] = useState(profile.avatar);
   const [coverImageUri, setCoverImageUri] = useState(profile.coverImageUri);
@@ -80,8 +97,26 @@ export default function EditProfile() {
   const [askMeAbout, setAskMeAbout] = useState(profile.conversationStarters.askMeAbout);
   const [skillsToShare, setSkillsToShare] = useState(profile.conversationStarters.skillsToShare);
   const [neighborhoodLove, setNeighborhoodLove] = useState(profile.conversationStarters.neighborhoodLove);
-  const [promptAnswers, setPromptAnswers] = useState(profile.prompts.map((p) => p.a));
+  const [prompts, setPromptsLocal] = useState<Prompt[]>(profile.prompts);
+  const [pickingPrompt, setPickingPrompt] = useState(false);
   const [confirmingClose, setConfirmingClose] = useState(false);
+
+  const unusedPromptQuestions = PROMPT_QUESTIONS.filter(
+    (q) => !prompts.some((p) => p.q === q)
+  );
+
+  const updatePromptAnswer = (index: number, answer: string) => {
+    setPromptsLocal((prev) => prev.map((p, i) => (i === index ? { ...p, a: answer } : p)));
+  };
+
+  const addPrompt = (q: string) => {
+    setPromptsLocal((prev) => [...prev, { q, a: '' }]);
+    setPickingPrompt(false);
+  };
+
+  const removePrompt = (index: number) => {
+    setPromptsLocal((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const hasUnsavedChanges =
     avatar !== profile.avatar ||
@@ -101,7 +136,8 @@ export default function EditProfile() {
     neighborhoodLove !== profile.conversationStarters.neighborhoodLove ||
     !sameSet(tags, profile.tags) ||
     !sameSet(verifications, profile.verifications) ||
-    promptAnswers.some((a, i) => a !== profile.prompts[i]?.a);
+    prompts.length !== profile.prompts.length ||
+    prompts.some((p, i) => p.q !== profile.prompts[i]?.q || p.a !== profile.prompts[i]?.a);
 
   const toggleTag = (tag: string) => {
     setTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
@@ -133,7 +169,7 @@ export default function EditProfile() {
         neighborhoodLove: neighborhoodLove.trim(),
       },
     });
-    promptAnswers.forEach((answer, i) => updatePrompt(i, answer.trim()));
+    setPrompts(prompts.map((p) => ({ q: p.q, a: p.a.trim() })).filter((p) => p.a.length > 0));
     router.back();
   };
 
@@ -279,19 +315,36 @@ export default function EditProfile() {
               />
             </View>
 
-            {profile.prompts.map((p, i) => (
+            {prompts.map((p, i) => (
               <View key={p.q}>
-                <FieldLabel>{p.q}</FieldLabel>
+                <View className="mb-1.5 flex-row items-center justify-between">
+                  <FieldLabel>{p.q}</FieldLabel>
+                  <Pressable
+                    onPress={() => removePrompt(i)}
+                    accessibilityLabel={`Remove prompt "${p.q}"`}
+                    accessibilityRole="button"
+                  >
+                    <Ionicons name="close" size={14} className="text-charcoal/40" />
+                  </Pressable>
+                </View>
                 <TextInput
-                  value={promptAnswers[i]}
-                  onChangeText={(text) =>
-                    setPromptAnswers((prev) => prev.map((a, idx) => (idx === i ? text : a)))
-                  }
+                  value={p.a}
+                  onChangeText={(text) => updatePromptAnswer(i, text)}
                   multiline
                   className="min-h-[64px] rounded-2xl bg-sand px-4 py-3 text-base text-charcoal"
                 />
               </View>
             ))}
+
+            {prompts.length < MAX_PROMPTS && (
+              <Pressable
+                onPress={() => setPickingPrompt(true)}
+                className="flex-row items-center justify-center gap-2 rounded-2xl border border-dashed border-charcoal/20 py-3.5"
+              >
+                <Ionicons name="add" size={16} className="text-charcoal/60" />
+                <Text className="text-sm font-medium text-charcoal/60">Add a prompt</Text>
+              </Pressable>
+            )}
           </View>
 
           <SectionHeading>What are you into?</SectionHeading>
@@ -414,6 +467,38 @@ export default function EditProfile() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {pickingPrompt && (
+        <View className="absolute inset-0 items-center justify-end bg-ink/40">
+          <Pressable className="absolute inset-0" onPress={() => setPickingPrompt(false)} />
+          <View className="max-h-[70%] w-full gap-3 rounded-t-3xl bg-cream p-5 pb-8">
+            <View className="flex-row items-center justify-between">
+              <Text className="text-base font-bold text-charcoal">Choose a prompt</Text>
+              <Pressable
+                onPress={() => setPickingPrompt(false)}
+                accessibilityLabel="Close"
+                accessibilityRole="button"
+                className="h-8 w-8 items-center justify-center rounded-full bg-sand"
+              >
+                <Ionicons name="close" size={16} className="text-charcoal" />
+              </Pressable>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View className="gap-1 pb-2">
+                {unusedPromptQuestions.map((q) => (
+                  <Pressable
+                    key={q}
+                    onPress={() => addPrompt(q)}
+                    className="rounded-2xl p-3 active:opacity-70"
+                  >
+                    <Text className="text-sm font-medium text-charcoal">{q}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }

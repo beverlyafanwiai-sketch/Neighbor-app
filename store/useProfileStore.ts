@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { ME, type User } from '../data/mock';
+import { ME, type Prompt, type User } from '../data/mock';
 
 type EditableFields = Pick<
   User,
@@ -24,7 +24,7 @@ type EditableFields = Pick<
 type ProfileState = {
   profile: User;
   updateProfile: (updates: Partial<EditableFields>) => void;
-  updatePrompt: (index: number, answer: string) => void;
+  setPrompts: (prompts: Prompt[]) => void;
 };
 
 export const useProfileStore = create<ProfileState>((set) => ({
@@ -32,11 +32,5 @@ export const useProfileStore = create<ProfileState>((set) => ({
 
   updateProfile: (updates) => set((s) => ({ profile: { ...s.profile, ...updates } })),
 
-  updatePrompt: (index, answer) =>
-    set((s) => {
-      const prompts = [...s.profile.prompts];
-      if (!prompts[index]) return s;
-      prompts[index] = { ...prompts[index], a: answer };
-      return { profile: { ...s.profile, prompts } };
-    }),
+  setPrompts: (prompts) => set((s) => ({ profile: { ...s.profile, prompts } })),
 }));
