@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { GROUP_SELFIE_SVG } from '../../assets/illustrations/group-selfie';
 import EmptyState from '../../components/EmptyState';
 import { getUser } from '../../data/mock';
+import { useBlockedStore } from '../../store/useBlockedStore';
 import { useDismissedDiscoverStore } from '../../store/useDismissedDiscoverStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { memberCountLabel, useGroupsStore } from '../../store/useGroupsStore';
@@ -33,6 +34,7 @@ function ToneTag({ tone }: { tone: string }) {
 
 export default function Groups() {
   const profile = useProfileStore((s) => s.profile);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
@@ -123,7 +125,10 @@ export default function Groups() {
         </View>
         <View className="gap-3">
           {circles.map((c) => {
-            const otherAvatars = c.memberIds.map((id) => getUser(id)).filter(Boolean);
+            const otherAvatars = c.memberIds
+              .filter((id) => !blockedIds[id])
+              .map((id) => getUser(id))
+              .filter(Boolean);
             const avatars = [profile, ...otherAvatars];
             return (
               <Pressable

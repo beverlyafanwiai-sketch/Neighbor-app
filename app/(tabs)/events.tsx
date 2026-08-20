@@ -444,7 +444,10 @@ export default function Events() {
               const going = goingMap[e.id] ?? false;
               const waitlisted = waitlistMap[e.id] ?? false;
               const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(e.id, going);
-              const otherAvatars = e.attendeeIds.map((id) => getUser(id)).filter(Boolean);
+              const otherAvatars = e.attendeeIds
+                .filter((id) => !blockedIds[id])
+                .map((id) => getUser(id))
+                .filter(Boolean);
               const avatars = going ? [profile, ...otherAvatars] : otherAvatars;
               const saved = savedEventIds[e.id] ?? false;
               const isPinned = e.id === pinnedEventId;
