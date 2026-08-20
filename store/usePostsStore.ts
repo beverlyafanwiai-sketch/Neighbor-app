@@ -7,6 +7,8 @@ import { useNotificationsStore } from './useNotificationsStore';
 import { useProfileStore } from './useProfileStore';
 import { useSettingsStore } from './useSettingsStore';
 
+const INBOUND_POLL_VOTE_DELAY_MS = 4000;
+
 export type ScheduledPost = {
   id: string;
   body: string;
@@ -38,6 +40,33 @@ function notifyMentions(text: string, postId: string, context: 'post' | 'comment
       target: { kind: 'post', id: postId },
     });
   }
+}
+
+function scheduleInboundPollVote(
+  get: () => PostsState,
+  set: (fn: (s: PostsState) => Partial<PostsState>) => void,
+  postId: string
+) {
+  setTimeout(() => {
+    const current = get().posts.find((p) => p.id === postId);
+    if (!current?.poll || isPollClosed(current.poll) || current.poll.options.length === 0) return;
+    const optionIndex = Math.floor(Math.random() * current.poll.options.length);
+    set((s) => ({
+      posts: s.posts.map((p) =>
+        p.id === postId && p.poll
+          ? {
+              ...p,
+              poll: {
+                ...p.poll,
+                options: p.poll.options.map((o, i) =>
+                  i === optionIndex ? { ...o, votes: o.votes + 1 } : o
+                ),
+              },
+            }
+          : p
+      ),
+    }));
+  }, INBOUND_POLL_VOTE_DELAY_MS);
 }
 
 export type PostEdits = { body: string; imageUris?: string[] };
@@ -117,6 +146,8 @@ export const usePostsStore = create<PostsState>((set, get) => ({
     set((s) => ({ posts: [post, ...s.posts] }));
     notifyMentions(body, post.id, 'post');
     useGettingStartedStore.getState().markPosted();
+
+    if (poll) scheduleInboundPollVote(get, set, post.id);
   },
 
   updatePost: (id, updates) =>
@@ -239,6 +270,7 @@ export const usePostsStore = create<PostsState>((set, get) => ({
       scheduledPosts: s.scheduledPosts.filter((p) => p.id !== id),
     }));
     notifyMentions(scheduled.body, post.id, 'post');
+    if (post.poll) scheduleInboundPollVote(get, set, post.id);
   },
 
   tapReaction: (postId) =>
