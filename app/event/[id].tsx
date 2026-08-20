@@ -197,8 +197,8 @@ export default function EventDetail() {
   const myRequest = carpoolRequests.find((r) => r.riderId === ME.id);
   const saved = savedIds[event.id] ?? false;
   const myRating = myRatings[event.id];
-  const ratingSummary = getEffectiveRatingSummary(event.id, myRating);
-  const effectiveRatings = getEffectiveRatings(event.id, myRating);
+  const ratingSummary = getEffectiveRatingSummary(event.id, myRating, blockedIds);
+  const effectiveRatings = getEffectiveRatings(event.id, myRating, blockedIds);
 
   const remove = () => {
     deleteEvent(event.id);

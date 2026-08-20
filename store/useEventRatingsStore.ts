@@ -23,17 +23,22 @@ export const useEventRatingsStore = create<EventRatingsState>((set) => ({
 // spotsTaken/helperCount.
 export function getEffectiveRatings(
   eventId: string,
-  myRating: EventRating | undefined
+  myRating: EventRating | undefined,
+  blockedIds: Record<string, boolean> = {}
 ): EventRatingEntry[] {
   const event = useEventsStore.getState().getEvent(eventId);
-  const baseline = event?.ratingBaseline ?? [];
+  const baseline = (event?.ratingBaseline ?? []).filter((r) => !blockedIds[r.userId]);
   return myRating
     ? [...baseline, { userId: ME.id, stars: myRating.stars, comment: myRating.comment }]
     : baseline;
 }
 
-export function getEffectiveRatingSummary(eventId: string, myRating: EventRating | undefined) {
-  const ratings = getEffectiveRatings(eventId, myRating);
+export function getEffectiveRatingSummary(
+  eventId: string,
+  myRating: EventRating | undefined,
+  blockedIds: Record<string, boolean> = {}
+) {
+  const ratings = getEffectiveRatings(eventId, myRating, blockedIds);
   const count = ratings.length;
   const total = ratings.reduce((sum, r) => sum + r.stars, 0);
   return { avg: count > 0 ? total / count : 0, count };
