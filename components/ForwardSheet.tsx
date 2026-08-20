@@ -3,6 +3,7 @@ import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { getUser } from '../data/mock';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { useConversationsStore } from '../store/useConversationsStore';
 import { useGroupsStore } from '../store/useGroupsStore';
 
@@ -28,10 +29,11 @@ export default function ForwardSheet({
   const conversations = useConversationsStore((s) => s.conversations);
   const groups = useGroupsStore((s) => s.groups);
   const joined = useGroupsStore((s) => s.joined);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
   const [sentTo, setSentTo] = useState<string | null>(null);
 
   const dmTargets = Object.values(conversations)
-    .filter((c) => c.id !== excludeConversationId)
+    .filter((c) => c.id !== excludeConversationId && !blockedIds[c.userId])
     .map((c) => {
       const user = getUser(c.userId);
       return user ? { kind: 'dm' as const, id: c.id, name: user.name, avatar: user.avatar } : null;

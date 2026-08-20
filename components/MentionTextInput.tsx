@@ -1,6 +1,7 @@
 import { Image, Pressable, Text, TextInput, View } from 'react-native';
 
 import { mentionableUsers } from '../lib/mentions';
+import { useBlockedStore } from '../store/useBlockedStore';
 
 type Props = {
   value: string;
@@ -23,12 +24,15 @@ export default function MentionTextInput({
   style,
   dropdownPosition = 'below',
 }: Props) {
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
   const match = value.match(/@(\w*)$/);
   const query = match ? match[1].toLowerCase() : null;
   const suggestions =
     query === null
       ? []
-      : mentionableUsers().filter((u) => u.name.split(' ')[0].toLowerCase().startsWith(query));
+      : mentionableUsers().filter(
+          (u) => !blockedIds[u.id] && u.name.split(' ')[0].toLowerCase().startsWith(query)
+        );
 
   const pick = (name: string) => {
     onChangeText(value.replace(/@(\w*)$/, `@${name} `));
