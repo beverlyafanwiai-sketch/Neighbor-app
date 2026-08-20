@@ -6,7 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import EmptyState from '../components/EmptyState';
 import MentionText from '../components/MentionText';
-import { DISCOVER_USERS, ME, USERS, getUser, type Tone } from '../data/mock';
+import { ALERT_CATEGORIES, DISCOVER_USERS, ME, USERS, getUser, type Tone } from '../data/mock';
+import { getActiveAlerts, useAlertsStore } from '../store/useAlertsStore';
 import { useBlockedStore } from '../store/useBlockedStore';
 import { useConversationsStore } from '../store/useConversationsStore';
 import { useEventsStore } from '../store/useEventsStore';
@@ -56,6 +57,9 @@ export default function Search() {
   const posts = usePostsStore((s) => s.posts);
   const myReactions = usePostsStore((s) => s.myReactions);
   const comments = usePostsStore((s) => s.comments);
+
+  const [now] = useState(() => Date.now());
+  const alerts = useAlertsStore((s) => s.alerts);
 
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const respondFriend = useFriendsStore((s) => s.respond);
@@ -118,6 +122,15 @@ export default function Search() {
               e.description.toLowerCase().includes(q)) &&
             isEventVisible(e.hostGroupId, joinedMap)
         );
+
+  const matchedAlerts =
+    q.length === 0
+      ? []
+      : getActiveAlerts(alerts, now).filter((a) => {
+          if (blockedIds[a.authorId]) return false;
+          if (containsMutedWord(a.text, mutedWords)) return false;
+          return a.text.toLowerCase().includes(q) || (a.location ?? '').toLowerCase().includes(q);
+        });
 
   type MessageMatch = {
     key: string;
@@ -201,6 +214,7 @@ export default function Search() {
       matchedPeople.length +
       matchedGroups.length +
       matchedEvents.length +
+      matchedAlerts.length +
       matchedMessages.length +
       matchedRecs.length +
       matchedLendItems.length +
@@ -410,6 +424,37 @@ export default function Search() {
                   )}
                 </Pressable>
               ))}
+            </View>
+          </>
+        )}
+
+        {matchedAlerts.length > 0 && (
+          <>
+            <SectionLabel>Alerts</SectionLabel>
+            <View className="gap-3">
+              {matchedAlerts.map((a) => {
+                const meta = ALERT_CATEGORIES.find((c) => c.value === a.category);
+                const author = a.authorId === ME.id ? profile : getUser(a.authorId);
+                return (
+                  <Pressable
+                    key={a.id}
+                    onPress={() => router.push('/alerts')}
+                    className="flex-row items-center gap-3 rounded-2xl bg-cream p-4 active:opacity-80"
+                  >
+                    <View className="h-11 w-11 items-center justify-center rounded-xl bg-sand">
+                      <Text style={{ fontSize: 20 }}>{meta?.emoji ?? '📢'}</Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="font-semibold text-charcoal" numberOfLines={1}>
+                        {a.text}
+                      </Text>
+                      <Text className="mt-0.5 text-xs text-charcoal/50" numberOfLines={1}>
+                        {meta?.label ?? 'Alert'} · {author?.name ?? 'A neighbor'}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
           </>
         )}
