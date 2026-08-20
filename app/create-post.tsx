@@ -63,10 +63,14 @@ export default function CreatePost() {
       existingScheduled?.imageUris ??
       []
   );
+  const sourcePoll = existingScheduled?.poll ?? duplicateSource?.poll;
   const [confirmingClose, setConfirmingClose] = useState(false);
-  const [showPollBuilder, setShowPollBuilder] = useState(false);
-  const [pollOptions, setPollOptions] = useState(['', '']);
+  const [showPollBuilder, setShowPollBuilder] = useState(Boolean(sourcePoll));
+  const [pollOptions, setPollOptions] = useState<string[]>(
+    sourcePoll ? sourcePoll.options.map((o) => o.label) : ['', '']
+  );
   const [pollDurationHours, setPollDurationHours] = useState<number | null>(null);
+  const [pollDurationTouched, setPollDurationTouched] = useState(false);
   const [scheduledFor, setScheduledFor] = useState<number | null>(existingScheduled?.scheduledFor ?? null);
   const [showSchedulePicker, setShowSchedulePicker] = useState(false);
 
@@ -107,9 +111,11 @@ export default function CreatePost() {
       showPollBuilder && validPollOptions.length >= 2
         ? {
             options: validPollOptions.map((label, i) => ({ id: `opt-${i}`, label, votes: 0 })),
-            closesAt: pollDurationHours
-              ? (scheduledFor ?? Date.now()) + pollDurationHours * 60 * 60 * 1000
-              : undefined,
+            closesAt: pollDurationTouched
+              ? pollDurationHours
+                ? (scheduledFor ?? Date.now()) + pollDurationHours * 60 * 60 * 1000
+                : undefined
+              : sourcePoll?.closesAt,
           }
         : undefined;
     if (scheduledFor) {
@@ -313,7 +319,10 @@ export default function CreatePost() {
                   return (
                     <Pressable
                       key={p.label}
-                      onPress={() => setPollDurationHours(p.hours)}
+                      onPress={() => {
+                        setPollDurationHours(p.hours);
+                        setPollDurationTouched(true);
+                      }}
                       className={`rounded-full px-3 py-1 ${active ? 'bg-ink' : 'bg-sand'}`}
                     >
                       <Text
