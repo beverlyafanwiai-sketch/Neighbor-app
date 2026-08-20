@@ -89,7 +89,11 @@ export default function Discover() {
       : discoverableUsers.filter(
           (u) => u.name.toLowerCase().includes(q) || u.tags.some((t) => t.includes(q))
         );
-    if (peopleSort === 'Suggested') return base;
+    if (peopleSort === 'Suggested') {
+      return [...base].sort(
+        (a, b) => getSharedTags(b.tags, myTags).length - getSharedTags(a.tags, myTags).length
+      );
+    }
     const sorted = [...base];
     if (peopleSort === 'A-Z') {
       sorted.sort((a, b) => a.name.localeCompare(b.name));
@@ -97,7 +101,7 @@ export default function Discover() {
       sorted.sort((a, b) => Number(Boolean(b.isNew)) - Number(Boolean(a.isNew)));
     }
     return sorted;
-  }, [query, discoverableUsers, peopleSort]);
+  }, [query, discoverableUsers, peopleSort, myTags]);
 
   const redeemCode = () => {
     const groupId = joinByInviteCode(inviteCodeInput);
@@ -118,7 +122,14 @@ export default function Discover() {
       : discoverGroups.filter(
           (g) => g.name.toLowerCase().includes(q) || g.tag?.toLowerCase().includes(q)
         );
-    if (groupSort === 'Suggested') return base;
+    if (groupSort === 'Suggested') {
+      const score = (g: (typeof base)[number]) => {
+        const friendMembers = g.memberIds.filter((id) => friendStatuses[id] === 'friends').length;
+        const tagMatch = g.tag && myTags.includes(g.tag) ? 1 : 0;
+        return friendMembers * 10 + tagMatch;
+      };
+      return [...base].sort((a, b) => score(b) - score(a));
+    }
     const sorted = [...base];
     if (groupSort === 'A-Z') {
       sorted.sort((a, b) => a.name.localeCompare(b.name));
@@ -128,7 +139,7 @@ export default function Discover() {
       );
     }
     return sorted;
-  }, [query, discoverGroups, groupSort]);
+  }, [query, discoverGroups, groupSort, friendStatuses, myTags]);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>
@@ -470,6 +481,9 @@ export default function Discover() {
             )}
             {groups.map((g) => {
               const toneStyle = TONE_STYLE[g.tone];
+              const friendMemberCount = g.memberIds.filter(
+                (id) => friendStatuses[id] === 'friends'
+              ).length;
               return (
                 <Pressable
                   key={g.id}
@@ -489,6 +503,11 @@ export default function Discover() {
                         <Text className={`text-xs font-semibold ${toneStyle.text}`}>{g.tone}</Text>
                       </View>
                     </View>
+                    {friendMemberCount > 0 && (
+                      <Text className="mt-1 text-xs text-sage">
+                        {friendMemberCount} friend{friendMemberCount === 1 ? '' : 's'} here
+                      </Text>
+                    )}
                   </View>
                   <Pressable
                     onPress={(evt) => {
