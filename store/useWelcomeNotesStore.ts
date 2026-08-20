@@ -66,6 +66,10 @@ export const useWelcomeNotesStore = create<WelcomeNotesState>((set) => ({
     })),
 }));
 
-export function getWelcomeNotes(userId: string, notes: WelcomeNote[]) {
-  return notes.filter((n) => n.toUserId === userId);
+export function getWelcomeNotes(
+  userId: string,
+  notes: WelcomeNote[],
+  blockedIds: Record<string, boolean> = {}
+) {
+  return notes.filter((n) => n.toUserId === userId && !blockedIds[n.fromUserId]);
 }

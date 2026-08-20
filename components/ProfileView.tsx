@@ -14,6 +14,7 @@ import {
   getSharedTags,
 } from '../lib/trust';
 import { getAvailableNote, isAvailable, useAvailabilityStore } from '../store/useAvailabilityStore';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { useCheckInStore } from '../store/useCheckInStore';
 import { getEndorsementGroups, useEndorsementsStore } from '../store/useEndorsementsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
@@ -130,7 +131,8 @@ export default function ProfileView({
   const myNoteReactions = useWelcomeNotesStore((s) => s.myReactions);
   const tapNoteReaction = useWelcomeNotesStore((s) => s.tapReaction);
   const setNoteReaction = useWelcomeNotesStore((s) => s.setReaction);
-  const welcomeNotes = getWelcomeNotes(user.id, allWelcomeNotes);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const welcomeNotes = getWelcomeNotes(user.id, allWelcomeNotes, blockedIds);
   const [composingNote, setComposingNote] = useState(false);
   const [noteDraft, setNoteDraft] = useState('');
   const [confirmingDeleteNoteId, setConfirmingDeleteNoteId] = useState<string | null>(null);
@@ -140,7 +142,7 @@ export default function ProfileView({
   const addEndorsement = useEndorsementsStore((s) => s.addEndorsement);
   const removeEndorsement = useEndorsementsStore((s) => s.removeEndorsement);
   const updateEndorsementNote = useEndorsementsStore((s) => s.updateEndorsementNote);
-  const endorsementGroups = getEndorsementGroups(user.id, endorsements);
+  const endorsementGroups = getEndorsementGroups(user.id, endorsements, blockedIds);
   const [composingEndorsement, setComposingEndorsement] = useState(false);
   const [endorsementDraft, setEndorsementDraft] = useState('');
   const [endorsementNoteDraft, setEndorsementNoteDraft] = useState('');

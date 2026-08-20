@@ -74,9 +74,10 @@ export type EndorsementGroup = { skill: string; entries: Endorsement[] };
 
 export function getEndorsementGroups(
   targetUserId: string,
-  endorsements: Record<string, Endorsement[]>
+  endorsements: Record<string, Endorsement[]>,
+  blockedIds: Record<string, boolean> = {}
 ): EndorsementGroup[] {
-  const list = endorsements[targetUserId] ?? [];
+  const list = (endorsements[targetUserId] ?? []).filter((e) => !blockedIds[e.endorserId]);
   const groups = new Map<string, EndorsementGroup>();
   for (const entry of list) {
     const key = entry.skill.toLowerCase();
