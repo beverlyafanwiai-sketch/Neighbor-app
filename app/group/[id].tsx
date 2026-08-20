@@ -10,6 +10,7 @@ import PhotoViewer from '../../components/PhotoViewer';
 import ReportPostSheet from '../../components/ReportPostSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser } from '../../data/mock';
+import { useBlockedStore } from '../../store/useBlockedStore';
 import { getGroupPhotos, useGroupAlbumStore } from '../../store/useGroupAlbumStore';
 import { useEventsStore } from '../../store/useEventsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
@@ -36,6 +37,7 @@ export default function GroupDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const group = useGroupsStore((s) => s.groups.find((g) => g.id === id));
   const profile = useProfileStore((s) => s.profile);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
   const joined = useGroupsStore((s) => (group ? (s.joined[group.id] ?? false) : false));
   const toggleJoin = useGroupsStore((s) => s.toggle);
   const joinByInviteCode = useGroupsStore((s) => s.joinByInviteCode);
@@ -101,7 +103,10 @@ export default function GroupDetail() {
     );
   }
 
-  const otherMembers = group.memberIds.map((id) => getUser(id)).filter(Boolean);
+  const otherMembers = group.memberIds
+    .filter((id) => !blockedIds[id])
+    .map((id) => getUser(id))
+    .filter(Boolean);
   const members = joined ? [profile, ...otherMembers] : otherMembers;
   const taggableUsers = members
     .filter((m): m is NonNullable<typeof m> => Boolean(m))
