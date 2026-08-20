@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { getUser, LEND_ITEMS, ME, type LendItem, type LendItemKind } from '../data/mock';
+import { useBlockedStore } from './useBlockedStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
@@ -325,7 +326,8 @@ export const useLendStore = create<LendState>((set, get) => ({
 // to help *not including* ME. Effective totals/ids fold in ME's own offer on top.
 export function getEffectiveHelperIds(itemId: string, offered: boolean): string[] {
   const item = useLendStore.getState().items.find((i) => i.id === itemId);
-  const base = item?.helperIds ?? [];
+  const blockedIds = useBlockedStore.getState().blockedIds;
+  const base = (item?.helperIds ?? []).filter((id) => !blockedIds[id]);
   return offered ? [...base, ME.id] : base;
 }
 

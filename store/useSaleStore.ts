@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { getUser, ME, SALE_ITEMS, type SaleCondition, type SaleItem } from '../data/mock';
+import { useBlockedStore } from './useBlockedStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
@@ -435,7 +436,8 @@ export function isFreeItem(price: string) {
 // interested *not including* ME — mirrors LendItem.helperIds.
 export function getEffectiveInterestedIds(itemId: string, interested: boolean): string[] {
   const item = useSaleStore.getState().items.find((i) => i.id === itemId);
-  const base = item?.interestedByIds ?? [];
+  const blockedIds = useBlockedStore.getState().blockedIds;
+  const base = (item?.interestedByIds ?? []).filter((id) => !blockedIds[id]);
   return interested ? [...base, ME.id] : base;
 }
 

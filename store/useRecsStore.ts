@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { getUser, ME, REC_ENTRIES, type RecEntry, type RecEntryKind } from '../data/mock';
+import { useBlockedStore } from './useBlockedStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useSettingsStore } from './useSettingsStore';
 
@@ -154,7 +155,8 @@ export const useRecsStore = create<RecsState>((set, get) => ({
 // ME. Effective totals/ids fold in ME's own agreement/offer on top of that.
 export function getEffectiveAgreedIds(entryId: string, agreed: boolean): string[] {
   const entry = useRecsStore.getState().entries.find((e) => e.id === entryId);
-  const base = entry?.agreedByIds ?? [];
+  const blockedIds = useBlockedStore.getState().blockedIds;
+  const base = (entry?.agreedByIds ?? []).filter((id) => !blockedIds[id]);
   return agreed ? [...base, ME.id] : base;
 }
 

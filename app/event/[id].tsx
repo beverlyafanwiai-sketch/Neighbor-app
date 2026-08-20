@@ -11,6 +11,7 @@ import { ME, getUser } from '../../data/mock';
 import { getCountdownLabel } from '../../lib/eventCountdown';
 import { addEventToCalendar } from '../../lib/ics';
 import { formatOccurrence, getUpcomingOccurrences, RECURRENCE_LABEL } from '../../lib/recurrence';
+import { useBlockedStore } from '../../store/useBlockedStore';
 import { useCarpoolStore } from '../../store/useCarpoolStore';
 import { getEffectiveCheckedInIds, useCheckInStore } from '../../store/useCheckInStore';
 import {
@@ -53,6 +54,7 @@ export default function EventDetail() {
   const [editingEventNote, setEditingEventNote] = useState(false);
   const [eventNoteDraft, setEventNoteDraft] = useState('');
   const profile = useProfileStore((s) => s.profile);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
   const going = useRsvpStore((s) => (event ? (s.going[event.id] ?? false) : false));
   const waitlisted = useRsvpStore((s) => (event ? (s.waitlisted[event.id] ?? false) : false));
   const bringingGuest = useRsvpStore((s) => (event ? (s.plusOne[event.id] ?? false) : false));
@@ -155,7 +157,10 @@ export default function EventDetail() {
   const eventUpdates = allEventUpdates[event.id] ?? [];
   const { spotsTaken, spotsTotal, isFull } = getEffectiveSpots(event.id, going, bringingGuest);
   const waitlistPosition = getWaitlistPosition(event.id, waitlisted);
-  const otherAttendees = event.attendeeIds.map((id) => getUser(id)).filter(Boolean);
+  const otherAttendees = event.attendeeIds
+    .filter((id) => !blockedIds[id])
+    .map((id) => getUser(id))
+    .filter(Boolean);
   const attendees = going || canManage ? [profile, ...otherAttendees] : otherAttendees;
   const taggableUsers = attendees
     .filter((a): a is NonNullable<typeof a> => Boolean(a))

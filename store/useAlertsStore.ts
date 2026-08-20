@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { ME, NEIGHBORHOOD_ALERTS, type AlertCategoryValue, type NeighborhoodAlert } from '../data/mock';
+import { useBlockedStore } from './useBlockedStore';
 
 export type AlertDraft = {
   id: string;
@@ -165,7 +166,8 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
 // ME who've confirmed the alert is still happening. Effective totals fold in
 // ME's own confirmation on top of that.
 export function getEffectiveConfirmedIds(alert: NeighborhoodAlert, confirmed: boolean): string[] {
-  const base = alert.confirmedByIds ?? [];
+  const blockedIds = useBlockedStore.getState().blockedIds;
+  const base = (alert.confirmedByIds ?? []).filter((id) => !blockedIds[id]);
   return confirmed ? [...base, ME.id] : base;
 }
 

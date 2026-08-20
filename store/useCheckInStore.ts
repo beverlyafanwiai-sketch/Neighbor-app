@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { ME, type EventItem } from '../data/mock';
+import { useBlockedStore } from './useBlockedStore';
 
 type CheckInState = {
   myCheckIns: Record<string, boolean>;
@@ -27,6 +28,7 @@ export const useCheckInStore = create<CheckInState>((set) => ({
 // event.checkedInIds is the baseline list of other attendees who've checked
 // in — ME's own check-in folds in on top, same pattern as spotsTaken/going.
 export function getEffectiveCheckedInIds(event: EventItem, myCheckedIn: boolean): string[] {
-  const base = event.checkedInIds ?? [];
+  const blockedIds = useBlockedStore.getState().blockedIds;
+  const base = (event.checkedInIds ?? []).filter((id) => !blockedIds[id]);
   return myCheckedIn ? [...base, ME.id] : base;
 }
