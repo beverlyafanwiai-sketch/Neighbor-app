@@ -57,6 +57,7 @@ export default function Discover() {
   const dismissGroup = useDismissedDiscoverStore((s) => s.dismissGroup);
   const [menuForId, setMenuForId] = useState<string | null>(null);
   const myTags = useProfileStore((s) => s.profile.tags);
+  const myNeighborhood = useProfileStore((s) => s.profile.neighborhood);
   const savedSearches = useSavedDiscoverSearchesStore((s) => s.searches);
   const saveSearch = useSavedDiscoverSearchesStore((s) => s.saveSearch);
   const renameSearch = useSavedDiscoverSearchesStore((s) => s.renameSearch);
@@ -90,9 +91,10 @@ export default function Discover() {
           (u) => u.name.toLowerCase().includes(q) || u.tags.some((t) => t.includes(q))
         );
     if (peopleSort === 'Suggested') {
-      return [...base].sort(
-        (a, b) => getSharedTags(b.tags, myTags).length - getSharedTags(a.tags, myTags).length
-      );
+      const score = (u: (typeof base)[number]) =>
+        getSharedTags(u.tags, myTags).length +
+        (myNeighborhood && u.neighborhood === myNeighborhood ? 1 : 0);
+      return [...base].sort((a, b) => score(b) - score(a));
     }
     const sorted = [...base];
     if (peopleSort === 'A-Z') {
@@ -101,7 +103,7 @@ export default function Discover() {
       sorted.sort((a, b) => Number(Boolean(b.isNew)) - Number(Boolean(a.isNew)));
     }
     return sorted;
-  }, [query, discoverableUsers, peopleSort, myTags]);
+  }, [query, discoverableUsers, peopleSort, myTags, myNeighborhood]);
 
   const redeemCode = () => {
     const groupId = joinByInviteCode(inviteCodeInput);
@@ -412,13 +414,26 @@ export default function Discover() {
                     </Pressable>
                   </View>
 
-                  {shared.length > 0 && (
-                    <View className="mt-3 flex-row flex-wrap items-center gap-1.5 border-t border-charcoal/10 pt-3">
-                      <Ionicons name="sparkles-outline" size={13} className="text-sage" />
-                      <Text className="text-xs text-sage">
-                        Shares {shared.length === 1 ? 'an interest' : `${shared.length} interests`}
-                        : {shared.join(', ')}
-                      </Text>
+                  {(shared.length > 0 ||
+                    (myNeighborhood && p.neighborhood === myNeighborhood)) && (
+                    <View className="mt-3 gap-1 border-t border-charcoal/10 pt-3">
+                      {myNeighborhood && p.neighborhood === myNeighborhood && (
+                        <View className="flex-row flex-wrap items-center gap-1.5">
+                          <Ionicons name="location-outline" size={13} className="text-terracotta" />
+                          <Text className="text-xs text-terracotta">
+                            Also in {p.neighborhood}
+                          </Text>
+                        </View>
+                      )}
+                      {shared.length > 0 && (
+                        <View className="flex-row flex-wrap items-center gap-1.5">
+                          <Ionicons name="sparkles-outline" size={13} className="text-sage" />
+                          <Text className="text-xs text-sage">
+                            Shares {shared.length === 1 ? 'an interest' : `${shared.length} interests`}
+                            : {shared.join(', ')}
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   )}
                 </Pressable>
