@@ -6,14 +6,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import EmptyState from '../components/EmptyState';
 import MentionText from '../components/MentionText';
 import { ALERT_CATEGORIES, ME, getUser } from '../data/mock';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { formatPostedAgo, getExpiredAlerts, useAlertsStore } from '../store/useAlertsStore';
 import { useProfileStore } from '../store/useProfileStore';
 
 export default function AlertArchive() {
   const alerts = useAlertsStore((s) => s.alerts);
   const profile = useProfileStore((s) => s.profile);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
   const now = Date.now();
-  const expired = getExpiredAlerts(alerts, now);
+  const expired = getExpiredAlerts(alerts, now).filter((a) => !blockedIds[a.authorId]);
 
   return (
     <SafeAreaView className="flex-1 bg-sand" edges={['top']}>

@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import EmptyState from '../components/EmptyState';
 import { ME, getUser } from '../data/mock';
 import { useArchivedChatsStore } from '../store/useArchivedChatsStore';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { useConversationsStore } from '../store/useConversationsStore';
 import { useGroupChatStore } from '../store/useGroupChatStore';
 import { useGroupsStore } from '../store/useGroupsStore';
@@ -15,13 +16,16 @@ export default function ArchivedChats() {
   const toggleArchive = useArchivedChatsStore((s) => s.toggleArchive);
 
   const conversations = useConversationsStore((s) => s.conversations);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
 
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const groupMessages = useGroupChatStore((s) => s.messages);
 
   const archivedGroups = groups.filter((g) => joinedMap[g.id] && archivedIds[g.id]);
-  const archivedConversations = Object.values(conversations).filter((c) => archivedIds[c.id]);
+  const archivedConversations = Object.values(conversations).filter(
+    (c) => archivedIds[c.id] && !blockedIds[c.userId]
+  );
 
   const isEmpty = archivedGroups.length === 0 && archivedConversations.length === 0;
 
