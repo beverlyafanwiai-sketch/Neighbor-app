@@ -115,6 +115,7 @@ function RightRail() {
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
   const friendStatuses = useFriendsStore((s) => s.statuses);
+  const myTags = useProfileStore((s) => s.profile.tags);
   const groups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const myAvailable = useAvailabilityStore((s) => s.myAvailable);
@@ -130,6 +131,14 @@ function RightRail() {
     .slice(0, 5);
   const suggestedGroups = groups
     .filter((g) => !joinedMap[g.id] && !dismissedGroupIds[g.id] && g.privacy !== 'private')
+    .sort((a, b) => {
+      const score = (g: (typeof groups)[number]) => {
+        const friendMembers = g.memberIds.filter((id) => friendStatuses[id] === 'friends').length;
+        const tagMatch = g.tag && myTags.includes(g.tag) ? 1 : 0;
+        return friendMembers * 10 + tagMatch;
+      };
+      return score(b) - score(a);
+    })
     .slice(0, 3);
 
   return (
