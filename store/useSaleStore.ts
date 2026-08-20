@@ -54,6 +54,7 @@ type SaleState = {
   counterOffers: Record<string, Record<string, string>>;
   reservedForId: Record<string, string>;
   reserveNotes: Record<string, string>;
+  offerVersion: Record<string, number>;
   drafts: SaleDraft[];
   pinnedItemId: string | null;
   createItem: (input: NewSaleItemInput) => string;
@@ -102,7 +103,9 @@ function scheduleOfferResponse(
   item: SaleItem
 ) {
   if (item.ownerId === ME.id) return;
+  const version = get().offerVersion[itemId];
   setTimeout(() => {
+    if (get().offerVersion[itemId] !== version) return;
     if (get().sold[itemId]) return;
     const myOffer = get().myOffers[itemId];
     if (!myOffer) return;
@@ -177,6 +180,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
   counterOffers: {},
   reservedForId: {},
   reserveNotes: {},
+  offerVersion: {},
   drafts: [],
   pinnedItemId: null,
 
@@ -255,6 +259,7 @@ export const useSaleStore = create<SaleState>((set, get) => ({
         ...s.counterOffers,
         [itemId]: { ...s.counterOffers[itemId], [ME.id]: '' },
       },
+      offerVersion: { ...s.offerVersion, [itemId]: (s.offerVersion[itemId] ?? 0) + 1 },
     }));
     if (!alreadyInterested) scheduleThanks(get, itemId, item);
     scheduleOfferResponse(set, get, itemId, item);
