@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 
 import { NOTIFICATIONS, type NotificationItem } from '../data/mock';
+import { useBlockedStore } from './useBlockedStore';
+import { useMutedStore } from './useMutedStore';
 import { isQuietHoursActive, useSettingsStore } from './useSettingsStore';
 
 type NotificationsState = {
@@ -43,9 +45,13 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
       ...item,
     };
     const quietNow = isQuietHoursActive(useSettingsStore.getState().quietHours, new Date());
+    const silencedActor =
+      !!notification.actorId &&
+      (useBlockedStore.getState().blockedIds[notification.actorId] ||
+        useMutedStore.getState().mutedIds[notification.actorId]);
     set((s) => ({
       notifications: [notification, ...s.notifications],
-      toast: quietNow ? s.toast : notification,
+      toast: quietNow || silencedActor ? s.toast : notification,
     }));
   },
 

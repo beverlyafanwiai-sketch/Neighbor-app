@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import EmptyState from '../components/EmptyState';
 import { getUser, type NotificationItem } from '../data/mock';
 import { goToTarget, TYPE_ICON, TYPE_LABEL } from '../lib/notificationTargets';
+import { useBlockedStore } from '../store/useBlockedStore';
 import { useFriendsStore } from '../store/useFriendsStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { useNotificationsStore } from '../store/useNotificationsStore';
@@ -53,7 +54,10 @@ export default function Notifications() {
   const [showSnoozed, setShowSnoozed] = useState(false);
   const [confirmingClearAll, setConfirmingClearAll] = useState(false);
   const mutedIds = useMutedStore((s) => s.mutedIds);
-  const unmuted = allNotifications.filter((n) => !n.actorId || !mutedIds[n.actorId]);
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const unmuted = allNotifications.filter(
+    (n) => !n.actorId || (!mutedIds[n.actorId] && !blockedIds[n.actorId])
+  );
   const [typeFilter, setTypeFilter] = useState<NotificationItem['type'] | 'All'>('All');
   const [query, setQuery] = useState('');
   const presentTypes = Array.from(new Set(unmuted.map((n) => n.type)));
