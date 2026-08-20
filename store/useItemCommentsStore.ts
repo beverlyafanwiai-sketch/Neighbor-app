@@ -1,6 +1,27 @@
 import { create } from 'zustand';
 
 import { ME, type ReactionType } from '../data/mock';
+import { findMentionedUsers } from '../lib/mentions';
+import { useNotificationsStore } from './useNotificationsStore';
+import { useProfileStore } from './useProfileStore';
+import { useSettingsStore } from './useSettingsStore';
+
+function notifyMentions(text: string, key: string) {
+  if (!useSettingsStore.getState().notificationPrefs.mentions) return;
+  const [type, itemId] = key.split(':');
+  if (type !== 'sale' && type !== 'lend') return;
+  const authorName = useProfileStore.getState().profile.name;
+  for (const user of findMentionedUsers(text)) {
+    if (user.id === ME.id) continue;
+    useNotificationsStore.getState().addNotification({
+      type: 'mention',
+      actorId: ME.id,
+      text: `${authorName} mentioned you in a ${type === 'sale' ? 'listing' : 'lend'} comment`,
+      time: 'Just now',
+      target: { kind: type, id: itemId },
+    });
+  }
+}
 
 export type ItemComment = {
   id: string;
@@ -44,6 +65,7 @@ export const useItemCommentsStore = create<ItemCommentsState>((set) => ({
     set((s) => ({
       comments: { ...s.comments, [key]: [...(s.comments[key] ?? []), comment] },
     }));
+    notifyMentions(clean, key);
   },
 
   updateComment: (key, commentId, text) => {

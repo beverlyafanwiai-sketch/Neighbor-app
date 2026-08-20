@@ -1,6 +1,25 @@
 import { create } from 'zustand';
 
 import { ME, type ReactionType } from '../data/mock';
+import { findMentionedUsers } from '../lib/mentions';
+import { useNotificationsStore } from './useNotificationsStore';
+import { useProfileStore } from './useProfileStore';
+import { useSettingsStore } from './useSettingsStore';
+
+function notifyMentions(text: string, entryId: string) {
+  if (!useSettingsStore.getState().notificationPrefs.mentions) return;
+  const authorName = useProfileStore.getState().profile.name;
+  for (const user of findMentionedUsers(text)) {
+    if (user.id === ME.id) continue;
+    useNotificationsStore.getState().addNotification({
+      type: 'mention',
+      actorId: ME.id,
+      text: `${authorName} mentioned you in a rec comment`,
+      time: 'Just now',
+      target: { kind: 'rec', id: entryId },
+    });
+  }
+}
 
 export type RecComment = {
   id: string;
@@ -62,6 +81,7 @@ export const useRecCommentsStore = create<RecCommentsState>((set) => ({
     set((s) => ({
       comments: { ...s.comments, [entryId]: [...(s.comments[entryId] ?? []), comment] },
     }));
+    notifyMentions(clean, entryId);
   },
 
   updateComment: (entryId, commentId, text) => {

@@ -691,7 +691,8 @@ export type NotificationTarget =
   | { kind: 'post'; id: string }
   | { kind: 'lend'; id: string }
   | { kind: 'rec'; id: string }
-  | { kind: 'sale'; id: string };
+  | { kind: 'sale'; id: string }
+  | { kind: 'alert'; id: string };
 
 export type NotificationItem = {
   id: string;

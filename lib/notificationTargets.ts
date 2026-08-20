@@ -60,5 +60,8 @@ export function goToTarget(target?: NotificationTarget) {
       return;
     case 'sale':
       router.push('/for-sale');
+      return;
+    case 'alert':
+      router.push('/alerts');
   }
 }
