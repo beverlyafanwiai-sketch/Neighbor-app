@@ -15,8 +15,10 @@ import { useDismissedDiscoverStore } from '../store/useDismissedDiscoverStore';
 import { useDismissedEventsStore } from '../store/useDismissedEventsStore';
 import { useDismissedListingsStore } from '../store/useDismissedListingsStore';
 import { useDismissedRecsStore } from '../store/useDismissedRecsStore';
+import { useEventsStore } from '../store/useEventsStore';
 import { useGroupsStore } from '../store/useGroupsStore';
 import { useHiddenPostsStore } from '../store/useHiddenPostsStore';
+import { useMutedEventsStore } from '../store/useMutedEventsStore';
 import { formatMutedUntil, useMutedGroupsStore } from '../store/useMutedGroupsStore';
 import { useMutedStore } from '../store/useMutedStore';
 import { useMutedWordsStore } from '../store/useMutedWordsStore';
@@ -138,6 +140,10 @@ export default function Settings() {
   const mutedUntil = useMutedGroupsStore((s) => s.mutedUntil);
   const toggleMutedGroup = useMutedGroupsStore((s) => s.toggle);
   const mutedGroups = groups.filter((g) => (mutedUntil[g.id] ?? 0) > Date.now());
+  const events = useEventsStore((s) => s.events);
+  const mutedEventIds = useMutedEventsStore((s) => s.mutedEventIds);
+  const toggleMutedEvent = useMutedEventsStore((s) => s.toggle);
+  const mutedEvents = events.filter((e) => mutedEventIds[e.id]);
   const mutedWords = useMutedWordsStore((s) => s.words);
   const addMutedWord = useMutedWordsStore((s) => s.addWord);
   const removeMutedWord = useMutedWordsStore((s) => s.removeWord);
@@ -481,6 +487,33 @@ export default function Settings() {
                   className="rounded-full bg-sand px-4 py-2"
                 >
                   <Text className="text-xs font-semibold text-charcoal">Unblock</Text>
+                </Pressable>
+              </View>
+            ))
+          )}
+        </View>
+
+        <Text className="mb-3 mt-8 text-xs font-semibold uppercase tracking-wide text-charcoal/50">
+          Muted events
+        </Text>
+        <View className="gap-3">
+          {mutedEvents.length === 0 ? (
+            <Text className="text-sm text-charcoal/50">You haven't muted any events.</Text>
+          ) : (
+            mutedEvents.map((e) => (
+              <View key={e.id} className="flex-row items-center gap-3 rounded-2xl bg-cream p-4">
+                <View className="h-9 w-9 items-center justify-center rounded-full bg-terracotta">
+                  <Text className="text-xs font-bold text-paper">{e.title.charAt(0)}</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-sm font-medium text-charcoal">{e.title}</Text>
+                  <Text className="text-xs text-charcoal/50">{e.date}</Text>
+                </View>
+                <Pressable
+                  onPress={() => toggleMutedEvent(e.id)}
+                  className="rounded-full bg-sand px-4 py-2"
+                >
+                  <Text className="text-xs font-semibold text-charcoal">Unmute</Text>
                 </Pressable>
               </View>
             ))
