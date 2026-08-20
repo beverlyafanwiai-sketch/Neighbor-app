@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { COMMENTS, ME, POSTS, type CommentItem, type Poll, type Post, type ReactionType } from '../data/mock';
 import { findMentionedUsers } from '../lib/mentions';
+import { useBlockedStore } from './useBlockedStore';
 import { useGettingStartedStore } from './useGettingStartedStore';
 import { useNotificationsStore } from './useNotificationsStore';
 import { useProfileStore } from './useProfileStore';
@@ -355,7 +356,11 @@ export function getAllReactors(
   reactions: Record<string, ReactionType> | undefined,
   myReaction: ReactionType | undefined
 ): Record<string, ReactionType> {
-  const all = { ...reactions };
+  const blockedIds = useBlockedStore.getState().blockedIds;
+  const all: Record<string, ReactionType> = {};
+  for (const [userId, type] of Object.entries(reactions ?? {})) {
+    if (!blockedIds[userId]) all[userId] = type;
+  }
   if (myReaction) {
     all[ME.id] = myReaction;
   } else {
