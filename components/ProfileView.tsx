@@ -19,15 +19,22 @@ import { useCheckInStore } from '../store/useCheckInStore';
 import { getEndorsementGroups, useEndorsementsStore } from '../store/useEndorsementsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../store/useFriendsStore';
 import { useGroupsStore } from '../store/useGroupsStore';
-import { usePostsStore } from '../store/usePostsStore';
+import { containsMutedWord, useMutedWordsStore } from '../store/useMutedWordsStore';
+import {
+  getEffectiveReactions,
+  getEffectiveReplies,
+  getReactionTotal,
+  usePostsStore,
+} from '../store/usePostsStore';
 import { useProfileNotesStore } from '../store/useProfileNotesStore';
 import { useProfileStore } from '../store/useProfileStore';
 import { getWelcomeNotes, useWelcomeNotesStore } from '../store/useWelcomeNotesStore';
 import EmptyState from './EmptyState';
+import MentionText from './MentionText';
 import ReactionButton from './ReactionButton';
 import ShareSheet from './ShareSheet';
 
-const TABS = ['About', 'Prompts', 'Photos', 'Friends'] as const;
+const TABS = ['About', 'Posts', 'Prompts', 'Photos', 'Friends'] as const;
 type Tab = (typeof TABS)[number];
 
 const VERIFICATION_META: Record<
@@ -75,6 +82,7 @@ type Props = {
   onRecs?: () => void;
   onFriendRequests?: () => void;
   onPhotoPress?: (postId: string) => void;
+  onPostPress?: (postId: string) => void;
   onCreatePost?: () => void;
   onGroupPress?: (groupId: string) => void;
   onEventPress?: (eventId: string) => void;
@@ -94,6 +102,7 @@ export default function ProfileView({
   onRecs,
   onFriendRequests,
   onPhotoPress,
+  onPostPress,
   onCreatePost,
   onGroupPress,
   onEventPress,
@@ -124,6 +133,12 @@ export default function ProfileView({
   const joinedGroups = useGroupsStore((s) => s.joined);
   const posts = usePostsStore((s) => s.posts);
   const photoPosts = posts.filter((p) => p.authorId === user.id && (p.imageUris?.length ?? 0) > 0);
+  const allComments = usePostsStore((s) => s.comments);
+  const myReactions = usePostsStore((s) => s.myReactions);
+  const mutedWords = useMutedWordsStore((s) => s.words);
+  const myPosts = posts.filter(
+    (p) => p.authorId === user.id && !containsMutedWord(p.body, mutedWords)
+  );
   const allWelcomeNotes = useWelcomeNotesStore((s) => s.notes);
   const addWelcomeNote = useWelcomeNotesStore((s) => s.addNote);
   const deleteWelcomeNote = useWelcomeNotesStore((s) => s.deleteNote);
@@ -980,6 +995,64 @@ export default function ProfileView({
                 ))}
             </View>
           </View>
+        )}
+
+        {tab === 'Posts' && (
+          <>
+            {myPosts.length > 0 ? (
+              <View className="gap-3">
+                {myPosts.map((post) => {
+                  const reactionCounts = getEffectiveReactions(post.reactions, myReactions[post.id]);
+                  const reactionTotal = getReactionTotal(reactionCounts);
+                  const postComments = (allComments[post.id] ?? []).filter(
+                    (c) => !containsMutedWord(c.text, mutedWords)
+                  );
+                  const replyCount = getEffectiveReplies(post, postComments);
+                  return (
+                    <Pressable
+                      key={post.id}
+                      onPress={() => onPostPress?.(post.id)}
+                      className="gap-2 rounded-2xl bg-sand p-4 active:opacity-80"
+                    >
+                      <MentionText
+                        text={post.body}
+                        numberOfLines={4}
+                        className="text-[15px] leading-5 text-charcoal"
+                      />
+                      {post.imageUris && post.imageUris.length > 0 && (
+                        <Image
+                          source={{ uri: post.imageUris[0] }}
+                          className="h-40 w-full rounded-xl"
+                        />
+                      )}
+                      <View className="flex-row items-center gap-3">
+                        <Text className="text-xs text-charcoal/50">{post.time}</Text>
+                        {reactionTotal > 0 && (
+                          <Text className="text-xs text-charcoal/50">
+                            {reactionTotal} reaction{reactionTotal === 1 ? '' : 's'}
+                          </Text>
+                        )}
+                        {replyCount > 0 && (
+                          <Text className="text-xs text-charcoal/50">
+                            {replyCount} comment{replyCount === 1 ? '' : 's'}
+                          </Text>
+                        )}
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : (
+              <EmptyState
+                icon="document-text-outline"
+                iconColorClassName="text-charcoal/50"
+                title={isMe ? 'No posts yet' : `No posts from ${user.name} yet`}
+                subtitle={isMe ? 'Share something with your neighbors.' : undefined}
+                ctaLabel={isMe && onCreatePost ? 'Share a post' : undefined}
+                onPressCta={isMe ? onCreatePost : undefined}
+              />
+            )}
+          </>
         )}
 
         {tab === 'Prompts' && (

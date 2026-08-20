@@ -26,6 +26,7 @@ export default function Profile() {
         onRecs={() => router.push('/recs')}
         onFriendRequests={() => router.push('/friend-requests')}
         onPhotoPress={(postId) => router.push(`/post/${postId}`)}
+        onPostPress={(postId) => router.push(`/post/${postId}`)}
         onCreatePost={() => router.push('/create-post')}
       />
     </SafeAreaView>
