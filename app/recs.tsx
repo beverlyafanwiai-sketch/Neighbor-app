@@ -66,6 +66,7 @@ export default function RecsBoard() {
   const savedIds = useSavedRecsStore((s) => s.savedIds);
   const toggleSave = useSavedRecsStore((s) => s.toggleSave);
   const profile = useProfileStore((s) => s.profile);
+  const getOrCreateConversation = useConversationsStore((s) => s.getOrCreate);
   const comments = useRecCommentsStore((s) => s.comments);
   const addComment = useRecCommentsStore((s) => s.addComment);
   const updateComment = useRecCommentsStore((s) => s.updateComment);
@@ -782,6 +783,16 @@ export default function RecsBoard() {
                   >
                     <Ionicons name="chatbubble-outline" size={17} className="text-charcoal/40" />
                   </Pressable>
+                  {entry.authorId !== ME.id && (
+                    <Pressable
+                      onPress={() => router.push(`/chat/${getOrCreateConversation(entry.authorId)}`)}
+                      accessibilityLabel={`Message ${author.name}`}
+                      accessibilityRole="button"
+                      className="h-8 w-8 items-center justify-center"
+                    >
+                      <Ionicons name="mail-outline" size={17} className="text-charcoal/40" />
+                    </Pressable>
+                  )}
                   <Pressable
                     onPress={() => toggleSave(entry.id)}
                     accessibilityLabel={saved ? 'Unsave' : 'Save'}

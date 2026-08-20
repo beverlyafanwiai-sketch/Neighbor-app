@@ -84,6 +84,7 @@ export default function NeighborhoodAlerts() {
   const pinnedCommentIds = useAlertCommentsStore((s) => s.pinnedCommentId);
   const togglePinComment = useAlertCommentsStore((s) => s.togglePinComment);
   const profile = useProfileStore((s) => s.profile);
+  const getOrCreateConversation = useConversationsStore((s) => s.getOrCreate);
   const [now] = useState(() => Date.now());
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [reportingId, setReportingId] = useState<string | null>(null);
@@ -617,6 +618,16 @@ export default function NeighborhoodAlerts() {
                     >
                       <Ionicons name="copy-outline" size={16} className="text-charcoal/50" />
                     </Pressable>
+                    {!isMine && (
+                      <Pressable
+                        onPress={() => router.push(`/chat/${getOrCreateConversation(alert.authorId)}`)}
+                        accessibilityLabel={`Message ${author?.name ?? 'this neighbor'}`}
+                        accessibilityRole="button"
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                      >
+                        <Ionicons name="mail-outline" size={16} className="text-charcoal/50" />
+                      </Pressable>
+                    )}
                     {!isMine && (
                       <Pressable
                         onPress={() => setReportingId(alert.id)}

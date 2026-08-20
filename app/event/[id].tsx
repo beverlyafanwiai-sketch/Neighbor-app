@@ -22,6 +22,7 @@ import { getEventPhotos, useEventAlbumStore } from '../../store/useEventAlbumSto
 import { checklistItemKey, useEventChecklistStore } from '../../store/useEventChecklistStore';
 import { useEventNotesStore } from '../../store/useEventNotesStore';
 import { useEventUpdatesStore } from '../../store/useEventUpdatesStore';
+import { useConversationsStore } from '../../store/useConversationsStore';
 import { canManageEvent, useEventsStore } from '../../store/useEventsStore';
 import { FRIEND_LABEL, useFriendsStore } from '../../store/useFriendsStore';
 import { getGroup } from '../../store/useGroupsStore';
@@ -148,6 +149,7 @@ export default function EventDetail() {
   const isCancelled = Boolean(event.cancelled);
   const countdownLabel = isPast || isCancelled ? null : getCountdownLabel(event);
   const isHost = event.hostId === ME.id;
+  const getOrCreateConversation = useConversationsStore((s) => s.getOrCreate);
   const canManage = canManageEvent(event, ME.id);
   const isCoHost = canManage && !isHost;
   const eventUpdates = allEventUpdates[event.id] ?? [];
@@ -433,6 +435,17 @@ export default function EventDetail() {
                 <Text className="text-xs text-sage">{event.hostLabel}</Text>
                 {event.hostGroupId && getGroup(event.hostGroupId)?.privacy === 'private' && (
                   <Ionicons name="lock-closed-outline" size={11} className="text-charcoal/40" />
+                )}
+                {event.hostId && !isHost && (
+                  <Pressable
+                    onPress={() => router.push(`/chat/${getOrCreateConversation(event.hostId!)}`)}
+                    accessibilityLabel="Message host"
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    className="ml-1"
+                  >
+                    <Ionicons name="mail-outline" size={12} className="text-sage" />
+                  </Pressable>
                 )}
               </View>
             </View>
