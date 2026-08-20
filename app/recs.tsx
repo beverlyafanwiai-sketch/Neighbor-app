@@ -209,6 +209,7 @@ export default function RecsBoard() {
       e.authorId !== ME.id &&
       !blockedIds[e.authorId] &&
       !mutedIds[e.authorId] &&
+      !containsMutedWord(e.note, mutedWords) &&
       (!onlyFriends || friendStatuses[e.authorId] === 'friends') &&
       matchesKind(e) &&
       matchesUrgent(e) &&

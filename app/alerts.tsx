@@ -166,6 +166,7 @@ export default function NeighborhoodAlerts() {
     (a) =>
       !blockedIds[a.authorId] &&
       !mutedIds[a.authorId] &&
+      !containsMutedWord(a.text, mutedWords) &&
       (!onlyFriends || a.authorId === ME.id || friendStatuses[a.authorId] === 'friends')
   );
   const allActiveAlerts = getActiveAlerts(visibleAlerts, now, pinnedAlertId);

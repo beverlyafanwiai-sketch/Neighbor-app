@@ -209,6 +209,7 @@ export default function ForSaleBoard() {
       i.ownerId !== ME.id &&
       !blockedIds[i.ownerId] &&
       !mutedIds[i.ownerId] &&
+      !containsMutedWord(i.note, mutedWords) &&
       (!onlyFriends || friendStatuses[i.ownerId] === 'friends') &&
       matchesQuery(i) &&
       matchesPriceRange(i) &&

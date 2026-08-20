@@ -190,23 +190,28 @@ export default function Search() {
       ? []
       : recEntries.filter(
           (e) =>
-            e.category.toLowerCase().includes(q) ||
-            (e.name ?? '').toLowerCase().includes(q) ||
-            e.note.toLowerCase().includes(q)
+            !containsMutedWord(e.note, mutedWords) &&
+            (e.category.toLowerCase().includes(q) ||
+              (e.name ?? '').toLowerCase().includes(q) ||
+              e.note.toLowerCase().includes(q))
         );
 
   const matchedLendItems =
     q.length === 0
       ? []
       : lendItems.filter(
-          (i) => i.title.toLowerCase().includes(q) || i.note.toLowerCase().includes(q)
+          (i) =>
+            !containsMutedWord(i.note, mutedWords) &&
+            (i.title.toLowerCase().includes(q) || i.note.toLowerCase().includes(q))
         );
 
   const matchedSaleItems =
     q.length === 0
       ? []
       : saleItems.filter(
-          (i) => i.title.toLowerCase().includes(q) || i.note.toLowerCase().includes(q)
+          (i) =>
+            !containsMutedWord(i.note, mutedWords) &&
+            (i.title.toLowerCase().includes(q) || i.note.toLowerCase().includes(q))
         );
 
   const hasAnyResults =
