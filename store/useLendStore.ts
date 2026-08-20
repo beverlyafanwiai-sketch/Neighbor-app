@@ -76,6 +76,10 @@ function dueLabelFromNow(days: number = DUE_IN_DAYS) {
 
 let lendDraftSeq = 0;
 
+// Toggling a help offer off and back on before the delay elapses would
+// otherwise schedule a second timer, firing a duplicate "thanks" notification.
+const helpThanksScheduledFor = new Set<string>();
+
 // Simulates a "due date approaching" reminder — compressed into a short
 // delay, same as the other borrow-flow notices in this store, rather than
 // waiting the real number of days.
@@ -243,6 +247,8 @@ export const useLendStore = create<LendState>((set, get) => ({
           : s.helpNotes,
     }));
     if (alreadyOffered) return;
+    if (helpThanksScheduledFor.has(itemId)) return;
+    helpThanksScheduledFor.add(itemId);
 
     setTimeout(() => {
       if (!get().myOffers[itemId]) return;

@@ -80,7 +80,13 @@ type SaleState = {
 
 let saleDraftSeq = 0;
 
+// Toggling interest off and back on before the delay elapses would otherwise
+// schedule a second timer, firing a duplicate "thanks" notification.
+const thanksScheduledFor = new Set<string>();
+
 function scheduleThanks(get: () => SaleState, itemId: string, item: SaleItem) {
+  if (thanksScheduledFor.has(itemId)) return;
+  thanksScheduledFor.add(itemId);
   setTimeout(() => {
     if (!get().myInterest[itemId]) return;
     const owner = getUser(item.ownerId);

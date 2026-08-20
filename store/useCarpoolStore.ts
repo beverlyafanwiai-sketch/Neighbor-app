@@ -188,17 +188,16 @@ export const useCarpoolStore = create<CarpoolState>((set, get) => ({
   },
 
   requestRide: (eventId, note) => {
+    const requestId = `carpool-req-${Date.now()}`;
     set((s) => ({
       requests: [
         ...s.requests.filter((r) => !(r.eventId === eventId && r.riderId === ME.id)),
-        { id: `carpool-req-${Date.now()}`, eventId, riderId: ME.id, note },
+        { id: requestId, eventId, riderId: ME.id, note },
       ],
     }));
 
     setTimeout(() => {
-      const stillRequesting = get().requests.some(
-        (r) => r.eventId === eventId && r.riderId === ME.id
-      );
+      const stillRequesting = get().requests.some((r) => r.id === requestId);
       if (!stillRequesting) return;
       const alreadyRiding = get().offers.some(
         (o) => o.eventId === eventId && o.riderIds.includes(ME.id)
