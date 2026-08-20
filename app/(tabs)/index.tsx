@@ -633,7 +633,9 @@ export default function HomeFeed() {
           {filteredPosts.map(({ post, author }) => {
             const myReaction = myReactions[post.id];
             const saved = savedIds[post.id] ?? false;
-            const postComments = comments[post.id] ?? [];
+            const postComments = (comments[post.id] ?? []).filter(
+              (c) => !containsMutedWord(c.text, mutedWords) && !blockedIds[c.authorId]
+            );
             const isPinned = post.id === pinnedPostId;
             return (
               <View key={post.id} className="rounded-[28px] bg-cream p-5 shadow-sm">

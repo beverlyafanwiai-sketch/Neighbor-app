@@ -608,7 +608,9 @@ export default function Search() {
                 if (!author) return null;
                 const reactionCounts = getEffectiveReactions(post.reactions, myReactions[post.id]);
                 const topTypes = getTopReactionTypes(reactionCounts, 2);
-                const postComments = comments[post.id] ?? [];
+                const postComments = (comments[post.id] ?? []).filter(
+                  (c) => !containsMutedWord(c.text, mutedWords) && !blockedIds[c.authorId]
+                );
                 return (
                   <Pressable
                     key={post.id}

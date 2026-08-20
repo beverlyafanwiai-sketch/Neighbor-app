@@ -13,6 +13,7 @@ import { getEffectiveCheckedInIds, useCheckInStore } from '../store/useCheckInSt
 import { useEventsStore } from '../store/useEventsStore';
 import { isEventVisible, memberCountLabel, useGroupsStore } from '../store/useGroupsStore';
 import { useMutedStore } from '../store/useMutedStore';
+import { containsMutedWord, useMutedWordsStore } from '../store/useMutedWordsStore';
 import { getEffectiveHelperCount, useLendStore } from '../store/useLendStore';
 import {
   getEffectiveReactions,
@@ -136,6 +137,7 @@ export default function Saved() {
   const profile = useProfileStore((s) => s.profile);
   const blockedIds = useBlockedStore((s) => s.blockedIds);
   const mutedIds = useMutedStore((s) => s.mutedIds);
+  const mutedWords = useMutedWordsStore((s) => s.words);
   const friendStatuses = useFriendsStore((s) => s.statuses);
   const posts = usePostsStore((s) => s.posts);
   const savedIds = usePostsStore((s) => s.savedIds);
@@ -948,7 +950,9 @@ export default function Saved() {
             if (!author) return null;
             const reactionCounts = getEffectiveReactions(post.reactions, myReactions[post.id]);
             const topTypes = getTopReactionTypes(reactionCounts, 2);
-            const postComments = comments[post.id] ?? [];
+            const postComments = (comments[post.id] ?? []).filter(
+              (c) => !containsMutedWord(c.text, mutedWords) && !blockedIds[c.authorId]
+            );
             return (
               <Pressable
                 key={post.id}
