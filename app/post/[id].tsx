@@ -24,6 +24,7 @@ import ReactorsSheet from '../../components/ReactorsSheet';
 import ReportPostSheet from '../../components/ReportPostSheet';
 import ShareSheet from '../../components/ShareSheet';
 import { ME, getUser, type CommentItem } from '../../data/mock';
+import { useBlockedStore } from '../../store/useBlockedStore';
 import { useConversationsStore } from '../../store/useConversationsStore';
 import { useGroupChatStore } from '../../store/useGroupChatStore';
 import { containsMutedWord, useMutedWordsStore } from '../../store/useMutedWordsStore';
@@ -60,7 +61,10 @@ export default function PostDetail() {
     post ? (s.comments[post.id] ?? EMPTY_COMMENTS) : EMPTY_COMMENTS
   );
   const mutedWords = useMutedWordsStore((s) => s.words);
-  const comments = rawComments.filter((c) => !containsMutedWord(c.text, mutedWords));
+  const blockedIds = useBlockedStore((s) => s.blockedIds);
+  const comments = rawComments.filter(
+    (c) => !containsMutedWord(c.text, mutedWords) && !blockedIds[c.authorId]
+  );
   const myPollVote = usePostsStore((s) => (post ? s.myPollVotes[post.id] : undefined));
   const votePoll = usePostsStore((s) => s.votePoll);
   const closePoll = usePostsStore((s) => s.closePoll);

@@ -141,7 +141,7 @@ export default function RecsBoard() {
     : undefined;
   const canPinComments = viewingCommentsEntry?.authorId === ME.id;
   const viewingComments = (viewingCommentsEntry ? (comments[viewingCommentsEntry.id] ?? []) : []).filter(
-    (c) => !containsMutedWord(c.text, mutedWords)
+    (c) => !containsMutedWord(c.text, mutedWords) && !blockedIds[c.authorId]
   );
   const sortedViewingComments = [...viewingComments].sort((a, b) => {
     const aPinned = a.id === viewingPinnedCommentId;

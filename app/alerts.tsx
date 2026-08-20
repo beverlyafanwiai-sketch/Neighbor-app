@@ -195,7 +195,7 @@ export default function NeighborhoodAlerts() {
   const reportingAlert = activeAlerts.find((a) => a.id === reportingId);
   const viewingCommentsAlert = activeAlerts.find((a) => a.id === viewingCommentsId);
   const viewingComments = (viewingCommentsAlert ? (comments[viewingCommentsAlert.id] ?? []) : []).filter(
-    (c) => !containsMutedWord(c.text, mutedWords)
+    (c) => !containsMutedWord(c.text, mutedWords) && !blockedIds[c.authorId]
   );
   const viewingPinnedCommentId = viewingCommentsAlert
     ? pinnedCommentIds[viewingCommentsAlert.id]

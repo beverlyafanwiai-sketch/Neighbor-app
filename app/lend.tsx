@@ -206,7 +206,7 @@ export default function LendBoard() {
   const viewingCommentsItem = items.find((i) => i.id === viewingCommentsId);
   const viewingCommentsKey = viewingCommentsItem ? itemCommentKey('lend', viewingCommentsItem.id) : null;
   const viewingComments = (viewingCommentsKey ? (itemComments[viewingCommentsKey] ?? []) : []).filter(
-    (c) => !containsMutedWord(c.text, mutedWords)
+    (c) => !containsMutedWord(c.text, mutedWords) && !blockedIds[c.authorId]
   );
   const viewingPinnedCommentId = viewingCommentsKey ? pinnedCommentIds[viewingCommentsKey] : undefined;
   const canPinComments = viewingCommentsItem?.ownerId === ME.id;
