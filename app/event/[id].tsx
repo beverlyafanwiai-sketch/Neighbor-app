@@ -1643,6 +1643,8 @@ export default function EventDetail() {
                           <>
                             <Pressable
                               onPress={startEditingRequest}
+                              accessibilityLabel="Edit ride request"
+                              accessibilityRole="button"
                               className="h-7 w-7 items-center justify-center rounded-full"
                             >
                               <Ionicons name="pencil" size={13} className="text-charcoal/50" />

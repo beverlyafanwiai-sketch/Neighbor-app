@@ -168,6 +168,9 @@ export default function PhotoViewer({
                           prev.includes(u.id) ? prev.filter((id) => id !== u.id) : [...prev, u.id]
                         )
                       }
+                      accessibilityLabel={u.name}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: selected }}
                       className="flex-row items-center gap-2.5 rounded-xl px-2 py-2"
                       style={{ backgroundColor: selected ? 'rgba(250,243,230,0.15)' : 'transparent' }}
                     >
