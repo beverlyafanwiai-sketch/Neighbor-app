@@ -7,6 +7,7 @@ import { useSettingsStore } from './useSettingsStore';
 const INBOUND_INTEREST_DELAY_MS = 4000;
 const INTEREST_THANKS_DELAY_MS = 2000;
 const PRICE_DROP_NOTICE_DELAY_MS = 3000;
+const OFFER_RESPONSE_DELAY_MS = 5000;
 
 function parsePriceValue(price: string) {
   const n = parseFloat(price.replace(/[^0-9.]/g, ''));
@@ -93,6 +94,77 @@ function scheduleThanks(get: () => SaleState, itemId: string, item: SaleItem) {
   }, INTEREST_THANKS_DELAY_MS);
 }
 
+function scheduleOfferResponse(
+  set: (fn: (s: SaleState) => Partial<SaleState>) => void,
+  get: () => SaleState,
+  itemId: string,
+  item: SaleItem
+) {
+  if (item.ownerId === ME.id) return;
+  setTimeout(() => {
+    if (get().sold[itemId]) return;
+    const myOffer = get().myOffers[itemId];
+    if (!myOffer) return;
+    const owner = getUser(item.ownerId);
+    if (!owner) return;
+
+    const roll = Math.random();
+    if (roll < 0.4) {
+      set((s) => ({
+        sold: { ...s.sold, [itemId]: true },
+        acceptedOffers: { ...s.acceptedOffers, [itemId]: { userId: ME.id, price: myOffer } },
+      }));
+      if (useSettingsStore.getState().notificationPrefs.saleUpdates) {
+        useNotificationsStore.getState().addNotification({
+          type: 'sale',
+          actorId: owner.id,
+          text: `${owner.name} accepted your offer on the ${item.title.toLowerCase()}`,
+          time: 'Just now',
+          target: { kind: 'sale', id: itemId },
+        });
+      }
+    } else if (roll < 0.75) {
+      const offerValue = parsePriceValue(myOffer);
+      const askValue = parsePriceValue(item.price);
+      const counterPrice =
+        Number.isFinite(offerValue) && Number.isFinite(askValue)
+          ? `$${Math.round((offerValue + askValue) / 2)}`
+          : item.price;
+      set((s) => ({
+        counterOffers: {
+          ...s.counterOffers,
+          [itemId]: { ...s.counterOffers[itemId], [ME.id]: counterPrice },
+        },
+      }));
+      if (useSettingsStore.getState().notificationPrefs.saleUpdates) {
+        useNotificationsStore.getState().addNotification({
+          type: 'sale',
+          actorId: owner.id,
+          text: `${owner.name} countered your offer on the ${item.title.toLowerCase()}: ${counterPrice}`,
+          time: 'Just now',
+          target: { kind: 'sale', id: itemId },
+        });
+      }
+    } else {
+      set((s) => ({
+        declinedOffers: {
+          ...s.declinedOffers,
+          [itemId]: { ...s.declinedOffers[itemId], [ME.id]: true },
+        },
+      }));
+      if (useSettingsStore.getState().notificationPrefs.saleUpdates) {
+        useNotificationsStore.getState().addNotification({
+          type: 'sale',
+          actorId: owner.id,
+          text: `${owner.name} passed on your offer for the ${item.title.toLowerCase()}`,
+          time: 'Just now',
+          target: { kind: 'sale', id: itemId },
+        });
+      }
+    }
+  }, OFFER_RESPONSE_DELAY_MS);
+}
+
 export const useSaleStore = create<SaleState>((set, get) => ({
   items: SALE_ITEMS,
   sold: {},
@@ -174,13 +246,31 @@ export const useSaleStore = create<SaleState>((set, get) => ({
     set((s) => ({
       myInterest: { ...s.myInterest, [itemId]: true },
       myOffers: { ...s.myOffers, [itemId]: clean },
+      declinedOffers: {
+        ...s.declinedOffers,
+        [itemId]: { ...s.declinedOffers[itemId], [ME.id]: false },
+      },
+      counterOffers: {
+        ...s.counterOffers,
+        [itemId]: { ...s.counterOffers[itemId], [ME.id]: '' },
+      },
     }));
-    if (alreadyInterested) return;
-    scheduleThanks(get, itemId, item);
+    if (!alreadyInterested) scheduleThanks(get, itemId, item);
+    scheduleOfferResponse(set, get, itemId, item);
   },
 
   withdrawOffer: (itemId) =>
-    set((s) => ({ myOffers: { ...s.myOffers, [itemId]: '' } })),
+    set((s) => ({
+      myOffers: { ...s.myOffers, [itemId]: '' },
+      declinedOffers: {
+        ...s.declinedOffers,
+        [itemId]: { ...s.declinedOffers[itemId], [ME.id]: false },
+      },
+      counterOffers: {
+        ...s.counterOffers,
+        [itemId]: { ...s.counterOffers[itemId], [ME.id]: '' },
+      },
+    })),
 
   acceptOffer: (itemId, userId) => {
     const price = getOfferFor(itemId, userId);

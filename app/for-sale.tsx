@@ -989,6 +989,7 @@ export default function ForSaleBoard() {
             const interestCount = getEffectiveInterestCount(item.id, interested);
             const isPinned = item.id === pinnedItemId;
             const myCounterOffer = counterOffers[item.id]?.[ME.id];
+            const myOfferDeclined = declinedOffers[item.id]?.[ME.id] ?? false;
 
             return (
               <View key={item.id} className="rounded-2xl bg-cream p-4">
@@ -1183,6 +1184,13 @@ export default function ForSaleBoard() {
                     >
                       <Text className="text-xs font-semibold text-charcoal">Accept</Text>
                     </Pressable>
+                  </View>
+                )}
+                {!isSold && myOfferDeclined && offeringId !== item.id && (
+                  <View className="mt-3 rounded-xl bg-terracotta/10 px-3 py-2">
+                    <Text className="text-xs font-semibold text-terracotta">
+                      {owner.name} passed on your offer
+                    </Text>
                   </View>
                 )}
                 {!isSold && offeringId === item.id ? (
