@@ -187,8 +187,12 @@ export default function EventDetail() {
   const canCheckIn = (going || canManage) && !isCancelled;
   const canCarpool = (going || canManage) && !isPast && !isCancelled;
   const occurrences = event.recurrence ? getUpcomingOccurrences(event, new Date()) : [];
-  const carpoolOffers = allCarpoolOffers.filter((o) => o.eventId === event.id);
-  const carpoolRequests = allCarpoolRequests.filter((r) => r.eventId === event.id);
+  const carpoolOffers = allCarpoolOffers.filter(
+    (o) => o.eventId === event.id && !blockedIds[o.driverId]
+  );
+  const carpoolRequests = allCarpoolRequests.filter(
+    (r) => r.eventId === event.id && !blockedIds[r.riderId]
+  );
   const myOffer = carpoolOffers.find((o) => o.driverId === ME.id);
   const myRequest = carpoolRequests.find((r) => r.riderId === ME.id);
   const saved = savedIds[event.id] ?? false;
@@ -1264,7 +1268,9 @@ export default function EventDetail() {
 
                     {isMyOffer && offer.riderIds.length > 0 && (
                       <View className="mt-3 gap-2 border-t border-charcoal/10 pt-3">
-                        {offer.riderIds.map((riderId) => {
+                        {offer.riderIds
+                          .filter((riderId) => !blockedIds[riderId])
+                          .map((riderId) => {
                           const rider = resolveUser(riderId);
                           if (!rider) return null;
                           if (confirmingRemoveRiderId === riderId) {
