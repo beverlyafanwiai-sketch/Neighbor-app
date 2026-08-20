@@ -7,6 +7,7 @@ export type SavedDiscoverSearch = {
   query: string;
   peopleSort: string;
   groupSort: string;
+  onlyVerified?: boolean;
 };
 
 type SavedDiscoverSearchesState = {

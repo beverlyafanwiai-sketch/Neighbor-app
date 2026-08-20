@@ -36,6 +36,7 @@ export default function Discover() {
   const [query, setQuery] = useState('');
   const [peopleSort, setPeopleSort] = useState<PeopleSort>('Suggested');
   const [groupSort, setGroupSort] = useState<GroupSort>('Suggested');
+  const [onlyVerified, setOnlyVerified] = useState(false);
   const allGroups = useGroupsStore((s) => s.groups);
   const joinedMap = useGroupsStore((s) => s.joined);
   const toggleJoin = useGroupsStore((s) => s.toggle);
@@ -67,20 +68,28 @@ export default function Discover() {
   const [renamingSearchId, setRenamingSearchId] = useState<string | null>(null);
 
   const isSearchModified =
-    query.trim().length > 0 || peopleSort !== 'Suggested' || groupSort !== 'Suggested';
+    query.trim().length > 0 ||
+    peopleSort !== 'Suggested' ||
+    groupSort !== 'Suggested' ||
+    onlyVerified;
 
   const applySearch = (search: (typeof savedSearches)[number]) => {
     setMode(search.mode as Mode);
     setQuery(search.query);
     setPeopleSort(search.peopleSort as PeopleSort);
     setGroupSort(search.groupSort as GroupSort);
+    setOnlyVerified(Boolean(search.onlyVerified));
   };
 
   const discoverGroups = allGroups.filter(
     (g) => !joinedMap[g.id] && !dismissedGroupIds[g.id] && g.privacy !== 'private'
   );
   const discoverableUsers = DISCOVER_USERS.filter(
-    (u) => !blockedIds[u.id] && !mutedIds[u.id] && !dismissedIds[u.id]
+    (u) =>
+      !blockedIds[u.id] &&
+      !mutedIds[u.id] &&
+      !dismissedIds[u.id] &&
+      (!onlyVerified || u.verifications.length > 0)
   );
 
   const people = useMemo(() => {
@@ -211,6 +220,7 @@ export default function Discover() {
                     query,
                     peopleSort,
                     groupSort,
+                    onlyVerified,
                   });
                 }
                 setSavingSearch(false);
@@ -302,6 +312,23 @@ export default function Discover() {
             </Pressable>
           );
         })}
+        {mode === 'People' && (
+          <Pressable
+            onPress={() => setOnlyVerified((v) => !v)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: onlyVerified }}
+            className={`flex-row items-center gap-1.5 rounded-full px-3 py-1.5 ${
+              onlyVerified ? 'bg-sage/20' : 'bg-cream'
+            }`}
+          >
+            {onlyVerified && <Ionicons name="checkmark" size={13} className="text-sage" />}
+            <Text
+              className={`text-xs font-medium ${onlyVerified ? 'text-sage' : 'text-charcoal/60'}`}
+            >
+              Verified only
+            </Text>
+          </Pressable>
+        )}
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="px-5 pb-8">
