@@ -17,7 +17,10 @@ export default function TabsLayout() {
   const notifUnread = useNotificationsStore(
     (s) =>
       s.notifications.filter(
-        (n) => !n.read && (!n.actorId || (!mutedIds[n.actorId] && !blockedIds[n.actorId]))
+        (n) =>
+          !n.read &&
+          !s.snoozedUntil[n.id] &&
+          (!n.actorId || (!mutedIds[n.actorId] && !blockedIds[n.actorId]))
       ).length
   );
 
