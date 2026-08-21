@@ -47,7 +47,7 @@ const SECTIONS: LegalSection[] = [
   {
     heading: '5. Data Retention',
     body: [
-      'We retain your information for as long as your account is active. If you delete your account, we remove your profile and associated content, except where retention is required to comply with legal obligations, resolve disputes, or enforce our agreements.',
+      'We retain your information for as long as your account is active. If you delete your account, your profile is cleared right away; signing back in lets you restore it or start fresh. Posts, comments, and other content you’ve shared aren’t automatically removed and may need to be deleted separately, except where retention is required to comply with legal obligations, resolve disputes, or enforce our agreements.',
     ],
   },
   {
@@ -80,7 +80,7 @@ export default function PrivacyPolicy() {
   return (
     <LegalDocument
       title="Privacy Policy"
-      lastUpdated="August 18, 2026"
+      lastUpdated="August 20, 2026"
       intro="This Privacy Policy describes how Neighbor collects, uses, and shares information when you use our app. By using Neighbor, you agree to the collection and use of information as described here."
       sections={SECTIONS}
     />
