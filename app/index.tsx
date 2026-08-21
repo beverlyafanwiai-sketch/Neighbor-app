@@ -19,6 +19,7 @@ import { RESORT_FUN_SVG } from '../assets/illustrations/resort-fun';
 import BackgroundPickerSheet from '../components/BackgroundPickerSheet';
 import { useAuthStore } from '../store/useAuthStore';
 import { useBackgroundStore } from '../store/useBackgroundStore';
+import { useProfileStore } from '../store/useProfileStore';
 
 export default function Login() {
   const session = useAuthStore((s) => s.session);
@@ -26,6 +27,9 @@ export default function Login() {
   const error = useAuthStore((s) => s.error);
   const clearError = useAuthStore((s) => s.clearError);
   const background = useBackgroundStore((s) => s.background);
+  const deletedSnapshot = useProfileStore((s) => s.deletedSnapshot);
+  const reactivateProfile = useProfileStore((s) => s.reactivateProfile);
+  const dismissDeletedSnapshot = useProfileStore((s) => s.dismissDeletedSnapshot);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,8 +37,10 @@ export default function Login() {
   const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => {
-    if (session) router.replace('/(tabs)');
-  }, [session]);
+    if (session && !deletedSnapshot) router.replace('/(tabs)');
+  }, [session, deletedSnapshot]);
+
+  const showReactivatePrompt = Boolean(session && deletedSnapshot);
 
   const handleLogin = async () => {
     clearError();
@@ -131,6 +137,38 @@ export default function Login() {
       </KeyboardAvoidingView>
 
       {showPicker && <BackgroundPickerSheet onClose={() => setShowPicker(false)} />}
+
+      {showReactivatePrompt && deletedSnapshot && (
+        <View className="absolute inset-0 items-center justify-center bg-ink/70 px-8">
+          <View className="w-full gap-4 rounded-3xl bg-cream p-6">
+            <View className="items-center gap-3">
+              <Image
+                source={{ uri: deletedSnapshot.avatar }}
+                className="h-16 w-16 rounded-full border-2 border-terracotta"
+              />
+              <Text className="text-center text-base font-bold text-charcoal">
+                Welcome back{deletedSnapshot.name ? `, ${deletedSnapshot.name}` : ''}
+              </Text>
+              <Text className="text-center text-sm text-charcoal/60">
+                You deleted your account, but your profile is still here. Want it back, or would
+                you rather start fresh?
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => reactivateProfile()}
+              className="items-center rounded-2xl bg-terracotta py-3.5"
+            >
+              <Text className="text-sm font-semibold text-paper">Restore my profile</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => dismissDeletedSnapshot()}
+              className="items-center rounded-2xl bg-sand py-3.5"
+            >
+              <Text className="text-sm font-semibold text-charcoal">Start fresh instead</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }

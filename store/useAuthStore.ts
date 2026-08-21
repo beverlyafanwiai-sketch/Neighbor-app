@@ -78,7 +78,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   deleteAccount: async () => {
     await new Promise((resolve) => setTimeout(resolve, MOCK_AUTH_DELAY_MS));
-    useProfileStore.getState().resetProfile();
+    useProfileStore.getState().deleteProfile();
     set({ session: null, user: null, password: null });
   },
 

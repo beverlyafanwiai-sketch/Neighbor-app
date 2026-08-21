@@ -664,7 +664,8 @@ export default function Settings() {
           {confirmingDeleteAccount ? (
             <View className="gap-3 rounded-2xl bg-terracotta/10 p-4">
               <Text className="text-sm text-charcoal">
-                Delete your account? This removes your profile and can't be undone.
+                Delete your account? Your profile will be cleared right away. If you sign back
+                in, you'll have the option to restore it before it's gone for good.
               </Text>
               <View className="flex-row justify-end gap-4">
                 <Pressable onPress={() => setConfirmingDeleteAccount(false)}>
