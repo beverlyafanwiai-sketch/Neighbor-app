@@ -37,11 +37,11 @@ const SECTIONS: LegalSection[] = [
     heading: '4. Your Privacy Choices',
     body: [
       'Access and export. You can download a copy of your profile data at any time from Settings → Privacy → Export my data.',
-      'Delete your account. You can permanently delete your account from Settings → Account → Delete account. This removes your profile and cannot be undone.',
+      'Delete your account. You can delete your account from Settings → Account → Delete account, which clears your profile right away. If you sign back in afterward, you can restore it or start fresh.',
       'Block and mute. You can block or mute any neighbor to stop seeing their content or prevent them from contacting you, from Settings or their profile.',
       'Location. Location access is optional and only used when you choose to set your neighborhood from your current location. You can deny or revoke this permission in your device settings at any time.',
       'Notifications. You can control which types of notifications you receive, and set quiet hours, from Settings → Notifications.',
-      'Read receipts. You can turn off read receipts for group messages from Settings → Privacy.',
+      'Read receipts. You can turn off read receipts for your messages from Settings → Privacy.',
     ],
   },
   {

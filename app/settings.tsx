@@ -405,8 +405,8 @@ export default function Settings() {
           Muted words
         </Text>
         <Text className="mb-3 text-xs text-charcoal/50">
-          Posts containing these words or phrases are hidden from your home feed and search
-          results.
+          Posts, comments, alerts, and listings containing these words or phrases are hidden
+          across your feed, search, and boards.
         </Text>
         <View className="flex-row items-center gap-2 rounded-full bg-cream px-4 py-2.5">
           <TextInput
