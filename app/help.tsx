@@ -45,7 +45,7 @@ const FAQS: FaqItem[] = [
     category: 'Privacy & Safety',
     question: "What's the difference between muting and blocking someone?",
     answer:
-      "Muting hides a person's posts and messages from your feed and pop-up notifications, but they can still see you and reach out. Blocking is mutual and total — you won't see each other's posts, profiles, or messages anywhere in the app.",
+      "Muting hides a person's posts and messages from your feed and pop-up notifications, but they can still see you and reach out. Blocking is mutual and total — you won't see each other's posts, comments, reactions, or messages anywhere in the app. Their profile stays reachable so you can unblock them later.",
   },
   {
     id: 'unblock',
@@ -66,7 +66,7 @@ const FAQS: FaqItem[] = [
     category: 'Privacy & Safety',
     question: 'Can I download or delete my data?',
     answer:
-      'Yes, both live in Settings. "Export my data" downloads a JSON file of your profile, and "Delete account" under Account permanently removes your data from the app.',
+      'Yes, both live in Settings. "Export my data" downloads a JSON file of your profile, and "Delete account" under Account clears your profile right away — if you sign back in, you can restore it or start fresh. Posts and other content you\'ve shared aren\'t automatically removed.',
   },
   {
     id: 'alerts-expire',
@@ -115,7 +115,7 @@ const FAQS: FaqItem[] = [
     category: 'Events',
     question: 'How does carpooling work for an event?',
     answer:
-      'On an event with carpooling enabled, you can offer to drive with a seat count and optional cost split, or request a ride if you need one. Drivers offer seats to specific riders from the request list.',
+      "On an event with carpooling enabled, you can offer to drive with a seat count and optional cost split, or request a ride if you need one. Drivers can offer seats to specific riders from the request list — if no one claims your request directly, we'll match you with a driver who has room.",
   },
   {
     id: 'events-recurring',
@@ -162,9 +162,9 @@ const FAQS: FaqItem[] = [
   {
     id: 'read-receipts',
     category: 'Messages',
-    question: 'Can people see when I\'ve read their group messages?',
+    question: 'Can people see when I\'ve read their messages?',
     answer:
-      'By default, yes — group chats show "Seen by" under your last read message. You can turn this off under Settings → Privacy → Read receipts; note that turning it off also hides other people\'s read receipts from you.',
+      'By default, yes — direct messages show "Seen" and group chats show "Seen by" under your last read message. You can turn this off under Settings → Privacy → Read receipts.',
   },
   {
     id: 'quiet-hours',
